@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # ---------- Flutter ----------
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - run: |
+          cd app
+          flutter pub get
+          flutter test
+
+      # ---------- Terraform ----------
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init & Validate
+        working-directory: infra
+        run: |
+          terraform init -backend=false
+          terraform validate
