@@ -47,6 +47,15 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r tests/requirements-minimal.txt
 
+      # ---------- Python Code Quality ----------
+      - name: Check Python code formatting with Black
+        run: |
+          black --check tests/ --diff
+
+      - name: Lint Python code with Ruff
+        run: |
+          ruff check tests/ --output-format=github
+
       - name: Setup test database schema
         run: |
           PGPASSWORD=postgres psql -h localhost -U postgres -d test -c "

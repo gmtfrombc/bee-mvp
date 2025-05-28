@@ -21,9 +21,8 @@ Author: BEE Development Team
 import os
 import sys
 import psycopg2
-import pytest
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional
+from datetime import datetime
+from typing import Dict, Optional
 import json
 import uuid
 
@@ -37,24 +36,26 @@ class RLSAuditTester:
     def __init__(self):
         self.db_config = self._get_db_config()
         self.test_users = {
-            'user_a': '11111111-1111-1111-1111-111111111111',
-            'user_b': '22222222-2222-2222-2222-222222222222',
-            'user_c': '33333333-3333-3333-3333-333333333333'
+            "user_a": "11111111-1111-1111-1111-111111111111",
+            "user_b": "22222222-2222-2222-2222-222222222222",
+            "user_c": "33333333-3333-3333-3333-333333333333",
         }
         self.test_results = []
 
     def _get_db_config(self) -> Dict[str, str]:
         """Get database configuration from environment or defaults"""
         return {
-            'host': os.getenv('DB_HOST', 'localhost'),
+            "host": os.getenv("DB_HOST", "localhost"),
             # Default Supabase local port
-            'port': os.getenv('DB_PORT', '54322'),
-            'database': os.getenv('DB_NAME', 'postgres'),
-            'user': os.getenv('DB_USER', 'postgres'),
-            'password': os.getenv('DB_PASSWORD', 'postgres')
+            "port": os.getenv("DB_PORT", "54322"),
+            "database": os.getenv("DB_NAME", "postgres"),
+            "user": os.getenv("DB_USER", "postgres"),
+            "password": os.getenv("DB_PASSWORD", "postgres"),
         }
 
-    def _get_connection(self, user_id: Optional[str] = None) -> psycopg2.extensions.connection:
+    def _get_connection(
+        self, user_id: Optional[str] = None
+    ) -> psycopg2.extensions.connection:
         """Get database connection with optional user context for RLS testing"""
         conn = psycopg2.connect(**self.db_config)
         conn.autocommit = True
@@ -62,18 +63,20 @@ class RLSAuditTester:
         if user_id:
             # Set the auth.uid() context for RLS testing
             with conn.cursor() as cur:
-                cur.execute("SELECT set_config('request.jwt.claims', %s, true)",
-                            (json.dumps({'sub': user_id}),))
+                cur.execute(
+                    "SELECT set_config('request.jwt.claims', %s, true)",
+                    (json.dumps({"sub": user_id}),),
+                )
 
         return conn
 
     def _log_test_result(self, test_name: str, passed: bool, details: str = ""):
         """Log test result for final reporting"""
         result = {
-            'test': test_name,
-            'passed': passed,
-            'details': details,
-            'timestamp': datetime.now().isoformat()
+            "test": test_name,
+            "passed": passed,
+            "details": details,
+            "timestamp": datetime.now().isoformat(),
         }
         self.test_results.append(result)
         status = "PASS" if passed else "FAIL"
@@ -85,30 +88,36 @@ class RLSAuditTester:
             conn = self._get_connection()
             with conn.cursor() as cur:
                 # Check table exists
-                cur.execute("""
+                cur.execute(
+                    """
                     SELECT EXISTS (
                         SELECT FROM information_schema.tables 
                         WHERE table_schema = 'public' 
                         AND table_name = 'engagement_events'
                     )
-                """)
+                """
+                )
                 table_exists = cur.fetchone()[0]
 
                 if not table_exists:
                     self._log_test_result(
-                        "Table Existence", False, "engagement_events table not found")
+                        "Table Existence", False, "engagement_events table not found"
+                    )
                     return False
 
                 # Check RLS is enabled
-                cur.execute("""
+                cur.execute(
+                    """
                     SELECT relrowsecurity 
                     FROM pg_class 
                     WHERE relname = 'engagement_events'
-                """)
+                """
+                )
                 rls_enabled = cur.fetchone()[0]
 
-                self._log_test_result("RLS Enabled", rls_enabled,
-                                      f"RLS enabled: {rls_enabled}")
+                self._log_test_result(
+                    "RLS Enabled", rls_enabled, f"RLS enabled: {rls_enabled}"
+                )
                 return rls_enabled
 
         except Exception as e:
@@ -121,16 +130,20 @@ class RLSAuditTester:
         """Test 2: Verify users can only SELECT their own events"""
         try:
             # Test User A can see their own events
-            conn_a = self._get_connection(self.test_users['user_a'])
+            conn_a = self._get_connection(self.test_users["user_a"])
             with conn_a.cursor() as cur:
-                cur.execute("SELECT COUNT(*) FROM engagement_events WHERE user_id = %s",
-                            (self.test_users['user_a'],))
+                cur.execute(
+                    "SELECT COUNT(*) FROM engagement_events WHERE user_id = %s",
+                    (self.test_users["user_a"],),
+                )
                 user_a_count = cur.fetchone()[0]
 
             # Test User A cannot see User B's events
             with conn_a.cursor() as cur:
-                cur.execute("SELECT COUNT(*) FROM engagement_events WHERE user_id = %s",
-                            (self.test_users['user_b'],))
+                cur.execute(
+                    "SELECT COUNT(*) FROM engagement_events WHERE user_id = %s",
+                    (self.test_users["user_b"],),
+                )
                 user_b_count_from_a = cur.fetchone()[0]
 
             # Test User A sees total events equal to their own events only
@@ -141,10 +154,12 @@ class RLSAuditTester:
             conn_a.close()
 
             # Test User B perspective
-            conn_b = self._get_connection(self.test_users['user_b'])
+            conn_b = self._get_connection(self.test_users["user_b"])
             with conn_b.cursor() as cur:
-                cur.execute("SELECT COUNT(*) FROM engagement_events WHERE user_id = %s",
-                            (self.test_users['user_b'],))
+                cur.execute(
+                    "SELECT COUNT(*) FROM engagement_events WHERE user_id = %s",
+                    (self.test_users["user_b"],),
+                )
                 user_b_count = cur.fetchone()[0]
 
             with conn_b.cursor() as cur:
@@ -155,22 +170,23 @@ class RLSAuditTester:
 
             # Verify isolation
             isolation_passed = (
-                user_b_count_from_a == 0 and  # User A cannot see User B's events
-                total_count_from_a == user_a_count and  # User A only sees their events
-                total_count_from_b == user_b_count and  # User B only sees their events
-                user_a_count > 0 and user_b_count > 0  # Both users have events
+                user_b_count_from_a == 0  # User A cannot see User B's events
+                and total_count_from_a == user_a_count  # User A only sees their events
+                and total_count_from_b == user_b_count  # User B only sees their events
+                and user_a_count > 0
+                and user_b_count > 0  # Both users have events
             )
 
-            details = f"User A sees {user_a_count} own events, {user_b_count_from_a} of User B's events. " \
+            details = (
+                f"User A sees {user_a_count} own events, {user_b_count_from_a} of User B's events. "
                 f"User B sees {user_b_count} own events. Total counts: A={total_count_from_a}, B={total_count_from_b}"
+            )
 
-            self._log_test_result("User Isolation (SELECT)",
-                                  isolation_passed, details)
+            self._log_test_result("User Isolation (SELECT)", isolation_passed, details)
             return isolation_passed
 
         except Exception as e:
-            self._log_test_result("User Isolation (SELECT)",
-                                  False, f"Error: {str(e)}")
+            self._log_test_result("User Isolation (SELECT)", False, f"Error: {str(e)}")
             return False
 
     def test_anonymous_access_denied(self):
@@ -184,14 +200,16 @@ class RLSAuditTester:
 
             conn.close()
 
-            access_denied = (anon_count == 0)
-            self._log_test_result("Anonymous Access Denied", access_denied,
-                                  f"Anonymous user sees {anon_count} events")
+            access_denied = anon_count == 0
+            self._log_test_result(
+                "Anonymous Access Denied",
+                access_denied,
+                f"Anonymous user sees {anon_count} events",
+            )
             return access_denied
 
         except Exception as e:
-            self._log_test_result("Anonymous Access Denied",
-                                  False, f"Error: {str(e)}")
+            self._log_test_result("Anonymous Access Denied", False, f"Error: {str(e)}")
             return False
 
     def test_insert_isolation(self):
@@ -200,74 +218,92 @@ class RLSAuditTester:
             test_event_id = str(uuid.uuid4())
 
             # User A tries to insert event for User B (should fail)
-            conn_a = self._get_connection(self.test_users['user_a'])
+            conn_a = self._get_connection(self.test_users["user_a"])
             insert_failed = False
             try:
                 with conn_a.cursor() as cur:
-                    cur.execute("""
+                    cur.execute(
+                        """
                         INSERT INTO engagement_events (user_id, event_type, value) 
                         VALUES (%s, %s, %s)
-                    """, (self.test_users['user_b'], 'test_unauthorized_insert',
-                          json.dumps({'test_id': test_event_id})))
+                    """,
+                        (
+                            self.test_users["user_b"],
+                            "test_unauthorized_insert",
+                            json.dumps({"test_id": test_event_id}),
+                        ),
+                    )
             except psycopg2.Error:
                 insert_failed = True
 
             conn_a.close()
 
             # User A inserts event for themselves (should succeed)
-            conn_a = self._get_connection(self.test_users['user_a'])
+            conn_a = self._get_connection(self.test_users["user_a"])
             insert_succeeded = False
             try:
                 with conn_a.cursor() as cur:
-                    cur.execute("""
+                    cur.execute(
+                        """
                         INSERT INTO engagement_events (user_id, event_type, value) 
                         VALUES (%s, %s, %s)
-                    """, (self.test_users['user_a'], 'test_authorized_insert',
-                          json.dumps({'test_id': test_event_id})))
+                    """,
+                        (
+                            self.test_users["user_a"],
+                            "test_authorized_insert",
+                            json.dumps({"test_id": test_event_id}),
+                        ),
+                    )
                 insert_succeeded = True
             except psycopg2.Error:
                 pass
 
             # Verify the authorized event was inserted
             with conn_a.cursor() as cur:
-                cur.execute("""
+                cur.execute(
+                    """
                     SELECT COUNT(*) FROM engagement_events 
                     WHERE event_type = 'test_authorized_insert' 
                     AND value->>'test_id' = %s
-                """, (test_event_id,))
+                """,
+                    (test_event_id,),
+                )
                 authorized_count = cur.fetchone()[0]
 
             conn_a.close()
 
             # Verify User B cannot see the unauthorized event
-            conn_b = self._get_connection(self.test_users['user_b'])
+            conn_b = self._get_connection(self.test_users["user_b"])
             with conn_b.cursor() as cur:
-                cur.execute("""
+                cur.execute(
+                    """
                     SELECT COUNT(*) FROM engagement_events 
                     WHERE value->>'test_id' = %s
-                """, (test_event_id,))
+                """,
+                    (test_event_id,),
+                )
                 visible_to_b = cur.fetchone()[0]
 
             conn_b.close()
 
             isolation_passed = (
-                insert_failed and  # Unauthorized insert failed
-                insert_succeeded and  # Authorized insert succeeded
-                authorized_count == 1 and  # Event was created
-                visible_to_b == 0  # User B cannot see User A's event
+                insert_failed  # Unauthorized insert failed
+                and insert_succeeded  # Authorized insert succeeded
+                and authorized_count == 1  # Event was created
+                and visible_to_b == 0  # User B cannot see User A's event
             )
 
-            details = f"Unauthorized insert failed: {insert_failed}, " \
-                f"Authorized insert succeeded: {insert_succeeded}, " \
+            details = (
+                f"Unauthorized insert failed: {insert_failed}, "
+                f"Authorized insert succeeded: {insert_succeeded}, "
                 f"Event created: {authorized_count}, Visible to other user: {visible_to_b}"
+            )
 
-            self._log_test_result("Insert Isolation",
-                                  isolation_passed, details)
+            self._log_test_result("Insert Isolation", isolation_passed, details)
             return isolation_passed
 
         except Exception as e:
-            self._log_test_result("Insert Isolation",
-                                  False, f"Error: {str(e)}")
+            self._log_test_result("Insert Isolation", False, f"Error: {str(e)}")
             return False
 
     def test_service_role_access(self):
@@ -286,26 +322,28 @@ class RLSAuditTester:
             user_counts = {}
             for user_name, user_id in self.test_users.items():
                 with conn.cursor() as cur:
-                    cur.execute("SELECT COUNT(*) FROM engagement_events WHERE user_id = %s",
-                                (user_id,))
+                    cur.execute(
+                        "SELECT COUNT(*) FROM engagement_events WHERE user_id = %s",
+                        (user_id,),
+                    )
                     user_counts[user_name] = cur.fetchone()[0]
 
             conn.close()
 
             # Service role should see all events
             expected_total = sum(user_counts.values())
-            service_access_works = (total_events >= expected_total)
+            service_access_works = total_events >= expected_total
 
-            details = f"Service role sees {total_events} events, " \
+            details = (
+                f"Service role sees {total_events} events, "
                 f"Expected at least {expected_total} from users: {user_counts}"
+            )
 
-            self._log_test_result("Service Role Access",
-                                  service_access_works, details)
+            self._log_test_result("Service Role Access", service_access_works, details)
             return service_access_works
 
         except Exception as e:
-            self._log_test_result("Service Role Access",
-                                  False, f"Error: {str(e)}")
+            self._log_test_result("Service Role Access", False, f"Error: {str(e)}")
             return False
 
     def test_concurrent_user_sessions(self):
@@ -314,7 +352,7 @@ class RLSAuditTester:
             import threading
             import time
 
-            results = {'user_a': [], 'user_b': [], 'errors': []}
+            results = {"user_a": [], "user_b": [], "errors": []}
 
             def query_user_events(user_name: str, user_id: str, iterations: int = 5):
                 """Query events for a user multiple times"""
@@ -322,20 +360,21 @@ class RLSAuditTester:
                     for i in range(iterations):
                         conn = self._get_connection(user_id)
                         with conn.cursor() as cur:
-                            cur.execute(
-                                "SELECT COUNT(*) FROM engagement_events")
+                            cur.execute("SELECT COUNT(*) FROM engagement_events")
                             count = cur.fetchone()[0]
                             results[user_name].append(count)
                         conn.close()
                         time.sleep(0.1)  # Small delay between queries
                 except Exception as e:
-                    results['errors'].append(f"{user_name}: {str(e)}")
+                    results["errors"].append(f"{user_name}: {str(e)}")
 
             # Start concurrent threads
-            thread_a = threading.Thread(target=query_user_events,
-                                        args=('user_a', self.test_users['user_a']))
-            thread_b = threading.Thread(target=query_user_events,
-                                        args=('user_b', self.test_users['user_b']))
+            thread_a = threading.Thread(
+                target=query_user_events, args=("user_a", self.test_users["user_a"])
+            )
+            thread_b = threading.Thread(
+                target=query_user_events, args=("user_b", self.test_users["user_b"])
+            )
 
             thread_a.start()
             thread_b.start()
@@ -345,26 +384,33 @@ class RLSAuditTester:
 
             # Verify consistent results and no cross-contamination
             # All counts should be same
-            user_a_consistent = len(set(results['user_a'])) <= 1
-            user_b_consistent = len(set(results['user_b'])) <= 1
-            no_errors = len(results['errors']) == 0
-            different_counts = (results['user_a'][0] != results['user_b'][0] if
-                                results['user_a'] and results['user_b'] else True)
+            user_a_consistent = len(set(results["user_a"])) <= 1
+            user_b_consistent = len(set(results["user_b"])) <= 1
+            no_errors = len(results["errors"]) == 0
+            different_counts = (
+                results["user_a"][0] != results["user_b"][0]
+                if results["user_a"] and results["user_b"]
+                else True
+            )
 
-            concurrent_passed = (user_a_consistent and user_b_consistent and
-                                 no_errors and different_counts)
+            concurrent_passed = (
+                user_a_consistent
+                and user_b_consistent
+                and no_errors
+                and different_counts
+            )
 
-            details = f"User A counts: {results['user_a']}, " \
-                f"User B counts: {results['user_b']}, " \
+            details = (
+                f"User A counts: {results['user_a']}, "
+                f"User B counts: {results['user_b']}, "
                 f"Errors: {len(results['errors'])}"
+            )
 
-            self._log_test_result("Concurrent Sessions",
-                                  concurrent_passed, details)
+            self._log_test_result("Concurrent Sessions", concurrent_passed, details)
             return concurrent_passed
 
         except Exception as e:
-            self._log_test_result("Concurrent Sessions",
-                                  False, f"Error: {str(e)}")
+            self._log_test_result("Concurrent Sessions", False, f"Error: {str(e)}")
             return False
 
     def run_all_tests(self) -> bool:
@@ -382,7 +428,7 @@ class RLSAuditTester:
             self.test_anonymous_access_denied,
             self.test_insert_isolation,
             self.test_service_role_access,
-            self.test_concurrent_user_sessions
+            self.test_concurrent_user_sessions,
         ]
 
         passed_tests = 0
@@ -405,23 +451,27 @@ class RLSAuditTester:
 
     def _generate_audit_report(self):
         """Generate detailed audit report"""
-        report_file = f"rls_audit_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+        report_file = (
+            f"rls_audit_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+        )
 
         report = {
-            'test_suite': 'BEE Engagement Events RLS Audit',
-            'timestamp': datetime.now().isoformat(),
-            'database_config': {k: v for k, v in self.db_config.items() if k != 'password'},
-            'test_users': self.test_users,
-            'results': self.test_results,
-            'summary': {
-                'total_tests': len(self.test_results),
-                'passed_tests': sum(1 for r in self.test_results if r['passed']),
-                'failed_tests': sum(1 for r in self.test_results if not r['passed']),
-                'success_rate': f"{sum(1 for r in self.test_results if r['passed']) / len(self.test_results) * 100:.1f}%"
-            }
+            "test_suite": "BEE Engagement Events RLS Audit",
+            "timestamp": datetime.now().isoformat(),
+            "database_config": {
+                k: v for k, v in self.db_config.items() if k != "password"
+            },
+            "test_users": self.test_users,
+            "results": self.test_results,
+            "summary": {
+                "total_tests": len(self.test_results),
+                "passed_tests": sum(1 for r in self.test_results if r["passed"]),
+                "failed_tests": sum(1 for r in self.test_results if not r["passed"]),
+                "success_rate": f"{sum(1 for r in self.test_results if r['passed']) / len(self.test_results) * 100:.1f}%",
+            },
         }
 
-        with open(f"tests/db/{report_file}", 'w') as f:
+        with open(f"tests/db/{report_file}", "w") as f:
             json.dump(report, f, indent=2)
 
         print(f"Detailed report saved to: tests/db/{report_file}")

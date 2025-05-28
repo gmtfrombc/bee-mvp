@@ -22,3 +22,7 @@ statistics  # Built-in module
 pytest-html>=3.1.0  # For HTML test reports
 pytest-cov>=4.0.0   # For coverage reports
 pytest-xdist>=2.5.0 # For parallel test execution 
+
+# Code quality and formatting
+black>=23.0.0        # Code formatter
+ruff>=0.1.0          # Fast Python linter

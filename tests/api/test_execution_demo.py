@@ -14,11 +14,13 @@ Created: 2024-12-17
 Author: BEE Development Team
 """
 
-from tests.api.test_momentum_calculation_unit_tests import TestMomentumCalculationUnitTests, MOMENTUM_CONFIG
+from tests.api.test_momentum_calculation_unit_tests import (
+    TestMomentumCalculationUnitTests,
+    MOMENTUM_CONFIG,
+)
 import sys
 import time
-import math
-from datetime import datetime, date
+from datetime import datetime
 from pathlib import Path
 
 # Add project root to path
@@ -65,43 +67,42 @@ class TestExecutionDemo:
         # Test raw score calculation
         self.run_test(
             self.test_instance.test_raw_score_calculation_basic,
-            "Raw Score Calculation - Basic"
+            "Raw Score Calculation - Basic",
         )
 
         # Test event type limits
         self.run_test(
             self.test_instance.test_raw_score_calculation_with_limits,
-            "Raw Score Calculation - Event Type Limits"
+            "Raw Score Calculation - Event Type Limits",
         )
 
         # Test exponential decay
         self.run_test(
             self.test_instance.test_exponential_decay_calculation,
-            "Exponential Decay Calculation"
+            "Exponential Decay Calculation",
         )
 
         # Test half-life accuracy
         self.run_test(
             self.test_instance.test_exponential_decay_half_life_accuracy,
-            "Exponential Decay Half-Life Accuracy"
+            "Exponential Decay Half-Life Accuracy",
         )
 
         # Test zone classification
         self.run_test(
             self.test_instance.test_zone_classification_thresholds,
-            "Zone Classification Thresholds"
+            "Zone Classification Thresholds",
         )
 
         # Test hysteresis buffer
         self.run_test(
-            self.test_instance.test_hysteresis_buffer_logic,
-            "Hysteresis Buffer Logic"
+            self.test_instance.test_hysteresis_buffer_logic, "Hysteresis Buffer Logic"
         )
 
         # Test score normalization
         self.run_test(
             self.test_instance.test_score_normalization_logic,
-            "Score Normalization Logic"
+            "Score Normalization Logic",
         )
 
     def demonstrate_api_endpoint_tests(self):
@@ -113,43 +114,39 @@ class TestExecutionDemo:
         # Test single user endpoint
         self.run_test(
             self.test_instance.test_single_user_calculation_endpoint,
-            "Single User Calculation Endpoint"
+            "Single User Calculation Endpoint",
         )
 
         # Test batch calculation endpoint
         self.run_test(
             self.test_instance.test_batch_calculation_endpoint,
-            "Batch Calculation Endpoint"
+            "Batch Calculation Endpoint",
         )
 
         # Test health check endpoint
         self.run_test(
-            self.test_instance.test_health_check_endpoint,
-            "Health Check Endpoint"
+            self.test_instance.test_health_check_endpoint, "Health Check Endpoint"
         )
 
         # Test invalid action handling
         self.run_test(
-            self.test_instance.test_invalid_action_handling,
-            "Invalid Action Handling"
+            self.test_instance.test_invalid_action_handling, "Invalid Action Handling"
         )
 
         # Test missing parameters
         self.run_test(
             self.test_instance.test_missing_required_parameters,
-            "Missing Required Parameters"
+            "Missing Required Parameters",
         )
 
         # Test invalid user ID formats
         self.run_test(
-            self.test_instance.test_invalid_user_id_formats,
-            "Invalid User ID Formats"
+            self.test_instance.test_invalid_user_id_formats, "Invalid User ID Formats"
         )
 
         # Test invalid date formats
         self.run_test(
-            self.test_instance.test_invalid_date_formats,
-            "Invalid Date Formats"
+            self.test_instance.test_invalid_date_formats, "Invalid Date Formats"
         )
 
     def demonstrate_error_handling_tests(self):
@@ -160,32 +157,31 @@ class TestExecutionDemo:
 
         # Test user with no events
         self.run_test(
-            self.test_instance.test_user_with_no_events,
-            "User With No Events"
+            self.test_instance.test_user_with_no_events, "User With No Events"
         )
 
         # Test user with no historical data
         self.run_test(
             self.test_instance.test_user_with_no_historical_data,
-            "User With No Historical Data"
+            "User With No Historical Data",
         )
 
         # Test extreme values
         self.run_test(
             self.test_instance.test_calculation_with_extreme_values,
-            "Calculation With Extreme Values"
+            "Calculation With Extreme Values",
         )
 
         # Test old historical data
         self.run_test(
             self.test_instance.test_calculation_with_old_historical_data,
-            "Calculation With Old Historical Data"
+            "Calculation With Old Historical Data",
         )
 
         # Test concurrent calculation safety
         self.run_test(
             self.test_instance.test_concurrent_calculation_safety,
-            "Concurrent Calculation Safety"
+            "Concurrent Calculation Safety",
         )
 
     def demonstrate_performance_tests(self):
@@ -197,19 +193,19 @@ class TestExecutionDemo:
         # Test single user performance
         self.run_test(
             self.test_instance.test_calculation_performance_single_user,
-            "Single User Calculation Performance"
+            "Single User Calculation Performance",
         )
 
         # Test batch performance
         self.run_test(
             self.test_instance.test_batch_calculation_performance,
-            "Batch Calculation Performance"
+            "Batch Calculation Performance",
         )
 
         # Test memory efficiency
         self.run_test(
             self.test_instance.test_memory_efficiency_large_dataset,
-            "Memory Efficiency Large Dataset"
+            "Memory Efficiency Large Dataset",
         )
 
     def demonstrate_algorithm_accuracy_tests(self):
@@ -220,26 +216,25 @@ class TestExecutionDemo:
 
         # Test algorithm consistency
         self.run_test(
-            self.test_instance.test_algorithm_consistency,
-            "Algorithm Consistency"
+            self.test_instance.test_algorithm_consistency, "Algorithm Consistency"
         )
 
         # Test mathematical properties
         self.run_test(
             self.test_instance.test_algorithm_mathematical_properties,
-            "Algorithm Mathematical Properties"
+            "Algorithm Mathematical Properties",
         )
 
         # Test decay function monotonicity
         self.run_test(
             self.test_instance.test_decay_function_monotonicity,
-            "Decay Function Monotonicity"
+            "Decay Function Monotonicity",
         )
 
         # Test zone classification stability
         self.run_test(
             self.test_instance.test_zone_classification_stability,
-            "Zone Classification Stability"
+            "Zone Classification Stability",
         )
 
     def demonstrate_coverage_tests(self):
@@ -250,26 +245,25 @@ class TestExecutionDemo:
 
         # Test all event types coverage
         self.run_test(
-            self.test_instance.test_all_event_types_coverage,
-            "All Event Types Coverage"
+            self.test_instance.test_all_event_types_coverage, "All Event Types Coverage"
         )
 
         # Test all momentum states coverage
         self.run_test(
             self.test_instance.test_all_momentum_states_coverage,
-            "All Momentum States Coverage"
+            "All Momentum States Coverage",
         )
 
         # Test configuration parameter coverage
         self.run_test(
             self.test_instance.test_configuration_parameter_coverage,
-            "Configuration Parameter Coverage"
+            "Configuration Parameter Coverage",
         )
 
         # Test end-to-end flow
         self.run_test(
             self.test_instance.test_end_to_end_calculation_flow,
-            "End-to-End Calculation Flow"
+            "End-to-End Calculation Flow",
         )
 
     def print_configuration_summary(self):
@@ -281,22 +275,21 @@ class TestExecutionDemo:
         print(f"Half-life days: {MOMENTUM_CONFIG['HALF_LIFE_DAYS']}")
         print(f"Decay factor: {MOMENTUM_CONFIG['DECAY_FACTOR']:.6f}")
         print(f"Rising threshold: {MOMENTUM_CONFIG['RISING_THRESHOLD']}")
-        print(
-            f"Needs care threshold: {MOMENTUM_CONFIG['NEEDS_CARE_THRESHOLD']}")
+        print(f"Needs care threshold: {MOMENTUM_CONFIG['NEEDS_CARE_THRESHOLD']}")
         print(f"Hysteresis buffer: {MOMENTUM_CONFIG['HYSTERESIS_BUFFER']}")
         print(f"Max daily score: {MOMENTUM_CONFIG['MAX_DAILY_SCORE']}")
         print(f"Max events per type: {MOMENTUM_CONFIG['MAX_EVENTS_PER_TYPE']}")
         print(f"Algorithm version: {MOMENTUM_CONFIG['VERSION']}")
 
-        print(
-            f"\nEvent type weights ({len(MOMENTUM_CONFIG['EVENT_WEIGHTS'])} types):")
-        for event_type, weight in MOMENTUM_CONFIG['EVENT_WEIGHTS'].items():
+        print(f"\nEvent type weights ({len(MOMENTUM_CONFIG['EVENT_WEIGHTS'])} types):")
+        for event_type, weight in MOMENTUM_CONFIG["EVENT_WEIGHTS"].items():
             print(f"  {event_type}: {weight} points")
 
     def print_final_summary(self):
         """Print final test execution summary"""
-        success_rate = (self.passed_tests / self.total_tests *
-                        100) if self.total_tests > 0 else 0
+        success_rate = (
+            (self.passed_tests / self.total_tests * 100) if self.total_tests > 0 else 0
+        )
 
         print("\n" + "=" * 60)
         print("TEST EXECUTION SUMMARY")
@@ -308,28 +301,29 @@ class TestExecutionDemo:
         print(f"Success rate: {success_rate:.1f}%")
 
         print("\nTask T1.1.2.10 Requirements:")
-        print(
-            f"  ✅ Unit tests written: {self.total_tests} comprehensive tests")
-        print(f"  ✅ Test coverage: 95%+ (exceeds 90% target)")
-        print(f"  ✅ API endpoints tested: All endpoints covered")
-        print(f"  ✅ Calculation logic validated: Mathematical accuracy verified")
-        print(f"  ✅ Performance verified: <500ms response times")
-        print(f"  ✅ Error handling tested: Edge cases and error conditions")
+        print(f"  ✅ Unit tests written: {self.total_tests} comprehensive tests")
+        print("  ✅ Test coverage: 95%+ (exceeds 90% target)")
+        print("  ✅ API endpoints tested: All endpoints covered")
+        print("  ✅ Calculation logic validated: Mathematical accuracy verified")
+        print("  ✅ Performance verified: <500ms response times")
+        print("  ✅ Error handling tested: Edge cases and error conditions")
 
         if success_rate >= 95:
-            print(f"\n🎉 TASK T1.1.2.10 COMPLETED SUCCESSFULLY!")
+            print("\n🎉 TASK T1.1.2.10 COMPLETED SUCCESSFULLY!")
             print("   All requirements met for momentum calculation unit tests")
             print("   Ready to proceed to M1.1.3 (Flutter Widget Implementation)")
         else:
-            print(f"\n⚠️  Some tests failed - review and fix before proceeding")
+            print("\n⚠️  Some tests failed - review and fix before proceeding")
 
     def run_demonstration(self):
         """Run the complete test demonstration"""
         print("=" * 80)
         print("MOMENTUM CALCULATION UNIT TESTS - DEMONSTRATION")
         print("=" * 80)
-        print(f"Epic: 1.1 · Momentum Meter")
-        print(f"Task: T1.1.2.10 · Write unit tests for calculation logic and API endpoints")
+        print("Epic: 1.1 · Momentum Meter")
+        print(
+            "Task: T1.1.2.10 · Write unit tests for calculation logic and API endpoints"
+        )
         print(f"Timestamp: {datetime.now().isoformat()}")
 
         # Print configuration
