@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/services/responsive_service.dart';
+import '../../../../core/services/accessibility_service.dart';
 import '../../domain/models/momentum_data.dart';
 
 /// Quick stats cards component displaying lessons, streak, and today's activity
@@ -89,44 +91,102 @@ class _QuickStatsCardsState extends State<QuickStatsCards>
 
   @override
   Widget build(BuildContext context) {
+    final spacing =
+        ResponsiveService.getResponsiveSpacing(context) *
+        0.4; // Smaller spacing between cards
+    final shouldUseCompactLayout = ResponsiveService.shouldUseCompactLayout(
+      context,
+    );
+
     return Container(
       margin: widget.margin,
-      child: Row(
-        children: [
-          Expanded(
-            child: _buildStatCard(
-              index: 0,
-              icon: Icons.menu_book_rounded,
-              value: widget.stats.lessonsRatio,
-              label: 'Lessons',
-              color: AppTheme.momentumRising,
-              onTap: widget.onLessonsTap,
-            ),
+      child:
+          shouldUseCompactLayout
+              ? _buildCompactLayout(spacing)
+              : _buildStandardLayout(spacing),
+    );
+  }
+
+  Widget _buildStandardLayout(double spacing) {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildStatCard(
+            index: 0,
+            icon: Icons.menu_book_rounded,
+            value: widget.stats.lessonsRatio,
+            label: 'Lessons',
+            color: AppTheme.momentumRising,
+            onTap: widget.onLessonsTap,
           ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: _buildStatCard(
-              index: 1,
-              icon: Icons.local_fire_department_rounded,
-              value: widget.stats.streakText,
-              label: 'Streak',
-              color: AppTheme.momentumCare,
-              onTap: widget.onStreakTap,
-            ),
+        ),
+        SizedBox(width: spacing),
+        Expanded(
+          child: _buildStatCard(
+            index: 1,
+            icon: Icons.local_fire_department_rounded,
+            value: widget.stats.streakText,
+            label: 'Streak',
+            color: AppTheme.momentumCare,
+            onTap: widget.onStreakTap,
           ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: _buildStatCard(
-              index: 2,
-              icon: Icons.schedule_rounded,
-              value: widget.stats.todayText,
-              label: 'Today',
-              color: AppTheme.momentumSteady,
-              onTap: widget.onTodayTap,
-            ),
+        ),
+        SizedBox(width: spacing),
+        Expanded(
+          child: _buildStatCard(
+            index: 2,
+            icon: Icons.schedule_rounded,
+            value: widget.stats.todayText,
+            label: 'Today',
+            color: AppTheme.momentumSteady,
+            onTap: widget.onTodayTap,
           ),
-        ],
-      ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCompactLayout(double spacing) {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: _buildStatCard(
+                index: 0,
+                icon: Icons.menu_book_rounded,
+                value: widget.stats.lessonsRatio,
+                label: 'Lessons',
+                color: AppTheme.momentumRising,
+                onTap: widget.onLessonsTap,
+              ),
+            ),
+            SizedBox(width: spacing),
+            Expanded(
+              child: _buildStatCard(
+                index: 1,
+                icon: Icons.local_fire_department_rounded,
+                value: widget.stats.streakText,
+                label: 'Streak',
+                color: AppTheme.momentumCare,
+                onTap: widget.onStreakTap,
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: spacing),
+        SizedBox(
+          width: double.infinity,
+          child: _buildStatCard(
+            index: 2,
+            icon: Icons.schedule_rounded,
+            value: widget.stats.todayText,
+            label: 'Today',
+            color: AppTheme.momentumSteady,
+            onTap: widget.onTodayTap,
+          ),
+        ),
+      ],
     );
   }
 
@@ -227,18 +287,30 @@ class _StatCardState extends State<_StatCard>
             color: Colors.transparent,
             child: InkWell(
               onTap: widget.onTap != null ? _handleTap : null,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(
+                ResponsiveService.getBorderRadius(context),
+              ),
               child: Semantics(
-                label: '${widget.label}: ${widget.value}',
-                hint: widget.onTap != null ? 'Tap for details' : null,
+                label: AccessibilityService.getQuickStatsLabel(
+                  widget.label,
+                  widget.value,
+                  'Quick stat',
+                ),
+                hint: widget.onTap != null ? 'Tap for more details' : null,
+                button: widget.onTap != null,
                 child: Card(
                   elevation: 1,
                   shadowColor: widget.color.withValues(alpha: 0.1),
                   child: Container(
-                    height: 84,
-                    padding: const EdgeInsets.all(10),
+                    height: ResponsiveService.getQuickStatsCardHeight(context),
+                    padding: EdgeInsets.all(
+                      ResponsiveService.getResponsivePadding(context).left *
+                          0.6,
+                    ),
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(
+                        ResponsiveService.getBorderRadius(context),
+                      ),
                       border: Border.all(
                         color: widget.color.withValues(alpha: 0.1),
                         width: 1,
@@ -248,8 +320,19 @@ class _StatCardState extends State<_StatCard>
                       mainAxisAlignment: MainAxisAlignment.center,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(widget.icon, color: widget.color, size: 18),
-                        const SizedBox(height: 2),
+                        Icon(
+                          widget.icon,
+                          color: widget.color,
+                          size: ResponsiveService.getIconSize(
+                            context,
+                            baseSize: 18,
+                          ),
+                        ),
+                        SizedBox(
+                          height:
+                              ResponsiveService.getResponsiveSpacing(context) *
+                              0.1,
+                        ),
                         Flexible(
                           child: Text(
                             widget.value,
@@ -263,12 +346,17 @@ class _StatCardState extends State<_StatCard>
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        const SizedBox(height: 1),
+                        SizedBox(
+                          height:
+                              ResponsiveService.getResponsiveSpacing(context) *
+                              0.05,
+                        ),
                         Flexible(
                           child: Text(
                             widget.label,
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(
+                            style: Theme.of(
+                              context,
+                            ).textTheme.bodySmall?.copyWith(
                               color: AppTheme.textSecondary,
                               fontSize: 11,
                             ),

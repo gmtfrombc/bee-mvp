@@ -1,4 +1,4 @@
-package com.example.app
+package com.momentumhealth.beemvp
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/services/responsive_service.dart';
 import '../providers/loading_state_provider.dart';
 
 /// Enhanced loading indicator with progress and messages
@@ -129,7 +130,7 @@ class _MomentumLoadingIndicatorState
 
         // Progress percentage
         if (widget.showProgress && !isRefreshing) ...[
-          const SizedBox(height: 8),
+          SizedBox(height: ResponsiveService.getSmallSpacing(context)),
           Text(
             '${(progress * 100).round()}%',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -141,7 +142,7 @@ class _MomentumLoadingIndicatorState
 
         // Loading message
         if (widget.showMessage) ...[
-          const SizedBox(height: 12),
+          SizedBox(height: ResponsiveService.getMediumSpacing(context)),
           AnimatedSwitcher(
             duration: const Duration(milliseconds: 300),
             child: Text(
@@ -372,9 +373,9 @@ class LoadingOverlay extends ConsumerWidget {
       color: Colors.black.withValues(alpha: 0.5),
       child: Center(
         child: Card(
-          margin: const EdgeInsets.all(32),
+          margin: ResponsiveService.getLargePadding(context),
           child: Padding(
-            padding: const EdgeInsets.all(24),
+            padding: ResponsiveService.getLargePadding(context),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -383,7 +384,9 @@ class LoadingOverlay extends ConsumerWidget {
                   showMessage: message != null,
                 ),
                 if (message != null) ...[
-                  const SizedBox(height: 16),
+                  SizedBox(
+                    height: ResponsiveService.getResponsiveSpacing(context),
+                  ),
                   Text(
                     message!,
                     style: Theme.of(context).textTheme.bodyLarge,
@@ -391,7 +394,9 @@ class LoadingOverlay extends ConsumerWidget {
                   ),
                 ],
                 if (onCancel != null) ...[
-                  const SizedBox(height: 16),
+                  SizedBox(
+                    height: ResponsiveService.getResponsiveSpacing(context),
+                  ),
                   TextButton(onPressed: onCancel, child: const Text('Cancel')),
                 ],
               ],

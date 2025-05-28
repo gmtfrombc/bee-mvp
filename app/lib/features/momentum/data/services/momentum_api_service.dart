@@ -4,10 +4,14 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../core/services/error_handling_service.dart';
 import '../../../../core/services/connectivity_service.dart';
 import '../../../../core/services/offline_cache_service.dart';
+import 'package:flutter/foundation.dart';
 
 /// API service for momentum-related data operations
 class MomentumApiService {
-  final SupabaseClient _supabase = Supabase.instance.client;
+  final SupabaseClient _supabase;
+
+  /// Constructor that accepts a SupabaseClient instance
+  MomentumApiService(this._supabase);
 
   /// Get current momentum data for the authenticated user
   Future<MomentumData> getCurrentMomentum() async {
@@ -15,17 +19,17 @@ class MomentumApiService {
       () async {
         // Check connectivity first
         if (ConnectivityService.isOffline) {
-          // Try to get cached data when offline
+          // If offline, return cached data or default
           final cachedData = await OfflineCacheService.getCachedMomentumData();
           if (cachedData != null &&
               await OfflineCacheService.isCachedDataValid()) {
-            print('📱 Using cached momentum data (offline)');
+            debugPrint('📱 Using cached momentum data (offline)');
             return cachedData;
-          } else {
-            // Return default data if no valid cache
-            print('📱 No valid cache, using default data (offline)');
-            return _createDefaultMomentumData();
           }
+
+          // No valid cache, return default data
+          debugPrint('📱 No valid cache, using default data (offline)');
+          return _createDefaultMomentumData();
         }
 
         final user = _supabase.auth.currentUser;

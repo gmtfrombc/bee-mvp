@@ -3,7 +3,13 @@ import 'demo_auth_service.dart';
 
 /// Authentication service for handling user authentication
 class AuthService {
-  final SupabaseClient _supabase = Supabase.instance.client;
+  final SupabaseClient _supabase;
+  late final DemoAuthService _demoAuthService;
+
+  /// Constructor that accepts a SupabaseClient instance
+  AuthService(this._supabase) {
+    _demoAuthService = DemoAuthService(_supabase);
+  }
 
   /// Get current authenticated user
   User? get currentUser => _supabase.auth.currentUser;
@@ -15,7 +21,7 @@ class AuthService {
   Future<void> signInAnonymously() async {
     try {
       if (!isAuthenticated) {
-        final user = await DemoAuthService.authenticateForDemo();
+        final user = await _demoAuthService.authenticateForDemo();
         if (user == null) {
           throw Exception('Failed to authenticate with any method');
         }

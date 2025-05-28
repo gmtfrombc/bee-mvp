@@ -1,57 +1,52 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/auth_service.dart';
+import 'supabase_provider.dart';
 
 /// Provider for the authentication service
-final authServiceProvider = Provider<AuthService>((ref) {
-  return AuthService();
+final authServiceProvider = FutureProvider<AuthService>((ref) async {
+  final supabaseClient = await ref.watch(supabaseProvider.future);
+  return AuthService(supabaseClient);
 });
 
 /// Provider for current user
-final currentUserProvider = StateProvider<User?>((ref) {
-  final authService = ref.watch(authServiceProvider);
+final currentUserProvider = FutureProvider<User?>((ref) async {
+  final authService = await ref.watch(authServiceProvider.future);
   return authService.currentUser;
 });
 
 /// Provider for authentication state
-final authStateProvider = StreamProvider<AuthState>((ref) {
-  final authService = ref.watch(authServiceProvider);
-  return authService.authStateChanges;
+final authStateProvider = StreamProvider<AuthState>((ref) async* {
+  final authService = await ref.watch(authServiceProvider.future);
+  yield* authService.authStateChanges;
 });
 
 /// Provider for checking if user is authenticated
-final isAuthenticatedProvider = Provider<bool>((ref) {
-  final user = ref.watch(currentUserProvider);
+final isAuthenticatedProvider = FutureProvider<bool>((ref) async {
+  final user = await ref.watch(currentUserProvider.future);
   return user != null;
 });
 
 /// Auth notifier for managing authentication actions
-final authNotifierProvider =
-    StateNotifierProvider<AuthNotifier, AsyncValue<User?>>((ref) {
-      final authService = ref.watch(authServiceProvider);
-      return AuthNotifier(authService, ref);
-    });
+final authNotifierProvider = AsyncNotifierProvider<AuthNotifier, User?>(() {
+  return AuthNotifier();
+});
 
-class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
-  final AuthService _authService;
-  final Ref _ref;
+class AuthNotifier extends AsyncNotifier<User?> {
+  AuthService? _authService;
 
-  AuthNotifier(this._authService, this._ref)
-    : super(AsyncValue.data(_authService.currentUser)) {
-    // Listen to auth state changes
-    _authService.authStateChanges.listen((authState) {
-      state = AsyncValue.data(authState.session?.user);
-      // Update the current user provider
-      _ref.read(currentUserProvider.notifier).state = authState.session?.user;
-    });
+  @override
+  Future<User?> build() async {
+    _authService = await ref.watch(authServiceProvider.future);
+    return _authService!.currentUser;
   }
 
   /// Sign in anonymously for demo purposes
   Future<void> signInAnonymously() async {
     state = const AsyncValue.loading();
     try {
-      await _authService.signInAnonymously();
-      state = AsyncValue.data(_authService.currentUser);
+      await _authService!.signInAnonymously();
+      state = AsyncValue.data(_authService!.currentUser);
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
     }
@@ -64,8 +59,8 @@ class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
   }) async {
     state = const AsyncValue.loading();
     try {
-      await _authService.signInWithEmail(email: email, password: password);
-      state = AsyncValue.data(_authService.currentUser);
+      await _authService!.signInWithEmail(email: email, password: password);
+      state = AsyncValue.data(_authService!.currentUser);
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
     }
@@ -78,8 +73,8 @@ class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
   }) async {
     state = const AsyncValue.loading();
     try {
-      await _authService.signUpWithEmail(email: email, password: password);
-      state = AsyncValue.data(_authService.currentUser);
+      await _authService!.signUpWithEmail(email: email, password: password);
+      state = AsyncValue.data(_authService!.currentUser);
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
     }
@@ -89,7 +84,7 @@ class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
   Future<void> signOut() async {
     state = const AsyncValue.loading();
     try {
-      await _authService.signOut();
+      await _authService!.signOut();
       state = const AsyncValue.data(null);
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);

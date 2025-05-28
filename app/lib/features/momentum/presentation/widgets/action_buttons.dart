@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/services/responsive_service.dart';
+import '../../../../core/services/accessibility_service.dart';
 
 /// Action buttons component with state-appropriate suggestions
 /// Two buttons: "Learn" and "Share" with animations and proper styling
@@ -106,7 +108,7 @@ class _ActionButtonsState extends State<ActionButtons>
             _getMotivationalMessage(),
             style: Theme.of(context).textTheme.titleMedium,
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: ResponsiveService.getResponsiveSpacing(context)),
           Row(
             children: [
               Expanded(
@@ -118,7 +120,7 @@ class _ActionButtonsState extends State<ActionButtons>
                   onTap: widget.onLearnTap,
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: ResponsiveService.getMediumSpacing(context)),
               Expanded(
                 child: _buildActionButton(
                   index: 1,
@@ -225,8 +227,12 @@ class _ActionButtonState extends State<_ActionButton>
         return Transform.scale(
           scale: _scaleAnimation.value,
           child: Semantics(
-            label: widget.label,
+            label: AccessibilityService.getActionButtonLabel(
+              widget.label,
+              'Action button',
+            ),
             hint: 'Tap to ${widget.label.toLowerCase()}',
+            button: true,
             child: ElevatedButton.icon(
               onPressed: widget.onTap != null ? _handleTap : null,
               icon: Icon(widget.icon, size: 18),
@@ -237,7 +243,9 @@ class _ActionButtonState extends State<_ActionButton>
                 elevation: 2,
                 shadowColor: widget.color.withValues(alpha: 0.3),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(
+                    ResponsiveService.getBorderRadius(context),
+                  ),
                 ),
                 minimumSize: const Size(double.infinity, 48),
                 textStyle: const TextStyle(

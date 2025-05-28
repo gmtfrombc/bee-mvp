@@ -44,6 +44,12 @@ dependencies:
   postgres: ^3.5.6
   http: ^1.2.0
   
+  # Firebase & Notifications
+  firebase_core: ^2.24.2
+  firebase_messaging: ^14.7.10
+  permission_handler: ^11.2.0
+  app_links: ^3.5.1
+  
   # Charts & Visualization
   fl_chart: ^0.69.0
   
@@ -54,6 +60,7 @@ dependencies:
   intl: ^0.19.0
   shared_preferences: ^2.2.2
   connectivity_plus: ^6.0.5
+  flutter_dotenv: ^5.1.0
 
 dev_dependencies:
   flutter_test:
@@ -65,6 +72,17 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
+  
+  # Code Generation
+  riverpod_generator: ^2.4.0
+  build_runner: ^2.4.12
+  json_annotation: ^4.9.0
+  json_serializable: ^6.8.0
+
+  # Testing
+  mockito: ^5.4.4
+  integration_test:
+    sdk: flutter
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -113,6 +131,7 @@ flutter:
     - assets/images/
     - assets/animations/
     - assets/icons/
+    - .env
 
   # Custom fonts for BEE design system (TODO: Add actual font files)
   # fonts:
@@ -125,14 +144,3 @@ flutter:
   #         weight: 600
   #       - asset: assets/fonts/BEE-Bold.ttf
   #         weight: 700
-
-# Code Generation
-riverpod_generator: ^2.4.0
-build_runner: ^2.4.12
-json_annotation: ^4.9.0
-json_serializable: ^6.8.0
-
-# Testing
-mockito: ^5.4.4
-integration_test:
-  sdk: flutter

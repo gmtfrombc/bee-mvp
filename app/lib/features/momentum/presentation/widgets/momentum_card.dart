@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/services/responsive_service.dart';
+import '../../../../core/services/accessibility_service.dart';
 import '../../domain/models/momentum_data.dart';
 import 'momentum_gauge.dart';
 
@@ -100,9 +102,11 @@ class _MomentumCardState extends State<MomentumCard>
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final cardHeight = widget.height ?? _getResponsiveHeight(screenWidth);
-    final cardMargin = widget.margin ?? _getResponsiveMargin(screenWidth);
+    final cardHeight =
+        widget.height ?? ResponsiveService.getMomentumCardHeight(context);
+    final cardMargin =
+        widget.margin ?? ResponsiveService.getResponsiveMargin(context);
+    final borderRadius = ResponsiveService.getBorderRadius(context);
 
     return AnimatedBuilder(
       animation: Listenable.merge([_fadeAnimation, _scaleAnimation]),
@@ -117,11 +121,16 @@ class _MomentumCardState extends State<MomentumCard>
                 color: Colors.transparent,
                 child: InkWell(
                   onTap: widget.onTap != null ? _handleTap : null,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(borderRadius),
                   child: Semantics(
-                    label:
-                        'Momentum card showing ${widget.momentumData.state.name} state',
-                    hint: widget.onTap != null ? 'Tap for details' : null,
+                    label: AccessibilityService.getMomentumCardLabel(
+                      widget.momentumData,
+                    ),
+                    hint:
+                        widget.onTap != null
+                            ? AccessibilityService.getMomentumGaugeHint()
+                            : null,
+                    button: widget.onTap != null,
                     child: Card(
                       elevation: 2,
                       shadowColor: AppTheme.getMomentumColor(
@@ -129,9 +138,11 @@ class _MomentumCardState extends State<MomentumCard>
                       ).withValues(alpha: 0.1),
                       child: Container(
                         height: cardHeight,
-                        padding: const EdgeInsets.all(16),
+                        padding: ResponsiveService.getResponsivePadding(
+                          context,
+                        ),
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(borderRadius),
                           gradient: _getCardGradient(),
                         ),
                         child: Column(
@@ -156,12 +167,13 @@ class _MomentumCardState extends State<MomentumCard>
   }
 
   Widget _buildHeader() {
-    return Text(
+    return AccessibilityService.createAccessibleText(
       'YOUR MOMENTUM',
-      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+      baseStyle: Theme.of(context).textTheme.labelLarge!.copyWith(
         color: AppTheme.textSecondary,
         letterSpacing: 0.5,
       ),
+      context: context,
     );
   }
 
@@ -171,20 +183,22 @@ class _MomentumCardState extends State<MomentumCard>
       mainAxisSize: MainAxisSize.min,
       children: [
         Flexible(
-          child: ResponsiveMomentumGauge(
+          child: MomentumGauge(
             state: widget.momentumData.state,
             percentage: widget.momentumData.percentage,
             onTap: widget.onTap,
             showGlow: true,
+            size: ResponsiveService.getMomentumGaugeSize(context),
           ),
         ),
-        const SizedBox(height: 8),
-        Text(
+        SizedBox(height: ResponsiveService.getSmallSpacing(context)),
+        AccessibilityService.createAccessibleText(
           _getStateDisplayText(),
-          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+          baseStyle: Theme.of(context).textTheme.headlineMedium!.copyWith(
             color: AppTheme.getMomentumColor(widget.momentumData.state),
             fontWeight: FontWeight.w600,
           ),
+          context: context,
         ),
       ],
     );
@@ -193,17 +207,19 @@ class _MomentumCardState extends State<MomentumCard>
   Widget _buildMessageSection() {
     return Flexible(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        child: Text(
+        padding: EdgeInsets.symmetric(
+          horizontal: ResponsiveService.getSmallSpacing(context),
+        ),
+        child: AccessibilityService.createAccessibleText(
           widget.momentumData.message,
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+          baseStyle: Theme.of(context).textTheme.titleLarge!.copyWith(
             color: AppTheme.textPrimary,
             fontWeight: FontWeight.w500,
             height: 1.3,
           ),
+          context: context,
           textAlign: TextAlign.center,
           maxLines: 2,
-          overflow: TextOverflow.ellipsis,
         ),
       ),
     );
@@ -212,14 +228,16 @@ class _MomentumCardState extends State<MomentumCard>
   Widget _buildProgressBar() {
     return Column(
       children: [
-        const SizedBox(height: 8),
+        SizedBox(height: ResponsiveService.getSmallSpacing(context)),
         Row(
           children: [
             Expanded(
               child: Container(
                 height: 4,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(
+                    ResponsiveService.getBorderRadius(context) * 0.25,
+                  ),
                   color: AppTheme.textTertiary.withValues(alpha: 0.3),
                 ),
                 child: FractionallySizedBox(
@@ -227,7 +245,9 @@ class _MomentumCardState extends State<MomentumCard>
                   widthFactor: widget.momentumData.percentage / 100,
                   child: Container(
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(2),
+                      borderRadius: BorderRadius.circular(
+                        ResponsiveService.getBorderRadius(context) * 0.25,
+                      ),
                       color: AppTheme.getMomentumColor(
                         widget.momentumData.state,
                       ),
@@ -236,7 +256,7 @@ class _MomentumCardState extends State<MomentumCard>
                 ),
               ),
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: ResponsiveService.getSmallSpacing(context)),
             Text(
               '${widget.momentumData.percentage.round()}% this week',
               style: Theme.of(
@@ -267,22 +287,6 @@ class _MomentumCardState extends State<MomentumCard>
       end: Alignment.bottomRight,
       colors: [AppTheme.surfacePrimary, color.withValues(alpha: 0.02)],
     );
-  }
-
-  double _getResponsiveHeight(double screenWidth) {
-    if (screenWidth <= 375) {
-      return 180; // Compact for small screens
-    } else if (screenWidth >= 428) {
-      return 220; // Spacious for large screens
-    }
-    return 200; // Default height
-  }
-
-  EdgeInsets _getResponsiveMargin(double screenWidth) {
-    if (screenWidth <= 375) {
-      return const EdgeInsets.symmetric(horizontal: 12);
-    }
-    return const EdgeInsets.symmetric(horizontal: 16);
   }
 
   @override

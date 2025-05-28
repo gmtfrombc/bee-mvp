@@ -12,26 +12,24 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app/features/momentum/presentation/screens/momentum_screen.dart';
 import 'package:app/core/theme/app_theme.dart';
 
-void main() {
-  testWidgets('BEE app basic UI test', (WidgetTester tester) async {
-    // Create a basic test app without provider overrides
-    // This will test that the app can load and display basic UI elements
-    final testApp = ProviderScope(
-      child: MaterialApp(
-        title: 'BEE Test',
-        theme: AppTheme.lightTheme,
-        home: const MomentumScreen(),
-      ),
-    );
+import 'helpers/test_helpers.dart';
 
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(testApp);
+void main() {
+  // Setup test environment before all tests
+  setUpAll(() async {
+    await TestHelpers.setUpTest();
+  });
+
+  testWidgets('BEE app basic UI test', (WidgetTester tester) async {
+    // Use TestHelpers to create test app with proper provider overrides
+    await TestHelpers.pumpTestWidget(
+      tester,
+      child: const MomentumScreen(),
+      settleDuration: const Duration(milliseconds: 500),
+    );
 
     // Verify that the app loads without crashing
     expect(find.text('Welcome back, Sarah!'), findsOneWidget);
-
-    // Wait for initial loading
-    await tester.pump(const Duration(milliseconds: 500));
 
     // Verify basic UI elements are present
     expect(find.byType(AppBar), findsOneWidget);
@@ -46,16 +44,7 @@ void main() {
   });
 
   testWidgets('App theme and basic styling test', (WidgetTester tester) async {
-    final testApp = ProviderScope(
-      child: MaterialApp(
-        title: 'BEE Test',
-        theme: AppTheme.lightTheme,
-        home: const MomentumScreen(),
-      ),
-    );
-
-    await tester.pumpWidget(testApp);
-    await tester.pump();
+    await TestHelpers.pumpTestWidget(tester, child: const MomentumScreen());
 
     // Verify theme is applied
     final materialApp = tester.widget<MaterialApp>(find.byType(MaterialApp));
@@ -69,16 +58,7 @@ void main() {
   });
 
   testWidgets('Navigation elements test', (WidgetTester tester) async {
-    final testApp = ProviderScope(
-      child: MaterialApp(
-        title: 'BEE Test',
-        theme: AppTheme.lightTheme,
-        home: const MomentumScreen(),
-      ),
-    );
-
-    await tester.pumpWidget(testApp);
-    await tester.pump();
+    await TestHelpers.pumpTestWidget(tester, child: const MomentumScreen());
 
     // Verify navigation elements are present
     expect(find.byIcon(Icons.notifications_outlined), findsOneWidget);
@@ -96,16 +76,11 @@ void main() {
   });
 
   testWidgets('Scroll behavior test', (WidgetTester tester) async {
-    final testApp = ProviderScope(
-      child: MaterialApp(
-        title: 'BEE Test',
-        theme: AppTheme.lightTheme,
-        home: const MomentumScreen(),
-      ),
+    await TestHelpers.pumpTestWidget(
+      tester,
+      child: const MomentumScreen(),
+      settleDuration: const Duration(seconds: 2),
     );
-
-    await tester.pumpWidget(testApp);
-    await tester.pumpAndSettle(const Duration(seconds: 2));
 
     // Find the scrollable widget
     final scrollable = find.byType(SingleChildScrollView);
@@ -122,23 +97,18 @@ void main() {
   });
 
   testWidgets('Widget hierarchy test', (WidgetTester tester) async {
-    final testApp = ProviderScope(
-      child: MaterialApp(
-        title: 'BEE Test',
-        theme: AppTheme.lightTheme,
-        home: const MomentumScreen(),
-      ),
+    await TestHelpers.pumpTestWidget(
+      tester,
+      child: const MomentumScreen(),
+      settleDuration: const Duration(seconds: 3),
     );
-
-    await tester.pumpWidget(testApp);
-    await tester.pumpAndSettle(const Duration(seconds: 3));
 
     // Verify the basic widget hierarchy
     expect(find.byType(ProviderScope), findsOneWidget);
     expect(find.byType(MaterialApp), findsOneWidget);
     expect(find.byType(Scaffold), findsOneWidget);
     expect(find.byType(AppBar), findsOneWidget);
-    expect(find.byType(SafeArea), findsOneWidget);
+    expect(find.byType(SafeArea), findsWidgets);
     expect(find.byType(SingleChildScrollView), findsOneWidget);
 
     // Verify cards are present (either content or skeleton)

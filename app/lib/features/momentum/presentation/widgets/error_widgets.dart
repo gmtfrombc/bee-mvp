@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/services/responsive_service.dart';
 import '../../../../core/services/error_handling_service.dart';
 import '../../../../core/services/connectivity_service.dart';
 import '../../../../core/services/offline_cache_service.dart';
@@ -25,21 +26,21 @@ class MomentumErrorWidget extends ConsumerWidget {
     final isOffline = ref.watch(isOfflineProvider);
 
     return Card(
-      margin: const EdgeInsets.all(16),
+      margin: ResponsiveService.getResponsivePadding(context),
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: ResponsiveService.getResponsivePadding(context),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             // Error icon and title
             _buildErrorHeader(context, isOffline),
 
-            const SizedBox(height: 16),
+            SizedBox(height: ResponsiveService.getResponsiveSpacing(context)),
 
             // Error message
             _buildErrorMessage(context, isOffline),
 
-            const SizedBox(height: 20),
+            SizedBox(height: ResponsiveService.getResponsiveSpacing(context)),
 
             // Cache info (if offline and cache available)
             if (showCacheInfo && isOffline) _buildCacheInfo(context),
@@ -82,7 +83,7 @@ class MomentumErrorWidget extends ConsumerWidget {
     return Column(
       children: [
         Icon(icon, size: 48, color: iconColor),
-        const SizedBox(height: 12),
+        SizedBox(height: ResponsiveService.getMediumSpacing(context)),
         Text(
           title,
           style: Theme.of(
@@ -126,17 +127,21 @@ class MomentumErrorWidget extends ConsumerWidget {
 
         if (!hasCachedData) {
           return Container(
-            padding: const EdgeInsets.all(12),
-            margin: const EdgeInsets.only(bottom: 16),
+            padding: ResponsiveService.getSmallPadding(context),
+            margin: EdgeInsets.only(
+              bottom: ResponsiveService.getResponsiveSpacing(context),
+            ),
             decoration: BoxDecoration(
               color: Colors.orange.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(
+                ResponsiveService.getBorderRadius(context),
+              ),
               border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
             ),
             child: Row(
               children: [
                 Icon(Icons.info_outline, color: Colors.orange, size: 20),
-                const SizedBox(width: 8),
+                SizedBox(width: ResponsiveService.getSmallSpacing(context)),
                 Expanded(
                   child: Text(
                     'No cached data available. Connect to internet to load your momentum.',
@@ -160,11 +165,15 @@ class MomentumErrorWidget extends ConsumerWidget {
                 : 'unknown';
 
         return Container(
-          padding: const EdgeInsets.all(12),
-          margin: const EdgeInsets.only(bottom: 16),
+          padding: ResponsiveService.getSmallPadding(context),
+          margin: EdgeInsets.only(
+            bottom: ResponsiveService.getResponsiveSpacing(context),
+          ),
           decoration: BoxDecoration(
             color: AppTheme.momentumSteady.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(
+              ResponsiveService.getBorderRadius(context),
+            ),
             border: Border.all(
               color: AppTheme.momentumSteady.withValues(alpha: 0.3),
             ),
@@ -172,7 +181,7 @@ class MomentumErrorWidget extends ConsumerWidget {
           child: Row(
             children: [
               Icon(Icons.cached, color: AppTheme.momentumSteady, size: 20),
-              const SizedBox(width: 8),
+              SizedBox(width: ResponsiveService.getSmallSpacing(context)),
               Expanded(
                 child: Text(
                   'Showing cached data from $ageText',
@@ -199,14 +208,16 @@ class MomentumErrorWidget extends ConsumerWidget {
             icon: Icon(isOffline ? Icons.wifi_off : Icons.refresh),
             label: Text(isOffline ? 'Waiting for Connection' : 'Try Again'),
             style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 12),
+              padding: EdgeInsets.symmetric(
+                vertical: ResponsiveService.getMediumSpacing(context),
+              ),
             ),
           ),
         ),
 
         // Secondary actions
         if (!isOffline && error?.type == ErrorType.authentication) ...[
-          const SizedBox(height: 8),
+          SizedBox(height: ResponsiveService.getSmallSpacing(context)),
           TextButton(
             onPressed: () {
               // TODO: Navigate to sign in
@@ -221,7 +232,7 @@ class MomentumErrorWidget extends ConsumerWidget {
         ],
 
         if (error?.type == ErrorType.server) ...[
-          const SizedBox(height: 8),
+          SizedBox(height: ResponsiveService.getSmallSpacing(context)),
           TextButton(
             onPressed: () {
               // Show error details
@@ -246,14 +257,16 @@ class MomentumErrorWidget extends ConsumerWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text('Type: ${error?.type.name ?? 'Unknown'}'),
-                  const SizedBox(height: 8),
+                  SizedBox(height: ResponsiveService.getSmallSpacing(context)),
                   Text('Severity: ${error?.severity.name ?? 'Unknown'}'),
-                  const SizedBox(height: 8),
+                  SizedBox(height: ResponsiveService.getSmallSpacing(context)),
                   Text('Time: ${error?.timestamp.toString() ?? 'Unknown'}'),
-                  const SizedBox(height: 8),
+                  SizedBox(height: ResponsiveService.getSmallSpacing(context)),
                   Text('Message: ${error?.message ?? 'No details available'}'),
                   if (error?.context != null) ...[
-                    const SizedBox(height: 8),
+                    SizedBox(
+                      height: ResponsiveService.getSmallSpacing(context),
+                    ),
                     Text('Context: ${error!.context.toString()}'),
                   ],
                 ],
@@ -288,10 +301,12 @@ class CompactErrorWidget extends ConsumerWidget {
     final isOffline = ref.watch(isOfflineProvider);
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: ResponsiveService.getSmallPadding(context),
       decoration: BoxDecoration(
         color: AppTheme.momentumCare.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(
+          ResponsiveService.getBorderRadius(context),
+        ),
         border: Border.all(color: AppTheme.momentumCare.withValues(alpha: 0.3)),
       ),
       child: Row(
@@ -301,7 +316,7 @@ class CompactErrorWidget extends ConsumerWidget {
             color: AppTheme.momentumCare,
             size: 20,
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: ResponsiveService.getSmallSpacing(context)),
           Expanded(
             child: Text(
               message ??
@@ -314,13 +329,19 @@ class CompactErrorWidget extends ConsumerWidget {
             ),
           ),
           if (showRetryButton && !isOffline) ...[
-            const SizedBox(width: 8),
+            SizedBox(width: ResponsiveService.getSmallSpacing(context)),
             IconButton(
               onPressed: onRetry,
               icon: const Icon(Icons.refresh),
               iconSize: 20,
-              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-              padding: EdgeInsets.zero,
+              constraints: BoxConstraints(
+                minWidth: ResponsiveService.getResponsiveSpacing(context) * 1.6,
+                minHeight:
+                    ResponsiveService.getResponsiveSpacing(context) * 1.6,
+              ),
+              padding: EdgeInsets.all(
+                ResponsiveService.getSmallSpacing(context) * 0.25,
+              ),
             ),
           ],
         ],
@@ -341,12 +362,15 @@ class OfflineBanner extends ConsumerWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: EdgeInsets.symmetric(
+        horizontal: ResponsiveService.getResponsiveSpacing(context),
+        vertical: ResponsiveService.getSmallSpacing(context),
+      ),
       color: AppTheme.momentumCare,
       child: Row(
         children: [
           const Icon(Icons.wifi_off, color: Colors.white, size: 16),
-          const SizedBox(width: 8),
+          SizedBox(width: ResponsiveService.getSmallSpacing(context)),
           Expanded(
             child: Text(
               'You\'re offline. Showing cached data.',

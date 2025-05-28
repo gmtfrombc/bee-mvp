@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/foundation.dart';
 
 /// Connectivity states for the app
 enum ConnectivityStatus {
@@ -34,8 +35,10 @@ class ConnectivityService {
     _subscription = _connectivity.onConnectivityChanged.listen(
       _updateStatus,
       onError: (error) {
-        print('Connectivity monitoring error: $error');
-        _updateStatus([ConnectivityResult.none]);
+        debugPrint('Connectivity monitoring error: $error');
+        // Set to offline on error to be safe
+        _currentStatus = ConnectivityStatus.offline;
+        _updateStream();
       },
     );
   }
@@ -51,8 +54,7 @@ class ConnectivityService {
 
     if (newStatus != _currentStatus) {
       _currentStatus = newStatus;
-      _statusController.add(_currentStatus);
-      print('Connectivity status changed: $_currentStatus');
+      _updateStream();
     }
   }
 
@@ -69,7 +71,7 @@ class ConnectivityService {
       final result = await _connectivity.checkConnectivity();
       return result.any((r) => r != ConnectivityResult.none);
     } catch (e) {
-      print('Internet connectivity test failed: $e');
+      debugPrint('Internet connectivity test failed: $e');
       return false;
     }
   }
@@ -78,6 +80,11 @@ class ConnectivityService {
   static Future<void> dispose() async {
     await _subscription?.cancel();
     await _statusController.close();
+  }
+
+  static void _updateStream() {
+    debugPrint('Connectivity status changed: $_currentStatus');
+    _statusController.add(_currentStatus);
   }
 }
 
