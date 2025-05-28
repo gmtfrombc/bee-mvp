@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'notification_preferences_service.dart';
 
 /// Service for manually triggering push notifications and managing notification triggers
 class PushNotificationTriggerService {
@@ -10,26 +11,52 @@ class PushNotificationTriggerService {
   PushNotificationTriggerService._();
 
   final _supabase = Supabase.instance.client;
+  final _prefsService = NotificationPreferencesService.instance;
 
   /// Manually trigger push notifications for a specific user
   Future<TriggerResult> triggerUserNotifications({
     required String userId,
     TriggerType triggerType = TriggerType.manual,
     MomentumData? momentumData,
+    NotificationType? notificationType,
   }) async {
     try {
+      // Check user preferences before triggering
+      if (notificationType != null &&
+          !_prefsService.shouldSendNotificationType(notificationType)) {
+        if (kDebugMode) {
+          print(
+            '🚫 Notification blocked by user preferences: ${notificationType.name}',
+          );
+        }
+        return TriggerResult(
+          success: false,
+          error: 'Notification blocked by user preferences',
+          results: [],
+        );
+      }
+
       final response = await _supabase.functions.invoke(
         'push-notification-triggers',
         body: {
           'user_id': userId,
           'trigger_type': triggerType.name,
+          'notification_type': notificationType?.name,
+          'user_preferences': _prefsService.getAllPreferences(),
           if (momentumData != null) 'momentum_data': momentumData.toJson(),
         },
       );
 
       if (response.status == 200) {
         final data = response.data as Map<String, dynamic>;
-        return TriggerResult.fromJson(data);
+        final result = TriggerResult.fromJson(data);
+
+        // Record notification sent if successful
+        if (result.success && result.results.isNotEmpty) {
+          await _prefsService.recordNotificationSent();
+        }
+
+        return result;
       } else {
         throw Exception('Failed to trigger notifications: ${response.status}');
       }

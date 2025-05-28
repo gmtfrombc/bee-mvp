@@ -17,6 +17,7 @@ import '../widgets/skeleton_widgets.dart';
 import '../widgets/loading_indicator.dart';
 import '../widgets/error_widgets.dart';
 import '../../../../core/services/error_handling_service.dart';
+import 'notification_settings_screen.dart';
 
 /// Main momentum meter screen
 /// Displays the user's current momentum state and provides quick actions
@@ -39,7 +40,11 @@ class MomentumScreen extends ConsumerWidget {
             child: IconButton(
               icon: const Icon(Icons.notifications_outlined),
               onPressed: () {
-                // TODO: Navigate to notifications
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const NotificationSettingsScreen(),
+                  ),
+                );
               },
             ),
           ),

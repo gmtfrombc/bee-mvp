@@ -12,6 +12,7 @@ import 'core/services/notification_action_dispatcher.dart';
 import 'core/services/fcm_token_service.dart';
 import 'core/providers/supabase_provider.dart';
 import 'features/momentum/presentation/screens/momentum_screen.dart';
+import 'core/services/notification_preferences_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,6 +39,14 @@ void main() async {
   } catch (e) {
     debugPrint('❌ Failed to initialize Firebase: $e');
     // Continue without Firebase for development
+  }
+
+  // Initialize notification preferences
+  try {
+    await NotificationPreferencesService.instance.initialize();
+    debugPrint('✅ Notification preferences service initialized');
+  } catch (e) {
+    debugPrint('❌ Failed to initialize notification preferences: $e');
   }
 
   // Initialize notification service with enhanced handlers

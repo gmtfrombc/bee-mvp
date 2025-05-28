@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../features/momentum/presentation/providers/momentum_api_provider.dart';
 import 'background_notification_handler.dart';
+import 'coach_intervention_service.dart';
 
 /// Service for handling deep links from notifications
 class NotificationDeepLinkService {
@@ -337,8 +339,44 @@ class NotificationDeepLinkService {
     if (kDebugMode) {
       print('🚀 Launching schedule call flow');
     }
-    // TODO: Implement actual scheduling integration
-    // This could integrate with calendar APIs or external scheduling systems
+
+    // Schedule a coach intervention
+    _scheduleCoachIntervention();
+  }
+
+  /// Schedule a coach intervention
+  static Future<void> _scheduleCoachIntervention() async {
+    try {
+      final userId = Supabase.instance.client.auth.currentUser?.id;
+      if (userId == null) {
+        if (kDebugMode) {
+          print('❌ No user ID available for scheduling intervention');
+        }
+        return;
+      }
+
+      final result = await CoachInterventionService.instance
+          .scheduleIntervention(
+            userId: userId,
+            type: InterventionType.supportRequest,
+            priority: InterventionPriority.high,
+            reason: 'User requested support through notification',
+          );
+
+      if (result.success) {
+        if (kDebugMode) {
+          print('✅ Coach intervention scheduled: ${result.interventionId}');
+        }
+      } else {
+        if (kDebugMode) {
+          print('❌ Failed to schedule intervention: ${result.error}');
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error scheduling coach intervention: $e');
+      }
+    }
   }
 
   /// Launch lesson flow (placeholder for future implementation)
