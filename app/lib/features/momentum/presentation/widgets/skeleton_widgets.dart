@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/services/responsive_service.dart';
 
 /// Shimmer effect widget for skeleton loading states
 class ShimmerWidget extends StatefulWidget {
@@ -88,13 +89,17 @@ class SkeletonContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final responsiveBorderRadius =
+        borderRadius ??
+        BorderRadius.circular(ResponsiveService.getBorderRadius(context));
+
     return Container(
       width: width,
       height: height,
       margin: margin,
       decoration: BoxDecoration(
         color: Colors.grey[300],
-        borderRadius: borderRadius ?? BorderRadius.circular(8),
+        borderRadius: responsiveBorderRadius,
       ),
     );
   }
@@ -109,8 +114,13 @@ class SkeletonMomentumCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cardHeight = height ?? 200.0;
-    final cardMargin = margin ?? const EdgeInsets.all(16);
+    final cardHeight =
+        height ?? ResponsiveService.getMomentumCardHeight(context);
+    final cardMargin = margin ?? ResponsiveService.getResponsiveMargin(context);
+    final gaugeSize = ResponsiveService.getMomentumGaugeSize(context);
+    final spacing = ResponsiveService.getResponsiveSpacing(context);
+    final padding = ResponsiveService.getResponsivePadding(context);
+    final borderRadius = ResponsiveService.getBorderRadius(context);
 
     return Container(
       margin: cardMargin,
@@ -118,57 +128,85 @@ class SkeletonMomentumCard extends StatelessWidget {
         elevation: 2,
         child: Container(
           height: cardHeight,
-          padding: const EdgeInsets.all(16),
+          padding: padding,
           child: ShimmerWidget(
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                // Header skeleton
+                // Header skeleton - responsive width based on screen
                 SkeletonContainer(
-                  width: 120,
-                  height: 16,
-                  borderRadius: BorderRadius.circular(8),
+                  width: MediaQuery.of(context).size.width * 0.3,
+                  height:
+                      ResponsiveService.shouldUseCompactLayout(context)
+                          ? 14
+                          : 16,
+                  borderRadius: BorderRadius.circular(borderRadius * 0.5),
                 ),
 
-                // Gauge skeleton (circular)
-                Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    shape: BoxShape.circle,
+                SizedBox(height: spacing * 0.4),
+
+                // Gauge skeleton (circular) - Use responsive size
+                Flexible(
+                  flex: 4,
+                  child: Container(
+                    width: gaugeSize,
+                    height: gaugeSize,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      shape: BoxShape.circle,
+                    ),
                   ),
                 ),
 
-                // State text skeleton
+                SizedBox(height: spacing * 0.3),
+
+                // State text skeleton - responsive sizing
                 SkeletonContainer(
-                  width: 100,
-                  height: 24,
-                  borderRadius: BorderRadius.circular(12),
+                  width: MediaQuery.of(context).size.width * 0.25,
+                  height:
+                      ResponsiveService.shouldUseCompactLayout(context)
+                          ? 18
+                          : 20,
+                  borderRadius: BorderRadius.circular(borderRadius * 0.6),
                 ),
 
-                // Message skeleton
-                Column(
-                  children: [
-                    SkeletonContainer(
-                      width: double.infinity,
-                      height: 16,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    const SizedBox(height: 8),
-                    SkeletonContainer(
-                      width: 200,
-                      height: 16,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ],
+                SizedBox(height: spacing * 0.3),
+
+                // Message skeleton - responsive and flexible
+                Flexible(
+                  flex: 2,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SkeletonContainer(
+                        width: double.infinity,
+                        height:
+                            ResponsiveService.shouldUseCompactLayout(context)
+                                ? 12
+                                : 14,
+                        borderRadius: BorderRadius.circular(borderRadius * 0.4),
+                      ),
+                      SizedBox(height: spacing * 0.2),
+                      SkeletonContainer(
+                        width: MediaQuery.of(context).size.width * 0.5,
+                        height:
+                            ResponsiveService.shouldUseCompactLayout(context)
+                                ? 12
+                                : 14,
+                        borderRadius: BorderRadius.circular(borderRadius * 0.4),
+                      ),
+                    ],
+                  ),
                 ),
 
-                // Progress bar skeleton
+                SizedBox(height: spacing * 0.3),
+
+                // Progress bar skeleton - responsive height
                 SkeletonContainer(
                   width: double.infinity,
-                  height: 8,
-                  borderRadius: BorderRadius.circular(4),
+                  height:
+                      ResponsiveService.shouldUseCompactLayout(context) ? 4 : 6,
+                  borderRadius: BorderRadius.circular(borderRadius * 0.25),
                 ),
               ],
             ),
@@ -181,63 +219,105 @@ class SkeletonMomentumCard extends StatelessWidget {
 
 /// Skeleton weekly trend chart
 class SkeletonWeeklyTrendChart extends StatelessWidget {
-  final double height;
+  final double? height;
 
-  const SkeletonWeeklyTrendChart({super.key, this.height = 140});
+  const SkeletonWeeklyTrendChart({super.key, this.height});
 
   @override
   Widget build(BuildContext context) {
+    final chartHeight =
+        height ?? ResponsiveService.getWeeklyChartHeight(context);
+    final padding = ResponsiveService.getResponsivePadding(context);
+    final spacing = ResponsiveService.getResponsiveSpacing(context);
+    final borderRadius = ResponsiveService.getBorderRadius(context);
+
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(borderRadius),
+      ),
       child: Container(
-        height: height,
-        padding: const EdgeInsets.all(16),
+        height: chartHeight,
+        padding: padding,
         child: ShimmerWidget(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header skeleton
+              // Header skeleton - responsive sizing
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   SkeletonContainer(
-                    width: 140,
-                    height: 18,
-                    borderRadius: BorderRadius.circular(9),
+                    width: MediaQuery.of(context).size.width * 0.35,
+                    height:
+                        ResponsiveService.shouldUseCompactLayout(context)
+                            ? 16
+                            : 18,
+                    borderRadius: BorderRadius.circular(borderRadius * 0.5),
                   ),
                   SkeletonContainer(
-                    width: 80,
-                    height: 14,
-                    borderRadius: BorderRadius.circular(7),
+                    width: MediaQuery.of(context).size.width * 0.2,
+                    height:
+                        ResponsiveService.shouldUseCompactLayout(context)
+                            ? 12
+                            : 14,
+                    borderRadius: BorderRadius.circular(borderRadius * 0.4),
                   ),
                 ],
               ),
 
-              const SizedBox(height: 16),
+              SizedBox(height: spacing * 0.6),
 
-              // Chart area skeleton
+              // Chart area skeleton - fully responsive
               Expanded(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: List.generate(7, (index) {
-                    final heights = [40.0, 60.0, 45.0, 70.0, 55.0, 65.0, 50.0];
-                    return Column(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        SkeletonContainer(
-                          width: 20,
-                          height: heights[index],
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        const SizedBox(height: 8),
-                        SkeletonContainer(
-                          width: 16,
-                          height: 12,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                      ],
+                    // Make heights responsive to available space
+                    final baseHeights = [0.5, 0.7, 0.6, 0.85, 0.65, 0.8, 0.6];
+                    return Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Flexible(
+                            flex: (baseHeights[index] * 10).round(),
+                            child: Container(
+                              width:
+                                  ResponsiveService.shouldUseCompactLayout(
+                                        context,
+                                      )
+                                      ? 12
+                                      : 16,
+                              decoration: BoxDecoration(
+                                color: Colors.grey[300],
+                                borderRadius: BorderRadius.circular(
+                                  borderRadius * 0.5,
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: spacing * 0.2),
+                          SkeletonContainer(
+                            width:
+                                ResponsiveService.shouldUseCompactLayout(
+                                      context,
+                                    )
+                                    ? 10
+                                    : 12,
+                            height:
+                                ResponsiveService.shouldUseCompactLayout(
+                                      context,
+                                    )
+                                    ? 6
+                                    : 8,
+                            borderRadius: BorderRadius.circular(
+                              borderRadius * 0.25,
+                            ),
+                          ),
+                        ],
+                      ),
                     );
                   }),
                 ),
@@ -256,38 +336,65 @@ class SkeletonQuickStatsCards extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cardHeight = ResponsiveService.getQuickStatsCardHeight(context);
+    final padding = ResponsiveService.getResponsivePadding(context);
+    final spacing = ResponsiveService.getResponsiveSpacing(context);
+    final borderRadius = ResponsiveService.getBorderRadius(context);
+
     return Row(
       children: List.generate(3, (index) {
         return Expanded(
           child: Container(
-            margin: EdgeInsets.only(right: index < 2 ? 8 : 0),
+            margin: EdgeInsets.only(right: index < 2 ? spacing * 0.4 : 0),
             child: Card(
               child: Container(
-                height: 84,
-                padding: const EdgeInsets.all(12),
+                height: cardHeight,
+                padding: EdgeInsets.all(
+                  padding.left * 0.75,
+                ), // Slightly less padding for cards
                 child: ShimmerWidget(
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      // Icon skeleton
+                      // Icon skeleton - responsive sizing
                       SkeletonContainer(
-                        width: 24,
-                        height: 24,
-                        borderRadius: BorderRadius.circular(12),
+                        width: ResponsiveService.getIconSize(context),
+                        height: ResponsiveService.getIconSize(context),
+                        borderRadius: BorderRadius.circular(borderRadius * 0.5),
                       ),
 
-                      // Value skeleton
-                      SkeletonContainer(
-                        width: 30,
-                        height: 20,
-                        borderRadius: BorderRadius.circular(10),
+                      SizedBox(height: spacing * 0.4),
+
+                      // Value skeleton - flexible
+                      Flexible(
+                        child: SkeletonContainer(
+                          width:
+                              ResponsiveService.shouldUseCompactLayout(context)
+                                  ? 24
+                                  : 30,
+                          height:
+                              ResponsiveService.shouldUseCompactLayout(context)
+                                  ? 16
+                                  : 20,
+                          borderRadius: BorderRadius.circular(
+                            borderRadius * 0.5,
+                          ),
+                        ),
                       ),
 
-                      // Label skeleton
+                      SizedBox(height: spacing * 0.4),
+
+                      // Label skeleton - responsive
                       SkeletonContainer(
-                        width: 50,
-                        height: 12,
-                        borderRadius: BorderRadius.circular(6),
+                        width:
+                            ResponsiveService.shouldUseCompactLayout(context)
+                                ? 40
+                                : 50,
+                        height:
+                            ResponsiveService.shouldUseCompactLayout(context)
+                                ? 10
+                                : 12,
+                        borderRadius: BorderRadius.circular(borderRadius * 0.3),
                       ),
                     ],
                   ),
@@ -303,32 +410,44 @@ class SkeletonQuickStatsCards extends StatelessWidget {
 
 /// Skeleton action buttons
 class SkeletonActionButtons extends StatelessWidget {
-  final double height;
+  final double? height;
 
-  const SkeletonActionButtons({super.key, this.height = 60});
+  const SkeletonActionButtons({super.key, this.height});
 
   @override
   Widget build(BuildContext context) {
+    final buttonHeight =
+        height ?? (ResponsiveService.shouldUseCompactLayout(context) ? 50 : 60);
+    final padding = ResponsiveService.getResponsivePadding(context);
+    final spacing = ResponsiveService.getResponsiveSpacing(context);
+    final borderRadius = ResponsiveService.getBorderRadius(context);
+
     return Card(
       child: Container(
-        height: height,
-        padding: const EdgeInsets.all(16),
+        height: buttonHeight,
+        padding: padding,
         child: ShimmerWidget(
           child: Row(
             children: [
               Expanded(
                 child: SkeletonContainer(
                   width: double.infinity,
-                  height: 36,
-                  borderRadius: BorderRadius.circular(18),
+                  height:
+                      ResponsiveService.shouldUseCompactLayout(context)
+                          ? 32
+                          : 36,
+                  borderRadius: BorderRadius.circular(borderRadius * 1.5),
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: spacing * 0.6),
               Expanded(
                 child: SkeletonContainer(
                   width: double.infinity,
-                  height: 36,
-                  borderRadius: BorderRadius.circular(18),
+                  height:
+                      ResponsiveService.shouldUseCompactLayout(context)
+                          ? 32
+                          : 36,
+                  borderRadius: BorderRadius.circular(borderRadius * 1.5),
                 ),
               ),
             ],
@@ -341,24 +460,26 @@ class SkeletonActionButtons extends StatelessWidget {
 
 /// Skeleton momentum gauge (circular)
 class SkeletonMomentumGauge extends StatelessWidget {
-  final double size;
+  final double? size;
 
-  const SkeletonMomentumGauge({super.key, this.size = 120});
+  const SkeletonMomentumGauge({super.key, this.size});
 
   @override
   Widget build(BuildContext context) {
+    final gaugeSize = size ?? ResponsiveService.getMomentumGaugeSize(context);
+
     return ShimmerWidget(
       child: Container(
-        width: size,
-        height: size,
+        width: gaugeSize,
+        height: gaugeSize,
         decoration: BoxDecoration(
           color: Colors.grey[300],
           shape: BoxShape.circle,
         ),
         child: Center(
           child: Container(
-            width: size * 0.6,
-            height: size * 0.6,
+            width: gaugeSize * 0.6,
+            height: gaugeSize * 0.6,
             decoration: BoxDecoration(
               color: Colors.grey[200],
               shape: BoxShape.circle,
@@ -373,22 +494,28 @@ class SkeletonMomentumGauge extends StatelessWidget {
 /// Skeleton text line
 class SkeletonText extends StatelessWidget {
   final double width;
-  final double height;
+  final double? height;
   final BorderRadius? borderRadius;
 
   const SkeletonText({
     super.key,
     required this.width,
-    this.height = 16,
+    this.height,
     this.borderRadius,
   });
 
   @override
   Widget build(BuildContext context) {
+    final textHeight =
+        height ?? (ResponsiveService.shouldUseCompactLayout(context) ? 14 : 16);
+    final responsiveBorderRadius =
+        borderRadius ??
+        BorderRadius.circular(ResponsiveService.getBorderRadius(context) * 0.5);
+
     return SkeletonContainer(
       width: width,
-      height: height,
-      borderRadius: borderRadius ?? BorderRadius.circular(height / 2),
+      height: textHeight,
+      borderRadius: responsiveBorderRadius,
     );
   }
 }
@@ -399,63 +526,93 @@ class SkeletonMomentumScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final padding = ResponsiveService.getResponsivePadding(context);
+    final spacing = ResponsiveService.getResponsiveSpacing(context);
+    final borderRadius = ResponsiveService.getBorderRadius(context);
+
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
+      padding: padding,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Momentum card skeleton
           const SkeletonMomentumCard(),
 
-          const SizedBox(height: 24),
+          SizedBox(height: spacing),
 
           // Weekly trend chart skeleton
           const SkeletonWeeklyTrendChart(),
 
-          const SizedBox(height: 24),
+          SizedBox(height: spacing),
 
           // Quick stats cards skeleton
           const SkeletonQuickStatsCards(),
 
-          const SizedBox(height: 24),
+          SizedBox(height: spacing),
 
           // Action buttons skeleton
           const SkeletonActionButtons(),
 
-          const SizedBox(height: 24),
+          SizedBox(height: spacing),
 
-          // Demo section skeleton
+          // Demo section skeleton - responsive
           Card(
-            margin: const EdgeInsets.all(16),
+            margin: ResponsiveService.getResponsiveMargin(context),
             child: Container(
-              padding: const EdgeInsets.all(16),
+              padding: padding,
               child: ShimmerWidget(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    const SkeletonText(width: 160, height: 18),
-                    const SizedBox(height: 16),
-                    const Center(child: SkeletonMomentumGauge(size: 140)),
-                    const SizedBox(height: 24),
+                    SkeletonText(
+                      width: MediaQuery.of(context).size.width * 0.4,
+                      height:
+                          ResponsiveService.shouldUseCompactLayout(context)
+                              ? 16
+                              : 18,
+                    ),
+                    SizedBox(height: spacing * 0.8),
+                    Center(
+                      child: SkeletonMomentumGauge(
+                        size: ResponsiveService.getMomentumGaugeSize(context),
+                      ),
+                    ),
+                    SizedBox(height: spacing * 0.8),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: List.generate(3, (index) {
                         return Expanded(
                           child: Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 4),
-                            child: const SkeletonContainer(
+                            margin: EdgeInsets.symmetric(
+                              horizontal: spacing * 0.2,
+                            ),
+                            child: SkeletonContainer(
                               width: double.infinity,
-                              height: 36,
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(18),
+                              height:
+                                  ResponsiveService.shouldUseCompactLayout(
+                                        context,
+                                      )
+                                      ? 28
+                                      : 32,
+                              borderRadius: BorderRadius.circular(
+                                borderRadius * 1.3,
                               ),
                             ),
                           ),
                         );
                       }),
                     ),
-                    const SizedBox(height: 16),
-                    const Center(child: SkeletonText(width: 280, height: 14)),
+                    SizedBox(height: spacing * 0.6),
+                    Center(
+                      child: SkeletonText(
+                        width: MediaQuery.of(context).size.width * 0.7,
+                        height:
+                            ResponsiveService.shouldUseCompactLayout(context)
+                                ? 12
+                                : 14,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -470,13 +627,9 @@ class SkeletonMomentumScreen extends StatelessWidget {
 /// Pulse loading animation for individual components
 class PulseLoadingWidget extends StatefulWidget {
   final Widget child;
-  final Duration duration;
+  final Duration? duration;
 
-  const PulseLoadingWidget({
-    super.key,
-    required this.child,
-    this.duration = const Duration(milliseconds: 1000),
-  });
+  const PulseLoadingWidget({super.key, required this.child, this.duration});
 
   @override
   State<PulseLoadingWidget> createState() => _PulseLoadingWidgetState();
@@ -490,7 +643,16 @@ class _PulseLoadingWidgetState extends State<PulseLoadingWidget>
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(duration: widget.duration, vsync: this);
+    // Make duration responsive - faster on smaller devices
+    final defaultDuration =
+        ResponsiveService.shouldUseCompactLayout(context)
+            ? const Duration(milliseconds: 800)
+            : const Duration(milliseconds: 1000);
+
+    _controller = AnimationController(
+      duration: widget.duration ?? defaultDuration,
+      vsync: this,
+    );
     _animation = Tween<double>(
       begin: 0.5,
       end: 1.0,

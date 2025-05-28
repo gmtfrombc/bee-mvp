@@ -3,54 +3,57 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../data/services/momentum_api_service.dart';
 import '../../domain/models/momentum_data.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/providers/supabase_provider.dart';
 import 'package:flutter/material.dart';
 
 /// Provider for the momentum API service
-final momentumApiServiceProvider = Provider<MomentumApiService>((ref) {
-  return MomentumApiService();
+/// This waits for Supabase to be initialized before creating the service
+final momentumApiServiceProvider = FutureProvider<MomentumApiService>((
+  ref,
+) async {
+  final supabaseClient = await ref.watch(supabaseProvider.future);
+  return MomentumApiService(supabaseClient);
 });
 
 /// Provider for real-time momentum subscription
 final realtimeMomentumProvider =
-    StateNotifierProvider<RealtimeMomentumNotifier, AsyncValue<MomentumData>>((
-      ref,
-    ) {
-      final apiService = ref.watch(momentumApiServiceProvider);
-      return RealtimeMomentumNotifier(apiService);
+    AsyncNotifierProvider<RealtimeMomentumNotifier, MomentumData>(() {
+      return RealtimeMomentumNotifier();
     });
 
 /// Notifier for managing real-time momentum updates
-class RealtimeMomentumNotifier extends StateNotifier<AsyncValue<MomentumData>> {
-  final MomentumApiService _apiService;
+class RealtimeMomentumNotifier extends AsyncNotifier<MomentumData> {
+  MomentumApiService? _apiService;
   RealtimeChannel? _subscription;
 
-  RealtimeMomentumNotifier(this._apiService)
-    : super(const AsyncValue.loading()) {
-    _initializeData();
-  }
+  @override
+  Future<MomentumData> build() async {
+    // Wait for the API service to be ready
+    _apiService = await ref.watch(momentumApiServiceProvider.future);
 
-  /// Initialize momentum data and set up real-time subscription
-  Future<void> _initializeData() async {
     try {
       // Load initial data
-      final initialData = await _apiService.getCurrentMomentum();
-      state = AsyncValue.data(initialData);
+      final initialData = await _apiService!.getCurrentMomentum();
 
       // Set up real-time subscription (only if authenticated)
       _setupRealtimeSubscription();
+
+      return initialData;
     } catch (error) {
       // If initialization fails, provide sample data for demo
       debugPrint('Failed to initialize momentum data: $error');
-      state = AsyncValue.data(MomentumData.sample());
+      return MomentumData.sample();
     }
   }
 
   /// Set up real-time subscription for momentum updates
   void _setupRealtimeSubscription() {
+    if (_apiService == null) return;
+
     // Add a small delay to ensure authentication is complete
     Future.delayed(const Duration(seconds: 2), () {
       try {
-        _subscription = _apiService.subscribeToMomentumUpdates(
+        _subscription = _apiService!.subscribeToMomentumUpdates(
           onUpdate: (updatedData) {
             state = AsyncValue.data(updatedData);
           },
@@ -67,9 +70,11 @@ class RealtimeMomentumNotifier extends StateNotifier<AsyncValue<MomentumData>> {
 
   /// Manually refresh momentum data
   Future<void> refresh() async {
+    if (_apiService == null) return;
+
     state = const AsyncValue.loading();
     try {
-      final refreshedData = await _apiService.getCurrentMomentum();
+      final refreshedData = await _apiService!.getCurrentMomentum();
       state = AsyncValue.data(refreshedData);
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
@@ -78,8 +83,10 @@ class RealtimeMomentumNotifier extends StateNotifier<AsyncValue<MomentumData>> {
 
   /// Calculate new momentum score
   Future<void> calculateMomentumScore({String? targetDate}) async {
+    if (_apiService == null) return;
+
     try {
-      final calculatedData = await _apiService.calculateMomentumScore(
+      final calculatedData = await _apiService!.calculateMomentumScore(
         targetDate: targetDate,
       );
       state = AsyncValue.data(calculatedData);
@@ -93,7 +100,11 @@ class RealtimeMomentumNotifier extends StateNotifier<AsyncValue<MomentumData>> {
     required DateTime startDate,
     required DateTime endDate,
   }) async {
-    return await _apiService.getMomentumHistory(
+    if (_apiService == null) {
+      throw Exception('API service not initialized');
+    }
+
+    return await _apiService!.getMomentumHistory(
       startDate: startDate,
       endDate: endDate,
     );
@@ -126,10 +137,8 @@ class RealtimeMomentumNotifier extends StateNotifier<AsyncValue<MomentumData>> {
     });
   }
 
-  @override
   void dispose() {
     _subscription?.unsubscribe();
-    super.dispose();
   }
 }
 
@@ -139,7 +148,7 @@ final momentumHistoryProvider =
       ref,
       dateRange,
     ) async {
-      final apiService = ref.watch(momentumApiServiceProvider);
+      final apiService = await ref.watch(momentumApiServiceProvider.future);
       return await apiService.getMomentumHistory(
         startDate: dateRange.startDate,
         endDate: dateRange.endDate,

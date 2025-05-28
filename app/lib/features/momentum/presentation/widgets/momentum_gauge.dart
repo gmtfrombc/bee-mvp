@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/services/accessibility_service.dart';
 
 /// Circular momentum gauge widget with custom painter
 /// Displays momentum state with animated progress ring and emoji center
@@ -43,13 +44,23 @@ class _MomentumGaugeState extends State<MomentumGauge>
 
   MomentumState? _previousState;
   bool _isTransitioning = false;
+  bool _hasStartedAnimations = false;
 
   @override
   void initState() {
     super.initState();
     _previousState = widget.state;
     _setupAnimations();
-    _startAnimations();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Start animations here instead of initState to ensure MediaQuery is available
+    if (!_hasStartedAnimations) {
+      _hasStartedAnimations = true;
+      _startAnimations();
+    }
   }
 
   @override
@@ -147,16 +158,29 @@ class _MomentumGaugeState extends State<MomentumGauge>
     // Trigger haptic feedback based on state change
     _triggerHapticFeedback(oldState, newState);
 
-    // Start state transition animation
-    _stateTransitionController.reset();
-    _stateTransitionController.forward().then((_) {
+    // Check if user prefers reduced motion
+    final shouldReduce = AccessibilityService.shouldReduceMotion(context);
+
+    if (shouldReduce) {
+      // Skip transition animation if user prefers reduced motion
       if (mounted) {
         setState(() {
           _isTransitioning = false;
           _previousState = newState;
         });
       }
-    });
+    } else {
+      // Start state transition animation
+      _stateTransitionController.reset();
+      _stateTransitionController.forward().then((_) {
+        if (mounted) {
+          setState(() {
+            _isTransitioning = false;
+            _previousState = newState;
+          });
+        }
+      });
+    }
 
     // Also update progress if needed
     _updateProgressAnimation();
@@ -192,6 +216,15 @@ class _MomentumGaugeState extends State<MomentumGauge>
   }
 
   void _startAnimations() async {
+    // Check if user prefers reduced motion
+    final shouldReduce = AccessibilityService.shouldReduceMotion(context);
+
+    if (shouldReduce) {
+      // Skip animations if user prefers reduced motion
+      _progressController.value = 1.0;
+      return;
+    }
+
     await _progressController.forward();
     if (mounted) {
       await _bounceController.forward();
@@ -219,9 +252,14 @@ class _MomentumGaugeState extends State<MomentumGauge>
   @override
   Widget build(BuildContext context) {
     return Semantics(
-      label:
-          'Momentum gauge showing ${widget.state.name} state at ${widget.percentage.round()}%',
-      hint: widget.onTap != null ? 'Tap for details' : null,
+      label: AccessibilityService.getMomentumStateLabel(
+        widget.state,
+        widget.percentage,
+      ),
+      hint:
+          widget.onTap != null
+              ? AccessibilityService.getMomentumGaugeHint()
+              : null,
       child: GestureDetector(
         onTap: _handleTap,
         child: Container(
@@ -369,50 +407,5 @@ class MomentumGaugePainter extends CustomPainter {
         oldDelegate.state != state ||
         oldDelegate.strokeWidth != strokeWidth ||
         oldDelegate.transitionColor != transitionColor;
-  }
-}
-
-/// Responsive momentum gauge that adapts to screen size
-class ResponsiveMomentumGauge extends StatelessWidget {
-  final MomentumState state;
-  final double percentage;
-  final VoidCallback? onTap;
-  final Duration animationDuration;
-  final Duration stateTransitionDuration;
-  final bool showGlow;
-
-  const ResponsiveMomentumGauge({
-    super.key,
-    required this.state,
-    required this.percentage,
-    this.onTap,
-    this.animationDuration = const Duration(milliseconds: 1800),
-    this.stateTransitionDuration = const Duration(milliseconds: 800),
-    this.showGlow = true,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-
-    // Responsive sizing based on screen width
-    double gaugeSize;
-    if (screenWidth <= 375) {
-      gaugeSize = 100.0; // Small screens
-    } else if (screenWidth >= 429) {
-      gaugeSize = 140.0; // Large screens
-    } else {
-      gaugeSize = 120.0; // Default size
-    }
-
-    return MomentumGauge(
-      state: state,
-      percentage: percentage,
-      onTap: onTap,
-      animationDuration: animationDuration,
-      stateTransitionDuration: stateTransitionDuration,
-      showGlow: showGlow,
-      size: gaugeSize,
-    );
   }
 }

@@ -12,6 +12,21 @@
 .swiftpm/
 migrate_working_dir/
 
+# Environment files and secrets (SECURITY CRITICAL)
+.env*
+*.env
+.env.local
+.env.dev
+.env.production
+.env.staging
+config.json
+secrets.json
+*.key
+*.pem
+*.p12
+*.keystore
+*.jks
+
 # IntelliJ related
 *.iml
 *.ipr

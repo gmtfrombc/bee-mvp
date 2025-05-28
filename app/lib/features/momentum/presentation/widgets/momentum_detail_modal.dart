@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/services/responsive_service.dart';
 import '../../domain/models/momentum_data.dart';
 import 'momentum_gauge.dart';
 
@@ -123,16 +124,28 @@ class _MomentumDetailModalState extends State<MomentumDetailModal>
                     _buildHeader(),
                     Expanded(
                       child: SingleChildScrollView(
-                        padding: const EdgeInsets.all(24),
+                        padding: ResponsiveService.getLargePadding(context),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             _buildMomentumOverview(),
-                            const SizedBox(height: 32),
+                            SizedBox(
+                              height: ResponsiveService.getExtraLargeSpacing(
+                                context,
+                              ),
+                            ),
                             _buildMomentumFactors(),
-                            const SizedBox(height: 32),
+                            SizedBox(
+                              height: ResponsiveService.getExtraLargeSpacing(
+                                context,
+                              ),
+                            ),
                             _buildRecentActivity(),
-                            const SizedBox(height: 32),
+                            SizedBox(
+                              height: ResponsiveService.getExtraLargeSpacing(
+                                context,
+                              ),
+                            ),
                             _buildProgressInsights(),
                           ],
                         ),
@@ -150,7 +163,7 @@ class _MomentumDetailModalState extends State<MomentumDetailModal>
 
   Widget _buildHeader() {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: ResponsiveService.getLargePadding(context),
       decoration: BoxDecoration(
         color: AppTheme.getMomentumColor(
           widget.momentumData.state,
@@ -170,7 +183,7 @@ class _MomentumDetailModalState extends State<MomentumDetailModal>
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: ResponsiveService.getTinySpacing(context)),
                 Text(
                   'Last updated ${_formatLastUpdated()}',
                   style: Theme.of(context).textTheme.bodyMedium,
@@ -196,7 +209,7 @@ class _MomentumDetailModalState extends State<MomentumDetailModal>
       index: 0,
       child: Card(
         child: Padding(
-          padding: const EdgeInsets.all(20),
+          padding: ResponsiveService.getResponsivePadding(context),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -204,19 +217,22 @@ class _MomentumDetailModalState extends State<MomentumDetailModal>
                 'Current State',
                 style: Theme.of(context).textTheme.titleMedium,
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: ResponsiveService.getResponsiveSpacing(context)),
               Row(
                 children: [
                   SizedBox(
                     width: 80,
                     height: 80,
-                    child: ResponsiveMomentumGauge(
+                    child: MomentumGauge(
                       state: widget.momentumData.state,
                       percentage: widget.momentumData.percentage,
                       showGlow: false,
+                      size: 80,
                     ),
                   ),
-                  const SizedBox(width: 20),
+                  SizedBox(
+                    width: ResponsiveService.getResponsiveSpacing(context),
+                  ),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -232,12 +248,16 @@ class _MomentumDetailModalState extends State<MomentumDetailModal>
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(
+                          height: ResponsiveService.getSmallSpacing(context),
+                        ),
                         Text(
                           '${widget.momentumData.percentage.toInt()}% momentum',
                           style: Theme.of(context).textTheme.bodyLarge,
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(
+                          height: ResponsiveService.getSmallSpacing(context),
+                        ),
                         Text(
                           widget.momentumData.message,
                           style: Theme.of(context).textTheme.bodyMedium,
@@ -264,10 +284,10 @@ class _MomentumDetailModalState extends State<MomentumDetailModal>
             'Momentum Factors',
             style: Theme.of(context).textTheme.titleMedium,
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: ResponsiveService.getResponsiveSpacing(context)),
           Card(
             child: Padding(
-              padding: const EdgeInsets.all(20),
+              padding: ResponsiveService.getResponsivePadding(context),
               child: Column(
                 children: [
                   _buildFactorItem(
@@ -277,7 +297,9 @@ class _MomentumDetailModalState extends State<MomentumDetailModal>
                     widget.momentumData.stats.lessonsCompleted /
                         widget.momentumData.stats.totalLessons,
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(
+                    height: ResponsiveService.getResponsiveSpacing(context),
+                  ),
                   _buildFactorItem(
                     'Consistency Streak',
                     widget.momentumData.stats.streakText,
@@ -285,7 +307,9 @@ class _MomentumDetailModalState extends State<MomentumDetailModal>
                     widget.momentumData.stats.streakDays /
                         30.0, // Assume 30 days max
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(
+                    height: ResponsiveService.getResponsiveSpacing(context),
+                  ),
                   _buildFactorItem(
                     'Daily Engagement',
                     widget.momentumData.stats.todayText,
@@ -317,7 +341,9 @@ class _MomentumDetailModalState extends State<MomentumDetailModal>
             color: AppTheme.getMomentumColor(
               widget.momentumData.state,
             ).withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(
+              ResponsiveService.getBorderRadius(context),
+            ),
           ),
           child: Icon(
             icon,
@@ -325,7 +351,7 @@ class _MomentumDetailModalState extends State<MomentumDetailModal>
             size: 20,
           ),
         ),
-        const SizedBox(width: 16),
+        SizedBox(width: ResponsiveService.getResponsiveSpacing(context)),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -342,7 +368,7 @@ class _MomentumDetailModalState extends State<MomentumDetailModal>
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: ResponsiveService.getSmallSpacing(context)),
               LinearProgressIndicator(
                 value: progress.clamp(0.0, 1.0),
                 backgroundColor: AppTheme.surfaceSecondary,
@@ -367,10 +393,10 @@ class _MomentumDetailModalState extends State<MomentumDetailModal>
             'Recent Activity',
             style: Theme.of(context).textTheme.titleMedium,
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: ResponsiveService.getResponsiveSpacing(context)),
           Card(
             child: Padding(
-              padding: const EdgeInsets.all(20),
+              padding: ResponsiveService.getResponsivePadding(context),
               child: Column(
                 children:
                     widget.momentumData.weeklyTrend
@@ -387,7 +413,9 @@ class _MomentumDetailModalState extends State<MomentumDetailModal>
 
   Widget _buildActivityItem(DailyMomentum daily) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: EdgeInsets.symmetric(
+        vertical: ResponsiveService.getSmallSpacing(context),
+      ),
       child: Row(
         children: [
           Container(
@@ -397,7 +425,9 @@ class _MomentumDetailModalState extends State<MomentumDetailModal>
               color: AppTheme.getMomentumColor(
                 daily.state,
               ).withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(6),
+              borderRadius: BorderRadius.circular(
+                ResponsiveService.getBorderRadius(context),
+              ),
             ),
             child: Icon(
               _getStateIcon(daily.state),
@@ -405,7 +435,7 @@ class _MomentumDetailModalState extends State<MomentumDetailModal>
               size: 16,
             ),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: ResponsiveService.getResponsiveSpacing(context)),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -442,10 +472,10 @@ class _MomentumDetailModalState extends State<MomentumDetailModal>
             'Progress Insights',
             style: Theme.of(context).textTheme.titleMedium,
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: ResponsiveService.getResponsiveSpacing(context)),
           Card(
             child: Padding(
-              padding: const EdgeInsets.all(20),
+              padding: ResponsiveService.getResponsivePadding(context),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -454,13 +484,17 @@ class _MomentumDetailModalState extends State<MomentumDetailModal>
                     _getWeeklyTrendInsight(),
                     Icons.trending_up_rounded,
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(
+                    height: ResponsiveService.getResponsiveSpacing(context),
+                  ),
                   _buildInsightItem(
                     'Next Goal',
                     _getNextGoalInsight(),
                     Icons.flag_rounded,
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(
+                    height: ResponsiveService.getResponsiveSpacing(context),
+                  ),
                   _buildInsightItem(
                     'Recommendation',
                     _getRecommendationInsight(),
@@ -484,11 +518,13 @@ class _MomentumDetailModalState extends State<MomentumDetailModal>
           height: 32,
           decoration: BoxDecoration(
             color: AppTheme.momentumSteady.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(
+              ResponsiveService.getBorderRadius(context),
+            ),
           ),
           child: Icon(icon, color: AppTheme.momentumSteady, size: 16),
         ),
-        const SizedBox(width: 16),
+        SizedBox(width: ResponsiveService.getResponsiveSpacing(context)),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -499,7 +535,7 @@ class _MomentumDetailModalState extends State<MomentumDetailModal>
                   context,
                 ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
               ),
-              const SizedBox(height: 4),
+              SizedBox(height: ResponsiveService.getTinySpacing(context)),
               Text(content, style: Theme.of(context).textTheme.bodyMedium),
             ],
           ),

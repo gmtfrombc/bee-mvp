@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/services/responsive_service.dart';
 import '../providers/momentum_provider.dart';
 import '../providers/ui_state_provider.dart';
 
@@ -114,7 +115,7 @@ class _RiverpodQuickStatsCardsState
               onTap: () => _handleTap('lessons', widget.onLessonsTap),
             ),
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: ResponsiveService.getSmallSpacing(context)),
           Expanded(
             child: _buildStatCard(
               index: 1,
@@ -125,7 +126,7 @@ class _RiverpodQuickStatsCardsState
               onTap: () => _handleTap('streak', widget.onStreakTap),
             ),
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: ResponsiveService.getSmallSpacing(context)),
           Expanded(
             child: _buildStatCard(
               index: 2,
@@ -282,11 +283,15 @@ class _RiverpodStatCardState extends ConsumerState<_RiverpodStatCard>
             shadowColor: widget.color.withValues(alpha: 0.1),
             child: InkWell(
               onTap: widget.onTap != null ? _handleTap : null,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(
+                ResponsiveService.getBorderRadius(context),
+              ),
               child: Container(
-                padding: const EdgeInsets.all(16),
+                padding: ResponsiveService.getResponsivePadding(context),
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(
+                    ResponsiveService.getBorderRadius(context),
+                  ),
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -300,7 +305,9 @@ class _RiverpodStatCardState extends ConsumerState<_RiverpodStatCard>
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(widget.icon, color: widget.color, size: 24),
-                    const SizedBox(height: 8),
+                    SizedBox(
+                      height: ResponsiveService.getSmallSpacing(context),
+                    ),
                     Text(
                       widget.value,
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -308,7 +315,7 @@ class _RiverpodStatCardState extends ConsumerState<_RiverpodStatCard>
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: ResponsiveService.getTinySpacing(context)),
                     Text(
                       widget.label,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(

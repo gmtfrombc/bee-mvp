@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/services/responsive_service.dart';
+import '../../../../core/services/accessibility_service.dart';
 import '../../domain/models/momentum_data.dart';
 
 /// Weekly trend chart widget showing 7-day momentum journey
@@ -90,19 +92,31 @@ class _WeeklyTrendChartState extends State<WeeklyTrendChart>
       return _buildEmptyState();
     }
 
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Container(
-        height: 140,
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHeader(),
-            const SizedBox(height: 16),
-            Expanded(child: _buildChart()),
-          ],
+    final weeklyData = widget.weeklyTrend.map((d) => d.percentage).toList();
+
+    return Semantics(
+      label: AccessibilityService.getWeeklyTrendLabel(weeklyData),
+      hint: 'Chart showing your momentum progress over the past week',
+      child: Card(
+        elevation: 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(
+            ResponsiveService.getBorderRadius(context),
+          ),
+        ),
+        child: Container(
+          height: ResponsiveService.getWeeklyChartHeight(context),
+          padding: ResponsiveService.getResponsivePadding(context),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildHeader(),
+              SizedBox(
+                height: ResponsiveService.getResponsiveSpacing(context) * 0.8,
+              ),
+              Expanded(child: _buildChart()),
+            ],
+          ),
         ),
       ),
     );
@@ -117,17 +131,27 @@ class _WeeklyTrendChartState extends State<WeeklyTrendChart>
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          '📈 This Week\'s Journey',
-          style: Theme.of(
-            context,
-          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+        Flexible(
+          flex: 2,
+          child: Text(
+            '📈 This Week\'s Journey',
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
-        Text(
-          dateRange,
-          style: Theme.of(
-            context,
-          ).textTheme.bodySmall?.copyWith(color: AppTheme.textSecondary),
+        const SizedBox(width: 8),
+        Flexible(
+          flex: 1,
+          child: Text(
+            dateRange,
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: AppTheme.textSecondary),
+            textAlign: TextAlign.end,
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
       ],
     );
@@ -320,15 +344,25 @@ class _WeeklyTrendChartState extends State<WeeklyTrendChart>
   Widget _buildEmptyState() {
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(
+          ResponsiveService.getBorderRadius(context),
+        ),
+      ),
       child: Container(
-        height: 140,
-        padding: const EdgeInsets.all(16),
+        height: ResponsiveService.getWeeklyChartHeight(context),
+        padding: ResponsiveService.getResponsivePadding(context),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.trending_up, size: 32, color: AppTheme.textSecondary),
-            const SizedBox(height: 8),
+            Icon(
+              Icons.trending_up,
+              size: ResponsiveService.getIconSize(context, baseSize: 32),
+              color: AppTheme.textSecondary,
+            ),
+            SizedBox(
+              height: ResponsiveService.getResponsiveSpacing(context) * 0.4,
+            ),
             Text(
               'Your momentum journey will appear here',
               style: Theme.of(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/services/responsive_service.dart';
 import '../providers/momentum_provider.dart';
 import '../providers/ui_state_provider.dart';
 
@@ -23,29 +24,29 @@ class RiverpodMomentumExample extends ConsumerWidget {
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: ResponsiveService.getResponsivePadding(context),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildSectionTitle(context, 'Basic Provider Watching'),
             const _BasicProviderExample(),
 
-            const SizedBox(height: 24),
+            SizedBox(height: ResponsiveService.getLargeSpacing(context)),
 
             _buildSectionTitle(context, 'Conditional Rendering'),
             const _ConditionalRenderingExample(),
 
-            const SizedBox(height: 24),
+            SizedBox(height: ResponsiveService.getLargeSpacing(context)),
 
             _buildSectionTitle(context, 'State Mutation'),
             const _StateMutationExample(),
 
-            const SizedBox(height: 24),
+            SizedBox(height: ResponsiveService.getLargeSpacing(context)),
 
             _buildSectionTitle(context, 'UI State Management'),
             const _UIStateExample(),
 
-            const SizedBox(height: 24),
+            SizedBox(height: ResponsiveService.getLargeSpacing(context)),
 
             _buildSectionTitle(context, 'Real-time Updates'),
             const _RealTimeUpdatesExample(),
@@ -57,7 +58,9 @@ class RiverpodMomentumExample extends ConsumerWidget {
 
   Widget _buildSectionTitle(BuildContext context, String title) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: EdgeInsets.only(
+        bottom: ResponsiveService.getMediumSpacing(context),
+      ),
       child: Text(
         title,
         style: Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -83,7 +86,7 @@ class _BasicProviderExample extends ConsumerWidget {
 
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: ResponsiveService.getResponsivePadding(context),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -91,17 +94,17 @@ class _BasicProviderExample extends ConsumerWidget {
               'Current State: ${momentumState?.name ?? 'Loading...'}',
               style: Theme.of(context).textTheme.bodyLarge,
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: ResponsiveService.getSmallSpacing(context)),
             Text(
               'Percentage: ${percentage?.toStringAsFixed(1) ?? 'Loading...'}%',
               style: Theme.of(context).textTheme.bodyLarge,
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: ResponsiveService.getSmallSpacing(context)),
             Text(
               'Message: ${message ?? 'Loading...'}',
               style: Theme.of(context).textTheme.bodyMedium,
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: ResponsiveService.getSmallSpacing(context)),
             Text(
               'Last Updated: ${lastUpdated?.toString() ?? 'Loading...'}',
               style: Theme.of(context).textTheme.bodySmall,
@@ -125,23 +128,25 @@ class _ConditionalRenderingExample extends ConsumerWidget {
 
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: ResponsiveService.getResponsivePadding(context),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (isLoading)
-              const Row(
+              Row(
                 children: [
-                  CircularProgressIndicator(),
-                  SizedBox(width: 16),
-                  Text('Loading momentum data...'),
+                  const CircularProgressIndicator(),
+                  SizedBox(
+                    width: ResponsiveService.getResponsiveSpacing(context),
+                  ),
+                  const Text('Loading momentum data...'),
                 ],
               )
             else if (error != null)
               Row(
                 children: [
                   const Icon(Icons.error, color: Colors.red),
-                  const SizedBox(width: 8),
+                  SizedBox(width: ResponsiveService.getSmallSpacing(context)),
                   Expanded(child: Text('Error: $error')),
                 ],
               )
@@ -152,7 +157,7 @@ class _ConditionalRenderingExample extends ConsumerWidget {
                     _getStateIcon(momentumState),
                     color: AppTheme.getMomentumColor(momentumState),
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: ResponsiveService.getSmallSpacing(context)),
                   Text(
                     'Status: ${momentumState.name}',
                     style: TextStyle(
@@ -192,7 +197,7 @@ class _StateMutationExample extends ConsumerWidget {
 
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: ResponsiveService.getResponsivePadding(context),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -200,7 +205,7 @@ class _StateMutationExample extends ConsumerWidget {
               'Simulate State Changes',
               style: Theme.of(context).textTheme.titleMedium,
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: ResponsiveService.getMediumSpacing(context)),
             Row(
               children: [
                 Expanded(
@@ -219,7 +224,7 @@ class _StateMutationExample extends ConsumerWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: ResponsiveService.getSmallSpacing(context)),
                 Expanded(
                   child: ElevatedButton.icon(
                     onPressed:
@@ -236,7 +241,7 @@ class _StateMutationExample extends ConsumerWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: ResponsiveService.getSmallSpacing(context)),
                 Expanded(
                   child: ElevatedButton.icon(
                     onPressed:
@@ -274,7 +279,7 @@ class _UIStateExample extends ConsumerWidget {
 
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: ResponsiveService.getResponsivePadding(context),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -282,7 +287,7 @@ class _UIStateExample extends ConsumerWidget {
               'UI State Tracking',
               style: Theme.of(context).textTheme.titleMedium,
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: ResponsiveService.getMediumSpacing(context)),
             Text(
               'Last Button Tapped: ${userInteraction.lastTappedButton ?? 'None'}',
             ),
@@ -292,7 +297,7 @@ class _UIStateExample extends ConsumerWidget {
             Text('Card Pressed: ${cardInteraction.isPressed}'),
             Text('Card Scale: ${cardInteraction.scale.toStringAsFixed(2)}'),
             Text('Modal Visible: $modalVisible'),
-            const SizedBox(height: 12),
+            SizedBox(height: ResponsiveService.getMediumSpacing(context)),
             Row(
               children: [
                 ElevatedButton(
@@ -306,7 +311,7 @@ class _UIStateExample extends ConsumerWidget {
                   },
                   child: const Text('Test Interaction'),
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: ResponsiveService.getSmallSpacing(context)),
                 ElevatedButton(
                   onPressed: () {
                     ref.read(modalVisibilityProvider.notifier).state =
@@ -334,7 +339,7 @@ class _RealTimeUpdatesExample extends ConsumerWidget {
 
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: ResponsiveService.getResponsivePadding(context),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -342,16 +347,16 @@ class _RealTimeUpdatesExample extends ConsumerWidget {
               'Real-time Data Updates',
               style: Theme.of(context).textTheme.titleMedium,
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: ResponsiveService.getMediumSpacing(context)),
             if (stats != null) ...[
               Text('Lessons: ${stats.lessonsRatio}'),
               Text('Streak: ${stats.streakText}'),
               Text('Today: ${stats.todayText}'),
             ] else
               const Text('Loading stats...'),
-            const SizedBox(height: 12),
+            SizedBox(height: ResponsiveService.getMediumSpacing(context)),
             Text('Weekly Trend: ${weeklyTrend?.length ?? 0} days'),
-            const SizedBox(height: 12),
+            SizedBox(height: ResponsiveService.getMediumSpacing(context)),
             ElevatedButton(
               onPressed: () => ref.read(momentumProvider.notifier).refresh(),
               child: const Text('Refresh Data'),

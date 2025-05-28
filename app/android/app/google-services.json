@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1018557691786",
+    "project_id": "bee-mvp-3ab43",
+    "storage_bucket": "bee-mvp-3ab43.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1018557691786:android:c3a9d0f03ba947f4fc7a73",
+        "android_client_info": {
+          "package_name": "com.momentumhealth.beemvp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAWobUsYs9SH2h30YwlaXGIUkD5a2j-g_o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

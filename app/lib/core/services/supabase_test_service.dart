@@ -1,64 +1,74 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'demo_auth_service.dart';
+import 'package:flutter/foundation.dart';
 
-/// Service to test Supabase connection and authentication
+/// Service to test Supabase connection and functionality
 class SupabaseTestService {
-  static final SupabaseClient _supabase = Supabase.instance.client;
+  final SupabaseClient _supabase;
 
-  /// Test basic Supabase connection
-  static Future<void> testConnection() async {
+  /// Constructor that accepts a SupabaseClient instance
+  SupabaseTestService(this._supabase);
+
+  /// Test the complete Supabase setup
+  Future<void> testConnection() async {
     try {
-      print('🔍 Testing Supabase connection...');
+      debugPrint('🔍 Testing Supabase connection...');
 
       // Test 1: Check if client is initialized
-      print('✅ Supabase client initialized');
+      debugPrint('✅ Supabase client initialized');
 
-      // Test 2: Check current auth state
+      // Test 2: Check authentication status
       final user = _supabase.auth.currentUser;
-      print('🔐 Current user: ${user?.id ?? 'Not authenticated'}');
+      debugPrint('🔐 Current user: ${user?.id ?? 'Not authenticated'}');
 
-      // Test 3: Try authentication using demo service
+      // Test 3: Try authentication if not already authenticated
       if (user == null) {
-        final authenticatedUser = await DemoAuthService.authenticateForDemo();
-        if (authenticatedUser != null) {
-          print('✅ Authentication successful: ${authenticatedUser.id}');
-        } else {
-          print('❌ All authentication methods failed');
+        try {
+          final response = await _supabase.auth.signInAnonymously();
+          if (response.user != null) {
+            debugPrint('✅ Authentication successful: ${response.user!.id}');
+          } else {
+            debugPrint('❌ All authentication methods failed');
+          }
+        } catch (e) {
+          // Authentication failures are expected in test environment
         }
       }
 
-      // Test 4: Try a simple API call
-      print('🌐 Testing API connection...');
+      // Test 4: Test basic API connectivity (if authenticated)
+      debugPrint('🌐 Testing API connection...');
       try {
         final response = await _supabase
             .from('daily_engagement_scores')
-            .select('count')
+            .select('*')
             .limit(1);
-        print('✅ API connection successful: ${response.length} records found');
+
+        debugPrint(
+          '✅ API connection successful: ${response.length} records found',
+        );
       } catch (e) {
-        print('⚠️ API call failed (expected if no data): $e');
+        debugPrint('⚠️ API call failed (expected if no data): $e');
       }
 
       // Test 5: Test real-time connection
-      print('🔄 Testing real-time connection...');
+      debugPrint('🔄 Testing real-time connection...');
       try {
-        final channel = _supabase.channel('test_channel');
+        final channel = _supabase.realtime.channel('test');
         channel.subscribe();
-        print('✅ Real-time connection successful');
+        debugPrint('✅ Real-time connection successful');
         await channel.unsubscribe();
       } catch (e) {
-        print('❌ Real-time connection failed: $e');
+        debugPrint('❌ Real-time connection failed: $e');
       }
 
-      print('🎉 Supabase connection test completed!');
+      debugPrint('🎉 Supabase connection test completed!');
     } catch (e, stackTrace) {
-      print('❌ Supabase connection test failed: $e');
-      print('Stack trace: $stackTrace');
+      debugPrint('❌ Supabase connection test failed: $e');
+      debugPrint('Stack trace: $stackTrace');
     }
   }
 
   /// Get current authentication status
-  static Map<String, dynamic> getAuthStatus() {
+  Map<String, dynamic> getAuthStatus() {
     final user = _supabase.auth.currentUser;
     return {
       'isAuthenticated': user != null,
