@@ -1,5 +1,5 @@
 name: app
-description: "A new Flutter project."
+description: "BEE Momentum Meter - Patient-facing motivation gauge"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -31,9 +31,29 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
+  # UI & Design
   cupertino_icons: ^1.0.8
+  material_color_utilities: ^0.11.1
+  
+  # State Management
+  flutter_riverpod: ^2.5.1
+  riverpod_annotation: ^2.3.5
+  
+  # Backend & API
+  supabase_flutter: ^2.9.0
+  postgres: ^3.5.6
+  http: ^1.2.0
+  
+  # Charts & Visualization
+  fl_chart: ^0.69.0
+  
+  # Animations
+  lottie: ^3.1.2
+  
+  # Utilities
+  intl: ^0.19.0
+  shared_preferences: ^2.2.2
+  connectivity_plus: ^6.0.5
 
 dev_dependencies:
   flutter_test:
@@ -87,3 +107,32 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+  # Assets for momentum meter
+  assets:
+    - assets/images/
+    - assets/animations/
+    - assets/icons/
+
+  # Custom fonts for BEE design system (TODO: Add actual font files)
+  # fonts:
+  #   - family: BEE
+  #     fonts:
+  #       - asset: assets/fonts/BEE-Regular.ttf
+  #       - asset: assets/fonts/BEE-Medium.ttf
+  #         weight: 500
+  #       - asset: assets/fonts/BEE-SemiBold.ttf
+  #         weight: 600
+  #       - asset: assets/fonts/BEE-Bold.ttf
+  #         weight: 700
+
+# Code Generation
+riverpod_generator: ^2.4.0
+build_runner: ^2.4.12
+json_annotation: ^4.9.0
+json_serializable: ^6.8.0
+
+# Testing
+mockito: ^5.4.4
+integration_test:
+  sdk: flutter

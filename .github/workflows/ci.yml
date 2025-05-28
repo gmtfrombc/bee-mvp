@@ -32,3 +32,45 @@ jobs:
         run: |
           terraform init -backend=false
           terraform validate
+
+      # ---------- Database RLS Tests ----------
+      - name: Setup PostgreSQL
+        uses: harmon758/postgresql-action@v1
+        with:
+          postgresql version: '14'
+          postgresql db: 'test'
+          postgresql user: 'postgres'
+          postgresql password: 'postgres'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r tests/requirements-minimal.txt
+
+      - name: Setup test database schema
+        run: |
+          PGPASSWORD=postgres psql -h localhost -U postgres -d test -c "
+          -- Create engagement_events table for testing
+          CREATE TABLE IF NOT EXISTS engagement_events (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            user_id UUID NOT NULL,
+            timestamp TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+            event_type TEXT NOT NULL,
+            value JSONB DEFAULT '{}'::jsonb,
+            is_deleted BOOLEAN DEFAULT FALSE
+          );
+          
+          -- Enable RLS
+          ALTER TABLE engagement_events ENABLE ROW LEVEL SECURITY;
+          
+          -- Create RLS policies
+          CREATE POLICY \"Users can view own events\" ON engagement_events 
+          FOR SELECT USING (current_setting('request.jwt.claims', true)::jsonb->>'sub' = user_id::text);
+          
+          CREATE POLICY \"Users can insert own events\" ON engagement_events 
+          FOR INSERT WITH CHECK (current_setting('request.jwt.claims', true)::jsonb->>'sub' = user_id::text);
+          "
+
+      - name: Run RLS Tests
+        run: |
+          pytest tests/db/test_rls.py -v
