@@ -7,6 +7,7 @@ import 'momentum_gauge.dart';
 
 /// Detail modal that shows comprehensive momentum breakdown
 /// Triggered when user taps on MomentumCard
+/// Optimized for performance with reduced animation controllers and improved memory usage
 class MomentumDetailModal extends StatefulWidget {
   final MomentumData momentumData;
 
@@ -17,29 +18,24 @@ class MomentumDetailModal extends StatefulWidget {
 }
 
 class _MomentumDetailModalState extends State<MomentumDetailModal>
-    with TickerProviderStateMixin {
-  late AnimationController _slideController;
-  late AnimationController _fadeController;
+    with SingleTickerProviderStateMixin {
+  // Optimized: Use single animation controller instead of multiple controllers
+  late AnimationController _controller;
   late Animation<Offset> _slideAnimation;
   late Animation<double> _fadeAnimation;
-  late List<AnimationController> _itemControllers;
-  late List<Animation<double>> _itemAnimations;
+  late Animation<double> _scaleAnimation;
 
   @override
   void initState() {
     super.initState();
-    _setupAnimations();
+    _setupOptimizedAnimations();
     _startEntryAnimation();
   }
 
-  void _setupAnimations() {
-    _slideController = AnimationController(
-      duration: const Duration(milliseconds: 400),
-      vsync: this,
-    );
-
-    _fadeController = AnimationController(
-      duration: const Duration(milliseconds: 300),
+  void _setupOptimizedAnimations() {
+    // Optimized: Single controller for all animations reduces memory overhead
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 500),
       vsync: this,
     );
 
@@ -47,45 +43,31 @@ class _MomentumDetailModalState extends State<MomentumDetailModal>
       begin: const Offset(0, 1),
       end: Offset.zero,
     ).animate(
-      CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic),
-    );
-
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _fadeController, curve: Curves.easeOut));
-
-    // Setup staggered animations for content items
-    _itemControllers = List.generate(
-      4, // Number of content sections
-      (index) => AnimationController(
-        duration: const Duration(milliseconds: 600),
-        vsync: this,
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.0, 0.8, curve: Curves.easeOutCubic),
       ),
     );
 
-    _itemAnimations =
-        _itemControllers
-            .map(
-              (controller) => Tween<double>(begin: 0.0, end: 1.0).animate(
-                CurvedAnimation(parent: controller, curve: Curves.easeOut),
-              ),
-            )
-            .toList();
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
+      ),
+    );
+
+    // Optimized: Simple scale animation for content stagger effect
+    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.4, 1.0, curve: Curves.easeOut),
+      ),
+    );
   }
 
   void _startEntryAnimation() {
-    _fadeController.forward();
-    _slideController.forward();
-
-    // Staggered animation for content items
-    for (int i = 0; i < _itemControllers.length; i++) {
-      Future.delayed(Duration(milliseconds: 200 + (i * 100)), () {
-        if (mounted) {
-          _itemControllers[i].forward();
-        }
-      });
-    }
+    // Optimized: Start single animation immediately
+    _controller.forward();
   }
 
   void _handleClose() {
@@ -95,18 +77,15 @@ class _MomentumDetailModalState extends State<MomentumDetailModal>
 
   @override
   void dispose() {
-    _slideController.dispose();
-    _fadeController.dispose();
-    for (final controller in _itemControllers) {
-      controller.dispose();
-    }
+    // Optimized: Only dispose single controller
+    _controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: Listenable.merge([_slideAnimation, _fadeAnimation]),
+      animation: _controller,
       builder: (context, child) {
         return Material(
           color: Colors.black.withValues(alpha: 0.5 * _fadeAnimation.value),
@@ -123,31 +102,11 @@ class _MomentumDetailModalState extends State<MomentumDetailModal>
                   children: [
                     _buildHeader(),
                     Expanded(
-                      child: SingleChildScrollView(
-                        padding: ResponsiveService.getLargePadding(context),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildMomentumOverview(),
-                            SizedBox(
-                              height: ResponsiveService.getExtraLargeSpacing(
-                                context,
-                              ),
-                            ),
-                            _buildMomentumFactors(),
-                            SizedBox(
-                              height: ResponsiveService.getExtraLargeSpacing(
-                                context,
-                              ),
-                            ),
-                            _buildRecentActivity(),
-                            SizedBox(
-                              height: ResponsiveService.getExtraLargeSpacing(
-                                context,
-                              ),
-                            ),
-                            _buildProgressInsights(),
-                          ],
+                      child: ScaleTransition(
+                        scale: _scaleAnimation,
+                        child: FadeTransition(
+                          opacity: _scaleAnimation,
+                          child: _buildScrollableContent(),
                         ),
                       ),
                     ),
@@ -158,6 +117,25 @@ class _MomentumDetailModalState extends State<MomentumDetailModal>
           ),
         );
       },
+    );
+  }
+
+  // Optimized: Extract scrollable content to reduce rebuild scope
+  Widget _buildScrollableContent() {
+    return SingleChildScrollView(
+      padding: ResponsiveService.getLargePadding(context),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildMomentumOverview(),
+          SizedBox(height: ResponsiveService.getExtraLargeSpacing(context)),
+          _buildMomentumFactors(),
+          SizedBox(height: ResponsiveService.getExtraLargeSpacing(context)),
+          _buildRecentActivity(),
+          SizedBox(height: ResponsiveService.getExtraLargeSpacing(context)),
+          _buildProgressInsights(),
+        ],
+      ),
     );
   }
 
@@ -221,13 +199,16 @@ class _MomentumDetailModalState extends State<MomentumDetailModal>
               Row(
                 children: [
                   SizedBox(
-                    width: 80,
-                    height: 80,
+                    width:
+                        ResponsiveService.getMomentumGaugeSize(context) * 0.8,
+                    height:
+                        ResponsiveService.getMomentumGaugeSize(context) * 0.8,
                     child: MomentumGauge(
                       state: widget.momentumData.state,
                       percentage: widget.momentumData.percentage,
                       showGlow: false,
-                      size: 80,
+                      size:
+                          ResponsiveService.getMomentumGaugeSize(context) * 0.8,
                     ),
                   ),
                   SizedBox(
@@ -335,8 +316,8 @@ class _MomentumDetailModalState extends State<MomentumDetailModal>
     return Row(
       children: [
         Container(
-          width: 40,
-          height: 40,
+          width: ResponsiveService.getIconSize(context, baseSize: 40),
+          height: ResponsiveService.getIconSize(context, baseSize: 40),
           decoration: BoxDecoration(
             color: AppTheme.getMomentumColor(
               widget.momentumData.state,
@@ -348,7 +329,7 @@ class _MomentumDetailModalState extends State<MomentumDetailModal>
           child: Icon(
             icon,
             color: AppTheme.getMomentumColor(widget.momentumData.state),
-            size: 20,
+            size: ResponsiveService.getIconSize(context, baseSize: 20),
           ),
         ),
         SizedBox(width: ResponsiveService.getResponsiveSpacing(context)),
@@ -419,8 +400,8 @@ class _MomentumDetailModalState extends State<MomentumDetailModal>
       child: Row(
         children: [
           Container(
-            width: 32,
-            height: 32,
+            width: ResponsiveService.getIconSize(context, baseSize: 32),
+            height: ResponsiveService.getIconSize(context, baseSize: 32),
             decoration: BoxDecoration(
               color: AppTheme.getMomentumColor(
                 daily.state,
@@ -432,7 +413,7 @@ class _MomentumDetailModalState extends State<MomentumDetailModal>
             child: Icon(
               _getStateIcon(daily.state),
               color: AppTheme.getMomentumColor(daily.state),
-              size: 16,
+              size: ResponsiveService.getIconSize(context, baseSize: 16),
             ),
           ),
           SizedBox(width: ResponsiveService.getResponsiveSpacing(context)),
@@ -514,15 +495,19 @@ class _MomentumDetailModalState extends State<MomentumDetailModal>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          width: 32,
-          height: 32,
+          width: ResponsiveService.getIconSize(context, baseSize: 32),
+          height: ResponsiveService.getIconSize(context, baseSize: 32),
           decoration: BoxDecoration(
             color: AppTheme.momentumSteady.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(
               ResponsiveService.getBorderRadius(context),
             ),
           ),
-          child: Icon(icon, color: AppTheme.momentumSteady, size: 16),
+          child: Icon(
+            icon,
+            color: AppTheme.momentumSteady,
+            size: ResponsiveService.getIconSize(context, baseSize: 16),
+          ),
         ),
         SizedBox(width: ResponsiveService.getResponsiveSpacing(context)),
         Expanded(
@@ -546,15 +531,15 @@ class _MomentumDetailModalState extends State<MomentumDetailModal>
 
   Widget _buildAnimatedSection({required int index, required Widget child}) {
     return AnimatedBuilder(
-      animation: _itemAnimations[index],
+      animation: _scaleAnimation,
       builder: (context, _) {
         return FadeTransition(
-          opacity: _itemAnimations[index],
+          opacity: _scaleAnimation,
           child: SlideTransition(
             position: Tween<Offset>(
               begin: const Offset(0, 0.3),
               end: Offset.zero,
-            ).animate(_itemAnimations[index]),
+            ).animate(_scaleAnimation),
             child: child,
           ),
         );

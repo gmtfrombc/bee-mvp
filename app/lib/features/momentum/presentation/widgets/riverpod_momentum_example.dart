@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/services/responsive_service.dart';
 import '../providers/momentum_provider.dart';
+import '../providers/momentum_api_provider.dart';
 import '../providers/ui_state_provider.dart';
 
 /// Comprehensive example widget demonstrating Riverpod state management patterns
@@ -19,7 +20,7 @@ class RiverpodMomentumExample extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () => ref.read(momentumProvider.notifier).refresh(),
+            onPressed: () => ref.read(momentumControllerProvider).refresh(),
           ),
         ],
       ),
@@ -212,7 +213,7 @@ class _StateMutationExample extends ConsumerWidget {
                   child: ElevatedButton.icon(
                     onPressed:
                         () => ref
-                            .read(momentumProvider.notifier)
+                            .read(momentumControllerProvider)
                             .simulateStateChange(MomentumState.rising),
                     icon: const Icon(Icons.rocket_launch),
                     label: const Text('Rising'),
@@ -229,7 +230,7 @@ class _StateMutationExample extends ConsumerWidget {
                   child: ElevatedButton.icon(
                     onPressed:
                         () => ref
-                            .read(momentumProvider.notifier)
+                            .read(momentumControllerProvider)
                             .simulateStateChange(MomentumState.steady),
                     icon: const Icon(Icons.sentiment_satisfied),
                     label: const Text('Steady'),
@@ -246,7 +247,7 @@ class _StateMutationExample extends ConsumerWidget {
                   child: ElevatedButton.icon(
                     onPressed:
                         () => ref
-                            .read(momentumProvider.notifier)
+                            .read(momentumControllerProvider)
                             .simulateStateChange(MomentumState.needsCare),
                     icon: const Icon(Icons.eco),
                     label: const Text('Care'),
@@ -358,7 +359,7 @@ class _RealTimeUpdatesExample extends ConsumerWidget {
             Text('Weekly Trend: ${weeklyTrend?.length ?? 0} days'),
             SizedBox(height: ResponsiveService.getMediumSpacing(context)),
             ElevatedButton(
-              onPressed: () => ref.read(momentumProvider.notifier).refresh(),
+              onPressed: () => ref.read(momentumControllerProvider).refresh(),
               child: const Text('Refresh Data'),
             ),
           ],

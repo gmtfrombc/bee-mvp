@@ -68,8 +68,8 @@ class NotificationDeepLinkService {
 
     if (isCelebration && ref != null) {
       // Trigger momentum refresh to show latest state
-      final momentumNotifier = ref.read(realtimeMomentumProvider.notifier);
-      await momentumNotifier.refresh();
+      final momentumController = ref.read(momentumControllerProvider);
+      await momentumController.refresh();
 
       // Show celebration message if context available
       if (context != null && context.mounted) {
@@ -80,8 +80,8 @@ class NotificationDeepLinkService {
     // For momentum meter, we're already on the main screen
     // Just ensure momentum data is refreshed
     if (ref != null) {
-      final momentumNotifier = ref.read(realtimeMomentumProvider.notifier);
-      await momentumNotifier.refresh();
+      final momentumController = ref.read(momentumControllerProvider);
+      await momentumController.refresh();
     }
   }
 
@@ -143,8 +143,8 @@ class NotificationDeepLinkService {
 
     if (focus == 'momentum_meter' && ref != null) {
       // Refresh momentum data to show latest state
-      final momentumNotifier = ref.read(realtimeMomentumProvider.notifier);
-      await momentumNotifier.refresh();
+      final momentumController = ref.read(momentumControllerProvider);
+      await momentumController.refresh();
     }
 
     // App is already open, just ensure latest data is loaded
@@ -488,8 +488,8 @@ class NotificationDeepLinkService {
         }
 
         // Trigger a refresh to get the latest data
-        final momentumNotifier = ref.read(realtimeMomentumProvider.notifier);
-        await momentumNotifier.refresh();
+        final momentumController = ref.read(momentumControllerProvider);
+        await momentumController.refresh();
       }
     } catch (e) {
       if (kDebugMode) {

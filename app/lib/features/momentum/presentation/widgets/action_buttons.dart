@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/services/responsive_service.dart';
 import '../../../../core/services/accessibility_service.dart';
@@ -28,6 +29,7 @@ class _ActionButtonsState extends State<ActionButtons>
   late List<AnimationController> _controllers;
   late List<Animation<double>> _fadeAnimations;
   late List<Animation<Offset>> _slideAnimations;
+  List<Timer>? _staggerTimers; // Store timer references for cleanup
 
   @override
   void initState() {
@@ -37,8 +39,9 @@ class _ActionButtonsState extends State<ActionButtons>
   }
 
   void _setupAnimations() {
+    const buttonCount = 2; // Learn and Share buttons
     _controllers = List.generate(
-      2,
+      buttonCount,
       (index) => AnimationController(
         duration: const Duration(milliseconds: 600),
         vsync: this,
@@ -58,7 +61,7 @@ class _ActionButtonsState extends State<ActionButtons>
         _controllers
             .map(
               (controller) => Tween<Offset>(
-                begin: const Offset(0, 0.3),
+                begin: const Offset(0, 0.5),
                 end: Offset.zero,
               ).animate(
                 CurvedAnimation(parent: controller, curve: Curves.easeOut),
@@ -68,18 +71,30 @@ class _ActionButtonsState extends State<ActionButtons>
   }
 
   void _startStaggeredAnimation() {
+    // Store timer references for proper cleanup
+    _staggerTimers = [];
+
     // Staggered animation with 100ms delay between buttons
     for (int i = 0; i < _controllers.length; i++) {
-      Future.delayed(Duration(milliseconds: i * 100), () {
+      final timer = Timer(Duration(milliseconds: i * 100), () {
         if (mounted) {
           _controllers[i].forward();
         }
       });
+      _staggerTimers!.add(timer);
     }
   }
 
   @override
   void dispose() {
+    // Cancel any pending timers first
+    if (_staggerTimers != null) {
+      for (final timer in _staggerTimers!) {
+        timer.cancel();
+      }
+    }
+
+    // Then dispose animation controllers
     for (final controller in _controllers) {
       controller.dispose();
     }

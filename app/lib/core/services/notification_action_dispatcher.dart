@@ -331,8 +331,8 @@ class NotificationActionDispatcher {
       }
 
       // Trigger momentum refresh to get latest data
-      final momentumNotifier = _appRef!.read(realtimeMomentumProvider.notifier);
-      await momentumNotifier.refresh();
+      final momentumController = _appRef!.read(momentumControllerProvider);
+      await momentumController.refresh();
 
       if (kDebugMode) {
         print('📊 Momentum data refreshed from notification');

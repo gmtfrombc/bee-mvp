@@ -86,6 +86,34 @@ class ConnectivityService {
     debugPrint('Connectivity status changed: $_currentStatus');
     _statusController.add(_currentStatus);
   }
+
+  // ============================================================================
+  // TESTING HELPER METHODS
+  // ============================================================================
+
+  /// Set offline status for testing purposes
+  /// **WARNING**: This should only be used in test environments
+  static void setOfflineForTesting(bool isOffline) {
+    assert(() {
+      // Only allow this in debug/test builds
+      return true;
+    }());
+
+    _currentStatus =
+        isOffline ? ConnectivityStatus.offline : ConnectivityStatus.online;
+    _updateStream();
+  }
+
+  /// Reset connectivity service to default state for testing
+  static void resetForTesting() {
+    assert(() {
+      // Only allow this in debug/test builds
+      return true;
+    }());
+
+    _currentStatus = ConnectivityStatus.offline;
+    _updateStream();
+  }
 }
 
 /// Riverpod provider for connectivity status

@@ -274,7 +274,7 @@ class StaggeredLoadingAnimation extends StatefulWidget {
     required this.children,
     this.staggerDelay = const Duration(milliseconds: 100),
     this.animationDuration = const Duration(milliseconds: 600),
-    this.curve = Curves.easeOutBack,
+    this.curve = Curves.easeOut,
   });
 
   @override
@@ -336,10 +336,11 @@ class _StaggeredLoadingAnimationState extends State<StaggeredLoadingAnimation>
         return AnimatedBuilder(
           animation: _animations[index],
           builder: (context, child) {
+            final animationValue = _animations[index].value.clamp(0.0, 1.0);
             return Transform.translate(
-              offset: Offset(0, 20 * (1 - _animations[index].value)),
+              offset: Offset(0, 20 * (1 - animationValue)),
               child: Opacity(
-                opacity: _animations[index].value,
+                opacity: animationValue,
                 child: widget.children[index],
               ),
             );

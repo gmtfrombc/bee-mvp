@@ -202,7 +202,7 @@ class _CoachDashboardScreenState extends ConsumerState<CoachDashboardScreen>
         border: Border.all(color: Colors.grey[200]!),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             spreadRadius: 1,
             blurRadius: 4,
             offset: const Offset(0, 2),
@@ -219,7 +219,7 @@ class _CoachDashboardScreenState extends ConsumerState<CoachDashboardScreen>
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
@@ -325,7 +325,7 @@ class _CoachDashboardScreenState extends ConsumerState<CoachDashboardScreen>
 
     return ListTile(
       leading: CircleAvatar(
-        backgroundColor: iconColor.withOpacity(0.1),
+        backgroundColor: iconColor.withValues(alpha: 0.1),
         child: Icon(icon, color: iconColor, size: 20),
       ),
       title: Text(
@@ -585,9 +585,9 @@ class _CoachDashboardScreenState extends ConsumerState<CoachDashboardScreen>
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: priorityColor.withOpacity(0.1),
+                    color: priorityColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: priorityColor.withOpacity(0.3)),
+                    border: Border.all(color: priorityColor.withValues(alpha: 0.3)),
                   ),
                   child: Text(
                     priority.toUpperCase(),
@@ -605,7 +605,7 @@ class _CoachDashboardScreenState extends ConsumerState<CoachDashboardScreen>
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.blue.withOpacity(0.1),
+                    color: Colors.blue.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(

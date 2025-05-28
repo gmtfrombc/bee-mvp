@@ -18,17 +18,15 @@ class TestHelpers {
     return MockMomentumApiService();
   }
 
-  /// Create provider overrides for testing
-  static List<Override> createProviderOverrides() {
+  /// Create test provider overrides for momentum-related tests
+  static List<Override> createMomentumProviderOverrides() {
     return [
-      // Override the momentum API service provider with mock
-      momentumApiServiceProvider.overrideWith((ref) async {
-        return createMockMomentumApiService();
+      momentumApiServiceProvider.overrideWith((ref) {
+        return TestHelpers.createMockMomentumApiService();
       }),
-
-      // Override the realtime momentum provider with test notifier
-      realtimeMomentumProvider.overrideWith(() {
-        return TestRealtimeMomentumNotifier();
+      realtimeMomentumProvider.overrideWith((ref) {
+        // Return a stream that emits test data
+        return Stream.value(TestHelpers.createSampleMomentumData());
       }),
     ];
   }
@@ -41,7 +39,7 @@ class TestHelpers {
     bool enableNotifications = false,
   }) {
     return ProviderScope(
-      overrides: providerOverrides ?? createProviderOverrides(),
+      overrides: providerOverrides ?? createMomentumProviderOverrides(),
       child: MaterialApp(
         title: 'BEE Test',
         theme: theme ?? AppTheme.lightTheme,
@@ -365,63 +363,38 @@ class MockMomentumApiService implements MomentumApiService {
       'Real-time updates not supported in test environment',
     );
   }
-}
 
-/// Test implementation of RealtimeMomentumNotifier that doesn't require real Supabase
-class TestRealtimeMomentumNotifier extends RealtimeMomentumNotifier {
-  late final MomentumApiService _testApiService;
-
-  TestRealtimeMomentumNotifier() {
-    _testApiService = TestHelpers.createMockMomentumApiService();
-  }
-
+  // Enhanced caching methods for testing
   @override
-  Future<MomentumData> build() async {
-    // Return test data immediately without API calls or subscriptions
+  Future<MomentumData> getMomentumWithOfflineSupport({
+    bool allowStaleData = true,
+    Duration? maxCacheAge,
+  }) async {
+    await Future.delayed(const Duration(milliseconds: 50));
     return TestHelpers.createSampleMomentumData();
   }
 
   @override
-  Future<void> refresh() async {
-    state = const AsyncValue.loading();
-    try {
-      final refreshedData = await _testApiService.getCurrentMomentum();
-      state = AsyncValue.data(refreshedData);
-    } catch (error, stackTrace) {
-      state = AsyncValue.error(error, stackTrace);
-    }
+  Future<void> initializeOfflineSupport() async {
+    // Mock initialization - no actual work needed in tests
+    await Future.delayed(const Duration(milliseconds: 10));
   }
 
   @override
-  Future<void> simulateStateChange(MomentumState newState) async {
-    state.whenData((currentData) {
-      // Create updated data with new state and appropriate percentage
-      final newPercentage = switch (newState) {
-        MomentumState.rising => 85.0,
-        MomentumState.steady => 65.0,
-        MomentumState.needsCare => 35.0,
-      };
-
-      final newMessage = switch (newState) {
-        MomentumState.rising => "You're on fire! Keep up the great momentum!",
-        MomentumState.steady => "Steady progress! You're doing great!",
-        MomentumState.needsCare => "Let's get back on track together! 🌱",
-      };
-
-      final updatedData = currentData.copyWith(
-        state: newState,
-        percentage: newPercentage,
-        message: newMessage,
-        lastUpdated: DateTime.now(),
-      );
-
-      state = AsyncValue.data(updatedData);
-    });
+  Future<void> warmMomentumCache() async {
+    // Mock cache warming
+    await Future.delayed(const Duration(milliseconds: 10));
   }
 
   @override
-  void dispose() {
-    // No real-time subscriptions to dispose in test environment
-    super.dispose();
+  Future<void> processPendingMomentumActions() async {
+    // Mock processing
+    await Future.delayed(const Duration(milliseconds: 10));
+  }
+
+  @override
+  Future<void> invalidateMomentumCache({String? reason}) async {
+    // Mock cache invalidation
+    await Future.delayed(const Duration(milliseconds: 10));
   }
 }
