@@ -26,3 +26,10 @@ pytest-xdist>=2.5.0 # For parallel test execution
 # Code quality and formatting
 black>=23.0.0        # Code formatter
 ruff>=0.1.0          # Fast Python linter
+
+# Additional pytest plugins for better testing
+pytest-asyncio>=0.21.0  # Better async test support
+pytest-mock>=3.14.0     # Mocking utilities
+pytest-benchmark>=4.0.0 # Performance benchmarking
+pytest-timeout>=2.1.0   # Test timeouts
+pytest-env>=0.8.0       # Environment variable management

@@ -1,0 +1,33 @@
+# GitGuardian configuration for BEE project
+# This file tells GitGuardian to ignore certain patterns that are false positives
+
+# Ignore test database passwords in CI configuration
+paths-ignore:
+  - ".github/workflows/ci.yml"  # CI test database setup
+
+# Ignore specific patterns that are not real secrets
+secrets-ignore:
+  # Test database credentials (not sensitive)
+  - name: "Test PostgreSQL Password"
+    match: "postgresql password: 'postgres'"
+    
+  # Common test patterns
+  - name: "Test Database Patterns"
+    match: "PGPASSWORD=postgres"
+
+# File patterns to ignore
+ignore:
+  - "**/*test*/**"
+  - "**/*mock*/**"
+  - "**/test_*.py"
+  - "**/conftest.py"
+
+# Minimum secret entropy (helps reduce false positives)
+minimum_secret_entropy: 3.0
+
+# Custom rules for your project
+custom_rules:
+  - name: "Ignore test database setup"
+    pattern: "postgresql.*password.*postgres"
+    description: "Test database password in CI"
+    severity: "low" 
