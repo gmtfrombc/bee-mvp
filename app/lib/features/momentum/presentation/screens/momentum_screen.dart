@@ -10,6 +10,11 @@ import '../widgets/weekly_trend_chart.dart';
 import '../widgets/quick_stats_cards.dart';
 import '../widgets/action_buttons.dart';
 import '../widgets/momentum_detail_modal.dart';
+import '../widgets/momentum_gauge.dart';
+import '../widgets/skeleton_widgets.dart';
+import '../widgets/loading_indicator.dart';
+import '../widgets/error_widgets.dart';
+import '../../../../core/services/error_handling_service.dart';
 
 /// Main momentum meter screen
 /// Displays the user's current momentum state and provides quick actions
@@ -40,124 +45,37 @@ class MomentumScreen extends ConsumerWidget {
         ],
       ),
       body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: () => ref.read(momentumProvider.notifier).refresh(),
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(16.0),
-            child: momentumAsync.when(
-              loading: () => const _LoadingView(),
-              error:
-                  (error, stack) => _ErrorView(
-                    error: error.toString(),
-                    onRetry:
-                        () => ref.read(momentumProvider.notifier).refresh(),
-                  ),
-              data:
-                  (momentumData) =>
-                      _MomentumContent(momentumData: momentumData),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
+        child: Column(
+          children: [
+            // Offline banner
+            const OfflineBanner(),
 
-/// Loading view with skeleton screens
-class _LoadingView extends StatelessWidget {
-  const _LoadingView();
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Loading momentum card
-        Card(
-          child: Container(
-            height: 200,
-            padding: const EdgeInsets.all(16),
-            child: const Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                CircularProgressIndicator(),
-                SizedBox(height: 16),
-                Text('Loading your momentum...'),
-              ],
-            ),
-          ),
-        ),
-
-        const SizedBox(height: 24),
-
-        // Loading placeholders for other sections
-        Card(
-          child: Container(
-            height: 140,
-            padding: const EdgeInsets.all(16),
-            child: const Center(child: CircularProgressIndicator()),
-          ),
-        ),
-
-        const SizedBox(height: 24),
-
-        Row(
-          children: List.generate(
-            3,
-            (index) => Expanded(
-              child: Container(
-                margin: EdgeInsets.only(right: index < 2 ? 8 : 0),
-                child: Card(
-                  child: SizedBox(
-                    height: 84,
-                    child: const Center(child: CircularProgressIndicator()),
+            // Main content
+            Expanded(
+              child: MomentumRefreshIndicator(
+                onRefresh: () => ref.read(momentumProvider.notifier).refresh(),
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(16.0),
+                  child: momentumAsync.when(
+                    loading: () => const SkeletonMomentumScreen(),
+                    error:
+                        (error, stack) => MomentumErrorWidget(
+                          error:
+                              error is AppError
+                                  ? error
+                                  : AppError.fromException(error),
+                          onRetry:
+                              () =>
+                                  ref.read(momentumProvider.notifier).refresh(),
+                        ),
+                    data:
+                        (momentumData) =>
+                            _MomentumContent(momentumData: momentumData),
                   ),
                 ),
               ),
             ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-/// Error view with retry option
-class _ErrorView extends StatelessWidget {
-  final String error;
-  final VoidCallback onRetry;
-
-  const _ErrorView({required this.error, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Container(
-        height: 200,
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.error_outline,
-              size: 48,
-              color: AppTheme.momentumCare,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Unable to load momentum data',
-              style: Theme.of(context).textTheme.titleMedium,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              error,
-              style: Theme.of(context).textTheme.bodyMedium,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(onPressed: onRetry, child: const Text('Try Again')),
           ],
         ),
       ),
@@ -165,14 +83,19 @@ class _ErrorView extends StatelessWidget {
   }
 }
 
-/// Main content view with momentum data
-class _MomentumContent extends StatelessWidget {
+/// Main content view with momentum data - now using Riverpod providers
+class _MomentumContent extends ConsumerWidget {
   final MomentumData momentumData;
 
   const _MomentumContent({required this.momentumData});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Watch individual providers for reactive updates
+    final weeklyTrend = ref.watch(weeklyTrendProvider);
+    final stats = ref.watch(momentumStatsProvider);
+    final momentumState = ref.watch(momentumStateProvider);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -188,52 +111,173 @@ class _MomentumContent extends StatelessWidget {
         const SizedBox(height: 24),
 
         // Weekly Trend Chart - T1.1.3.4 Complete
-        WeeklyTrendChart(weeklyTrend: momentumData.weeklyTrend),
+        if (weeklyTrend != null)
+          WeeklyTrendChart(weeklyTrend: weeklyTrend)
+        else
+          const SkeletonWeeklyTrendChart(),
 
         const SizedBox(height: 24),
 
         // Quick Stats Cards - T1.1.3.5 Complete
-        QuickStatsCards(
-          stats: momentumData.stats,
-          onLessonsTap: () {
-            // TODO: Navigate to lessons (T1.1.3.6)
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Lessons view coming soon!')),
-            );
-          },
-          onStreakTap: () {
-            // TODO: Navigate to streak details (T1.1.3.6)
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Streak details coming soon!')),
-            );
-          },
-          onTodayTap: () {
-            // TODO: Navigate to today's activity (T1.1.3.6)
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Today\'s activity coming soon!')),
-            );
-          },
-        ),
+        if (stats != null)
+          QuickStatsCards(
+            stats: stats,
+            onLessonsTap: () {
+              // TODO: Navigate to lessons (T1.1.3.6)
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Lessons view coming soon!')),
+              );
+            },
+            onStreakTap: () {
+              // TODO: Navigate to streak details (T1.1.3.6)
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Streak details coming soon!')),
+              );
+            },
+            onTodayTap: () {
+              // TODO: Navigate to today's activity (T1.1.3.6)
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Today\'s activity coming soon!')),
+              );
+            },
+          )
+        else
+          const SkeletonQuickStatsCards(),
 
         const SizedBox(height: 24),
 
         // Action Buttons - T1.1.3.6 Complete
-        ActionButtons(
-          state: momentumData.state,
-          onLearnTap: () {
-            // TODO: Navigate to learning content
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Learning content coming soon!')),
-            );
-          },
-          onShareTap: () {
-            // TODO: Navigate to sharing options
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Sharing options coming soon!')),
-            );
-          },
-        ),
+        if (momentumState != null)
+          ActionButtons(
+            state: momentumState,
+            onLearnTap: () {
+              // TODO: Navigate to learning content
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Learning content coming soon!')),
+              );
+            },
+            onShareTap: () {
+              // TODO: Navigate to sharing options
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Sharing options coming soon!')),
+              );
+            },
+          )
+        else
+          const SkeletonActionButtons(),
+
+        const SizedBox(height: 24),
+
+        // Demo section now using Riverpod providers
+        const _DemoSection(),
       ],
+    );
+  }
+}
+
+/// Demo section using Riverpod providers for state management
+class _DemoSection extends ConsumerWidget {
+  const _DemoSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final demoState = ref.watch(demoStateProvider);
+    final demoPercentage = ref.watch(demoPercentageProvider);
+
+    return Card(
+      margin: const EdgeInsets.all(16),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'State Transition Demo',
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 16),
+            Center(
+              child: MomentumGauge(
+                state: demoState,
+                percentage: demoPercentage,
+                size: 140,
+                stateTransitionDuration: const Duration(milliseconds: 800),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _DemoButton(
+                  label: 'Rising 🚀',
+                  state: MomentumState.rising,
+                  color: AppTheme.momentumRising,
+                ),
+                _DemoButton(
+                  label: 'Steady 🙂',
+                  state: MomentumState.steady,
+                  color: AppTheme.momentumSteady,
+                ),
+                _DemoButton(
+                  label: 'Care 🌱',
+                  state: MomentumState.needsCare,
+                  color: AppTheme.momentumCare,
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Tap the buttons above to see smooth state transitions with haptic feedback!',
+              style: Theme.of(context).textTheme.bodySmall,
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Individual demo button using Riverpod for state management
+class _DemoButton extends ConsumerWidget {
+  final String label;
+  final MomentumState state;
+  final Color color;
+
+  const _DemoButton({
+    required this.label,
+    required this.state,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentDemoState = ref.watch(demoStateProvider);
+    final isSelected = currentDemoState == state;
+
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        child: ElevatedButton(
+          onPressed: () {
+            // Update demo state using Riverpod
+            ref.read(demoStateProvider.notifier).state = state;
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: isSelected ? color : Colors.grey.shade200,
+            foregroundColor: isSelected ? Colors.white : Colors.grey.shade700,
+            elevation: isSelected ? 2 : 0,
+            padding: const EdgeInsets.symmetric(vertical: 12),
+          ),
+          child: Text(
+            label,
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ),
     );
   }
 }

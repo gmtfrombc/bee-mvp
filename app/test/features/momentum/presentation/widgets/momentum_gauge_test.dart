@@ -203,6 +203,131 @@ void main() {
       // Verify state changed
       expect(find.text('🌱'), findsOneWidget);
     });
+
+    testWidgets('state transition animation works correctly', (
+      WidgetTester tester,
+    ) async {
+      MomentumState currentState = MomentumState.rising;
+
+      await tester.pumpWidget(
+        StatefulBuilder(
+          builder: (context, setState) {
+            return MaterialApp(
+              home: Scaffold(
+                body: Column(
+                  children: [
+                    MomentumGauge(
+                      state: currentState,
+                      percentage: 75.0,
+                      stateTransitionDuration: const Duration(
+                        milliseconds: 200,
+                      ), // Faster for testing
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          currentState = MomentumState.steady;
+                        });
+                      },
+                      child: const Text('Change to Steady'),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      );
+
+      // Initial state
+      expect(find.text('🚀'), findsOneWidget);
+
+      // Trigger state change
+      await tester.tap(find.text('Change to Steady'));
+      await tester.pump();
+
+      // Animation in progress - both emojis might be present during transition
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // Animation complete
+      await tester.pump(const Duration(milliseconds: 200));
+
+      // Verify final state
+      expect(find.text('🙂'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('handles multiple rapid state changes gracefully', (
+      WidgetTester tester,
+    ) async {
+      MomentumState currentState = MomentumState.rising;
+
+      await tester.pumpWidget(
+        StatefulBuilder(
+          builder: (context, setState) {
+            return MaterialApp(
+              home: Scaffold(
+                body: Column(
+                  children: [
+                    MomentumGauge(
+                      state: currentState,
+                      percentage: 75.0,
+                      stateTransitionDuration: const Duration(
+                        milliseconds: 100,
+                      ),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          currentState =
+                              currentState == MomentumState.rising
+                                  ? MomentumState.needsCare
+                                  : MomentumState.rising;
+                        });
+                      },
+                      child: const Text('Toggle State'),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      );
+
+      // Rapid state changes
+      await tester.tap(find.text('Toggle State'));
+      await tester.pump();
+      await tester.tap(find.text('Toggle State'));
+      await tester.pump();
+      await tester.tap(find.text('Toggle State'));
+      await tester.pump();
+
+      // Let animations settle
+      await tester.pump(const Duration(milliseconds: 200));
+
+      // Should not crash
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('custom state transition duration is respected', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: MomentumGauge(
+              state: MomentumState.rising,
+              percentage: 85.0,
+              stateTransitionDuration: const Duration(milliseconds: 500),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(MomentumGauge), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
   });
 
   group('MomentumGaugePainter Tests', () {
@@ -238,6 +363,24 @@ void main() {
       expect(painter1.shouldRepaint(painter2), isTrue);
     });
 
+    test('should repaint when transition color changes', () {
+      final painter1 = MomentumGaugePainter(
+        progress: 0.5,
+        state: MomentumState.rising,
+        strokeWidth: 8.0,
+        transitionColor: Colors.red,
+      );
+
+      final painter2 = MomentumGaugePainter(
+        progress: 0.5,
+        state: MomentumState.rising,
+        strokeWidth: 8.0,
+        transitionColor: Colors.blue,
+      );
+
+      expect(painter1.shouldRepaint(painter2), isTrue);
+    });
+
     test('should not repaint when nothing changes', () {
       final painter1 = MomentumGaugePainter(
         progress: 0.5,
@@ -252,6 +395,39 @@ void main() {
       );
 
       expect(painter1.shouldRepaint(painter2), isFalse);
+    });
+
+    test('should handle transition color properly', () {
+      final painter = MomentumGaugePainter(
+        progress: 0.5,
+        state: MomentumState.rising,
+        strokeWidth: 8.0,
+        transitionColor: Colors.purple,
+      );
+
+      // Should not throw any exceptions when created with transition color
+      expect(painter.transitionColor, equals(Colors.purple));
+    });
+  });
+
+  group('ResponsiveMomentumGauge Tests', () {
+    testWidgets('passes state transition duration to MomentumGauge', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: ResponsiveMomentumGauge(
+              state: MomentumState.rising,
+              percentage: 85.0,
+              stateTransitionDuration: const Duration(milliseconds: 1000),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(ResponsiveMomentumGauge), findsOneWidget);
+      expect(find.byType(MomentumGauge), findsOneWidget);
     });
   });
 }

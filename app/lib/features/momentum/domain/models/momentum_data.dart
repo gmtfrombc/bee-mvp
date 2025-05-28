@@ -77,6 +77,36 @@ class MomentumData {
       stats: stats ?? this.stats,
     );
   }
+
+  /// Convert to JSON for caching
+  Map<String, dynamic> toJson() {
+    return {
+      'state': state.name,
+      'percentage': percentage,
+      'message': message,
+      'lastUpdated': lastUpdated.toIso8601String(),
+      'weeklyTrend': weeklyTrend.map((d) => d.toJson()).toList(),
+      'stats': stats.toJson(),
+    };
+  }
+
+  /// Create from JSON for caching
+  factory MomentumData.fromJson(Map<String, dynamic> json) {
+    return MomentumData(
+      state: MomentumState.values.firstWhere(
+        (s) => s.name == json['state'],
+        orElse: () => MomentumState.steady,
+      ),
+      percentage: (json['percentage'] as num).toDouble(),
+      message: json['message'] as String,
+      lastUpdated: DateTime.parse(json['lastUpdated'] as String),
+      weeklyTrend:
+          (json['weeklyTrend'] as List<dynamic>)
+              .map((d) => DailyMomentum.fromJson(d as Map<String, dynamic>))
+              .toList(),
+      stats: MomentumStats.fromJson(json['stats'] as Map<String, dynamic>),
+    );
+  }
 }
 
 /// Daily momentum data for trend visualization
@@ -90,6 +120,27 @@ class DailyMomentum {
     required this.state,
     required this.percentage,
   });
+
+  /// Convert to JSON for caching
+  Map<String, dynamic> toJson() {
+    return {
+      'date': date.toIso8601String(),
+      'state': state.name,
+      'percentage': percentage,
+    };
+  }
+
+  /// Create from JSON for caching
+  factory DailyMomentum.fromJson(Map<String, dynamic> json) {
+    return DailyMomentum(
+      date: DateTime.parse(json['date'] as String),
+      state: MomentumState.values.firstWhere(
+        (s) => s.name == json['state'],
+        orElse: () => MomentumState.steady,
+      ),
+      percentage: (json['percentage'] as num).toDouble(),
+    );
+  }
 }
 
 /// Momentum statistics for quick stats display
@@ -114,4 +165,24 @@ class MomentumStats {
 
   /// Get today's activity as formatted string
   String get todayText => '${todayMinutes}m';
+
+  /// Convert to JSON for caching
+  Map<String, dynamic> toJson() {
+    return {
+      'lessonsCompleted': lessonsCompleted,
+      'totalLessons': totalLessons,
+      'streakDays': streakDays,
+      'todayMinutes': todayMinutes,
+    };
+  }
+
+  /// Create from JSON for caching
+  factory MomentumStats.fromJson(Map<String, dynamic> json) {
+    return MomentumStats(
+      lessonsCompleted: json['lessonsCompleted'] as int,
+      totalLessons: json['totalLessons'] as int,
+      streakDays: json['streakDays'] as int,
+      todayMinutes: json['todayMinutes'] as int,
+    );
+  }
 }

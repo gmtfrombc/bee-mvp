@@ -1,14 +1,17 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../../../core/theme/app_theme.dart';
 
 /// Circular momentum gauge widget with custom painter
 /// Displays momentum state with animated progress ring and emoji center
+/// Includes smooth state transition animations
 class MomentumGauge extends StatefulWidget {
   final MomentumState state;
   final double percentage;
   final VoidCallback? onTap;
   final Duration animationDuration;
+  final Duration stateTransitionDuration;
   final bool showGlow;
   final double size;
 
@@ -18,6 +21,7 @@ class MomentumGauge extends StatefulWidget {
     required this.percentage,
     this.onTap,
     this.animationDuration = const Duration(milliseconds: 1800),
+    this.stateTransitionDuration = const Duration(milliseconds: 800),
     this.showGlow = true,
     this.size = 120.0,
   });
@@ -30,12 +34,20 @@ class _MomentumGaugeState extends State<MomentumGauge>
     with TickerProviderStateMixin {
   late AnimationController _progressController;
   late AnimationController _bounceController;
+  late AnimationController _stateTransitionController;
   late Animation<double> _progressAnimation;
   late Animation<double> _bounceAnimation;
+  late Animation<Color?> _colorTransitionAnimation;
+  late Animation<double> _emojiScaleAnimation;
+  late Animation<double> _glowIntensityAnimation;
+
+  MomentumState? _previousState;
+  bool _isTransitioning = false;
 
   @override
   void initState() {
     super.initState();
+    _previousState = widget.state;
     _setupAnimations();
     _startAnimations();
   }
@@ -43,9 +55,12 @@ class _MomentumGaugeState extends State<MomentumGauge>
   @override
   void didUpdateWidget(MomentumGauge oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.percentage != widget.percentage ||
-        oldWidget.state != widget.state) {
-      _updateAnimations();
+
+    // Check if state changed for transition animation
+    if (oldWidget.state != widget.state) {
+      _handleStateTransition(oldWidget.state, widget.state);
+    } else if (oldWidget.percentage != widget.percentage) {
+      _updateProgressAnimation();
     }
   }
 
@@ -57,6 +72,11 @@ class _MomentumGaugeState extends State<MomentumGauge>
 
     _bounceController = AnimationController(
       duration: const Duration(milliseconds: 200),
+      vsync: this,
+    );
+
+    _stateTransitionController = AnimationController(
+      duration: widget.stateTransitionDuration,
       vsync: this,
     );
 
@@ -76,9 +96,87 @@ class _MomentumGaugeState extends State<MomentumGauge>
         curve: const Cubic(0.68, -0.55, 0.265, 1.55), // Bounce effect
       ),
     );
+
+    // State transition animations
+    _colorTransitionAnimation = ColorTween(
+      begin: AppTheme.getMomentumColor(_previousState ?? widget.state),
+      end: AppTheme.getMomentumColor(widget.state),
+    ).animate(
+      CurvedAnimation(
+        parent: _stateTransitionController,
+        curve: Curves.easeInOut,
+      ),
+    );
+
+    // Simpler emoji scale animation to avoid TweenSequence bounds issues
+    _emojiScaleAnimation = Tween<double>(begin: 1.0, end: 1.2).animate(
+      CurvedAnimation(
+        parent: _stateTransitionController,
+        curve: Curves.elasticOut,
+      ),
+    );
+
+    // Simpler glow intensity animation
+    _glowIntensityAnimation = Tween<double>(begin: 0.3, end: 0.6).animate(
+      CurvedAnimation(
+        parent: _stateTransitionController,
+        curve: Curves.easeInOut,
+      ),
+    );
   }
 
-  void _updateAnimations() {
+  void _handleStateTransition(MomentumState oldState, MomentumState newState) {
+    if (_isTransitioning) return;
+
+    setState(() {
+      _isTransitioning = true;
+      _previousState = oldState;
+    });
+
+    // Update color transition animation
+    _colorTransitionAnimation = ColorTween(
+      begin: AppTheme.getMomentumColor(oldState),
+      end: AppTheme.getMomentumColor(newState),
+    ).animate(
+      CurvedAnimation(
+        parent: _stateTransitionController,
+        curve: Curves.easeInOut,
+      ),
+    );
+
+    // Trigger haptic feedback based on state change
+    _triggerHapticFeedback(oldState, newState);
+
+    // Start state transition animation
+    _stateTransitionController.reset();
+    _stateTransitionController.forward().then((_) {
+      if (mounted) {
+        setState(() {
+          _isTransitioning = false;
+          _previousState = newState;
+        });
+      }
+    });
+
+    // Also update progress if needed
+    _updateProgressAnimation();
+  }
+
+  void _triggerHapticFeedback(MomentumState oldState, MomentumState newState) {
+    // Different haptic patterns for different transitions
+    if (newState == MomentumState.rising) {
+      // Positive transition - success haptic
+      HapticFeedback.mediumImpact();
+    } else if (newState == MomentumState.needsCare) {
+      // Needs attention - warning haptic
+      HapticFeedback.heavyImpact();
+    } else {
+      // Steady state - light haptic
+      HapticFeedback.lightImpact();
+    }
+  }
+
+  void _updateProgressAnimation() {
     _progressAnimation = Tween<double>(
       begin: _progressAnimation.value,
       end: widget.percentage / 100.0,
@@ -106,6 +204,7 @@ class _MomentumGaugeState extends State<MomentumGauge>
   void _handleTap() {
     if (widget.onTap != null) {
       // Add haptic feedback
+      HapticFeedback.lightImpact();
       widget.onTap!();
 
       // Quick bounce animation on tap
@@ -133,9 +232,16 @@ class _MomentumGaugeState extends State<MomentumGauge>
                   ? BoxDecoration(
                     boxShadow: [
                       BoxShadow(
-                        color: AppTheme.getMomentumColor(
-                          widget.state,
-                        ).withValues(alpha: 0.3),
+                        color:
+                            _isTransitioning
+                                ? (_colorTransitionAnimation.value ??
+                                        AppTheme.getMomentumColor(widget.state))
+                                    .withValues(
+                                      alpha: _glowIntensityAnimation.value,
+                                    )
+                                : AppTheme.getMomentumColor(
+                                  widget.state,
+                                ).withValues(alpha: 0.3),
                         blurRadius: 20,
                         spreadRadius: 0,
                       ),
@@ -143,7 +249,11 @@ class _MomentumGaugeState extends State<MomentumGauge>
                   )
                   : null,
           child: AnimatedBuilder(
-            animation: Listenable.merge([_progressAnimation, _bounceAnimation]),
+            animation: Listenable.merge([
+              _progressAnimation,
+              _bounceAnimation,
+              _stateTransitionController,
+            ]),
             builder: (context, child) {
               return Transform.scale(
                 scale: _bounceAnimation.value,
@@ -153,12 +263,24 @@ class _MomentumGaugeState extends State<MomentumGauge>
                     progress: _progressAnimation.value,
                     state: widget.state,
                     strokeWidth: _getStrokeWidth(),
+                    transitionColor:
+                        _isTransitioning
+                            ? _colorTransitionAnimation.value
+                            : null,
                   ),
                   child: Center(
-                    child: Text(
-                      AppTheme.getMomentumEmoji(widget.state),
-                      style: TextStyle(fontSize: _getEmojiSize()),
-                      textAlign: TextAlign.center,
+                    child: Transform.scale(
+                      scale:
+                          _isTransitioning
+                              ? (1.0 +
+                                  (_emojiScaleAnimation.value - 1.0) *
+                                      0.5) // Dampen the scale effect
+                              : 1.0,
+                      child: Text(
+                        AppTheme.getMomentumEmoji(widget.state),
+                        style: TextStyle(fontSize: _getEmojiSize()),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
                   ),
                 ),
@@ -186,6 +308,7 @@ class _MomentumGaugeState extends State<MomentumGauge>
   void dispose() {
     _progressController.dispose();
     _bounceController.dispose();
+    _stateTransitionController.dispose();
     super.dispose();
   }
 }
@@ -195,11 +318,13 @@ class MomentumGaugePainter extends CustomPainter {
   final double progress;
   final MomentumState state;
   final double strokeWidth;
+  final Color? transitionColor;
 
   MomentumGaugePainter({
     required this.progress,
     required this.state,
     required this.strokeWidth,
+    this.transitionColor,
   });
 
   @override
@@ -217,11 +342,11 @@ class MomentumGaugePainter extends CustomPainter {
 
     canvas.drawCircle(center, radius, backgroundPaint);
 
-    // Progress ring
+    // Progress ring with transition color support
     if (progress > 0) {
       final progressPaint =
           Paint()
-            ..color = AppTheme.getMomentumColor(state)
+            ..color = transitionColor ?? AppTheme.getMomentumColor(state)
             ..strokeWidth = strokeWidth
             ..style = PaintingStyle.stroke
             ..strokeCap = StrokeCap.round;
@@ -242,7 +367,8 @@ class MomentumGaugePainter extends CustomPainter {
   bool shouldRepaint(MomentumGaugePainter oldDelegate) {
     return oldDelegate.progress != progress ||
         oldDelegate.state != state ||
-        oldDelegate.strokeWidth != strokeWidth;
+        oldDelegate.strokeWidth != strokeWidth ||
+        oldDelegate.transitionColor != transitionColor;
   }
 }
 
@@ -252,6 +378,7 @@ class ResponsiveMomentumGauge extends StatelessWidget {
   final double percentage;
   final VoidCallback? onTap;
   final Duration animationDuration;
+  final Duration stateTransitionDuration;
   final bool showGlow;
 
   const ResponsiveMomentumGauge({
@@ -260,6 +387,7 @@ class ResponsiveMomentumGauge extends StatelessWidget {
     required this.percentage,
     this.onTap,
     this.animationDuration = const Duration(milliseconds: 1800),
+    this.stateTransitionDuration = const Duration(milliseconds: 800),
     this.showGlow = true,
   });
 
@@ -282,6 +410,7 @@ class ResponsiveMomentumGauge extends StatelessWidget {
       percentage: percentage,
       onTap: onTap,
       animationDuration: animationDuration,
+      stateTransitionDuration: stateTransitionDuration,
       showGlow: showGlow,
       size: gaugeSize,
     );
