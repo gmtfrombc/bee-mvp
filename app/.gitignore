@@ -27,6 +27,12 @@ secrets.json
 *.keystore
 *.jks
 
+# Firebase configuration files (SECURITY CRITICAL)
+google-services.json
+GoogleService-Info.plist
+firebase-config.json
+firebase_options.dart
+
 # IntelliJ related
 *.iml
 *.ipr
