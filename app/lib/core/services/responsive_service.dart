@@ -25,7 +25,7 @@ class ResponsiveService {
   static DeviceType getDeviceType(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
 
-    if (width < mobileSmall) {
+    if (width <= mobileSmall) {
       return DeviceType.mobileSmall;
     } else if (width < mobileLarge) {
       return DeviceType.mobile;

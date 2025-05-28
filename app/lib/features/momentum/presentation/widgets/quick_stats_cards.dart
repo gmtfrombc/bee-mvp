@@ -3,9 +3,11 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../core/services/responsive_service.dart';
 import '../../../../core/services/accessibility_service.dart';
 import '../../domain/models/momentum_data.dart';
+import 'dart:async';
 
 /// Quick stats cards component displaying lessons, streak, and today's activity
 /// Three horizontal cards with icons, values, and labels
+/// Optimized for performance with reduced animation controllers
 class QuickStatsCards extends StatefulWidget {
   final MomentumStats stats;
   final EdgeInsets? margin;
@@ -27,65 +29,50 @@ class QuickStatsCards extends StatefulWidget {
 }
 
 class _QuickStatsCardsState extends State<QuickStatsCards>
-    with TickerProviderStateMixin {
-  late List<AnimationController> _controllers;
-  late List<Animation<double>> _fadeAnimations;
-  late List<Animation<Offset>> _slideAnimations;
+    with SingleTickerProviderStateMixin {
+  // Optimized: Use single animation controller instead of multiple controllers
+  late AnimationController _controller;
+  late Animation<double> _progressAnimation;
+  Timer? _animationTimer; // Store timer reference
 
   @override
   void initState() {
     super.initState();
-    _setupAnimations();
-    _startStaggeredAnimation();
+    _setupOptimizedAnimations();
+    _startOptimizedAnimation();
   }
 
-  void _setupAnimations() {
-    _controllers = List.generate(
-      3,
-      (index) => AnimationController(
-        duration: const Duration(milliseconds: 600),
-        vsync: this,
-      ),
+  void _setupOptimizedAnimations() {
+    // Optimized: Single controller for all animations
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
     );
 
-    _fadeAnimations =
-        _controllers
-            .map(
-              (controller) => Tween<double>(begin: 0.0, end: 1.0).animate(
-                CurvedAnimation(parent: controller, curve: Curves.easeOut),
-              ),
-            )
-            .toList();
-
-    _slideAnimations =
-        _controllers
-            .map(
-              (controller) => Tween<Offset>(
-                begin: const Offset(0, 0.3),
-                end: Offset.zero,
-              ).animate(
-                CurvedAnimation(parent: controller, curve: Curves.easeOut),
-              ),
-            )
-            .toList();
+    _progressAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
   }
 
-  void _startStaggeredAnimation() {
-    // Staggered animation with 100ms delay between cards
-    for (int i = 0; i < _controllers.length; i++) {
-      Future.delayed(Duration(milliseconds: i * 100), () {
-        if (mounted) {
-          _controllers[i].forward();
-        }
-      });
-    }
+  void _startOptimizedAnimation() {
+    // Optimized: Start animation immediately without staggering
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _animationTimer = Timer(const Duration(milliseconds: 100), () {
+          if (mounted) {
+            _controller.forward();
+          }
+        });
+      }
+    });
   }
 
   @override
   void dispose() {
-    for (final controller in _controllers) {
-      controller.dispose();
-    }
+    // Optimized: Only one timer and controller to dispose
+    _animationTimer?.cancel();
+    _controller.dispose();
     super.dispose();
   }
 
@@ -199,15 +186,17 @@ class _QuickStatsCardsState extends State<QuickStatsCards>
     VoidCallback? onTap,
   }) {
     return AnimatedBuilder(
-      animation: Listenable.merge([
-        _fadeAnimations[index],
-        _slideAnimations[index],
-      ]),
+      animation: _progressAnimation,
       builder: (context, child) {
         return FadeTransition(
-          opacity: _fadeAnimations[index],
+          opacity: _progressAnimation,
           child: SlideTransition(
-            position: _slideAnimations[index],
+            position: Tween<Offset>(
+              begin: const Offset(0, 0.5),
+              end: Offset.zero,
+            ).animate(
+              CurvedAnimation(parent: _controller, curve: Curves.easeOut),
+            ),
             child: _StatCard(
               icon: icon,
               value: value,

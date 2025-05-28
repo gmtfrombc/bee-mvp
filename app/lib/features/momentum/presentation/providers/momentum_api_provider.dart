@@ -1,144 +1,282 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../../core/services/connectivity_service.dart';
+import '../../../../core/services/offline_cache_service.dart';
 import '../../data/services/momentum_api_service.dart';
 import '../../domain/models/momentum_data.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../../../../core/providers/supabase_provider.dart';
-import 'package:flutter/material.dart';
 
-/// Provider for the momentum API service
-/// This waits for Supabase to be initialized before creating the service
-final momentumApiServiceProvider = FutureProvider<MomentumApiService>((
-  ref,
-) async {
-  final supabaseClient = await ref.watch(supabaseProvider.future);
-  return MomentumApiService(supabaseClient);
+/// Provider for the Supabase client
+final supabaseProvider = Provider<SupabaseClient>((ref) {
+  return Supabase.instance.client;
 });
 
-/// Provider for real-time momentum subscription
-final realtimeMomentumProvider =
-    AsyncNotifierProvider<RealtimeMomentumNotifier, MomentumData>(() {
-      return RealtimeMomentumNotifier();
-    });
+/// Provider for the MomentumApiService
+final momentumApiServiceProvider = Provider<MomentumApiService>((ref) {
+  final supabase = ref.watch(supabaseProvider);
+  return MomentumApiService(supabase);
+});
 
-/// Notifier for managing real-time momentum updates
-class RealtimeMomentumNotifier extends AsyncNotifier<MomentumData> {
-  MomentumApiService? _apiService;
-  RealtimeChannel? _subscription;
+/// Enhanced provider for momentum data with improved caching and offline support
+final realtimeMomentumProvider = StreamProvider<MomentumData>((ref) {
+  final apiService = ref.watch(momentumApiServiceProvider);
+  final connectivityStatus = ref.watch(connectivityProvider);
 
-  @override
-  Future<MomentumData> build() async {
-    // Wait for the API service to be ready
-    _apiService = await ref.watch(momentumApiServiceProvider.future);
+  return Stream.fromFuture(
+    _initializeAndGetMomentum(apiService, ref),
+  ).asyncExpand((initialData) async* {
+    yield initialData;
 
-    try {
-      // Load initial data
-      final initialData = await _apiService!.getCurrentMomentum();
-
-      // Set up real-time subscription (only if authenticated)
-      _setupRealtimeSubscription();
-
-      return initialData;
-    } catch (error) {
-      // If initialization fails, provide sample data for demo
-      debugPrint('Failed to initialize momentum data: $error');
-      return MomentumData.sample();
+    // Set up real-time updates only if online
+    if (connectivityStatus.maybeWhen(
+      data: (status) => status == ConnectivityStatus.online,
+      orElse: () => false,
+    )) {
+      yield* _createRealtimeStream(apiService, ref);
+    } else {
+      // If offline, periodically check for cached updates
+      yield* _createOfflineStream(apiService, ref);
     }
-  }
+  });
+});
 
-  /// Set up real-time subscription for momentum updates
-  void _setupRealtimeSubscription() {
-    if (_apiService == null) return;
+/// Initialize momentum data with enhanced caching support
+Future<MomentumData> _initializeAndGetMomentum(
+  MomentumApiService apiService,
+  Ref ref,
+) async {
+  try {
+    // Initialize offline support
+    await apiService.initializeOfflineSupport();
 
-    // Add a small delay to ensure authentication is complete
-    Future.delayed(const Duration(seconds: 2), () {
-      try {
-        _subscription = _apiService!.subscribeToMomentumUpdates(
-          onUpdate: (updatedData) {
-            state = AsyncValue.data(updatedData);
-          },
-          onError: (error) {
-            // Log error but don't update state to avoid disrupting UI
-            debugPrint('Real-time update error: $error');
-          },
-        );
-      } catch (e) {
-        debugPrint('Failed to set up real-time subscription: $e');
-      }
-    });
-  }
-
-  /// Manually refresh momentum data
-  Future<void> refresh() async {
-    if (_apiService == null) return;
-
-    state = const AsyncValue.loading();
-    try {
-      final refreshedData = await _apiService!.getCurrentMomentum();
-      state = AsyncValue.data(refreshedData);
-    } catch (error, stackTrace) {
-      state = AsyncValue.error(error, stackTrace);
-    }
-  }
-
-  /// Calculate new momentum score
-  Future<void> calculateMomentumScore({String? targetDate}) async {
-    if (_apiService == null) return;
-
-    try {
-      final calculatedData = await _apiService!.calculateMomentumScore(
-        targetDate: targetDate,
-      );
-      state = AsyncValue.data(calculatedData);
-    } catch (error, stackTrace) {
-      state = AsyncValue.error(error, stackTrace);
-    }
-  }
-
-  /// Get momentum history for a date range
-  Future<List<DailyMomentum>> getMomentumHistory({
-    required DateTime startDate,
-    required DateTime endDate,
-  }) async {
-    if (_apiService == null) {
-      throw Exception('API service not initialized');
-    }
-
-    return await _apiService!.getMomentumHistory(
-      startDate: startDate,
-      endDate: endDate,
+    // Get momentum data with offline support
+    return await apiService.getMomentumWithOfflineSupport();
+  } catch (e) {
+    // If everything fails, try to get cached data
+    final cachedData = await OfflineCacheService.getCachedMomentumData(
+      allowStaleData: true,
     );
+
+    if (cachedData != null) {
+      return cachedData;
+    }
+
+    throw Exception('Failed to get momentum data: $e');
+  }
+}
+
+/// Create real-time stream for online mode
+Stream<MomentumData> _createRealtimeStream(
+  MomentumApiService apiService,
+  Ref ref,
+) async* {
+  final supabase = Supabase.instance.client;
+  final user = supabase.auth.currentUser;
+
+  if (user == null) return;
+
+  // Subscribe to real-time updates
+  final _ = apiService.subscribeToMomentumUpdates(
+    onUpdate: (data) {
+      // Cache the updated data
+      OfflineCacheService.cacheMomentumData(data, isHighPriority: true);
+    },
+    onError: (error) {
+      // Queue error for later reporting
+      OfflineCacheService.queueError({
+        'type': 'realtime_error',
+        'error': error,
+        'timestamp': DateTime.now().toIso8601String(),
+      });
+    },
+  );
+
+  // Listen to the channel and yield updates
+  await for (final _ in Stream.periodic(const Duration(seconds: 30))) {
+    try {
+      final momentumData = await apiService.getCurrentMomentum();
+      yield momentumData;
+    } catch (e) {
+      // If network fails, try cached data
+      final cachedData = await OfflineCacheService.getCachedMomentumData(
+        allowStaleData: true,
+      );
+      if (cachedData != null) {
+        yield cachedData;
+      }
+    }
+  }
+}
+
+/// Create offline stream that periodically checks for cached updates
+Stream<MomentumData> _createOfflineStream(
+  MomentumApiService apiService,
+  Ref ref,
+) async* {
+  // In offline mode, check cached data every minute
+  await for (final _ in Stream.periodic(const Duration(minutes: 1))) {
+    final cachedData = await OfflineCacheService.getCachedMomentumData(
+      allowStaleData: true,
+    );
+
+    if (cachedData != null) {
+      yield cachedData;
+    }
+  }
+}
+
+/// Provider for cache statistics
+final cacheStatsProvider = FutureProvider<Map<String, dynamic>>((ref) async {
+  return await OfflineCacheService.getEnhancedCacheStats();
+});
+
+/// Provider for connectivity-aware momentum data
+final connectivityAwareMomentumProvider = Provider<AsyncValue<MomentumData>>((
+  ref,
+) {
+  final momentumAsync = ref.watch(realtimeMomentumProvider);
+
+  return momentumAsync.when(
+    data: (data) {
+      // Add connectivity context to the data
+      return AsyncValue.data(data);
+    },
+    loading: () {
+      // While loading, try to show cached data if available
+      return const AsyncValue.loading();
+    },
+    error: (error, stack) {
+      // On error, this will be handled by the offline fallback
+      return AsyncValue.error(error, stack);
+    },
+  );
+});
+
+/// Provider for offline indicator
+final isOfflineModeProvider = Provider<bool>((ref) {
+  final connectivityAsync = ref.watch(connectivityProvider);
+  return connectivityAsync.maybeWhen(
+    data: (status) => status == ConnectivityStatus.offline,
+    orElse: () => true, // Assume offline if unknown
+  );
+});
+
+/// Provider for cache health
+final cacheHealthProvider = FutureProvider<int>((ref) async {
+  final stats = await OfflineCacheService.getEnhancedCacheStats();
+  return stats['healthScore'] ?? 0;
+});
+
+/// Manual refresh provider
+final manualRefreshProvider = Provider<Future<void> Function()>((ref) {
+  return () async {
+    final apiService = ref.read(momentumApiServiceProvider);
+
+    // Invalidate cache and force fresh fetch
+    await apiService.invalidateMomentumCache(reason: 'Manual refresh');
+
+    // Warm cache with fresh data
+    await apiService.warmMomentumCache();
+
+    // Refresh the provider
+    ref.invalidate(realtimeMomentumProvider);
+  };
+});
+
+/// Background sync provider
+final backgroundSyncProvider = Provider<Future<void> Function()>((ref) {
+  return () async {
+    final apiService = ref.read(momentumApiServiceProvider);
+    await apiService.processPendingMomentumActions();
+  };
+});
+
+/// Cache management provider
+final cacheManagementProvider = Provider<CacheManager>((ref) {
+  return CacheManager(ref);
+});
+
+/// Cache management helper class
+class CacheManager {
+  final Ref _ref;
+
+  CacheManager(this._ref);
+
+  /// Clear all cache
+  Future<void> clearCache() async {
+    await OfflineCacheService.clearAllCache();
+    _ref.invalidate(realtimeMomentumProvider);
   }
 
-  /// Simulate a momentum state change (for demo purposes)
-  Future<void> simulateStateChange(MomentumState newState) async {
-    state.whenData((currentData) {
-      // Create updated data with new state and appropriate percentage
-      final newPercentage = switch (newState) {
-        MomentumState.rising => 85.0,
-        MomentumState.steady => 65.0,
-        MomentumState.needsCare => 35.0,
-      };
+  /// Enable/disable background sync
+  Future<void> setBackgroundSync(bool enabled) async {
+    await OfflineCacheService.enableBackgroundSync(enabled);
+  }
 
-      final newMessage = switch (newState) {
-        MomentumState.rising => "You're on fire! Keep up the great momentum!",
-        MomentumState.steady => "Steady progress! You're doing great!",
-        MomentumState.needsCare => "Let's get back on track together! 🌱",
-      };
+  /// Get cache statistics
+  Future<Map<String, dynamic>> getCacheStats() async {
+    return await OfflineCacheService.getEnhancedCacheStats();
+  }
 
-      final updatedData = currentData.copyWith(
-        state: newState,
-        percentage: newPercentage,
-        message: newMessage,
-        lastUpdated: DateTime.now(),
+  /// Warm cache
+  Future<void> warmCache() async {
+    final apiService = _ref.read(momentumApiServiceProvider);
+    await apiService.warmMomentumCache();
+  }
+
+  /// Process pending actions
+  Future<void> processPendingActions() async {
+    final apiService = _ref.read(momentumApiServiceProvider);
+    await apiService.processPendingMomentumActions();
+  }
+}
+
+/// Provider for legacy compatibility
+final legacyMomentumNotifierProvider =
+    StateNotifierProvider<LegacyMomentumNotifier, AsyncValue<MomentumData>>((
+      ref,
+    ) {
+      return LegacyMomentumNotifier(ref);
+    });
+
+/// Legacy notifier for backward compatibility
+class LegacyMomentumNotifier extends StateNotifier<AsyncValue<MomentumData>> {
+  final Ref _ref;
+
+  LegacyMomentumNotifier(this._ref) : super(const AsyncValue.loading()) {
+    _initialize();
+  }
+
+  void _initialize() async {
+    final apiService = _ref.read(momentumApiServiceProvider);
+    try {
+      final data = await apiService.getMomentumWithOfflineSupport();
+      state = AsyncValue.data(data);
+    } catch (e, stack) {
+      state = AsyncValue.error(e, stack);
+    }
+  }
+
+  Future<void> refresh() async {
+    state = const AsyncValue.loading();
+    final apiService = _ref.read(momentumApiServiceProvider);
+
+    try {
+      await apiService.invalidateMomentumCache(reason: 'Manual refresh');
+      final data = await apiService.getCurrentMomentum();
+      state = AsyncValue.data(data);
+    } catch (e, stack) {
+      // Try cached data on error
+      final cachedData = await OfflineCacheService.getCachedMomentumData(
+        allowStaleData: true,
       );
 
-      state = AsyncValue.data(updatedData);
-    });
-  }
-
-  void dispose() {
-    _subscription?.unsubscribe();
+      if (cachedData != null) {
+        state = AsyncValue.data(cachedData);
+      } else {
+        state = AsyncValue.error(e, stack);
+      }
+    }
   }
 }
 
@@ -148,7 +286,7 @@ final momentumHistoryProvider =
       ref,
       dateRange,
     ) async {
-      final apiService = await ref.watch(momentumApiServiceProvider.future);
+      final apiService = ref.watch(momentumApiServiceProvider);
       return await apiService.getMomentumHistory(
         startDate: dateRange.startDate,
         endDate: dateRange.endDate,
@@ -173,3 +311,39 @@ class DateRange {
   @override
   int get hashCode => startDate.hashCode ^ endDate.hashCode;
 }
+
+/// Controller provider that provides notifier-like methods for compatibility
+final momentumControllerProvider = Provider<MomentumController>((ref) {
+  return MomentumController(ref);
+});
+
+/// Controller class that provides notifier-like methods
+class MomentumController {
+  final Ref _ref;
+
+  MomentumController(this._ref);
+
+  /// Refresh momentum data (equivalent to old notifier.refresh())
+  Future<void> refresh() async {
+    final apiService = _ref.read(momentumApiServiceProvider);
+    await apiService.invalidateMomentumCache(reason: 'Manual refresh');
+    _ref.invalidate(realtimeMomentumProvider);
+  }
+
+  /// Simulate state change (for demo/testing purposes)
+  Future<void> simulateStateChange(MomentumState newState) async {
+    // For now, we'll invalidate and refresh
+    // In a real implementation, this might update backend data
+    await refresh();
+  }
+
+  /// Calculate momentum score
+  Future<void> calculateMomentumScore({String? targetDate}) async {
+    final apiService = _ref.read(momentumApiServiceProvider);
+    await apiService.calculateMomentumScore(targetDate: targetDate);
+    _ref.invalidate(realtimeMomentumProvider);
+  }
+}
+
+/// Legacy provider for backward compatibility
+final momentumProvider = realtimeMomentumProvider;

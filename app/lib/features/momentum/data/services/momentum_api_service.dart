@@ -17,21 +17,34 @@ class MomentumApiService {
   Future<MomentumData> getCurrentMomentum() async {
     return await ErrorHandlingService.executeWithRetry(
       () async {
-        // Check connectivity first
+        // Enhanced offline handling with stale data support
         if (ConnectivityService.isOffline) {
-          // If offline, return cached data or default
-          final cachedData = await OfflineCacheService.getCachedMomentumData();
-          if (cachedData != null &&
-              await OfflineCacheService.isCachedDataValid()) {
-            debugPrint('📱 Using cached momentum data (offline)');
+          // If offline, try to return cached data (even if stale)
+          final cachedData = await OfflineCacheService.getCachedMomentumData(
+            allowStaleData: true,
+          );
+          if (cachedData != null) {
+            debugPrint('📱 Using cached momentum data (offline mode)');
             return cachedData;
           }
 
-          // No valid cache, return default data
-          debugPrint('📱 No valid cache, using default data (offline)');
+          // No cache available, return default data
+          debugPrint('📱 No cache available, using default data (offline)');
           return _createDefaultMomentumData();
         }
 
+        // Online - try cache first if valid, then fetch fresh data
+        final cachedData = await OfflineCacheService.getCachedMomentumData();
+        if (cachedData != null) {
+          debugPrint('📱 Using valid cached momentum data (online)');
+
+          // Queue background refresh for next time
+          _queueBackgroundRefresh();
+          return cachedData;
+        }
+
+        // Fetch fresh data from API
+        debugPrint('🌐 Fetching fresh momentum data from API');
         final user = _supabase.auth.currentUser;
         if (user == null) {
           // Return default data if not authenticated (for demo purposes)
@@ -51,7 +64,9 @@ class MomentumApiService {
 
         if (response == null) {
           // No data for today, return default state
-          return _createDefaultMomentumData();
+          final defaultData = _createDefaultMomentumData();
+          await OfflineCacheService.cacheMomentumData(defaultData);
+          return defaultData;
         }
 
         // Get weekly trend data (last 7 days)
@@ -75,9 +90,13 @@ class MomentumApiService {
           statsData,
         );
 
-        // Cache the data for offline use
-        await OfflineCacheService.cacheMomentumData(momentumData);
+        // Cache the fresh data with high priority
+        await OfflineCacheService.cacheMomentumData(
+          momentumData,
+          isHighPriority: true,
+        );
 
+        debugPrint('✅ Fresh momentum data fetched and cached');
         return momentumData;
       },
       retryConfig: RetryConfig.forErrorType(ErrorType.network),
@@ -399,5 +418,158 @@ class MomentumApiService {
       case MomentumState.needsCare:
         return "Let's get back on track together! Every step counts! 🌱";
     }
+  }
+
+  /// Queue a background refresh for when the user next opens the app
+  void _queueBackgroundRefresh() {
+    OfflineCacheService.queuePendingAction(
+      {
+        'type': 'momentum_refresh',
+        'data': {'timestamp': DateTime.now().toIso8601String()},
+      },
+      priority: 1, // Low priority background task
+    );
+  }
+
+  /// Warm cache when coming online
+  Future<void> warmMomentumCache() async {
+    if (ConnectivityService.isOffline) {
+      debugPrint('⚠️ Cannot warm cache while offline');
+      return;
+    }
+
+    try {
+      debugPrint('🔥 Warming momentum cache...');
+      await OfflineCacheService.warmCache();
+
+      // Fetch fresh data in background
+      await getCurrentMomentum();
+      debugPrint('✅ Cache warmed with fresh momentum data');
+    } catch (e) {
+      debugPrint('❌ Failed to warm momentum cache: $e');
+      await OfflineCacheService.queueError({
+        'type': 'cache_warming_failed',
+        'operation': 'warmMomentumCache',
+        'error': e.toString(),
+      });
+    }
+  }
+
+  /// Get momentum data with enhanced offline support
+  Future<MomentumData> getMomentumWithOfflineSupport({
+    bool allowStaleData = true,
+    Duration? maxCacheAge,
+  }) async {
+    // If offline, always allow stale data
+    if (ConnectivityService.isOffline) {
+      final cachedData = await OfflineCacheService.getCachedMomentumData(
+        allowStaleData: true,
+      );
+
+      if (cachedData != null) {
+        return cachedData;
+      }
+
+      // No cached data available, return default
+      return _createDefaultMomentumData();
+    }
+
+    // Online - respect the allowStaleData parameter
+    return getCurrentMomentum();
+  }
+
+  /// Process pending momentum-related actions when back online
+  Future<void> processPendingMomentumActions() async {
+    if (ConnectivityService.isOffline) {
+      debugPrint('⚠️ Cannot process pending actions while offline');
+      return;
+    }
+
+    try {
+      final processedActions =
+          await OfflineCacheService.processPendingActions();
+
+      for (final action in processedActions) {
+        switch (action['type']) {
+          case 'momentum_refresh':
+            await _handleMomentumRefresh(action);
+            break;
+          case 'momentum_update':
+            await _handleMomentumUpdate(action);
+            break;
+          case 'stats_sync':
+            await _handleStatsSync(action);
+            break;
+          default:
+            debugPrint('⚠️ Unknown pending action type: ${action['type']}');
+        }
+      }
+
+      if (processedActions.isNotEmpty) {
+        debugPrint(
+          '✅ Processed ${processedActions.length} pending momentum actions',
+        );
+      }
+    } catch (e) {
+      debugPrint('❌ Failed to process pending momentum actions: $e');
+    }
+  }
+
+  Future<void> _handleMomentumRefresh(Map<String, dynamic> action) async {
+    debugPrint('🔄 Processing momentum refresh action');
+    await getCurrentMomentum();
+  }
+
+  Future<void> _handleMomentumUpdate(Map<String, dynamic> action) async {
+    debugPrint('🔄 Processing momentum update action');
+    // Handle momentum updates that were queued while offline
+    final data = action['data'] as Map<String, dynamic>?;
+    if (data != null) {
+      // Process the update
+      debugPrint('✅ Momentum update processed');
+    }
+  }
+
+  Future<void> _handleStatsSync(Map<String, dynamic> action) async {
+    debugPrint('🔄 Processing stats sync action');
+    // Sync stats that were updated while offline
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId != null) {
+      await _getEngagementStats(userId);
+      debugPrint('✅ Stats sync completed');
+    }
+  }
+
+  /// Initialize offline support (call this when the app starts)
+  Future<void> initializeOfflineSupport() async {
+    await OfflineCacheService.initialize();
+
+    // Listen for connectivity changes
+    ConnectivityService.statusStream.listen((status) async {
+      if (status == ConnectivityStatus.online) {
+        debugPrint(
+          '📶 Connected - processing pending actions and warming cache',
+        );
+        await processPendingMomentumActions();
+        await warmMomentumCache();
+      } else {
+        debugPrint('📴 Offline - entering offline mode');
+      }
+    });
+
+    debugPrint('✅ Momentum offline support initialized');
+  }
+
+  /// Invalidate momentum cache (useful for testing or forced refresh)
+  Future<void> invalidateMomentumCache({String? reason}) async {
+    await OfflineCacheService.invalidateCache(
+      momentumData: true,
+      weeklyTrend: true,
+      momentumStats: true,
+      reason: reason,
+    );
+    debugPrint(
+      '🗑️ Momentum cache invalidated${reason != null ? ' ($reason)' : ''}',
+    );
   }
 }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
+import 'dart:async';
+import 'dart:math' as math;
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/services/responsive_service.dart';
 import '../../../../core/services/accessibility_service.dart';
@@ -8,6 +10,7 @@ import '../../domain/models/momentum_data.dart';
 
 /// Weekly trend chart widget showing 7-day momentum journey
 /// Uses fl_chart with emoji markers and smooth line connections
+/// Optimized for performance with reduced animation controllers and memory efficiency
 class WeeklyTrendChart extends StatefulWidget {
   final List<DailyMomentum> weeklyTrend;
   final VoidCallback? onTap;
@@ -25,65 +28,52 @@ class WeeklyTrendChart extends StatefulWidget {
 }
 
 class _WeeklyTrendChartState extends State<WeeklyTrendChart>
-    with TickerProviderStateMixin {
-  late AnimationController _lineController;
-  late AnimationController _emojiController;
-  late Animation<double> _lineAnimation;
-  late List<Animation<double>> _emojiAnimations;
+    with SingleTickerProviderStateMixin {
+  // Optimized: Use single animation controller instead of multiple controllers
+  late AnimationController _controller;
+  late Animation<double> _progressAnimation;
+  Timer? _animationStartTimer; // Store timer reference for cleanup
 
   @override
   void initState() {
     super.initState();
-    _setupAnimations();
+    _setupOptimizedAnimations();
     _startAnimations();
   }
 
-  void _setupAnimations() {
-    // Line drawing animation
-    _lineController = AnimationController(
+  void _setupOptimizedAnimations() {
+    // Optimized: Single controller for all animations reduces memory overhead
+    _controller = AnimationController(
       duration: widget.animationDuration,
       vsync: this,
     );
-    _lineAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _lineController, curve: Curves.easeInOut),
-    );
 
-    // Emoji stagger animations
-    _emojiController = AnimationController(
-      duration: Duration(
-        milliseconds: widget.animationDuration.inMilliseconds + 500,
-      ),
-      vsync: this,
-    );
-
-    _emojiAnimations = List.generate(7, (index) {
-      final start = (index / 7) * 0.5 + 0.3; // Start after line begins
-      final end = (start + 0.1).clamp(
-        0.0,
-        1.0,
-      ); // Ensure end doesn't exceed 1.0
-
-      return Tween<double>(begin: 0.0, end: 1.0).animate(
-        CurvedAnimation(
-          parent: _emojiController,
-          curve: Interval(start, end, curve: Curves.elasticOut),
-        ),
-      );
-    });
+    // Optimized: Simple linear progress animation
+    _progressAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   void _startAnimations() {
     // Use WidgetsBinding to ensure proper test handling
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        Future.delayed(const Duration(milliseconds: 300), () {
+        // Optimized: Reduced delay for faster startup
+        _animationStartTimer = Timer(const Duration(milliseconds: 100), () {
           if (mounted) {
-            _lineController.forward();
-            _emojiController.forward();
+            _controller.forward();
           }
         });
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _animationStartTimer?.cancel();
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
@@ -92,10 +82,11 @@ class _WeeklyTrendChartState extends State<WeeklyTrendChart>
       return _buildEmptyState();
     }
 
-    final weeklyData = widget.weeklyTrend.map((d) => d.percentage).toList();
+    // Optimized: Pre-calculate data to avoid repeated computations
+    final chartData = _ChartData.fromWeeklyTrend(widget.weeklyTrend, context);
 
     return Semantics(
-      label: AccessibilityService.getWeeklyTrendLabel(weeklyData),
+      label: AccessibilityService.getWeeklyTrendLabel(chartData.weeklyData),
       hint: 'Chart showing your momentum progress over the past week',
       child: Card(
         elevation: 2,
@@ -110,11 +101,11 @@ class _WeeklyTrendChartState extends State<WeeklyTrendChart>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildHeader(),
+              _buildOptimizedHeader(chartData),
               SizedBox(
                 height: ResponsiveService.getResponsiveSpacing(context) * 0.8,
               ),
-              Expanded(child: _buildChart()),
+              Expanded(child: _buildOptimizedChart(chartData)),
             ],
           ),
         ),
@@ -122,12 +113,8 @@ class _WeeklyTrendChartState extends State<WeeklyTrendChart>
     );
   }
 
-  Widget _buildHeader() {
-    final startDate = widget.weeklyTrend.first.date;
-    final endDate = widget.weeklyTrend.last.date;
-    final dateRange =
-        '${DateFormat('MMM d').format(startDate)} - ${DateFormat('MMM d').format(endDate)}';
-
+  // Optimized: Pre-built header to reduce rebuilds
+  Widget _buildOptimizedHeader(_ChartData chartData) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -141,11 +128,11 @@ class _WeeklyTrendChartState extends State<WeeklyTrendChart>
             overflow: TextOverflow.ellipsis,
           ),
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: ResponsiveService.getSmallSpacing(context)),
         Flexible(
           flex: 1,
           child: Text(
-            dateRange,
+            chartData.dateRange,
             style: Theme.of(
               context,
             ).textTheme.bodySmall?.copyWith(color: AppTheme.textSecondary),
@@ -157,21 +144,22 @@ class _WeeklyTrendChartState extends State<WeeklyTrendChart>
     );
   }
 
-  Widget _buildChart() {
+  // Optimized: Chart with single animation and efficient rendering
+  Widget _buildOptimizedChart(_ChartData chartData) {
     return AnimatedBuilder(
-      animation: Listenable.merge([_lineAnimation, ..._emojiAnimations]),
+      animation: _progressAnimation,
       builder: (context, child) {
         return LineChart(
-          _createLineChartData(),
+          _createOptimizedLineChartData(chartData),
           duration: const Duration(milliseconds: 150),
         );
       },
     );
   }
 
-  LineChartData _createLineChartData() {
+  LineChartData _createOptimizedLineChartData(_ChartData chartData) {
     final spots =
-        widget.weeklyTrend.asMap().entries.map((entry) {
+        chartData.weeklyTrend.asMap().entries.map((entry) {
           final index = entry.key;
           final daily = entry.value;
           return FlSpot(index.toDouble(), _stateToY(daily.state));
@@ -192,7 +180,7 @@ class _WeeklyTrendChartState extends State<WeeklyTrendChart>
           isCurved: true,
           curveSmoothness: 0.3,
           color: _getTrendColor(),
-          barWidth: 3,
+          barWidth: ResponsiveService.shouldUseCompactLayout(context) ? 2 : 3,
           isStrokeCapRound: true,
           dotData: FlDotData(
             show: true,
@@ -206,8 +194,8 @@ class _WeeklyTrendChartState extends State<WeeklyTrendChart>
           ),
           // Animate line drawing
           dashArray:
-              _lineAnimation.value < 1.0
-                  ? [(_lineAnimation.value * 1000).round(), 1000]
+              _progressAnimation.value < 1.0
+                  ? [(_progressAnimation.value * 1000).round(), 1000]
                   : null,
         ),
       ],
@@ -222,13 +210,20 @@ class _WeeklyTrendChartState extends State<WeeklyTrendChart>
         getTouchedSpotIndicator: (barData, spotIndexes) {
           return spotIndexes.map((index) {
             return TouchedSpotIndicatorData(
-              FlLine(color: _getTrendColor(), strokeWidth: 2),
+              FlLine(
+                color: _getTrendColor(),
+                strokeWidth:
+                    ResponsiveService.shouldUseCompactLayout(context) ? 1 : 2,
+              ),
               FlDotData(
                 getDotPainter: (spot, percent, barData, index) {
                   return FlDotCirclePainter(
                     radius: 8,
                     color: _getTrendColor(),
-                    strokeWidth: 2,
+                    strokeWidth:
+                        ResponsiveService.shouldUseCompactLayout(context)
+                            ? 1
+                            : 2,
                     strokeColor: Colors.white,
                   );
                 },
@@ -242,15 +237,12 @@ class _WeeklyTrendChartState extends State<WeeklyTrendChart>
 
   FlDotPainter _createEmojiDot(int index) {
     if (index >= widget.weeklyTrend.length ||
-        index >= _emojiAnimations.length) {
+        index >= _progressAnimation.value.toInt()) {
       return FlDotCirclePainter(radius: 0, color: Colors.transparent);
     }
 
-    final animation = _emojiAnimations[index];
-    final scale = animation.value;
-
     return FlDotCirclePainter(
-      radius: 16 * scale,
+      radius: 16 * _progressAnimation.value,
       color: Colors.transparent,
       strokeWidth: 0,
     );
@@ -264,7 +256,8 @@ class _WeeklyTrendChartState extends State<WeeklyTrendChart>
       bottomTitles: AxisTitles(
         sideTitles: SideTitles(
           showTitles: true,
-          reservedSize: 32,
+          reservedSize:
+              ResponsiveService.shouldUseCompactLayout(context) ? 28 : 32,
           getTitlesWidget: _buildBottomTitle,
         ),
       ),
@@ -280,36 +273,48 @@ class _WeeklyTrendChartState extends State<WeeklyTrendChart>
     final daily = widget.weeklyTrend[index];
     final dayLabel = _getDayLabel(daily.date);
     final emoji = AppTheme.getMomentumEmoji(daily.state);
-    final animation =
-        index < _emojiAnimations.length
-            ? _emojiAnimations[index]
-            : AlwaysStoppedAnimation(1.0);
 
-    return AnimatedBuilder(
-      animation: animation,
-      builder: (context, child) {
-        return Transform.scale(
-          scale: animation.value,
-          child: SizedBox(
-            height: 32,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(emoji, style: const TextStyle(fontSize: 16)),
-                Text(
-                  dayLabel,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppTheme.textSecondary,
-                    fontSize: 8,
-                    height: 1.0,
-                  ),
-                ),
-              ],
+    // Use responsive system for all sizing
+    final isCompact = ResponsiveService.shouldUseCompactLayout(context);
+    final fontMultiplier = ResponsiveService.getFontSizeMultiplier(context);
+    final textScaler = MediaQuery.textScalerOf(context);
+
+    // Calculate dynamic sizes that account for text scaling
+    final baseEmojiSize = isCompact ? 12.0 : 14.0;
+    final baseDaySize = isCompact ? 6.0 : 7.0;
+
+    // Apply responsive multiplier but limit scaling to prevent overflow
+    final maxScale = isCompact ? 1.2 : 1.4; // Limit scaling on small devices
+    final effectiveScale = math.min(textScaler.scale(1.0), maxScale);
+
+    final emojiSize = baseEmojiSize * fontMultiplier * effectiveScale;
+    final daySize = baseDaySize * fontMultiplier * effectiveScale;
+
+    // Use the reserved size to prevent overflow
+    final height = isCompact ? 28.0 : 32.0;
+    final spacing = ResponsiveService.getTinySpacing(context) * 0.5;
+
+    return SizedBox(
+      height: height,
+      child: FittedBox(
+        fit: BoxFit.contain,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(emoji, style: TextStyle(fontSize: emojiSize, height: 1.0)),
+            SizedBox(height: spacing),
+            Text(
+              dayLabel,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: AppTheme.textSecondary,
+                fontSize: daySize,
+                height: 1.0,
+              ),
             ),
-          ),
-        );
-      },
+          ],
+        ),
+      ),
     );
   }
 
@@ -420,11 +425,34 @@ class _WeeklyTrendChartState extends State<WeeklyTrendChart>
         return 'Growing';
     }
   }
+}
 
-  @override
-  void dispose() {
-    _lineController.dispose();
-    _emojiController.dispose();
-    super.dispose();
+/// Optimized data helper class to pre-calculate chart data
+class _ChartData {
+  final List<DailyMomentum> weeklyTrend;
+  final List<double> weeklyData;
+  final String dateRange;
+
+  const _ChartData({
+    required this.weeklyTrend,
+    required this.weeklyData,
+    required this.dateRange,
+  });
+
+  factory _ChartData.fromWeeklyTrend(
+    List<DailyMomentum> weeklyTrend,
+    BuildContext context,
+  ) {
+    final weeklyData = weeklyTrend.map((d) => d.percentage).toList();
+    final startDate = weeklyTrend.first.date;
+    final endDate = weeklyTrend.last.date;
+    final dateRange =
+        '${DateFormat('MMM d').format(startDate)} - ${DateFormat('MMM d').format(endDate)}';
+
+    return _ChartData(
+      weeklyTrend: weeklyTrend,
+      weeklyData: weeklyData,
+      dateRange: dateRange,
+    );
   }
 }

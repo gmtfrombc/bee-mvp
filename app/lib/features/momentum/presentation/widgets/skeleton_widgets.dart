@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../../core/services/responsive_service.dart';
 
-/// Shimmer effect widget for skeleton loading states
+/// Optimized shimmer effect widget for skeleton loading states
+/// Uses more efficient animation approach to reduce memory usage
 class ShimmerWidget extends StatefulWidget {
   final Widget child;
   final Duration duration;
@@ -28,11 +29,13 @@ class _ShimmerWidgetState extends State<ShimmerWidget>
   @override
   void initState() {
     super.initState();
+    _setupOptimizedAnimation();
+  }
+
+  void _setupOptimizedAnimation() {
     _controller = AnimationController(duration: widget.duration, vsync: this);
-    _animation = Tween<double>(
-      begin: -1.0,
-      end: 2.0,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+    // Optimized: Use simpler linear animation to reduce GPU overhead
+    _animation = Tween<double>(begin: -1.0, end: 2.0).animate(_controller);
     _controller.repeat();
   }
 
@@ -49,6 +52,14 @@ class _ShimmerWidgetState extends State<ShimmerWidget>
       builder: (context, child) {
         return ShaderMask(
           shaderCallback: (bounds) {
+            // Optimized: Pre-calculate normalized stops to reduce computation
+            final progress = _animation.value;
+            final normalizedStops = [
+              (progress - 0.3).clamp(0.0, 1.0),
+              progress.clamp(0.0, 1.0),
+              (progress + 0.3).clamp(0.0, 1.0),
+            ];
+
             return LinearGradient(
               begin: Alignment.centerLeft,
               end: Alignment.centerRight,
@@ -57,12 +68,7 @@ class _ShimmerWidgetState extends State<ShimmerWidget>
                 widget.highlightColor,
                 widget.baseColor,
               ],
-              stops:
-                  [
-                    _animation.value - 0.3,
-                    _animation.value,
-                    _animation.value + 0.3,
-                  ].map((stop) => stop.clamp(0.0, 1.0)).toList(),
+              stops: normalizedStops,
             ).createShader(bounds);
           },
           child: widget.child,
@@ -72,12 +78,14 @@ class _ShimmerWidgetState extends State<ShimmerWidget>
   }
 }
 
-/// Skeleton container with rounded corners
+/// Optimized skeleton container with pre-calculated dimensions
 class SkeletonContainer extends StatelessWidget {
   final double width;
   final double height;
   final BorderRadius? borderRadius;
   final EdgeInsets? margin;
+  // Optimized: Cache colors to avoid repeated theme lookups
+  static const Color _skeletonColor = Color(0xFFE0E0E0);
 
   const SkeletonContainer({
     super.key,
@@ -89,23 +97,38 @@ class SkeletonContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Optimized: Cache border radius calculation
     final responsiveBorderRadius =
-        borderRadius ??
-        BorderRadius.circular(ResponsiveService.getBorderRadius(context));
+        borderRadius ?? _getCachedBorderRadius(context);
 
     return Container(
       width: width,
       height: height,
       margin: margin,
       decoration: BoxDecoration(
-        color: Colors.grey[300],
+        color: _skeletonColor,
         borderRadius: responsiveBorderRadius,
       ),
     );
   }
+
+  // Optimized: Cached border radius calculation
+  static BorderRadius? _cachedBorderRadius;
+  static double? _lastScreenWidth;
+
+  BorderRadius _getCachedBorderRadius(BuildContext context) {
+    final currentWidth = MediaQuery.of(context).size.width;
+    if (_cachedBorderRadius == null || _lastScreenWidth != currentWidth) {
+      _lastScreenWidth = currentWidth;
+      _cachedBorderRadius = BorderRadius.circular(
+        ResponsiveService.getBorderRadius(context),
+      );
+    }
+    return _cachedBorderRadius!;
+  }
 }
 
-/// Skeleton momentum card with shimmer effect
+/// Optimized skeleton momentum card with efficient shimmer effect
 class SkeletonMomentumCard extends StatelessWidget {
   final double? height;
   final EdgeInsets? margin;
@@ -114,13 +137,10 @@ class SkeletonMomentumCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cardHeight =
-        height ?? ResponsiveService.getMomentumCardHeight(context);
-    final cardMargin = margin ?? ResponsiveService.getResponsiveMargin(context);
-    final gaugeSize = ResponsiveService.getMomentumGaugeSize(context);
-    final spacing = ResponsiveService.getResponsiveSpacing(context);
-    final padding = ResponsiveService.getResponsivePadding(context);
-    final borderRadius = ResponsiveService.getBorderRadius(context);
+    // Optimized: Pre-calculate all dimensions to avoid repeated calls
+    final dimensions = _SkeletonDimensions.fromContext(context);
+    final cardHeight = height ?? dimensions.cardHeight;
+    final cardMargin = margin ?? dimensions.cardMargin;
 
     return Container(
       margin: cardMargin,
@@ -128,91 +148,90 @@ class SkeletonMomentumCard extends StatelessWidget {
         elevation: 2,
         child: Container(
           height: cardHeight,
-          padding: padding,
+          padding: dimensions.padding,
           child: ShimmerWidget(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                // Header skeleton - responsive width based on screen
-                SkeletonContainer(
-                  width: MediaQuery.of(context).size.width * 0.3,
-                  height:
-                      ResponsiveService.shouldUseCompactLayout(context)
-                          ? 14
-                          : 16,
-                  borderRadius: BorderRadius.circular(borderRadius * 0.5),
-                ),
-
-                SizedBox(height: spacing * 0.4),
-
-                // Gauge skeleton (circular) - Use responsive size
-                Flexible(
-                  flex: 4,
-                  child: Container(
-                    width: gaugeSize,
-                    height: gaugeSize,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                ),
-
-                SizedBox(height: spacing * 0.3),
-
-                // State text skeleton - responsive sizing
-                SkeletonContainer(
-                  width: MediaQuery.of(context).size.width * 0.25,
-                  height:
-                      ResponsiveService.shouldUseCompactLayout(context)
-                          ? 18
-                          : 20,
-                  borderRadius: BorderRadius.circular(borderRadius * 0.6),
-                ),
-
-                SizedBox(height: spacing * 0.3),
-
-                // Message skeleton - responsive and flexible
-                Flexible(
-                  flex: 2,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      SkeletonContainer(
-                        width: double.infinity,
-                        height:
-                            ResponsiveService.shouldUseCompactLayout(context)
-                                ? 12
-                                : 14,
-                        borderRadius: BorderRadius.circular(borderRadius * 0.4),
-                      ),
-                      SizedBox(height: spacing * 0.2),
-                      SkeletonContainer(
-                        width: MediaQuery.of(context).size.width * 0.5,
-                        height:
-                            ResponsiveService.shouldUseCompactLayout(context)
-                                ? 12
-                                : 14,
-                        borderRadius: BorderRadius.circular(borderRadius * 0.4),
-                      ),
-                    ],
-                  ),
-                ),
-
-                SizedBox(height: spacing * 0.3),
-
-                // Progress bar skeleton - responsive height
-                SkeletonContainer(
-                  width: double.infinity,
-                  height:
-                      ResponsiveService.shouldUseCompactLayout(context) ? 4 : 6,
-                  borderRadius: BorderRadius.circular(borderRadius * 0.25),
-                ),
-              ],
-            ),
+            child: _buildOptimizedSkeletonContent(context, dimensions),
           ),
         ),
       ),
+    );
+  }
+
+  // Optimized: Extract skeleton content to reduce widget rebuilds
+  Widget _buildOptimizedSkeletonContent(
+    BuildContext context,
+    _SkeletonDimensions dimensions,
+  ) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        // Header skeleton - responsive width based on screen
+        SkeletonContainer(
+          width: dimensions.headerWidth,
+          height: dimensions.headerHeight,
+          borderRadius: BorderRadius.circular(dimensions.borderRadius * 0.5),
+        ),
+
+        SizedBox(height: dimensions.spacing * 0.4),
+
+        // Gauge skeleton (circular) - Use responsive size
+        Flexible(
+          flex: 4,
+          child: Container(
+            width: dimensions.gaugeSize,
+            height: dimensions.gaugeSize,
+            decoration: const BoxDecoration(
+              color: SkeletonContainer._skeletonColor,
+              shape: BoxShape.circle,
+            ),
+          ),
+        ),
+
+        SizedBox(height: dimensions.spacing * 0.3),
+
+        // State text skeleton - responsive sizing
+        SkeletonContainer(
+          width: dimensions.stateTextWidth,
+          height: dimensions.stateTextHeight,
+          borderRadius: BorderRadius.circular(dimensions.borderRadius * 0.6),
+        ),
+
+        SizedBox(height: dimensions.spacing * 0.3),
+
+        // Message skeleton - responsive and flexible
+        Flexible(
+          flex: 2,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SkeletonContainer(
+                width: double.infinity,
+                height: dimensions.messageHeight,
+                borderRadius: BorderRadius.circular(
+                  dimensions.borderRadius * 0.4,
+                ),
+              ),
+              SizedBox(height: dimensions.spacing * 0.2),
+              SkeletonContainer(
+                width: dimensions.messageSecondWidth,
+                height: dimensions.messageHeight,
+                borderRadius: BorderRadius.circular(
+                  dimensions.borderRadius * 0.4,
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        SizedBox(height: dimensions.spacing * 0.3),
+
+        // Progress bar skeleton - responsive height
+        SkeletonContainer(
+          width: double.infinity,
+          height: dimensions.progressBarHeight,
+          borderRadius: BorderRadius.circular(dimensions.borderRadius * 0.25),
+        ),
+      ],
     );
   }
 }
@@ -676,3 +695,58 @@ class _PulseLoadingWidgetState extends State<PulseLoadingWidget>
     );
   }
 }
+
+/// Optimized dimensions helper class to cache calculations
+class _SkeletonDimensions {
+  final double cardHeight;
+  final EdgeInsets cardMargin;
+  final double gaugeSize;
+  final double spacing;
+  final EdgeInsets padding;
+  final double borderRadius;
+  final double headerWidth;
+  final double headerHeight;
+  final double stateTextWidth;
+  final double stateTextHeight;
+  final double messageHeight;
+  final double messageSecondWidth;
+  final double progressBarHeight;
+
+  const _SkeletonDimensions({
+    required this.cardHeight,
+    required this.cardMargin,
+    required this.gaugeSize,
+    required this.spacing,
+    required this.padding,
+    required this.borderRadius,
+    required this.headerWidth,
+    required this.headerHeight,
+    required this.stateTextWidth,
+    required this.stateTextHeight,
+    required this.messageHeight,
+    required this.messageSecondWidth,
+    required this.progressBarHeight,
+  });
+
+  factory _SkeletonDimensions.fromContext(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isCompact = ResponsiveService.shouldUseCompactLayout(context);
+
+    return _SkeletonDimensions(
+      cardHeight: ResponsiveService.getMomentumCardHeight(context),
+      cardMargin: ResponsiveService.getResponsiveMargin(context),
+      gaugeSize: ResponsiveService.getMomentumGaugeSize(context),
+      spacing: ResponsiveService.getResponsiveSpacing(context),
+      padding: ResponsiveService.getResponsivePadding(context),
+      borderRadius: ResponsiveService.getBorderRadius(context),
+      headerWidth: screenWidth * 0.3,
+      headerHeight: isCompact ? 14.0 : 16.0,
+      stateTextWidth: screenWidth * 0.25,
+      stateTextHeight: isCompact ? 18.0 : 20.0,
+      messageHeight: isCompact ? 12.0 : 14.0,
+      messageSecondWidth: screenWidth * 0.5,
+      progressBarHeight: isCompact ? 4.0 : 6.0,
+    );
+  }
+}
+
