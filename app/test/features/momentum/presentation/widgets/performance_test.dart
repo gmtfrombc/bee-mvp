@@ -62,7 +62,8 @@ void main() {
           ),
         );
 
-        await tester.pump();
+        // Wait for all animations to complete
+        await tester.pumpAndSettle(const Duration(seconds: 5));
         stopwatch.stop();
 
         expect(
@@ -91,7 +92,8 @@ void main() {
           ),
         );
 
-        await tester.pump();
+        // Wait for all animations to complete before measuring
+        await tester.pumpAndSettle(const Duration(seconds: 3));
         stopwatch.stop();
 
         expect(
@@ -117,7 +119,8 @@ void main() {
           ),
         );
 
-        await tester.pump();
+        // Wait for all animations to complete
+        await tester.pumpAndSettle(const Duration(seconds: 3));
         stopwatch.stop();
 
         expect(
@@ -141,7 +144,8 @@ void main() {
           ),
         );
 
-        await tester.pump();
+        // Wait for all animations to complete
+        await tester.pumpAndSettle(const Duration(seconds: 2));
         stopwatch.stop();
 
         expect(
@@ -173,7 +177,8 @@ void main() {
           ),
         );
 
-        await tester.pump();
+        // Wait for initial rendering to complete
+        await tester.pumpAndSettle(const Duration(seconds: 3));
 
         final stopwatch = Stopwatch()..start();
 
@@ -191,8 +196,8 @@ void main() {
           ),
         );
 
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 1000));
+        // Wait for all transition animations to complete
+        await tester.pumpAndSettle(const Duration(seconds: 5));
         stopwatch.stop();
 
         expect(
@@ -201,7 +206,9 @@ void main() {
           reason: 'State transitions should complete smoothly',
         );
 
-        debugPrint('✅ State transition time: ${stopwatch.elapsedMilliseconds}ms');
+        debugPrint(
+          '✅ State transition time: ${stopwatch.elapsedMilliseconds}ms',
+        );
       });
 
       testWidgets('WeeklyTrendChart animation performance', (tester) async {
@@ -230,7 +237,9 @@ void main() {
           reason: 'Chart animations should complete within reasonable time',
         );
 
-        debugPrint('✅ Chart animation duration: ${stopwatch.elapsedMilliseconds}ms');
+        debugPrint(
+          '✅ Chart animation duration: ${stopwatch.elapsedMilliseconds}ms',
+        );
       });
     });
 
@@ -266,7 +275,9 @@ void main() {
           // Validate that widgets render without memory issues
           expect(find.byType(MomentumCard), findsNWidgets(5));
 
-          debugPrint('✅ Memory test batch $batch completed - 5 widgets rendered');
+          debugPrint(
+            '✅ Memory test batch $batch completed - 5 widgets rendered',
+          );
         }
 
         debugPrint('✅ Memory stress test completed successfully');
@@ -345,6 +356,9 @@ void main() {
           ),
         );
 
+        // Wait for initial setup
+        await tester.pumpAndSettle(const Duration(seconds: 2));
+
         final stopwatch = Stopwatch()..start();
 
         // Rapidly change states multiple times
@@ -362,10 +376,12 @@ void main() {
             ),
           );
 
+          // Allow animations to start but don't wait for full completion
           await tester.pump(const Duration(milliseconds: 100));
         }
 
-        await tester.pump();
+        // Wait for all final animations to complete
+        await tester.pumpAndSettle(const Duration(seconds: 3));
         stopwatch.stop();
 
         expect(
@@ -412,7 +428,8 @@ void main() {
           ),
         );
 
-        await tester.pump();
+        // Wait for all complex widgets to settle
+        await tester.pumpAndSettle(const Duration(seconds: 5));
         stopwatch.stop();
 
         expect(
@@ -444,7 +461,8 @@ void main() {
           ),
         );
 
-        await tester.pump();
+        // Wait for animations to complete
+        await tester.pumpAndSettle(const Duration(seconds: 3));
         stopwatch.stop();
 
         expect(
@@ -506,9 +524,12 @@ void main() {
               ),
             ),
           );
-          await tester.pump();
+          // Allow each widget to render and start animations
+          await tester.pump(const Duration(milliseconds: 200));
         }
 
+        // Wait for all final animations to complete before test ends
+        await tester.pumpAndSettle(const Duration(seconds: 3));
         stopwatch.stop();
 
         expect(

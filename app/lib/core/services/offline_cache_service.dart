@@ -671,4 +671,59 @@ class OfflineCacheService {
   static Future<bool> isCachedDataValidForTesting() async {
     return _testCacheIsValid;
   }
+
+  /// Clean up cache to free memory and storage space
+  static Future<void> performCacheCleanup({bool force = false}) async {
+    await initialize();
+
+    try {
+      debugPrint('🧹 Performing cache cleanup${force ? ' (forced)' : ''}');
+
+      // Clear expired cache data
+      final isValid = await isCachedDataValid();
+      if (!isValid || force) {
+        await invalidateCache(
+          momentumData: true,
+          weeklyTrend: true,
+          momentumStats: true,
+          reason: force ? 'forced cleanup' : 'expired data',
+        );
+      }
+
+      // Clean up old pending actions
+      await _cleanupExpiredDataSafe();
+
+      // Clear old error queue entries
+      final queuedErrors = await getQueuedErrors();
+      if (queuedErrors.length > 10) {
+        final recentErrors = queuedErrors.take(5).toList();
+        await _prefs!.setString(_errorQueueKey, jsonEncode(recentErrors));
+        debugPrint(
+          '🧹 Cleaned up ${queuedErrors.length - 5} old error entries',
+        );
+      }
+
+      debugPrint('✅ Cache cleanup completed');
+    } catch (e) {
+      debugPrint('❌ Failed to perform cache cleanup: $e');
+    }
+  }
+
+  /// Monitor cache size and trigger cleanup if needed
+  static Future<void> checkCacheHealth() async {
+    try {
+      final stats = await getEnhancedCacheStats();
+      final healthScore = stats['healthScore'] as int;
+
+      // If health score is low, trigger cleanup
+      if (healthScore < 70) {
+        debugPrint(
+          '⚠️ Cache health score low ($healthScore), triggering cleanup',
+        );
+        await performCacheCleanup();
+      }
+    } catch (e) {
+      debugPrint('❌ Failed to check cache health: $e');
+    }
+  }
 }

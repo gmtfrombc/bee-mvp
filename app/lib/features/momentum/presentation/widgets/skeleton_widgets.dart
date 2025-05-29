@@ -34,8 +34,13 @@ class _ShimmerWidgetState extends State<ShimmerWidget>
 
   void _setupOptimizedAnimation() {
     _controller = AnimationController(duration: widget.duration, vsync: this);
-    // Optimized: Use simpler linear animation to reduce GPU overhead
-    _animation = Tween<double>(begin: -1.0, end: 2.0).animate(_controller);
+    // Enhanced: Use more sophisticated curve for natural shimmer motion
+    _animation = Tween<double>(begin: -1.5, end: 2.5).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: Curves.easeInOutSine, // More natural wave motion
+      ),
+    );
     _controller.repeat();
   }
 
@@ -52,12 +57,14 @@ class _ShimmerWidgetState extends State<ShimmerWidget>
       builder: (context, child) {
         return ShaderMask(
           shaderCallback: (bounds) {
-            // Optimized: Pre-calculate normalized stops to reduce computation
+            // Enhanced: More sophisticated gradient with better color transitions
             final progress = _animation.value;
             final normalizedStops = [
-              (progress - 0.3).clamp(0.0, 1.0),
+              (progress - 0.4).clamp(0.0, 1.0),
+              (progress - 0.1).clamp(0.0, 1.0),
               progress.clamp(0.0, 1.0),
-              (progress + 0.3).clamp(0.0, 1.0),
+              (progress + 0.1).clamp(0.0, 1.0),
+              (progress + 0.4).clamp(0.0, 1.0),
             ];
 
             return LinearGradient(
@@ -65,7 +72,9 @@ class _ShimmerWidgetState extends State<ShimmerWidget>
               end: Alignment.centerRight,
               colors: [
                 widget.baseColor,
+                widget.baseColor.withValues(alpha: 0.8),
                 widget.highlightColor,
+                widget.baseColor.withValues(alpha: 0.8),
                 widget.baseColor,
               ],
               stops: normalizedStops,
@@ -749,4 +758,3 @@ class _SkeletonDimensions {
     );
   }
 }
-

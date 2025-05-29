@@ -3,8 +3,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'notification_service.dart';
+import 'firebase_service.dart';
 
 /// Service responsible for FCM token lifecycle management and storage
+/// Gracefully handles Firebase unavailability in development environments
 class FCMTokenService {
   static FCMTokenService? _instance;
   static FCMTokenService get instance => _instance ??= FCMTokenService._();
@@ -14,10 +16,13 @@ class FCMTokenService {
   static const String _tokenKey = 'fcm_token';
   static const String _tokenTimestampKey = 'fcm_token_timestamp';
 
+  /// Check if FCM functionality is available
+  bool get isAvailable => NotificationService.instance.isAvailable;
+
   /// Store FCM token locally and in Supabase user profile
   Future<void> storeToken(String token) async {
     try {
-      // Store locally
+      // Store locally regardless of Firebase availability
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_tokenKey, token);
       await prefs.setInt(
@@ -29,7 +34,7 @@ class FCMTokenService {
         print('📱 FCM Token stored locally: ${token.substring(0, 20)}...');
       }
 
-      // Store in Supabase user profile
+      // Store in Supabase user profile if available
       await _storeTokenInSupabase(token);
     } catch (e) {
       if (kDebugMode) {
@@ -73,6 +78,11 @@ class FCMTokenService {
 
   /// Get fresh token from Firebase and store it
   Future<String?> refreshToken() async {
+    if (!isAvailable) {
+      FirebaseService.logServiceAttempt('FCM', 'refreshToken');
+      return null;
+    }
+
     try {
       final newToken = await NotificationService.instance.getToken();
 
@@ -95,6 +105,12 @@ class FCMTokenService {
 
   /// Get current valid token (refresh if needed)
   Future<String?> getCurrentToken() async {
+    if (!isAvailable) {
+      FirebaseService.logServiceAttempt('FCM', 'getCurrentToken');
+      // Return locally stored token as fallback
+      return await getStoredToken();
+    }
+
     try {
       // Check if we have a valid stored token
       if (await isTokenValid()) {
@@ -131,8 +147,12 @@ class FCMTokenService {
       // Remove from Supabase
       await _removeTokenFromSupabase();
 
-      // Delete from Firebase
-      await NotificationService.instance.deleteToken();
+      // Delete from Firebase if available
+      if (isAvailable) {
+        await NotificationService.instance.deleteToken();
+      } else {
+        FirebaseService.logServiceAttempt('FCM', 'deleteToken');
+      }
 
       if (kDebugMode) {
         print('🗑️ FCM Token removed successfully');
@@ -256,6 +276,11 @@ class FCMTokenService {
 
   /// Subscribe to user-specific topic for targeted notifications
   Future<void> subscribeToUserTopic(String userId) async {
+    if (!isAvailable) {
+      FirebaseService.logServiceAttempt('FCM', 'subscribeToUserTopic');
+      return;
+    }
+
     try {
       final topic = 'user_$userId';
       await NotificationService.instance.subscribeToTopic(topic);
@@ -272,6 +297,11 @@ class FCMTokenService {
 
   /// Unsubscribe from user-specific topic
   Future<void> unsubscribeFromUserTopic(String userId) async {
+    if (!isAvailable) {
+      FirebaseService.logServiceAttempt('FCM', 'unsubscribeFromUserTopic');
+      return;
+    }
+
     try {
       final topic = 'user_$userId';
       await NotificationService.instance.unsubscribeFromTopic(topic);

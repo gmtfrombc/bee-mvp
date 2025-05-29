@@ -2,29 +2,26 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/services/connectivity_service.dart';
 import '../../../../core/services/offline_cache_service.dart';
+import '../../../../core/providers/supabase_provider.dart';
 import '../../data/services/momentum_api_service.dart';
 import '../../domain/models/momentum_data.dart';
 import '../../../../core/theme/app_theme.dart';
 
-/// Provider for the Supabase client
-final supabaseProvider = Provider<SupabaseClient>((ref) {
-  return Supabase.instance.client;
-});
-
-/// Provider for the MomentumApiService
-final momentumApiServiceProvider = Provider<MomentumApiService>((ref) {
-  final supabase = ref.watch(supabaseProvider);
+/// Provider for the MomentumApiService using the proper Supabase provider
+final momentumApiServiceProvider = FutureProvider<MomentumApiService>((
+  ref,
+) async {
+  final supabase = await ref.watch(supabaseProvider.future);
   return MomentumApiService(supabase);
 });
 
 /// Enhanced provider for momentum data with improved caching and offline support
-final realtimeMomentumProvider = StreamProvider<MomentumData>((ref) {
-  final apiService = ref.watch(momentumApiServiceProvider);
-  final connectivityStatus = ref.watch(connectivityProvider);
+final realtimeMomentumProvider = StreamProvider<MomentumData>((ref) async* {
+  try {
+    final apiService = await ref.watch(momentumApiServiceProvider.future);
+    final connectivityStatus = ref.watch(connectivityProvider);
 
-  return Stream.fromFuture(
-    _initializeAndGetMomentum(apiService, ref),
-  ).asyncExpand((initialData) async* {
+    final initialData = await _initializeAndGetMomentum(apiService, ref);
     yield initialData;
 
     // Set up real-time updates only if online
@@ -37,7 +34,19 @@ final realtimeMomentumProvider = StreamProvider<MomentumData>((ref) {
       // If offline, periodically check for cached updates
       yield* _createOfflineStream(apiService, ref);
     }
-  });
+  } catch (e) {
+    // If everything fails, try to get cached data
+    final cachedData = await OfflineCacheService.getCachedMomentumData(
+      allowStaleData: true,
+    );
+
+    if (cachedData != null) {
+      yield cachedData;
+      return;
+    }
+
+    throw Exception('Failed to get momentum data: $e');
+  }
 });
 
 /// Initialize momentum data with enhanced caching support
@@ -170,7 +179,7 @@ final cacheHealthProvider = FutureProvider<int>((ref) async {
 /// Manual refresh provider
 final manualRefreshProvider = Provider<Future<void> Function()>((ref) {
   return () async {
-    final apiService = ref.read(momentumApiServiceProvider);
+    final apiService = await ref.read(momentumApiServiceProvider.future);
 
     // Invalidate cache and force fresh fetch
     await apiService.invalidateMomentumCache(reason: 'Manual refresh');
@@ -186,7 +195,7 @@ final manualRefreshProvider = Provider<Future<void> Function()>((ref) {
 /// Background sync provider
 final backgroundSyncProvider = Provider<Future<void> Function()>((ref) {
   return () async {
-    final apiService = ref.read(momentumApiServiceProvider);
+    final apiService = await ref.read(momentumApiServiceProvider.future);
     await apiService.processPendingMomentumActions();
   };
 });
@@ -220,13 +229,13 @@ class CacheManager {
 
   /// Warm cache
   Future<void> warmCache() async {
-    final apiService = _ref.read(momentumApiServiceProvider);
+    final apiService = await _ref.read(momentumApiServiceProvider.future);
     await apiService.warmMomentumCache();
   }
 
   /// Process pending actions
   Future<void> processPendingActions() async {
-    final apiService = _ref.read(momentumApiServiceProvider);
+    final apiService = await _ref.read(momentumApiServiceProvider.future);
     await apiService.processPendingMomentumActions();
   }
 }
@@ -248,8 +257,8 @@ class LegacyMomentumNotifier extends StateNotifier<AsyncValue<MomentumData>> {
   }
 
   void _initialize() async {
-    final apiService = _ref.read(momentumApiServiceProvider);
     try {
+      final apiService = await _ref.read(momentumApiServiceProvider.future);
       final data = await apiService.getMomentumWithOfflineSupport();
       state = AsyncValue.data(data);
     } catch (e, stack) {
@@ -259,9 +268,9 @@ class LegacyMomentumNotifier extends StateNotifier<AsyncValue<MomentumData>> {
 
   Future<void> refresh() async {
     state = const AsyncValue.loading();
-    final apiService = _ref.read(momentumApiServiceProvider);
 
     try {
+      final apiService = await _ref.read(momentumApiServiceProvider.future);
       await apiService.invalidateMomentumCache(reason: 'Manual refresh');
       final data = await apiService.getCurrentMomentum();
       state = AsyncValue.data(data);
@@ -286,7 +295,7 @@ final momentumHistoryProvider =
       ref,
       dateRange,
     ) async {
-      final apiService = ref.watch(momentumApiServiceProvider);
+      final apiService = await ref.watch(momentumApiServiceProvider.future);
       return await apiService.getMomentumHistory(
         startDate: dateRange.startDate,
         endDate: dateRange.endDate,
@@ -325,7 +334,7 @@ class MomentumController {
 
   /// Refresh momentum data (equivalent to old notifier.refresh())
   Future<void> refresh() async {
-    final apiService = _ref.read(momentumApiServiceProvider);
+    final apiService = await _ref.read(momentumApiServiceProvider.future);
     await apiService.invalidateMomentumCache(reason: 'Manual refresh');
     _ref.invalidate(realtimeMomentumProvider);
   }
@@ -339,7 +348,7 @@ class MomentumController {
 
   /// Calculate momentum score
   Future<void> calculateMomentumScore({String? targetDate}) async {
-    final apiService = _ref.read(momentumApiServiceProvider);
+    final apiService = await _ref.read(momentumApiServiceProvider.future);
     await apiService.calculateMomentumScore(targetDate: targetDate);
     _ref.invalidate(realtimeMomentumProvider);
   }

@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -46,6 +47,11 @@ class _MomentumGaugeState extends State<MomentumGauge>
   bool _isTransitioning = false;
   bool _hasStartedAnimations = false;
 
+  // Timer tracking for proper disposal
+  Timer? _animationDelayTimer;
+  Timer? _transitionDelayTimer;
+  Timer? _hapticDelayTimer;
+
   @override
   void initState() {
     super.initState();
@@ -82,7 +88,9 @@ class _MomentumGaugeState extends State<MomentumGauge>
     );
 
     _bounceController = AnimationController(
-      duration: const Duration(milliseconds: 200),
+      duration: const Duration(
+        milliseconds: 300,
+      ), // Slightly longer for more natural feel
       vsync: this,
     );
 
@@ -101,37 +109,41 @@ class _MomentumGaugeState extends State<MomentumGauge>
       ),
     );
 
-    _bounceAnimation = Tween<double>(begin: 1.0, end: 1.05).animate(
+    // Enhanced bounce animation with spring physics feel
+    _bounceAnimation = Tween<double>(begin: 1.0, end: 1.08).animate(
       CurvedAnimation(
         parent: _bounceController,
-        curve: const Cubic(0.68, -0.55, 0.265, 1.55), // Bounce effect
+        curve: Curves.elasticOut, // More natural spring physics
       ),
     );
 
-    // State transition animations
+    // State transition animations with improved curves
     _colorTransitionAnimation = ColorTween(
       begin: AppTheme.getMomentumColor(_previousState ?? widget.state),
       end: AppTheme.getMomentumColor(widget.state),
     ).animate(
       CurvedAnimation(
         parent: _stateTransitionController,
-        curve: Curves.easeInOut,
+        curve: Curves.easeInOutCubic, // Smoother color transitions
       ),
     );
 
-    // Simpler emoji scale animation to avoid TweenSequence bounds issues
-    _emojiScaleAnimation = Tween<double>(begin: 1.0, end: 1.2).animate(
+    // Enhanced emoji scale animation with spring physics
+    _emojiScaleAnimation = Tween<double>(begin: 1.0, end: 1.15).animate(
       CurvedAnimation(
         parent: _stateTransitionController,
-        curve: Curves.elasticOut,
+        curve: Curves.elasticOut, // Spring physics for emoji
       ),
     );
 
-    // Simpler glow intensity animation
-    _glowIntensityAnimation = Tween<double>(begin: 0.3, end: 0.6).animate(
+    // Enhanced glow intensity animation with breathing effect
+    _glowIntensityAnimation = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween<double>(begin: 0.3, end: 0.1), weight: 30),
+      TweenSequenceItem(tween: Tween<double>(begin: 0.1, end: 0.7), weight: 70),
+    ]).animate(
       CurvedAnimation(
         parent: _stateTransitionController,
-        curve: Curves.easeInOut,
+        curve: Curves.easeInOutSine, // Breathing effect
       ),
     );
   }
@@ -144,19 +156,20 @@ class _MomentumGaugeState extends State<MomentumGauge>
       _previousState = oldState;
     });
 
-    // Update color transition animation
+    // Update color transition animation with enhanced easing
     _colorTransitionAnimation = ColorTween(
       begin: AppTheme.getMomentumColor(oldState),
       end: AppTheme.getMomentumColor(newState),
     ).animate(
       CurvedAnimation(
         parent: _stateTransitionController,
-        curve: Curves.easeInOut,
+        curve:
+            Curves.easeInOutCubic, // Enhanced easing for smoother transitions
       ),
     );
 
-    // Trigger haptic feedback based on state change
-    _triggerHapticFeedback(oldState, newState);
+    // Enhanced haptic feedback based on state change direction
+    _triggerEnhancedHapticFeedback(oldState, newState);
 
     // Check if user prefers reduced motion
     final shouldReduce = AccessibilityService.shouldReduceMotion(context);
@@ -170,13 +183,25 @@ class _MomentumGaugeState extends State<MomentumGauge>
         });
       }
     } else {
-      // Start state transition animation
+      // Enhanced state transition animation with celebration effect
       _stateTransitionController.reset();
-      _stateTransitionController.forward().then((_) {
+
+      // Add subtle pre-animation pause for better visual flow
+      _transitionDelayTimer?.cancel();
+      _transitionDelayTimer = Timer(const Duration(milliseconds: 50), () {
         if (mounted) {
-          setState(() {
-            _isTransitioning = false;
-            _previousState = newState;
+          _stateTransitionController.forward().then((_) {
+            if (mounted) {
+              setState(() {
+                _isTransitioning = false;
+                _previousState = newState;
+              });
+
+              // Add celebration bounce for positive transitions
+              if (_isPositiveTransition(oldState, newState)) {
+                _triggerCelebrationBounce();
+              }
+            }
           });
         }
       });
@@ -186,18 +211,63 @@ class _MomentumGaugeState extends State<MomentumGauge>
     _updateProgressAnimation();
   }
 
-  void _triggerHapticFeedback(MomentumState oldState, MomentumState newState) {
-    // Different haptic patterns for different transitions
-    if (newState == MomentumState.rising) {
-      // Positive transition - success haptic
+  void _triggerEnhancedHapticFeedback(
+    MomentumState oldState,
+    MomentumState newState,
+  ) {
+    // Enhanced haptic patterns for different transitions
+    if (_isPositiveTransition(oldState, newState)) {
+      // Positive transition - success pattern
       HapticFeedback.mediumImpact();
+      _hapticDelayTimer?.cancel();
+      _hapticDelayTimer = Timer(const Duration(milliseconds: 100), () {
+        if (mounted) {
+          HapticFeedback.lightImpact();
+        }
+      });
     } else if (newState == MomentumState.needsCare) {
-      // Needs attention - warning haptic
-      HapticFeedback.heavyImpact();
+      // Needs attention - gentle warning pattern
+      HapticFeedback.lightImpact();
+      _hapticDelayTimer?.cancel();
+      _hapticDelayTimer = Timer(const Duration(milliseconds: 80), () {
+        if (mounted) {
+          HapticFeedback.lightImpact();
+        }
+      });
     } else {
-      // Steady state - light haptic
+      // Steady state - single light haptic
       HapticFeedback.lightImpact();
     }
+  }
+
+  bool _isPositiveTransition(MomentumState oldState, MomentumState newState) {
+    const stateOrder = [
+      MomentumState.needsCare,
+      MomentumState.steady,
+      MomentumState.rising,
+    ];
+    final oldIndex = stateOrder.indexOf(oldState);
+    final newIndex = stateOrder.indexOf(newState);
+    return newIndex > oldIndex;
+  }
+
+  void _triggerCelebrationBounce() {
+    // Enhanced celebration animation for positive state changes
+    _bounceController.reset();
+    _bounceController.forward().then((_) {
+      if (mounted) {
+        _bounceController.reverse().then((_) {
+          if (mounted) {
+            // Second smaller bounce for celebration effect
+            _bounceController.animateTo(0.5).then((_) {
+              if (mounted) {
+                _bounceController.reverse();
+              }
+            });
+          }
+        });
+      }
+    });
   }
 
   void _updateProgressAnimation() {
@@ -215,7 +285,7 @@ class _MomentumGaugeState extends State<MomentumGauge>
     _startAnimations();
   }
 
-  void _startAnimations() async {
+  void _startAnimations() {
     // Check if user prefers reduced motion
     final shouldReduce = AccessibilityService.shouldReduceMotion(context);
 
@@ -225,25 +295,63 @@ class _MomentumGaugeState extends State<MomentumGauge>
       return;
     }
 
-    await _progressController.forward();
-    if (mounted) {
-      await _bounceController.forward();
-      if (mounted) {
-        await _bounceController.reverse();
-      }
-    }
+    // Enhanced loading sequence with staggered timing
+    // 1. Start progress animation immediately
+    _progressController.forward();
+
+    // 2. Wait for progress to reach 80% before starting bounce - use Timer for proper tracking
+    _animationDelayTimer?.cancel();
+    _animationDelayTimer = Timer(
+      Duration(
+        milliseconds: (widget.animationDuration.inMilliseconds * 0.8).round(),
+      ),
+      () async {
+        if (mounted) {
+          // 3. Trigger celebration bounce when progress completes
+          await _bounceController.forward();
+          if (mounted) {
+            await _bounceController.reverse();
+
+            // 4. Add subtle secondary bounce for polish
+            if (mounted) {
+              await _bounceController.animateTo(0.4);
+              if (mounted) {
+                await _bounceController.reverse();
+              }
+            }
+          }
+        }
+      },
+    );
   }
 
   void _handleTap() {
     if (widget.onTap != null) {
-      // Add haptic feedback
+      // Enhanced haptic feedback with double tap pattern
       HapticFeedback.lightImpact();
+      _hapticDelayTimer?.cancel();
+      _hapticDelayTimer = Timer(const Duration(milliseconds: 50), () {
+        if (mounted) {
+          HapticFeedback.selectionClick();
+        }
+      });
+
       widget.onTap!();
 
-      // Quick bounce animation on tap
+      // Enhanced bounce animation with spring physics feel
+      _bounceController.reset();
       _bounceController.forward().then((_) {
         if (mounted) {
-          _bounceController.reverse();
+          _bounceController.reverse().then((_) {
+            if (mounted) {
+              // Subtle secondary bounce for more natural feel
+              _bounceController.animateTo(0.3).then((_) {
+                if (mounted) {
+                  _bounceController.reverse();
+                }
+              });
+            }
+          });
         }
       });
     }
@@ -347,6 +455,9 @@ class _MomentumGaugeState extends State<MomentumGauge>
     _progressController.dispose();
     _bounceController.dispose();
     _stateTransitionController.dispose();
+    _animationDelayTimer?.cancel();
+    _transitionDelayTimer?.cancel();
+    _hapticDelayTimer?.cancel();
     super.dispose();
   }
 }
