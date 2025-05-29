@@ -6,6 +6,12 @@ import 'package:flutter/foundation.dart'
 
 /// Default [FirebaseOptions] for use with your Firebase apps.
 ///
+/// SECURITY NOTE: This is a template file. 
+/// The actual firebase_options.dart file should be generated using:
+/// `flutterfire configure`
+/// 
+/// Never commit the real firebase_options.dart file to version control.
+///
 /// Example:
 /// ```dart
 /// import 'firebase_options.dart';
@@ -41,48 +47,48 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyClauaxiGbaw-MuwIPwqjyC7kMPSSOWYTA',
-    appId: '1:1018557691786:web:c160af0bdec872e6fc7a73',
-    messagingSenderId: '1018557691786',
-    projectId: 'bee-mvp-3ab43',
-    authDomain: 'bee-mvp-3ab43.firebaseapp.com',
-    storageBucket: 'bee-mvp-3ab43.firebasestorage.app',
-    measurementId: 'G-D4KR8B8WS3',
+    apiKey: 'YOUR_WEB_API_KEY_HERE',
+    appId: 'YOUR_WEB_APP_ID_HERE',
+    messagingSenderId: 'YOUR_MESSAGING_SENDER_ID_HERE',
+    projectId: 'YOUR_PROJECT_ID_HERE',
+    authDomain: 'YOUR_PROJECT_ID_HERE.firebaseapp.com',
+    storageBucket: 'YOUR_PROJECT_ID_HERE.firebasestorage.app',
+    measurementId: 'YOUR_MEASUREMENT_ID_HERE',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyC2s6-L1snukKJxFeuVga6IVNtBh1I-uEs',
-    appId: '1:1018557691786:android:c3a9d0f03ba947f4fc7a73',
-    messagingSenderId: '1018557691786',
-    projectId: 'bee-mvp-3ab43',
-    storageBucket: 'bee-mvp-3ab43.firebasestorage.app',
+    apiKey: 'YOUR_ANDROID_API_KEY_HERE',
+    appId: 'YOUR_ANDROID_APP_ID_HERE',
+    messagingSenderId: 'YOUR_MESSAGING_SENDER_ID_HERE',
+    projectId: 'YOUR_PROJECT_ID_HERE',
+    storageBucket: 'YOUR_PROJECT_ID_HERE.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyDgMFySj3BKPD_VXJv0yLMrkV-r0wtnwFA',
-    appId: '1:1018557691786:ios:e9e29feb7e046a78fc7a73',
-    messagingSenderId: '1018557691786',
-    projectId: 'bee-mvp-3ab43',
-    storageBucket: 'bee-mvp-3ab43.firebasestorage.app',
+    apiKey: 'YOUR_IOS_API_KEY_HERE',
+    appId: 'YOUR_IOS_APP_ID_HERE',
+    messagingSenderId: 'YOUR_MESSAGING_SENDER_ID_HERE',
+    projectId: 'YOUR_PROJECT_ID_HERE',
+    storageBucket: 'YOUR_PROJECT_ID_HERE.firebasestorage.app',
     iosBundleId: 'com.momentumhealth.beemvp',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyDgMFySj3BKPD_VXJv0yLMrkV-r0wtnwFA',
-    appId: '1:1018557691786:ios:e6a07d9959574bc6fc7a73',
-    messagingSenderId: '1018557691786',
-    projectId: 'bee-mvp-3ab43',
-    storageBucket: 'bee-mvp-3ab43.firebasestorage.app',
+    apiKey: 'YOUR_MACOS_API_KEY_HERE',
+    appId: 'YOUR_MACOS_APP_ID_HERE',
+    messagingSenderId: 'YOUR_MESSAGING_SENDER_ID_HERE',
+    projectId: 'YOUR_PROJECT_ID_HERE',
+    storageBucket: 'YOUR_PROJECT_ID_HERE.firebasestorage.app',
     iosBundleId: 'com.example.app',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyClauaxiGbaw-MuwIPwqjyC7kMPSSOWYTA',
-    appId: '1:1018557691786:web:34cf5220832f7975fc7a73',
-    messagingSenderId: '1018557691786',
-    projectId: 'bee-mvp-3ab43',
-    authDomain: 'bee-mvp-3ab43.firebaseapp.com',
-    storageBucket: 'bee-mvp-3ab43.firebasestorage.app',
-    measurementId: 'G-FT2XKR931C',
+    apiKey: 'YOUR_WINDOWS_API_KEY_HERE',
+    appId: 'YOUR_WINDOWS_APP_ID_HERE',
+    messagingSenderId: 'YOUR_MESSAGING_SENDER_ID_HERE',
+    projectId: 'YOUR_PROJECT_ID_HERE',
+    authDomain: 'YOUR_PROJECT_ID_HERE.firebaseapp.com',
+    storageBucket: 'YOUR_PROJECT_ID_HERE.firebasestorage.app',
+    measurementId: 'YOUR_MEASUREMENT_ID_HERE',
   );
-}
+} 
