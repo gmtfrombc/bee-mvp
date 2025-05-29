@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'firebase_service.dart';
 
 /// Service responsible for managing push notifications and FCM integration
+/// Gracefully handles Firebase unavailability in development environments
 class NotificationService {
   static NotificationService? _instance;
   static NotificationService get instance =>
@@ -16,35 +17,62 @@ class NotificationService {
   NotificationService._();
 
   FirebaseMessaging? _messaging;
+  bool _isAvailable = false;
 
   // Callbacks for notification events
   void Function(RemoteMessage)? _onMessageReceived;
   void Function(RemoteMessage)? _onMessageOpenedApp;
   void Function(String)? _onTokenRefresh;
 
-  /// Initialize the notification service
+  /// Initialize the notification service with Firebase availability checks
   Future<void> initialize({
     void Function(RemoteMessage)? onMessageReceived,
     void Function(RemoteMessage)? onMessageOpenedApp,
     void Function(String)? onTokenRefresh,
   }) async {
-    // Ensure Firebase is initialized first
-    if (!FirebaseService.isInitialized) {
-      await FirebaseService.initialize();
+    // Check if Firebase is available before attempting to use messaging
+    if (!FirebaseService.isAvailable) {
+      FirebaseService.logServiceAttempt('Messaging', 'initialization');
+
+      if (kDebugMode) {
+        print(
+          '⚠️ NotificationService: Firebase not available, notifications disabled',
+        );
+        print('💡 App will continue with local notification fallbacks');
+      }
+
+      _isAvailable = false;
+      return;
     }
 
-    _messaging = FirebaseMessaging.instance;
-    _onMessageReceived = onMessageReceived;
-    _onMessageOpenedApp = onMessageOpenedApp;
-    _onTokenRefresh = onTokenRefresh;
+    try {
+      _messaging = FirebaseMessaging.instance;
+      _onMessageReceived = onMessageReceived;
+      _onMessageOpenedApp = onMessageOpenedApp;
+      _onTokenRefresh = onTokenRefresh;
 
-    await _setupNotificationHandlers();
-    await _requestNotificationPermissions();
+      await _setupNotificationHandlers();
+      await _requestNotificationPermissions();
 
-    if (kDebugMode) {
-      print('NotificationService initialized successfully');
+      _isAvailable = true;
+
+      if (kDebugMode) {
+        print('✅ NotificationService initialized successfully with Firebase');
+      }
+    } catch (e) {
+      _isAvailable = false;
+
+      if (kDebugMode) {
+        print('❌ NotificationService initialization failed: $e');
+        print('💡 App will continue without push notifications');
+      }
+
+      // Don't rethrow - allow app to continue without notifications
     }
   }
+
+  /// Check if notification service is available
+  bool get isAvailable => _isAvailable && FirebaseService.isAvailable;
 
   /// Request notification permissions from the user
   Future<bool> _requestNotificationPermissions() async {
@@ -124,19 +152,24 @@ class NotificationService {
 
   /// Get the current FCM token
   Future<String?> getToken() async {
+    if (!isAvailable) {
+      FirebaseService.logServiceAttempt('Messaging', 'getToken');
+      return null;
+    }
+
     try {
       if (_messaging == null) {
-        throw Exception('NotificationService not initialized');
+        throw Exception('NotificationService not properly initialized');
       }
 
       final token = await _messaging!.getToken();
       if (kDebugMode) {
-        print('FCM Token: $token');
+        print('🔥 FCM Token retrieved: ${token?.substring(0, 20)}...');
       }
       return token;
     } catch (e) {
       if (kDebugMode) {
-        print('Error getting FCM token: $e');
+        print('❌ Error getting FCM token: $e');
       }
       return null;
     }
@@ -144,20 +177,39 @@ class NotificationService {
 
   /// Delete the current FCM token
   Future<void> deleteToken() async {
+    if (!isAvailable) {
+      FirebaseService.logServiceAttempt('Messaging', 'deleteToken');
+      return;
+    }
+
     try {
       await _messaging?.deleteToken();
       if (kDebugMode) {
-        print('FCM Token deleted');
+        print('🔥 FCM Token deleted');
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Error deleting FCM token: $e');
+        print('❌ Error deleting FCM token: $e');
       }
     }
   }
 
   /// Check if notification permissions are granted
   Future<bool> hasPermissions() async {
+    if (!isAvailable) {
+      FirebaseService.logServiceAttempt('Messaging', 'hasPermissions');
+      // Check system permissions as fallback
+      try {
+        final systemPermission = await Permission.notification.status;
+        return systemPermission.isGranted;
+      } catch (e) {
+        if (kDebugMode) {
+          print('❌ Error checking system notification permissions: $e');
+        }
+        return false;
+      }
+    }
+
     try {
       final settings = await _messaging?.getNotificationSettings();
       final systemPermission = await Permission.notification.status;
@@ -168,7 +220,7 @@ class NotificationService {
           systemPermission.isGranted;
     } catch (e) {
       if (kDebugMode) {
-        print('Error checking notification permissions: $e');
+        print('❌ Error checking notification permissions: $e');
       }
       return false;
     }
@@ -213,28 +265,38 @@ class NotificationService {
 
   /// Subscribe to a topic for targeted notifications
   Future<void> subscribeToTopic(String topic) async {
+    if (!isAvailable) {
+      FirebaseService.logServiceAttempt('Messaging', 'subscribeToTopic');
+      return;
+    }
+
     try {
       await _messaging?.subscribeToTopic(topic);
       if (kDebugMode) {
-        print('Subscribed to topic: $topic');
+        print('🔥 Subscribed to topic: $topic');
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Error subscribing to topic $topic: $e');
+        print('❌ Error subscribing to topic $topic: $e');
       }
     }
   }
 
   /// Unsubscribe from a topic
   Future<void> unsubscribeFromTopic(String topic) async {
+    if (!isAvailable) {
+      FirebaseService.logServiceAttempt('Messaging', 'unsubscribeFromTopic');
+      return;
+    }
+
     try {
       await _messaging?.unsubscribeFromTopic(topic);
       if (kDebugMode) {
-        print('Unsubscribed from topic: $topic');
+        print('🔥 Unsubscribed from topic: $topic');
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Error unsubscribing from topic $topic: $e');
+        print('❌ Error unsubscribing from topic $topic: $e');
       }
     }
   }

@@ -32,12 +32,19 @@ void main() async {
     debugPrint('   or create a .env file with proper configuration.');
   }
 
-  // Initialize Firebase
+  // Initialize Firebase with enhanced error handling
   try {
-    await FirebaseService.initialize();
-    debugPrint('✅ Firebase initialized');
+    await FirebaseService.initializeWithFallback();
+    if (FirebaseService.isAvailable) {
+      debugPrint('✅ Firebase initialized successfully');
+    } else {
+      debugPrint(
+        '⚠️ Firebase not available: ${FirebaseService.initializationError}',
+      );
+      debugPrint('💡 App will continue with limited functionality');
+    }
   } catch (e) {
-    debugPrint('❌ Failed to initialize Firebase: $e');
+    debugPrint('❌ Firebase initialization error: $e');
     // Continue without Firebase for development
   }
 
@@ -123,16 +130,23 @@ void _handleTokenRefresh(String token) {
 /// Initialize FCM token on app startup
 Future<void> _initializeFCMToken() async {
   try {
+    // Check if FCM is available before attempting to get token
+    if (!FCMTokenService.instance.isAvailable) {
+      debugPrint('⚠️ FCM not available, skipping token initialization');
+      return;
+    }
+
     final currentToken = await FCMTokenService.instance.getCurrentToken();
     if (currentToken != null) {
       debugPrint(
         '📱 FCM Token initialized: ${currentToken.substring(0, 20)}...',
       );
     } else {
-      debugPrint('⚠️ Failed to get FCM token');
+      debugPrint('⚠️ Failed to get FCM token - may be in development mode');
     }
   } catch (e) {
     debugPrint('❌ Failed to initialize FCM token: $e');
+    // Continue without FCM token - app should work offline
   }
 }
 

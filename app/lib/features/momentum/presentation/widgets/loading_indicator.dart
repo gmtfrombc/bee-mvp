@@ -313,7 +313,12 @@ class _StaggeredLoadingAnimationState extends State<StaggeredLoadingAnimation>
 
   void _startStaggeredAnimations() {
     for (int i = 0; i < _controllers.length; i++) {
-      Future.delayed(widget.staggerDelay * i, () {
+      final delay = Duration(
+        milliseconds:
+            (widget.staggerDelay.inMilliseconds * (1 + i * 0.3)).round(),
+      );
+
+      Future.delayed(delay, () {
         if (mounted) {
           _controllers[i].forward();
         }
@@ -337,11 +342,18 @@ class _StaggeredLoadingAnimationState extends State<StaggeredLoadingAnimation>
           animation: _animations[index],
           builder: (context, child) {
             final animationValue = _animations[index].value.clamp(0.0, 1.0);
+
+            final slideOffset = 30 * (1 - animationValue);
+            final scaleValue = 0.8 + (0.2 * animationValue);
+
             return Transform.translate(
-              offset: Offset(0, 20 * (1 - animationValue)),
-              child: Opacity(
-                opacity: animationValue,
-                child: widget.children[index],
+              offset: Offset(0, slideOffset),
+              child: Transform.scale(
+                scale: scaleValue,
+                child: Opacity(
+                  opacity: animationValue,
+                  child: widget.children[index],
+                ),
               ),
             );
           },
