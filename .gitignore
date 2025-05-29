@@ -1,5 +1,12 @@
 .env*
 
+# Firebase Configuration Files (SECURITY: Never commit these)
+**/firebase_options.dart
+**/google-services.json
+**/GoogleService-Info.plist
+firebase-debug.log
+.firebase/
+
 # Python virtual environments
 venv/
 .venv/
