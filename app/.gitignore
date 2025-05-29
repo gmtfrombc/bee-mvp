@@ -31,7 +31,6 @@ secrets.json
 google-services.json
 GoogleService-Info.plist
 firebase-config.json
-firebase_options.dart
 
 # IntelliJ related
 *.iml

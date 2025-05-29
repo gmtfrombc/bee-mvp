@@ -44,9 +44,9 @@ class ResponsiveService {
 
     switch (deviceType) {
       case DeviceType.mobileSmall:
-        return const EdgeInsets.all(12.0);
+        return const EdgeInsets.all(14.0);
       case DeviceType.mobile:
-        return const EdgeInsets.all(16.0);
+        return const EdgeInsets.all(18.0);
       case DeviceType.mobileLarge:
         return const EdgeInsets.all(20.0);
       case DeviceType.tablet:
@@ -62,7 +62,7 @@ class ResponsiveService {
 
     switch (deviceType) {
       case DeviceType.mobileSmall:
-        return const EdgeInsets.symmetric(horizontal: 8.0);
+        return const EdgeInsets.symmetric(horizontal: 10.0);
       case DeviceType.mobile:
         return const EdgeInsets.symmetric(horizontal: 16.0);
       case DeviceType.mobileLarge:
@@ -80,9 +80,9 @@ class ResponsiveService {
 
     switch (deviceType) {
       case DeviceType.mobileSmall:
-        return 16.0;
+        return 18.0;
       case DeviceType.mobile:
-        return 20.0;
+        return 22.0;
       case DeviceType.mobileLarge:
         return 24.0;
       case DeviceType.tablet:
@@ -158,15 +158,15 @@ class ResponsiveService {
 
     switch (deviceType) {
       case DeviceType.mobileSmall:
-        return 0.9;
+        return 0.95;
       case DeviceType.mobile:
         return 1.0;
       case DeviceType.mobileLarge:
-        return 1.1;
+        return 1.05;
       case DeviceType.tablet:
-        return 1.2;
+        return 1.15;
       case DeviceType.desktop:
-        return 1.3;
+        return 1.25;
     }
   }
 
@@ -176,9 +176,9 @@ class ResponsiveService {
 
     switch (deviceType) {
       case DeviceType.mobileSmall:
-        return 100.0;
+        return 110.0;
       case DeviceType.mobile:
-        return 120.0;
+        return 130.0;
       case DeviceType.mobileLarge:
         return 140.0;
       case DeviceType.tablet:
@@ -212,9 +212,9 @@ class ResponsiveService {
 
     switch (deviceType) {
       case DeviceType.mobileSmall:
-        return 76.0;
+        return 82.0;
       case DeviceType.mobile:
-        return 84.0;
+        return 90.0;
       case DeviceType.mobileLarge:
         return 92.0;
       case DeviceType.tablet:

@@ -133,9 +133,9 @@ class _WeeklyTrendChartState extends State<WeeklyTrendChart>
           flex: 1,
           child: Text(
             chartData.dateRange,
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: AppTheme.textSecondary),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: AppTheme.getTextSecondary(context),
+            ),
             textAlign: TextAlign.end,
             overflow: TextOverflow.ellipsis,
           ),
@@ -203,7 +203,7 @@ class _WeeklyTrendChartState extends State<WeeklyTrendChart>
         enabled: true,
         touchCallback: _handleTouch,
         touchTooltipData: LineTouchTooltipData(
-          getTooltipColor: (touchedSpot) => AppTheme.surfacePrimary,
+          getTooltipColor: (touchedSpot) => AppTheme.getSurfacePrimary(context),
           tooltipRoundedRadius: 8,
           getTooltipItems: _createTooltipItems,
         ),
@@ -224,7 +224,7 @@ class _WeeklyTrendChartState extends State<WeeklyTrendChart>
                         ResponsiveService.shouldUseCompactLayout(context)
                             ? 1
                             : 2,
-                    strokeColor: Colors.white,
+                    strokeColor: AppTheme.getSurfacePrimary(context),
                   );
                 },
               ),
@@ -307,7 +307,7 @@ class _WeeklyTrendChartState extends State<WeeklyTrendChart>
             Text(
               dayLabel,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: AppTheme.textSecondary,
+                color: AppTheme.getTextSecondary(context),
                 fontSize: daySize,
                 height: 1.0,
               ),
@@ -333,7 +333,7 @@ class _WeeklyTrendChartState extends State<WeeklyTrendChart>
       return LineTooltipItem(
         '$date\n$stateText\n$percentage%',
         TextStyle(
-          color: AppTheme.textPrimary,
+          color: AppTheme.getTextPrimary(context),
           fontWeight: FontWeight.w500,
           fontSize: 12,
         ),
@@ -363,16 +363,16 @@ class _WeeklyTrendChartState extends State<WeeklyTrendChart>
             Icon(
               Icons.trending_up,
               size: ResponsiveService.getIconSize(context, baseSize: 32),
-              color: AppTheme.textSecondary,
+              color: AppTheme.getTextSecondary(context),
             ),
             SizedBox(
               height: ResponsiveService.getResponsiveSpacing(context) * 0.4,
             ),
             Text(
               'Your momentum journey will appear here',
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(color: AppTheme.textSecondary),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: AppTheme.getTextSecondary(context),
+              ),
               textAlign: TextAlign.center,
             ),
           ],
@@ -394,7 +394,7 @@ class _WeeklyTrendChartState extends State<WeeklyTrendChart>
   }
 
   Color _getTrendColor() {
-    if (widget.weeklyTrend.isEmpty) return AppTheme.textSecondary;
+    if (widget.weeklyTrend.isEmpty) return AppTheme.getTextSecondary(context);
 
     // Calculate overall trend
     final recentStates =

@@ -413,6 +413,9 @@ class _MomentumGaugeState extends State<MomentumGauge>
                         _isTransitioning
                             ? _colorTransitionAnimation.value
                             : null,
+                    backgroundColor: AppTheme.getMomentumBackgroundColor(
+                      context,
+                    ),
                   ),
                   child: Center(
                     child: Transform.scale(
@@ -468,12 +471,14 @@ class MomentumGaugePainter extends CustomPainter {
   final MomentumState state;
   final double strokeWidth;
   final Color? transitionColor;
+  final Color backgroundColor;
 
   MomentumGaugePainter({
     required this.progress,
     required this.state,
     required this.strokeWidth,
     this.transitionColor,
+    required this.backgroundColor,
   });
 
   @override
@@ -481,10 +486,10 @@ class MomentumGaugePainter extends CustomPainter {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = (size.width - strokeWidth) / 2;
 
-    // Background ring
+    // Background ring with theme-aware color
     final backgroundPaint =
         Paint()
-          ..color = const Color(0xFFE0E0E0)
+          ..color = backgroundColor
           ..strokeWidth = strokeWidth
           ..style = PaintingStyle.stroke
           ..strokeCap = StrokeCap.round;
@@ -517,6 +522,7 @@ class MomentumGaugePainter extends CustomPainter {
     return oldDelegate.progress != progress ||
         oldDelegate.state != state ||
         oldDelegate.strokeWidth != strokeWidth ||
-        oldDelegate.transitionColor != transitionColor;
+        oldDelegate.transitionColor != transitionColor ||
+        oldDelegate.backgroundColor != backgroundColor;
   }
 }

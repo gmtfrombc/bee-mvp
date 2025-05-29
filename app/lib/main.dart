@@ -13,6 +13,7 @@ import 'core/services/fcm_token_service.dart';
 import 'core/providers/supabase_provider.dart';
 import 'features/momentum/presentation/screens/momentum_screen.dart';
 import 'core/services/notification_preferences_service.dart';
+import 'core/providers/theme_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -233,16 +234,18 @@ class _AppWrapperState extends ConsumerState<AppWrapper>
   }
 }
 
-class BEEApp extends StatelessWidget {
+class BEEApp extends ConsumerWidget {
   const BEEApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode = ref.watch(themeModeProvider);
+
     return MaterialApp(
       title: 'BEE Momentum Meter',
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.system,
+      themeMode: themeMode,
       home: const AppWrapper(),
       debugShowCheckedModeBanner: false,
     );

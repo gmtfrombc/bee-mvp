@@ -369,13 +369,17 @@ class OfflineBanner extends ConsumerWidget {
       color: AppTheme.momentumCare,
       child: Row(
         children: [
-          const Icon(Icons.wifi_off, color: Colors.white, size: 16),
+          Icon(
+            Icons.wifi_off,
+            color: AppTheme.getSurfacePrimary(context),
+            size: 16,
+          ),
           SizedBox(width: ResponsiveService.getSmallSpacing(context)),
           Expanded(
             child: Text(
               'You\'re offline. Showing cached data.',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Colors.white,
+                color: AppTheme.getSurfacePrimary(context),
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -393,7 +397,9 @@ class OfflineBanner extends ConsumerWidget {
               return Text(
                 cacheAge < 1 ? 'Recent' : '${cacheAge}h old',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.white70,
+                  color: AppTheme.getSurfacePrimary(
+                    context,
+                  ).withValues(alpha: 0.7),
                   fontSize: 12,
                 ),
               );

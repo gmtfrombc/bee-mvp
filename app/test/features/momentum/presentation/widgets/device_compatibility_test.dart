@@ -78,7 +78,7 @@ void main() {
                 final gaugeSize = ResponsiveService.getMomentumGaugeSize(
                   context,
                 );
-                expect(gaugeSize, 100.0);
+                expect(gaugeSize, 110.0);
 
                 final cardHeight = ResponsiveService.getMomentumCardHeight(
                   context,
@@ -86,12 +86,12 @@ void main() {
                 expect(cardHeight, 180.0);
 
                 final spacing = ResponsiveService.getResponsiveSpacing(context);
-                expect(spacing, 16.0);
+                expect(spacing, 18.0);
 
                 final fontMultiplier = ResponsiveService.getFontSizeMultiplier(
                   context,
                 );
-                expect(fontMultiplier, 0.9);
+                expect(fontMultiplier, 0.95);
 
                 return Container();
               },
@@ -205,7 +205,7 @@ void main() {
                 final gaugeSize = ResponsiveService.getMomentumGaugeSize(
                   context,
                 );
-                expect(gaugeSize, 120.0);
+                expect(gaugeSize, 130.0);
 
                 final cardHeight = ResponsiveService.getMomentumCardHeight(
                   context,
@@ -213,7 +213,7 @@ void main() {
                 expect(cardHeight, 200.0);
 
                 final spacing = ResponsiveService.getResponsiveSpacing(context);
-                expect(spacing, 20.0);
+                expect(spacing, 22.0);
 
                 final fontMultiplier = ResponsiveService.getFontSizeMultiplier(
                   context,
@@ -307,7 +307,7 @@ void main() {
                 final fontMultiplier = ResponsiveService.getFontSizeMultiplier(
                   context,
                 );
-                expect(fontMultiplier, 1.1);
+                expect(fontMultiplier, 1.05);
 
                 return Container();
               },
@@ -447,10 +447,10 @@ void main() {
 
       testWidgets('Responsive sizing scales appropriately', (tester) async {
         final testCases = [
-          (const Size(375.0, 667.0), 100.0, 180.0, 120.0, 0.9, 'iPhone SE'),
+          (const Size(375.0, 667.0), 110.0, 180.0, 120.0, 0.95, 'iPhone SE'),
           (
             const Size(390.0, 844.0),
-            120.0,
+            130.0,
             200.0,
             140.0,
             1.0,
@@ -461,7 +461,7 @@ void main() {
             140.0,
             220.0,
             160.0,
-            1.1,
+            1.05,
             'iPhone 14 Plus',
           ),
         ];

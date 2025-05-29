@@ -19,6 +19,7 @@ import '../widgets/loading_indicator.dart';
 import '../widgets/error_widgets.dart';
 import '../../../../core/services/error_handling_service.dart';
 import 'notification_settings_screen.dart';
+import 'profile_settings_screen.dart';
 
 /// Main momentum meter screen
 /// Displays the user's current momentum state and provides quick actions
@@ -30,7 +31,7 @@ class MomentumScreen extends ConsumerWidget {
     final momentumAsync = ref.watch(momentumProvider);
 
     return Scaffold(
-      backgroundColor: AppTheme.surfaceSecondary,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('Welcome back, Sarah!'),
         actions: [
@@ -56,7 +57,11 @@ class MomentumScreen extends ConsumerWidget {
             child: IconButton(
               icon: const Icon(Icons.person_outline),
               onPressed: () {
-                // TODO: Navigate to profile
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const ProfileSettingsScreen(),
+                  ),
+                );
               },
             ),
           ),
@@ -75,6 +80,7 @@ class MomentumScreen extends ConsumerWidget {
                     () => ref.read(api.momentumControllerProvider).refresh(),
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.only(bottom: 100),
                   child: ResponsiveLayout(
                     centerContent: ResponsiveService.shouldUseExpandedLayout(
                       context,
@@ -298,6 +304,7 @@ class _DemoButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final currentDemoState = ref.watch(demoStateProvider);
     final isSelected = currentDemoState == state;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Expanded(
       child: Padding(
@@ -308,14 +315,21 @@ class _DemoButton extends ConsumerWidget {
             ref.read(demoStateProvider.notifier).state = state;
           },
           style: ElevatedButton.styleFrom(
-            backgroundColor: isSelected ? color : Colors.grey.shade200,
-            foregroundColor: isSelected ? Colors.white : Colors.grey.shade700,
+            backgroundColor:
+                isSelected
+                    ? color
+                    : (isDark ? Colors.grey.shade700 : Colors.grey.shade200),
+            foregroundColor:
+                isSelected
+                    ? Colors.white
+                    : (isDark ? Colors.white70 : Colors.grey.shade700),
             elevation: isSelected ? 2 : 0,
-            padding: const EdgeInsets.symmetric(vertical: 12),
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            minimumSize: const Size(double.infinity, 48),
           ),
           child: Text(
             label,
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
             textAlign: TextAlign.center,
           ),
         ),

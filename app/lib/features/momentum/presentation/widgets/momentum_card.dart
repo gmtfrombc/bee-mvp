@@ -170,7 +170,7 @@ class _MomentumCardState extends State<MomentumCard>
     return AccessibilityService.createAccessibleText(
       'YOUR MOMENTUM',
       baseStyle: Theme.of(context).textTheme.labelLarge!.copyWith(
-        color: AppTheme.textSecondary,
+        color: AppTheme.getTextSecondary(context),
         letterSpacing: 0.5,
       ),
       context: context,
@@ -213,7 +213,7 @@ class _MomentumCardState extends State<MomentumCard>
         child: AccessibilityService.createAccessibleText(
           widget.momentumData.message,
           baseStyle: Theme.of(context).textTheme.titleLarge!.copyWith(
-            color: AppTheme.textPrimary,
+            color: AppTheme.getTextPrimary(context),
             fontWeight: FontWeight.w500,
             height: 1.3,
           ),
@@ -238,7 +238,9 @@ class _MomentumCardState extends State<MomentumCard>
                   borderRadius: BorderRadius.circular(
                     ResponsiveService.getBorderRadius(context) * 0.25,
                   ),
-                  color: AppTheme.textTertiary.withValues(alpha: 0.3),
+                  color: AppTheme.getTextTertiary(
+                    context,
+                  ).withValues(alpha: 0.3),
                 ),
                 child: FractionallySizedBox(
                   alignment: Alignment.centerLeft,
@@ -259,9 +261,9 @@ class _MomentumCardState extends State<MomentumCard>
             SizedBox(width: ResponsiveService.getSmallSpacing(context)),
             Text(
               '${widget.momentumData.percentage.round()}% this week',
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: AppTheme.textSecondary),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: AppTheme.getTextSecondary(context),
+              ),
             ),
           ],
         ),
@@ -282,10 +284,14 @@ class _MomentumCardState extends State<MomentumCard>
 
   LinearGradient? _getCardGradient() {
     final color = AppTheme.getMomentumColor(widget.momentumData.state);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final surfaceColor =
+        isDark ? AppTheme.darkSurfaceSecondary : AppTheme.surfacePrimary;
+
     return LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
-      colors: [AppTheme.surfacePrimary, color.withValues(alpha: 0.02)],
+      colors: [surfaceColor, color.withValues(alpha: 0.02)],
     );
   }
 
