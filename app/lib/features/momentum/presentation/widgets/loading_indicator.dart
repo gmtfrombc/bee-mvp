@@ -383,7 +383,7 @@ class LoadingOverlay extends ConsumerWidget {
     if (!isVisible) return const SizedBox.shrink();
 
     return Container(
-      color: Colors.black.withValues(alpha: 0.5),
+      color: AppTheme.getTextPrimary(context).withValues(alpha: 0.5),
       child: Center(
         child: Card(
           margin: ResponsiveService.getLargePadding(context),

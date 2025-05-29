@@ -1,0 +1,321 @@
+# BEE Momentum Meter - Production Monitoring Alerts
+# Epic 1.1 - Task T1.1.5.13
+
+alerts:
+  # Critical Alerts (24/7 immediate response)
+  - name: "High Error Rate"
+    description: "Application error rate exceeds acceptable threshold"
+    condition: "error_rate > 5%"
+    duration: "5m"
+    severity: "critical"
+    channels: ["slack", "email", "pagerduty"]
+    labels:
+      team: "momentum-meter"
+      environment: "production"
+    annotations:
+      summary: "High error rate detected in Momentum Meter"
+      description: "The application error rate has exceeded 5% for more than 5 minutes"
+      runbook: "https://docs.bee-mvp.com/runbooks/high-error-rate"
+
+  - name: "Database Connection Failure"
+    description: "Supabase database connection issues"
+    condition: "database_connection_errors > 0"
+    duration: "1m"
+    severity: "critical"
+    channels: ["slack", "email", "pagerduty"]
+    labels:
+      team: "momentum-meter"
+      environment: "production"
+      service: "database"
+    annotations:
+      summary: "Database connection failure"
+      description: "Unable to connect to Supabase database"
+      runbook: "https://docs.bee-mvp.com/runbooks/database-connection"
+
+  - name: "Application Down"
+    description: "Application health check failure"
+    condition: "health_check_status != 'healthy'"
+    duration: "2m"
+    severity: "critical"
+    channels: ["slack", "email", "pagerduty"]
+    labels:
+      team: "momentum-meter"
+      environment: "production"
+    annotations:
+      summary: "Application health check failing"
+      description: "Main application health check has been failing for 2+ minutes"
+      runbook: "https://docs.bee-mvp.com/runbooks/app-down"
+
+  # Warning Alerts (business hours response)
+  - name: "Slow API Response Time"
+    description: "API response times are degraded"
+    condition: "api_response_time_p95 > 2s"
+    duration: "10m"
+    severity: "warning"
+    channels: ["slack", "email"]
+    labels:
+      team: "momentum-meter"
+      environment: "production"
+      service: "api"
+    annotations:
+      summary: "Slow API response times"
+      description: "95th percentile API response time has exceeded 2 seconds for 10+ minutes"
+      runbook: "https://docs.bee-mvp.com/runbooks/slow-api"
+
+  - name: "Low Cache Hit Rate"
+    description: "Cache performance is degraded"
+    condition: "cache_hit_rate < 70%"
+    duration: "15m"
+    severity: "warning"
+    channels: ["slack"]
+    labels:
+      team: "momentum-meter"
+      environment: "production"
+      service: "cache"
+    annotations:
+      summary: "Low cache hit rate"
+      description: "Cache hit rate has dropped below 70% for 15+ minutes"
+      runbook: "https://docs.bee-mvp.com/runbooks/cache-performance"
+
+  - name: "High Memory Usage"
+    description: "Application memory usage is high"
+    condition: "memory_usage > 80%"
+    duration: "10m"
+    severity: "warning"
+    channels: ["slack"]
+    labels:
+      team: "momentum-meter"
+      environment: "production"
+      service: "app"
+    annotations:
+      summary: "High memory usage"
+      description: "Application memory usage has exceeded 80% for 10+ minutes"
+      runbook: "https://docs.bee-mvp.com/runbooks/high-memory"
+
+  - name: "Firebase Service Degraded"
+    description: "Firebase services are experiencing issues"
+    condition: "firebase_availability < 90%"
+    duration: "5m"
+    severity: "warning"
+    channels: ["slack"]
+    labels:
+      team: "momentum-meter"
+      environment: "production"
+      service: "firebase"
+    annotations:
+      summary: "Firebase service degraded"
+      description: "Firebase services availability has dropped below 90%"
+      runbook: "https://docs.bee-mvp.com/runbooks/firebase-issues"
+
+  # Informational Alerts
+  - name: "Deployment Started"
+    description: "New deployment has started"
+    condition: "deployment_event == 'started'"
+    duration: "0s"
+    severity: "info"
+    channels: ["slack"]
+    labels:
+      team: "momentum-meter"
+      environment: "production"
+    annotations:
+      summary: "Deployment started"
+      description: "A new deployment of the Momentum Meter has started"
+
+  - name: "Deployment Completed"
+    description: "Deployment has completed successfully"
+    condition: "deployment_event == 'completed'"
+    duration: "0s"
+    severity: "info"
+    channels: ["slack"]
+    labels:
+      team: "momentum-meter"
+      environment: "production"
+    annotations:
+      summary: "Deployment completed"
+      description: "Momentum Meter deployment has completed successfully"
+
+  - name: "Health Score Degraded"
+    description: "Overall application health score is degraded"
+    condition: "health_score < 80%"
+    duration: "5m"
+    severity: "warning"
+    channels: ["slack"]
+    labels:
+      team: "momentum-meter"
+      environment: "production"
+    annotations:
+      summary: "Health score degraded"
+      description: "Overall application health score has dropped below 80%"
+      runbook: "https://docs.bee-mvp.com/runbooks/health-degraded"
+
+  # User Experience Alerts
+  - name: "User Momentum Calculation Failures"
+    description: "Momentum score calculations are failing"
+    condition: "momentum_calculation_error_rate > 1%"
+    duration: "5m"
+    severity: "warning"
+    channels: ["slack", "email"]
+    labels:
+      team: "momentum-meter"
+      environment: "production"
+      feature: "momentum"
+    annotations:
+      summary: "Momentum calculation failures"
+      description: "Momentum score calculation error rate has exceeded 1%"
+      runbook: "https://docs.bee-mvp.com/runbooks/momentum-calculation"
+
+  - name: "Notification Delivery Failures"
+    description: "Push notifications are failing to deliver"
+    condition: "notification_failure_rate > 5%"
+    duration: "10m"
+    severity: "warning"
+    channels: ["slack"]
+    labels:
+      team: "momentum-meter"
+      environment: "production"
+      feature: "notifications"
+    annotations:
+      summary: "Notification delivery failures"
+      description: "Push notification failure rate has exceeded 5%"
+      runbook: "https://docs.bee-mvp.com/runbooks/notification-failures"
+
+# Notification Channels Configuration
+channels:
+  slack:
+    type: "slack"
+    webhook_url: "${SLACK_WEBHOOK_URL}"
+    channel: "#momentum-meter-alerts"
+    username: "BEE Monitoring"
+    icon_emoji: ":bee:"
+    title_template: "🚨 {{ .GroupLabels.severity | upper }} - {{ .CommonAnnotations.summary }}"
+    text_template: |
+      {{ .CommonAnnotations.description }}
+      
+      *Environment*: {{ .GroupLabels.environment }}
+      *Team*: {{ .GroupLabels.team }}
+      {{ if .CommonAnnotations.runbook }}*Runbook*: {{ .CommonAnnotations.runbook }}{{ end }}
+      
+      *Firing Alerts*:
+      {{ range .Alerts }}
+      - {{ .Annotations.summary }}
+      {{ end }}
+
+  email:
+    type: "email"
+    smtp_host: "${SMTP_HOST}"
+    smtp_port: "${SMTP_PORT}"
+    smtp_username: "${SMTP_USERNAME}"
+    smtp_password: "${SMTP_PASSWORD}"
+    from: "alerts@bee-mvp.com"
+    to: ["team@bee-mvp.com", "oncall@bee-mvp.com"]
+    subject_template: "[BEE] {{ .CommonAnnotations.summary }}"
+    body_template: |
+      Alert: {{ .CommonAnnotations.summary }}
+      Severity: {{ .GroupLabels.severity }}
+      Environment: {{ .GroupLabels.environment }}
+      
+      Description:
+      {{ .CommonAnnotations.description }}
+      
+      {{ if .CommonAnnotations.runbook }}
+      Runbook: {{ .CommonAnnotations.runbook }}
+      {{ end }}
+      
+      Firing Alerts:
+      {{ range .Alerts }}
+      - {{ .Annotations.summary }}
+        Started: {{ .StartsAt }}
+      {{ end }}
+
+  pagerduty:
+    type: "pagerduty"
+    service_key: "${PAGERDUTY_SERVICE_KEY}"
+    severity_mapping:
+      critical: "critical"
+      warning: "warning"
+      info: "info"
+
+# Global Configuration
+global:
+  # How often to evaluate alert rules
+  evaluation_interval: "30s"
+  
+  # How long to wait before sending repeat notifications
+  repeat_interval: "4h"
+  
+  # How long to wait before resolving an alert
+  resolve_timeout: "5m"
+  
+  # External labels applied to all alerts
+  external_labels:
+    monitor: "bee-momentum-meter"
+    region: "us-east-1"
+
+# Inhibition Rules (prevent duplicate alerts)
+inhibit_rules:
+  # Don't alert on individual services if the whole app is down
+  - source_match:
+      alertname: "Application Down"
+    target_match_re:
+      alertname: "(Slow API Response Time|Database Connection Failure|Cache.*)"
+    equal: ["environment"]
+
+  # Don't alert on performance issues during deployments
+  - source_match:
+      alertname: "Deployment Started"
+    target_match_re:
+      alertname: "(Slow API Response Time|High Memory Usage)"
+    equal: ["environment"]
+
+# Route Configuration
+route:
+  group_by: ["alertname", "environment"]
+  group_wait: "10s"
+  group_interval: "10s"
+  repeat_interval: "1h"
+  receiver: "default"
+  
+  routes:
+    # Critical alerts go to all channels
+    - match:
+        severity: "critical"
+      receiver: "critical-alerts"
+      group_wait: "5s"
+      repeat_interval: "15m"
+    
+    # Warning alerts during business hours
+    - match:
+        severity: "warning"
+      receiver: "warning-alerts"
+      group_wait: "30s"
+      repeat_interval: "2h"
+    
+    # Info alerts go to Slack only
+    - match:
+        severity: "info"
+      receiver: "info-alerts"
+      group_wait: "1m"
+      repeat_interval: "24h"
+
+receivers:
+  - name: "default"
+    slack_configs:
+      - channel: "#momentum-meter-alerts"
+  
+  - name: "critical-alerts"
+    slack_configs:
+      - channel: "#momentum-meter-alerts"
+    email_configs:
+      - to: "team@bee-mvp.com"
+    pagerduty_configs:
+      - service_key: "${PAGERDUTY_SERVICE_KEY}"
+  
+  - name: "warning-alerts"
+    slack_configs:
+      - channel: "#momentum-meter-alerts"
+    email_configs:
+      - to: "team@bee-mvp.com"
+  
+  - name: "info-alerts"
+    slack_configs:
+      - channel: "#momentum-meter-alerts" 

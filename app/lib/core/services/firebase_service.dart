@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import '../config/environment.dart';
+import '../../firebase_options.dart';
 
 /// Service responsible for Firebase Core initialization and configuration
 /// Handles graceful degradation when Firebase is not available
@@ -13,31 +14,15 @@ class FirebaseService {
   static const String projectId = 'bee-mvp-3ab43';
 
   /// Initialize Firebase Core with enhanced error handling
-  /// Gracefully handles missing configuration in development environments
+  /// Uses the generated firebase_options.dart configuration
   static Future<void> initialize() async {
     if (_initialized) return;
 
     try {
-      // Check if we're in a development environment without Firebase config
-      if (!await _isFirebaseConfigurationAvailable()) {
-        _initializationError = 'Firebase configuration files not found';
-        _initialized = true;
-        _available = false;
-
-        if (kDebugMode) {
-          print('⚠️ Firebase not available: $_initializationError');
-          print('💡 To enable Firebase:');
-          print('   1. Run: firebase init');
-          print('   2. Run: flutterfire configure');
-          print(
-            '   3. Ensure GoogleService-Info.plist and google-services.json are configured',
-          );
-        }
-        return;
-      }
-
-      // Initialize Firebase with default configuration
-      await Firebase.initializeApp();
+      // Initialize Firebase with generated configuration
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
       _initialized = true;
       _available = true;
 
@@ -77,18 +62,6 @@ class FirebaseService {
       _initialized = true;
       _available = false;
       _initializationError = e.toString();
-    }
-  }
-
-  /// Check if Firebase configuration files are available
-  static Future<bool> _isFirebaseConfigurationAvailable() async {
-    try {
-      // Try to get Firebase apps to see if configuration is loaded
-      final apps = Firebase.apps;
-      return apps.isNotEmpty;
-    } catch (e) {
-      // If we can't even check apps, configuration is likely missing
-      return false;
     }
   }
 

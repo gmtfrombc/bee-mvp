@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -16,8 +17,18 @@ class FCMTokenService {
   static const String _tokenKey = 'fcm_token';
   static const String _tokenTimestampKey = 'fcm_token_timestamp';
 
-  /// Check if FCM functionality is available
-  bool get isAvailable => NotificationService.instance.isAvailable;
+  /// Check if Firebase is available for FCM operations
+  bool get isAvailable =>
+      FirebaseService.isAvailable && NotificationService.instance.isAvailable;
+
+  /// Check if running on iOS simulator (FCM tokens don't work)
+  bool get _isIOSSimulator {
+    if (!Platform.isIOS) return false;
+
+    // In debug mode, assume simulator unless proven otherwise
+    // Real devices will have proper FCM token generation
+    return kDebugMode;
+  }
 
   /// Store FCM token locally and in Supabase user profile
   Future<void> storeToken(String token) async {
@@ -80,6 +91,15 @@ class FCMTokenService {
   Future<String?> refreshToken() async {
     if (!isAvailable) {
       FirebaseService.logServiceAttempt('FCM', 'refreshToken');
+
+      if (_isIOSSimulator) {
+        if (kDebugMode) {
+          print('ℹ️ FCM tokens not available on iOS simulator');
+          print('💡 To test FCM tokens, run on a physical iOS device');
+          print('💡 Or use Android emulator which supports FCM tokens');
+        }
+      }
+
       return null;
     }
 
@@ -92,12 +112,39 @@ class FCMTokenService {
           print('🔄 FCM Token refreshed successfully');
         }
         return newToken;
+      } else {
+        // Handle iOS simulator case specifically
+        if (_isIOSSimulator) {
+          if (kDebugMode) {
+            print('ℹ️ FCM token is null - expected on iOS simulator');
+            print('💡 This is normal behavior for iOS simulators');
+            print(
+              '💡 FCM tokens require real iOS devices or Android emulators',
+            );
+          }
+        } else {
+          if (kDebugMode) {
+            print('⚠️ FCM token is null on real device - check permissions');
+          }
+        }
       }
 
       return null;
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Failed to refresh FCM token: $e');
+        if (_isIOSSimulator && e.toString().contains('unknown')) {
+          print('ℹ️ FCM token error on iOS simulator (expected): $e');
+          print('💡 This error is normal on iOS simulators');
+          print(
+            '💡 FCM tokens work on physical iOS devices and Android emulators',
+          );
+        } else {
+          print('❌ Failed to refresh FCM token: $e');
+          if (Platform.isIOS) {
+            print('💡 On iOS: Ensure notification permissions are granted');
+            print('💡 On iOS: Check APNs configuration in Firebase Console');
+          }
+        }
       }
       return null;
     }

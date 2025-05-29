@@ -234,6 +234,13 @@ class _ActionButtonState extends State<_ActionButton>
     }
   }
 
+  Color _getContrastColor(Color color) {
+    // Calculate the relative luminance of the color
+    final luminance = color.computeLuminance();
+    // Use white text on dark colors, black text on light colors
+    return luminance > 0.5 ? Colors.black : Colors.white;
+  }
+
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
@@ -254,7 +261,7 @@ class _ActionButtonState extends State<_ActionButton>
               label: Text(widget.label),
               style: ElevatedButton.styleFrom(
                 backgroundColor: widget.color,
-                foregroundColor: Colors.white,
+                foregroundColor: _getContrastColor(widget.color),
                 elevation: 2,
                 shadowColor: widget.color.withValues(alpha: 0.3),
                 shape: RoundedRectangleBorder(

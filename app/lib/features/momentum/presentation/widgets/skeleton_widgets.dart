@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import '../../../../core/services/responsive_service.dart';
+import '../../../../core/theme/app_theme.dart';
 
-/// Optimized shimmer effect widget for skeleton loading states
-/// Uses more efficient animation approach to reduce memory usage
+/// Enhanced shimmer widget with optimized performance and smooth animations
 class ShimmerWidget extends StatefulWidget {
   final Widget child;
   final Duration duration;
-  final Color baseColor;
-  final Color highlightColor;
+  final Color? baseColor;
+  final Color? highlightColor;
 
   const ShimmerWidget({
     super.key,
     required this.child,
     this.duration = const Duration(milliseconds: 1500),
-    this.baseColor = const Color(0xFFE0E0E0),
-    this.highlightColor = const Color(0xFFF5F5F5),
+    this.baseColor,
+    this.highlightColor,
   });
 
   @override
@@ -52,6 +52,14 @@ class _ShimmerWidgetState extends State<ShimmerWidget>
 
   @override
   Widget build(BuildContext context) {
+    // Use theme-aware colors
+    final baseColor =
+        widget.baseColor ??
+        AppTheme.getTextTertiary(context).withValues(alpha: 0.2);
+    final highlightColor =
+        widget.highlightColor ??
+        AppTheme.getSurfacePrimary(context).withValues(alpha: 0.8);
+
     return AnimatedBuilder(
       animation: _animation,
       builder: (context, child) {
@@ -71,11 +79,11 @@ class _ShimmerWidgetState extends State<ShimmerWidget>
               begin: Alignment.centerLeft,
               end: Alignment.centerRight,
               colors: [
-                widget.baseColor,
-                widget.baseColor.withValues(alpha: 0.8),
-                widget.highlightColor,
-                widget.baseColor.withValues(alpha: 0.8),
-                widget.baseColor,
+                baseColor,
+                baseColor.withValues(alpha: 0.8),
+                highlightColor,
+                baseColor.withValues(alpha: 0.8),
+                baseColor,
               ],
               stops: normalizedStops,
             ).createShader(bounds);
@@ -93,8 +101,6 @@ class SkeletonContainer extends StatelessWidget {
   final double height;
   final BorderRadius? borderRadius;
   final EdgeInsets? margin;
-  // Optimized: Cache colors to avoid repeated theme lookups
-  static const Color _skeletonColor = Color(0xFFE0E0E0);
 
   const SkeletonContainer({
     super.key,
@@ -115,7 +121,7 @@ class SkeletonContainer extends StatelessWidget {
       height: height,
       margin: margin,
       decoration: BoxDecoration(
-        color: _skeletonColor,
+        color: AppTheme.getTextTertiary(context).withValues(alpha: 0.2),
         borderRadius: responsiveBorderRadius,
       ),
     );
@@ -181,22 +187,24 @@ class SkeletonMomentumCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(dimensions.borderRadius * 0.5),
         ),
 
-        SizedBox(height: dimensions.spacing * 0.4),
+        SizedBox(height: dimensions.spacing * 0.2),
 
         // Gauge skeleton (circular) - Use responsive size
         Flexible(
           flex: 4,
           child: Container(
-            width: dimensions.gaugeSize,
-            height: dimensions.gaugeSize,
-            decoration: const BoxDecoration(
-              color: SkeletonContainer._skeletonColor,
+            constraints: BoxConstraints(
+              maxWidth: dimensions.gaugeSize,
+              maxHeight: dimensions.gaugeSize,
+            ),
+            decoration: BoxDecoration(
+              color: AppTheme.getTextTertiary(context).withValues(alpha: 0.3),
               shape: BoxShape.circle,
             ),
           ),
         ),
 
-        SizedBox(height: dimensions.spacing * 0.3),
+        SizedBox(height: dimensions.spacing * 0.15),
 
         // State text skeleton - responsive sizing
         SkeletonContainer(
@@ -205,7 +213,7 @@ class SkeletonMomentumCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(dimensions.borderRadius * 0.6),
         ),
 
-        SizedBox(height: dimensions.spacing * 0.3),
+        SizedBox(height: dimensions.spacing * 0.15),
 
         // Message skeleton - responsive and flexible
         Flexible(
@@ -220,7 +228,7 @@ class SkeletonMomentumCard extends StatelessWidget {
                   dimensions.borderRadius * 0.4,
                 ),
               ),
-              SizedBox(height: dimensions.spacing * 0.2),
+              SizedBox(height: dimensions.spacing * 0.1),
               SkeletonContainer(
                 width: dimensions.messageSecondWidth,
                 height: dimensions.messageHeight,
@@ -232,7 +240,7 @@ class SkeletonMomentumCard extends StatelessWidget {
           ),
         ),
 
-        SizedBox(height: dimensions.spacing * 0.3),
+        SizedBox(height: dimensions.spacing * 0.15),
 
         // Progress bar skeleton - responsive height
         SkeletonContainer(
@@ -319,7 +327,9 @@ class SkeletonWeeklyTrendChart extends StatelessWidget {
                                       ? 12
                                       : 16,
                               decoration: BoxDecoration(
-                                color: Colors.grey[300],
+                                color: AppTheme.getTextTertiary(
+                                  context,
+                                ).withValues(alpha: 0.3),
                                 borderRadius: BorderRadius.circular(
                                   borderRadius * 0.5,
                                 ),
@@ -501,7 +511,7 @@ class SkeletonMomentumGauge extends StatelessWidget {
         width: gaugeSize,
         height: gaugeSize,
         decoration: BoxDecoration(
-          color: Colors.grey[300],
+          color: AppTheme.getTextTertiary(context).withValues(alpha: 0.3),
           shape: BoxShape.circle,
         ),
         child: Center(
@@ -509,7 +519,7 @@ class SkeletonMomentumGauge extends StatelessWidget {
             width: gaugeSize * 0.6,
             height: gaugeSize * 0.6,
             decoration: BoxDecoration(
-              color: Colors.grey[200],
+              color: AppTheme.getTextTertiary(context).withValues(alpha: 0.2),
               shape: BoxShape.circle,
             ),
           ),

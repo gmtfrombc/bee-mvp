@@ -50,6 +50,27 @@ class Environment {
     return '';
   }
 
+  // Monitoring configuration
+  static String get sentryDsn {
+    if (_isLoaded && dotenv.isEveryDefined(['SENTRY_DSN'])) {
+      return dotenv.env['SENTRY_DSN'] ?? '';
+    }
+    return '';
+  }
+
+  // App version (can be overridden by build system)
+  static String get appVersion {
+    if (_isLoaded && dotenv.isEveryDefined(['APP_VERSION'])) {
+      return dotenv.env['APP_VERSION'] ?? '1.0.0';
+    }
+    return '1.0.0';
+  }
+
+  // User ID for monitoring context (will be set by auth service)
+  static String? _userId;
+  static String? get userId => _userId;
+  static void setUserId(String? id) => _userId = id;
+
   // Helper getters
   static bool get isDevelopment => environment == 'development';
   static bool get isProduction => environment == 'production';

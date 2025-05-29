@@ -346,7 +346,7 @@ class _StatCardState extends State<_StatCard>
                             style: Theme.of(
                               context,
                             ).textTheme.bodySmall?.copyWith(
-                              color: AppTheme.textSecondary,
+                              color: AppTheme.getTextSecondary(context),
                               fontSize: 11,
                             ),
                             maxLines: 1,

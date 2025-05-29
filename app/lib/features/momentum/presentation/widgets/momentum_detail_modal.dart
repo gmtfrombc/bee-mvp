@@ -88,15 +88,19 @@ class _MomentumDetailModalState extends State<MomentumDetailModal>
       animation: _controller,
       builder: (context, child) {
         return Material(
-          color: Colors.black.withValues(alpha: 0.5 * _fadeAnimation.value),
+          color: AppTheme.getTextPrimary(
+            context,
+          ).withValues(alpha: 0.5 * _fadeAnimation.value),
           child: SafeArea(
             child: SlideTransition(
               position: _slideAnimation,
               child: Container(
                 margin: const EdgeInsets.only(top: 80),
-                decoration: const BoxDecoration(
-                  color: AppTheme.surfacePrimary,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                decoration: BoxDecoration(
+                  color: AppTheme.getSurfacePrimary(context),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(24),
+                  ),
                 ),
                 child: Column(
                   children: [
@@ -173,8 +177,8 @@ class _MomentumDetailModalState extends State<MomentumDetailModal>
             onPressed: _handleClose,
             icon: const Icon(Icons.close_rounded),
             style: IconButton.styleFrom(
-              backgroundColor: AppTheme.surfaceSecondary,
-              foregroundColor: AppTheme.textSecondary,
+              backgroundColor: AppTheme.getSurfaceSecondary(context),
+              foregroundColor: AppTheme.getTextSecondary(context),
             ),
           ),
         ],
