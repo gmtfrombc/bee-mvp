@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import '../../domain/models/today_feed_content.dart';
 import '../../../../core/services/today_feed_cache_service.dart';
@@ -7,10 +6,6 @@ import '../../../../core/services/connectivity_service.dart';
 
 /// Data service for managing Today Feed content with offline caching
 class TodayFeedDataService {
-  // API configuration (placeholder for actual API integration)
-  static const String _apiBaseUrl = 'https://api.bee-app.com/v1';
-  static const String _todayFeedEndpoint = '/today-feed';
-
   // Initialization flag
   static bool _isInitialized = false;
   static StreamSubscription<ConnectivityStatus>? _connectivitySubscription;
