@@ -1,0 +1,39 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug (Dev)",
+            "type": "dart",
+            "request": "launch",
+            "program": "app/lib/main.dart",
+            "args": [
+                "--dart-define=ENVIRONMENT=development"
+            ],
+            "env": {
+                "FLUTTER_TEST": "false"
+            }
+        },
+        {
+            "name": "Debug (Staging)",
+            "type": "dart",
+            "request": "launch",
+            "program": "app/lib/main.dart",
+            "args": [
+                "--dart-define=ENVIRONMENT=staging",
+                "--dart-define=SUPABASE_URL=your-staging-url",
+                "--dart-define=SUPABASE_ANON_KEY=your-staging-key",
+                "--dart-define=SENTRY_DSN=your-sentry-dsn"
+            ]
+        },
+        {
+            "name": "Test Mode",
+            "type": "dart",
+            "request": "launch",
+            "program": "app/lib/main.dart",
+            "args": [
+                "--dart-define=flutter.test=true",
+                "--dart-define=ENVIRONMENT=test"
+            ]
+        }
+    ]
+}

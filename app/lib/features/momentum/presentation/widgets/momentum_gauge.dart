@@ -497,24 +497,26 @@ class MomentumGaugePainter extends CustomPainter {
     canvas.drawCircle(center, radius, backgroundPaint);
 
     // Progress ring with transition color support
-    if (progress > 0) {
-      final progressPaint =
-          Paint()
-            ..color = transitionColor ?? AppTheme.getMomentumColor(state)
-            ..strokeWidth = strokeWidth
-            ..style = PaintingStyle.stroke
-            ..strokeCap = StrokeCap.round;
+    // Show minimum progress even when progress is 0 for better UX
+    final displayProgress =
+        progress > 0 ? progress : 0.02; // Minimum 2% for visibility
 
-      final sweepAngle = 2 * math.pi * progress;
+    final progressPaint =
+        Paint()
+          ..color = transitionColor ?? AppTheme.getMomentumColor(state)
+          ..strokeWidth = strokeWidth
+          ..style = PaintingStyle.stroke
+          ..strokeCap = StrokeCap.round;
 
-      canvas.drawArc(
-        Rect.fromCircle(center: center, radius: radius),
-        -math.pi / 2, // Start from top (12 o'clock position)
-        sweepAngle,
-        false,
-        progressPaint,
-      );
-    }
+    final sweepAngle = 2 * math.pi * displayProgress;
+
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      -math.pi / 2, // Start from top (12 o'clock position)
+      sweepAngle,
+      false,
+      progressPaint,
+    );
   }
 
   @override

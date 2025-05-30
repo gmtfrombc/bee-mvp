@@ -1,0 +1,21 @@
+{
+    "dart.additionalAnalyzerFileExtensions": [],
+    "dart.allowAnalytics": false,
+    "dart.analyzerPath": null,
+    "dart.flutterSdkPath": null,
+    "dart.env": {
+        "FLUTTER_TEST": "false"
+    },
+    "dart.flutterAdditionalArgs": [
+        "--dart-define=ENVIRONMENT=development",
+        "--dart-define=flutter.test=false"
+    ],
+    "files.exclude": {
+        "**/.dart_tool": true,
+        "**/build": true
+    },
+    "search.exclude": {
+        "**/.dart_tool": true,
+        "**/build": true
+    }
+}
