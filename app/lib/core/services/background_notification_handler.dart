@@ -56,8 +56,21 @@ class BackgroundNotificationHandler {
   static Future<void> _ensureFirebaseInitialized() async {
     try {
       // Skip Firebase initialization in test environment
-      if (kDebugMode &&
-          const bool.fromEnvironment('flutter.test', defaultValue: false)) {
+      // Check both debug mode and if we're in a test context
+      final isTestEnvironment =
+          kDebugMode &&
+          (const String.fromEnvironment(
+                    'ENVIRONMENT',
+                    defaultValue: 'development',
+                  ) ==
+                  'test' ||
+              const String.fromEnvironment(
+                    'flutter.test',
+                    defaultValue: 'false',
+                  ) ==
+                  'true');
+
+      if (isTestEnvironment) {
         return;
       }
 
@@ -82,7 +95,11 @@ class BackgroundNotificationHandler {
       Map<String, dynamic> actionData = <String, dynamic>{};
       if (data['action_data'] != null) {
         try {
-          actionData = json.decode(data['action_data']);
+          final actionDataString = data['action_data'] as String?;
+          if (actionDataString != null) {
+            final decoded = json.decode(actionDataString);
+            actionData = decoded as Map<String, dynamic>;
+          }
         } catch (e) {
           if (kDebugMode) {
             print('Error parsing action_data JSON: $e');
@@ -93,9 +110,9 @@ class BackgroundNotificationHandler {
       }
 
       return NotificationData(
-        notificationId: data['notification_id'] ?? '',
-        interventionType: data['intervention_type'] ?? '',
-        actionType: data['action_type'] ?? '',
+        notificationId: (data['notification_id'] as String?) ?? '',
+        interventionType: (data['intervention_type'] as String?) ?? '',
+        actionType: (data['action_type'] as String?) ?? '',
         actionData: actionData,
         title: message.notification?.title ?? '',
         body: message.notification?.body ?? '',
@@ -231,7 +248,7 @@ class BackgroundNotificationHandler {
       final notificationJson = prefs.getString(_lastNotificationKey);
 
       if (notificationJson != null) {
-        final data = json.decode(notificationJson);
+        final data = json.decode(notificationJson) as Map<String, dynamic>;
         return NotificationData.fromJson(data);
       }
     } catch (e) {
@@ -249,10 +266,14 @@ class BackgroundNotificationHandler {
       final actionsJson = prefs.getString(_pendingActionsKey);
 
       if (actionsJson != null) {
-        final actionsList = json.decode(actionsJson) as List;
+        final actionsList = json.decode(actionsJson) as List<dynamic>;
         final actions =
             actionsList
-                .map((json) => PendingNotificationAction.fromJson(json))
+                .map(
+                  (json) => PendingNotificationAction.fromJson(
+                    json as Map<String, dynamic>,
+                  ),
+                )
                 .toList();
 
         // Clear pending actions after retrieval
@@ -277,7 +298,7 @@ class BackgroundNotificationHandler {
       if (updateJson != null) {
         // Clear after retrieval
         await prefs.remove('cached_momentum_update');
-        return json.decode(updateJson);
+        return json.decode(updateJson) as Map<String, dynamic>;
       }
     } catch (e) {
       if (kDebugMode) {
@@ -334,13 +355,15 @@ class NotificationData {
 
   factory NotificationData.fromJson(Map<String, dynamic> json) =>
       NotificationData(
-        notificationId: json['notificationId'] ?? '',
-        interventionType: json['interventionType'] ?? '',
-        actionType: json['actionType'] ?? '',
-        actionData: json['actionData'] ?? <String, dynamic>{},
-        title: json['title'] ?? '',
-        body: json['body'] ?? '',
-        receivedAt: DateTime.parse(json['receivedAt']),
+        notificationId: (json['notificationId'] as String?) ?? '',
+        interventionType: (json['interventionType'] as String?) ?? '',
+        actionType: (json['actionType'] as String?) ?? '',
+        actionData:
+            (json['actionData'] as Map<String, dynamic>?) ??
+            <String, dynamic>{},
+        title: (json['title'] as String?) ?? '',
+        body: (json['body'] as String?) ?? '',
+        receivedAt: DateTime.parse(json['receivedAt'] as String),
       );
 }
 
@@ -367,9 +390,11 @@ class PendingNotificationAction {
 
   factory PendingNotificationAction.fromJson(Map<String, dynamic> json) =>
       PendingNotificationAction(
-        notificationId: json['notificationId'] ?? '',
-        actionType: json['actionType'] ?? '',
-        actionData: json['actionData'] ?? <String, dynamic>{},
-        receivedAt: DateTime.parse(json['receivedAt']),
+        notificationId: (json['notificationId'] as String?) ?? '',
+        actionType: (json['actionType'] as String?) ?? '',
+        actionData:
+            (json['actionData'] as Map<String, dynamic>?) ??
+            <String, dynamic>{},
+        receivedAt: DateTime.parse(json['receivedAt'] as String),
       );
 }

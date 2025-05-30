@@ -1,0 +1,6 @@
+README.md
+.git
+.gitignore
+deploy.sh
+service.yaml
+*.md 

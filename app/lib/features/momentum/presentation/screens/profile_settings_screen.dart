@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/providers/theme_provider.dart';
-import '../../../../core/services/accessibility_service.dart';
 
 /// Screen for managing user profile and app settings
 class ProfileSettingsScreen extends ConsumerWidget {
