@@ -375,6 +375,9 @@ class _TodayFeedTileState extends State<TodayFeedTile>
                 offline:
                     (cachedContent) =>
                         _buildOfflineState(context, cachedContent),
+                fallback:
+                    (fallbackResult) =>
+                        _buildFallbackState(context, fallbackResult),
               ),
             ),
           ),
@@ -525,6 +528,160 @@ class _TodayFeedTileState extends State<TodayFeedTile>
         ],
       ),
     );
+  }
+
+  Widget _buildFallbackState(
+    BuildContext context,
+    TodayFeedFallbackResult fallbackResult,
+  ) {
+    // Calculate opacity based on content staleness
+    final opacity = fallbackResult.isStale ? 0.7 : 0.85;
+
+    return Opacity(
+      opacity: opacity,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          _buildHeader(
+            context,
+            showStatus: true,
+            statusText: _getFallbackStatusText(fallbackResult.fallbackType),
+            statusIcon: _getFallbackStatusIcon(fallbackResult.fallbackType),
+            statusColor: _getFallbackStatusColor(fallbackResult.fallbackType),
+          ),
+
+          // Show age warning if needed
+          if (fallbackResult.shouldShowAgeWarning) ...[
+            Container(
+              margin: EdgeInsets.symmetric(
+                vertical: ResponsiveService.getTinySpacing(context),
+              ),
+              padding: EdgeInsets.symmetric(
+                horizontal: ResponsiveService.getSmallSpacing(context),
+                vertical: ResponsiveService.getTinySpacing(context),
+              ),
+              decoration: BoxDecoration(
+                color: Colors.amber.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(
+                  ResponsiveService.getBorderRadius(context) / 2,
+                ),
+                border: Border.all(
+                  color: Colors.amber.withValues(alpha: 0.3),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.schedule,
+                    size: ResponsiveService.getIconSize(context, baseSize: 14),
+                    color: Colors.amber.shade700,
+                  ),
+                  SizedBox(width: ResponsiveService.getTinySpacing(context)),
+                  Expanded(
+                    child: Text(
+                      fallbackResult.userMessage,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Colors.amber.shade700,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+
+          // Display content if available
+          if (fallbackResult.content != null)
+            Expanded(
+              child: _buildContentSection(context, fallbackResult.content!),
+            )
+          else
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.content_paste_off,
+                    size: ResponsiveService.getIconSize(context, baseSize: 48),
+                    color: AppTheme.getTextTertiary(context),
+                  ),
+                  SizedBox(height: ResponsiveService.getLargeSpacing(context)),
+                  Text(
+                    "No cached content available",
+                    style: Theme.of(context).textTheme.titleMedium,
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: ResponsiveService.getSmallSpacing(context)),
+                  Text(
+                    fallbackResult.userMessage,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppTheme.getTextSecondary(context),
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+
+          _buildActionSection(
+            context,
+            readingTime: fallbackResult.content?.readingTimeText ?? "",
+            showMomentum: false, // No momentum awards for fallback content
+            isOffline: true,
+            showRetry: fallbackResult.content == null,
+            isFallback: true,
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Get appropriate status text for different fallback types
+  String _getFallbackStatusText(TodayFeedFallbackType fallbackType) {
+    switch (fallbackType) {
+      case TodayFeedFallbackType.previousDay:
+        return "CACHED";
+      case TodayFeedFallbackType.contentHistory:
+        return "ARCHIVED";
+      case TodayFeedFallbackType.none:
+        return "NO CONTENT";
+      case TodayFeedFallbackType.error:
+        return "ERROR";
+    }
+  }
+
+  /// Get appropriate status icon for different fallback types
+  IconData _getFallbackStatusIcon(TodayFeedFallbackType fallbackType) {
+    switch (fallbackType) {
+      case TodayFeedFallbackType.previousDay:
+        return Icons.cached;
+      case TodayFeedFallbackType.contentHistory:
+        return Icons.archive;
+      case TodayFeedFallbackType.none:
+        return Icons.content_paste_off;
+      case TodayFeedFallbackType.error:
+        return Icons.error_outline;
+    }
+  }
+
+  /// Get appropriate status color for different fallback types
+  Color _getFallbackStatusColor(TodayFeedFallbackType fallbackType) {
+    switch (fallbackType) {
+      case TodayFeedFallbackType.previousDay:
+        return Colors.blue;
+      case TodayFeedFallbackType.contentHistory:
+        return Colors.orange;
+      case TodayFeedFallbackType.none:
+      case TodayFeedFallbackType.error:
+        return Colors.red;
+    }
   }
 
   Widget _buildHeader(
@@ -733,6 +890,7 @@ class _TodayFeedTileState extends State<TodayFeedTile>
     bool isOffline = false,
     bool showLoading = false,
     bool showRetry = false,
+    bool isFallback = false,
   }) {
     final iconSize = ResponsiveService.getIconSize(context, baseSize: 16);
     final spacing = ResponsiveService.getTinySpacing(context);
@@ -1075,6 +1233,11 @@ class _TodayFeedTileState extends State<TodayFeedTile>
       offline:
           (cachedContent) =>
               "Offline - cached health insight: ${cachedContent.title}",
+      fallback:
+          (fallbackResult) =>
+              fallbackResult.content != null
+                  ? "Cached health insight: ${fallbackResult.content!.title}"
+                  : "No health insight available",
     );
   }
 
@@ -1088,6 +1251,11 @@ class _TodayFeedTileState extends State<TodayFeedTile>
                   : "Double tap to read content and earn momentum point",
       error: (message) => "Double tap to retry loading content",
       offline: (cachedContent) => "Showing cached content, double tap to read",
+      fallback:
+          (fallbackResult) =>
+              fallbackResult.content != null
+                  ? "Showing ${fallbackResult.userMessage.toLowerCase()}, double tap to read"
+                  : "No content available, double tap to retry",
     );
   }
 }

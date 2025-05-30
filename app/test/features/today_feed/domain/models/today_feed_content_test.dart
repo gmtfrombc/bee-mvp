@@ -420,6 +420,7 @@ void main() {
           loaded: (_) => 'loaded',
           error: (_) => 'error',
           offline: (_) => 'offline',
+          fallback: (_) => 'fallback',
         ),
         equals('loading'),
       );
@@ -430,6 +431,7 @@ void main() {
           loaded: (content) => 'loaded: ${content.title}',
           error: (_) => 'error',
           offline: (_) => 'offline',
+          fallback: (_) => 'fallback',
         ),
         contains('loaded:'),
       );
@@ -440,6 +442,7 @@ void main() {
           loaded: (_) => 'loaded',
           error: (message) => 'error: $message',
           offline: (_) => 'offline',
+          fallback: (_) => 'fallback',
         ),
         equals('error: Error message'),
       );
@@ -450,6 +453,7 @@ void main() {
           loaded: (_) => 'loaded',
           error: (_) => 'error',
           offline: (content) => 'offline: ${content.title}',
+          fallback: (_) => 'fallback',
         ),
         contains('offline:'),
       );

@@ -110,6 +110,27 @@ class RichContentElement {
       'is_italic': isItalic,
     };
   }
+
+  /// Create a copy of this element with updated properties
+  RichContentElement copyWith({
+    RichContentType? type,
+    String? text,
+    List<String>? listItems,
+    String? linkUrl,
+    String? linkText,
+    bool? isBold,
+    bool? isItalic,
+  }) {
+    return RichContentElement(
+      type: type ?? this.type,
+      text: text ?? this.text,
+      listItems: listItems ?? this.listItems,
+      linkUrl: linkUrl ?? this.linkUrl,
+      linkText: linkText ?? this.linkText,
+      isBold: isBold ?? this.isBold,
+      isItalic: isItalic ?? this.isItalic,
+    );
+  }
 }
 
 /// Rich content structure for Today Feed
@@ -150,6 +171,21 @@ class TodayFeedRichContent {
       if (actionableAdvice != null) 'actionable_advice': actionableAdvice,
       if (sourceReference != null) 'source_reference': sourceReference,
     };
+  }
+
+  /// Create a copy of this rich content with updated properties
+  TodayFeedRichContent copyWith({
+    List<RichContentElement>? elements,
+    List<String>? keyTakeaways,
+    String? actionableAdvice,
+    String? sourceReference,
+  }) {
+    return TodayFeedRichContent(
+      elements: elements ?? this.elements,
+      keyTakeaways: keyTakeaways ?? this.keyTakeaways,
+      actionableAdvice: actionableAdvice ?? this.actionableAdvice,
+      sourceReference: sourceReference ?? this.sourceReference,
+    );
   }
 
   /// Create sample rich content for demo purposes
@@ -464,19 +500,24 @@ class TodayFeedContent {
 class TodayFeedState {
   const TodayFeedState._();
 
-  /// Create loading state
+  /// Factory constructor for loading state
   const factory TodayFeedState.loading() = TodayFeedStateLoading;
 
-  /// Create loaded state with content
+  /// Factory constructor for successfully loaded state
   const factory TodayFeedState.loaded(TodayFeedContent content) =
       TodayFeedStateLoaded;
 
-  /// Create error state with message
+  /// Factory constructor for error state
   const factory TodayFeedState.error(String message) = TodayFeedStateError;
 
-  /// Create offline state with cached content
+  /// Factory constructor for offline state with cached content
   const factory TodayFeedState.offline(TodayFeedContent cachedContent) =
       TodayFeedStateOffline;
+
+  /// Factory constructor for fallback state with metadata
+  const factory TodayFeedState.fallback(
+    TodayFeedFallbackResult fallbackResult,
+  ) = TodayFeedStateFallback;
 
   /// Pattern matching methods
   T when<T>({
@@ -484,6 +525,7 @@ class TodayFeedState {
     required T Function(TodayFeedContent content) loaded,
     required T Function(String message) error,
     required T Function(TodayFeedContent cachedContent) offline,
+    required T Function(TodayFeedFallbackResult fallbackResult) fallback,
   }) {
     if (this is TodayFeedStateLoading) {
       return loading();
@@ -493,6 +535,8 @@ class TodayFeedState {
       return error((this as TodayFeedStateError).message);
     } else if (this is TodayFeedStateOffline) {
       return offline((this as TodayFeedStateOffline).cachedContent);
+    } else if (this is TodayFeedStateFallback) {
+      return fallback((this as TodayFeedStateFallback).fallbackResult);
     }
     throw StateError('Invalid TodayFeedState');
   }
@@ -502,6 +546,7 @@ class TodayFeedState {
   bool get isLoaded => this is TodayFeedStateLoaded;
   bool get isError => this is TodayFeedStateError;
   bool get isOffline => this is TodayFeedStateOffline;
+  bool get isFallback => this is TodayFeedStateFallback;
 
   /// Get content if available
   TodayFeedContent? get content {
@@ -509,6 +554,8 @@ class TodayFeedState {
       return (this as TodayFeedStateLoaded).content;
     } else if (this is TodayFeedStateOffline) {
       return (this as TodayFeedStateOffline).cachedContent;
+    } else if (this is TodayFeedStateFallback) {
+      return (this as TodayFeedStateFallback).fallbackResult.content;
     }
     return null;
   }
@@ -591,6 +638,25 @@ class TodayFeedStateOffline extends TodayFeedState {
   int get hashCode => cachedContent.hashCode;
 }
 
+/// Fallback state implementation
+class TodayFeedStateFallback extends TodayFeedState {
+  final TodayFeedFallbackResult fallbackResult;
+
+  const TodayFeedStateFallback(this.fallbackResult) : super._();
+
+  @override
+  String toString() => 'TodayFeedState.fallback($fallbackResult)';
+
+  @override
+  bool operator ==(Object other) {
+    return other is TodayFeedStateFallback &&
+        other.fallbackResult == fallbackResult;
+  }
+
+  @override
+  int get hashCode => fallbackResult.hashCode;
+}
+
 /// User interaction data model for tracking engagement
 class TodayFeedInteraction {
   final String? id;
@@ -661,4 +727,88 @@ class TodayFeedInteraction {
   String toString() {
     return 'TodayFeedInteraction(userId: $userId, contentId: $contentId, type: ${interactionType.value})';
   }
+}
+
+/// Fallback content result with metadata for enhanced error handling
+class TodayFeedFallbackResult {
+  final TodayFeedContent? content;
+  final TodayFeedFallbackType fallbackType;
+  final Duration contentAge;
+  final bool isStale;
+  final String userMessage;
+  final bool shouldShowAgeWarning;
+  final DateTime? lastAttemptToRefresh;
+
+  const TodayFeedFallbackResult({
+    required this.content,
+    required this.fallbackType,
+    required this.contentAge,
+    required this.isStale,
+    required this.userMessage,
+    required this.shouldShowAgeWarning,
+    required this.lastAttemptToRefresh,
+  });
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is TodayFeedFallbackResult &&
+        other.content == content &&
+        other.fallbackType == fallbackType &&
+        other.contentAge == contentAge &&
+        other.isStale == isStale &&
+        other.userMessage == userMessage &&
+        other.shouldShowAgeWarning == shouldShowAgeWarning &&
+        other.lastAttemptToRefresh == lastAttemptToRefresh;
+  }
+
+  @override
+  int get hashCode {
+    return Object.hash(
+      content,
+      fallbackType,
+      contentAge,
+      isStale,
+      userMessage,
+      shouldShowAgeWarning,
+      lastAttemptToRefresh,
+    );
+  }
+}
+
+/// Types of fallback content sources
+enum TodayFeedFallbackType {
+  previousDay('previous_day'),
+  contentHistory('content_history'),
+  none('none'),
+  error('error');
+
+  const TodayFeedFallbackType(this.value);
+  final String value;
+}
+
+/// Content age validation result
+class ContentAgeValidation {
+  final bool isValid;
+  final bool shouldWarn;
+  final ContentAgeSeverity severity;
+  final String message;
+
+  const ContentAgeValidation({
+    required this.isValid,
+    required this.shouldWarn,
+    required this.severity,
+    required this.message,
+  });
+}
+
+/// Content age severity levels
+enum ContentAgeSeverity {
+  fresh('fresh'),
+  somewhatStale('somewhat_stale'),
+  stale('stale'),
+  veryStale('very_stale');
+
+  const ContentAgeSeverity(this.value);
+  final String value;
 }
