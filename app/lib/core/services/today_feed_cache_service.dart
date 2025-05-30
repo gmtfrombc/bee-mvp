@@ -60,7 +60,7 @@ class TodayFeedCacheService {
     }
   }
 
-  /// Cache today's content with metadata
+  /// Cache today's content with metadata and size enforcement
   static Future<void> cacheTodayContent(
     TodayFeedContent content, {
     bool isFromAPI = true,
@@ -74,11 +74,20 @@ class TodayFeedCacheService {
         updatedAt: now,
       );
 
+      // Pre-cache size check - estimate new content size
+      final contentJson = jsonEncode(contentWithCacheFlag.toJson());
+      final contentSize = contentJson.length * 2 + 32; // UTF-16 + overhead
+      final currentCacheSize = await _calculateCacheSize();
+      final maxSizeBytes = _maxCacheSizeMB * 1024 * 1024;
+
+      // If adding this content would exceed the limit, cleanup first
+      if (currentCacheSize + contentSize > maxSizeBytes) {
+        debugPrint('🧹 Proactive cache cleanup before adding new content');
+        await _performCacheCleanup();
+      }
+
       // Cache the content
-      await _prefs!.setString(
-        _todayContentKey,
-        jsonEncode(contentWithCacheFlag.toJson()),
-      );
+      await _prefs!.setString(_todayContentKey, contentJson);
 
       // Update metadata
       final metadata = {
@@ -86,7 +95,7 @@ class TodayFeedCacheService {
         'content_date': content.contentDate.toIso8601String(),
         'timezone_offset': now.timeZoneOffset.inHours,
         'is_from_api': isFromAPI,
-        'content_size_bytes': jsonEncode(contentWithCacheFlag.toJson()).length,
+        'content_size_bytes': contentSize,
         'ai_confidence_score': content.aiConfidenceScore,
       };
 
@@ -96,9 +105,20 @@ class TodayFeedCacheService {
       // Add to content history
       await _addToContentHistory(contentWithCacheFlag);
 
+      // Post-cache size check and cleanup if needed
+      final finalCacheSize = await _calculateCacheSize();
+      if (finalCacheSize > maxSizeBytes) {
+        debugPrint(
+          '⚠️ Cache size still exceeded after caching, performing additional cleanup',
+        );
+        await _performCacheCleanup();
+      }
+
       debugPrint('✅ Today Feed content cached successfully');
       debugPrint('📊 Content date: ${content.contentDate}');
-      debugPrint('📊 Cache size: ${metadata['content_size_bytes']} bytes');
+      debugPrint(
+        '📊 Cache size: ${(finalCacheSize / 1024).toStringAsFixed(1)} KB',
+      );
     } catch (e) {
       debugPrint('❌ Failed to cache today content: $e');
       await _queueError('cache_today_content', e.toString());
@@ -431,8 +451,23 @@ class TodayFeedCacheService {
     try {
       // Check cache size and clean up if needed
       final cacheSize = await _calculateCacheSize();
-      if (cacheSize > _maxCacheSizeMB * 1024 * 1024) {
+      final maxSizeBytes = _maxCacheSizeMB * 1024 * 1024;
+
+      debugPrint(
+        '📊 Current cache size: ${(cacheSize / 1024).toStringAsFixed(1)} KB',
+      );
+
+      if (cacheSize > maxSizeBytes) {
+        debugPrint(
+          '⚠️ Cache size exceeded ${_maxCacheSizeMB}MB limit, cleaning up...',
+        );
         await _performCacheCleanup();
+
+        // Verify cleanup was effective
+        final newCacheSize = await _calculateCacheSize();
+        debugPrint(
+          '📊 Cache size after cleanup: ${(newCacheSize / 1024).toStringAsFixed(1)} KB',
+        );
       }
 
       // Clean up old history entries
@@ -447,7 +482,7 @@ class TodayFeedCacheService {
     }
   }
 
-  /// Calculate total cache size in bytes
+  /// Calculate total cache size in bytes with improved accuracy
   static Future<int> _calculateCacheSize() async {
     try {
       int totalSize = 0;
@@ -457,12 +492,35 @@ class TodayFeedCacheService {
         _contentHistoryKey,
         _contentMetadataKey,
         _pendingInteractionsKey,
+        _userTimezoneKey,
+        _lastRefreshKey,
       ];
 
       for (final key in keys) {
         final value = _prefs!.getString(key);
         if (value != null) {
-          totalSize += value.length;
+          // Calculate size including key overhead and JSON structure
+          final keySize = key.length * 2; // UTF-16 encoding
+          final valueSize = value.length * 2; // UTF-16 encoding
+          final entrySize =
+              keySize + valueSize + 16; // Add overhead for storage structure
+          totalSize += entrySize;
+        }
+      }
+
+      // Add size for non-string preferences
+      final boolKeys = [_backgroundSyncEnabledKey];
+      final intKeys = [_cacheVersionKey];
+
+      for (final key in boolKeys) {
+        if (_prefs!.containsKey(key)) {
+          totalSize += key.length * 2 + 8; // Key + boolean value
+        }
+      }
+
+      for (final key in intKeys) {
+        if (_prefs!.containsKey(key)) {
+          totalSize += key.length * 2 + 8; // Key + int value
         }
       }
 
@@ -473,22 +531,57 @@ class TodayFeedCacheService {
     }
   }
 
-  /// Perform cache cleanup to reduce size
+  /// Perform aggressive cache cleanup to reduce size
   static Future<void> _performCacheCleanup() async {
     try {
       debugPrint('🧹 Performing Today Feed cache cleanup');
+      int initialSize = await _calculateCacheSize();
 
-      // Clear old history entries (keep only 3 days)
+      // Step 1: Clear old history entries (keep only 3 days instead of 7)
       final history = await _getContentHistory();
       if (history.length > 3) {
         final trimmedHistory = history.take(3).toList();
         await _prefs!.setString(_contentHistoryKey, jsonEncode(trimmedHistory));
+        debugPrint('🗂️ Reduced history to 3 days');
       }
 
-      // Clear processed interactions
+      // Step 2: Clear processed interactions
       await _prefs!.remove(_pendingInteractionsKey);
+      debugPrint('🗑️ Cleared pending interactions');
 
-      debugPrint('✅ Cache cleanup completed');
+      // Step 3: Clear previous day content if today's content exists
+      if (_prefs!.containsKey(_todayContentKey)) {
+        await _prefs!.remove(_previousDayContentKey);
+        debugPrint('🗑️ Cleared previous day content');
+      }
+
+      // Step 4: If still too large, keep only today's content
+      int currentSize = await _calculateCacheSize();
+      final maxSizeBytes = _maxCacheSizeMB * 1024 * 1024;
+
+      if (currentSize > maxSizeBytes) {
+        // Clear history completely if still too large
+        await _prefs!.remove(_contentHistoryKey);
+        debugPrint('🗑️ Cleared all content history');
+
+        currentSize = await _calculateCacheSize();
+        if (currentSize > maxSizeBytes) {
+          // Last resort: clear metadata but keep today's content
+          await _prefs!.remove(_contentMetadataKey);
+          debugPrint('🗑️ Cleared metadata to save space');
+        }
+      }
+
+      int finalSize = await _calculateCacheSize();
+      int savedBytes = initialSize - finalSize;
+      debugPrint(
+        '✅ Cache cleanup completed - saved ${(savedBytes / 1024).toStringAsFixed(1)} KB',
+      );
+
+      // Enforce strict size limit
+      if (finalSize > maxSizeBytes) {
+        debugPrint('⚠️ Warning: Cache still exceeds limit after cleanup');
+      }
     } catch (e) {
       debugPrint('❌ Cache cleanup failed: $e');
     }
