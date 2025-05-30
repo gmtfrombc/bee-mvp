@@ -1147,10 +1147,13 @@ class TodayFeedCacheService {
       final now = DateTime.now();
 
       String connectivityStatus = 'unknown';
+      bool isOnline = false;
       try {
         connectivityStatus = ConnectivityService.currentStatus.toString();
+        isOnline = ConnectivityService.isOnline;
       } catch (e) {
         connectivityStatus = 'unavailable';
+        isOnline = false;
       }
 
       final syncMetadata = {
@@ -1159,6 +1162,7 @@ class TodayFeedCacheService {
         'device_timezone': now.timeZoneName,
         'sync_duration_ms': 0, // Would be calculated in real implementation
         'connectivity_status': connectivityStatus,
+        'is_online': isOnline,
       };
 
       await _prefs!.setString(
@@ -1544,6 +1548,7 @@ class TodayFeedCacheService {
         'error': error,
         'timestamp': DateTime.now().toIso8601String(),
         'connectivity_status': connectivityStatus,
+        'is_online': isOnline,
         'cache_size_mb': (await _calculateCacheSize() / (1024 * 1024))
             .toStringAsFixed(2),
       };
