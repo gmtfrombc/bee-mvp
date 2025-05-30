@@ -81,6 +81,7 @@ Mobile App API Consumption
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key | ✅ | - |
 | `GCP_PROJECT_ID` | Google Cloud project ID | ✅ | - |
 | `VERTEX_AI_LOCATION` | Vertex AI service region | ❌ | `us-central1` |
+| `GOOGLE_APPLICATION_CREDENTIALS` | Google service account JSON credentials | ✅ | - |
 
 ### Setting up Secrets
 
@@ -95,6 +96,29 @@ echo -n "https://your-project.supabase.co" | gcloud secrets versions add supabas
 
 # Add the service role key
 echo -n "your-service-role-key" | gcloud secrets versions add supabase-config --data-file=-
+```
+
+### Google Service Account Setup
+
+To enable Vertex AI content generation, you need to create a service account with appropriate permissions:
+
+```bash
+# Create service account
+gcloud iam service-accounts create today-feed-ai \
+    --description="Service account for Today Feed AI content generation" \
+    --display-name="Today Feed AI"
+
+# Grant Vertex AI User permission
+gcloud projects add-iam-policy-binding YOUR_PROJECT_ID \
+    --member="serviceAccount:today-feed-ai@YOUR_PROJECT_ID.iam.gserviceaccount.com" \
+    --role="roles/aiplatform.user"
+
+# Create and download service account key
+gcloud iam service-accounts keys create today-feed-ai-key.json \
+    --iam-account=today-feed-ai@YOUR_PROJECT_ID.iam.gserviceaccount.com
+
+# Set as environment variable (the entire JSON content as string)
+export GOOGLE_APPLICATION_CREDENTIALS=$(cat today-feed-ai-key.json | tr -d '\n')
 ```
 
 ## 📡 API Endpoints
@@ -358,8 +382,73 @@ gcloud run services describe today-feed-generator --region=us-central1
 
 This service is part of the larger Bee MVP project. For contribution guidelines and development standards, see the main project README.
 
+## 🧠 Intelligent Topic Selection Algorithm
+
+**Implementation Status:** ✅ Complete (T1.3.1.3)
+
+The Today Feed service uses a sophisticated topic selection algorithm that considers multiple factors to ensure optimal content distribution and user engagement:
+
+### Selection Factors
+
+1. **Topic Diversity (40% weight)**
+   - Heavy penalty for yesterday's topic (0.1x multiplier)
+   - Moderate penalty for topics used 2 days ago (0.3x)
+   - Light penalty for topics used within 3 days (0.7x)
+   - Bonus for topics not used recently (1.2x)
+
+2. **User Engagement History (30% weight)**
+   - Analyzes last 30 days of user interactions
+   - Weights clicks higher than views (2x vs 1x)
+   - Considers session duration for engagement quality
+   - Boosts topics with higher user engagement (0.5x to 2.0x)
+
+3. **Seasonal Relevance (20% weight)**
+   - **Winter**: Exercise (1.3x), Stress (1.3x), Prevention (1.2x), Sleep (1.2x)
+   - **Spring**: Nutrition (1.3x), Exercise (1.2x), Lifestyle (1.2x)
+   - **Summer**: Nutrition (1.2x), Lifestyle (1.1x), reduced Sleep (0.9x)
+   - **Fall**: Prevention (1.3x), Stress (1.2x), Exercise (1.1x)
+
+4. **Day of Week Patterns (10% weight)**
+   - **Monday/Tuesday**: Higher exercise and stress content
+   - **Sunday/Monday**: Higher nutrition content (meal prep)
+   - **Weekends**: Higher sleep and lifestyle content
+   - **Friday**: Higher stress management content
+
+5. **Controlled Randomization (±20%)**
+   - Prevents algorithm from being too predictable
+   - Maintains content freshness and variety
+
+### Algorithm Logic
+
+```typescript
+async function selectDailyTopic(date: string): Promise<HealthTopic> {
+    // 1. Fetch recent topic history (7 days)
+    // 2. Analyze user engagement patterns (30 days)
+    // 3. Calculate comprehensive scores for each topic
+    // 4. Select topic with highest score
+    // 5. Fallback to enhanced rotation if errors occur
+}
+```
+
+### Fallback Mechanism
+
+If the intelligent selection fails (database errors, etc.), the system falls back to an enhanced rotation pattern that avoids simple sequential ordering:
+
+**Pattern**: nutrition → stress → exercise → prevention → sleep → lifestyle
+
+This ensures content diversity even during system issues.
+
+### Benefits
+
+- **Diversity**: No same topic appears two days in a row
+- **Personalization**: Adapts to user engagement preferences
+- **Seasonality**: Relevant content for time of year
+- **Behavioral Psychology**: Considers weekly patterns
+- **Reliability**: Graceful fallback maintains service quality
+
 ---
 
 **Status**: ✅ T1.3.1.1 Complete - GCP Cloud Run service setup  
-**Next**: T1.3.1.2 - Integrate Vertex AI for content generation pipeline  
+✅ T1.3.1.2 Complete - Vertex AI integration for content generation pipeline  
+**Next**: T1.3.1.3 - Create content topic selection algorithm  
 **Epic**: 1.3 Today Feed (AI Daily Brief) 

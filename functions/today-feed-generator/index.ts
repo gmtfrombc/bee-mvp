@@ -15,9 +15,19 @@ const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const GCP_PROJECT_ID = Deno.env.get('GCP_PROJECT_ID')!
 const VERTEX_AI_LOCATION = Deno.env.get('VERTEX_AI_LOCATION') || 'us-central1'
+const GOOGLE_APPLICATION_CREDENTIALS = Deno.env.get('GOOGLE_APPLICATION_CREDENTIALS')!
 
 // Initialize Supabase client
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+
+// Vertex AI configuration
+const VERTEX_AI_CONFIG = {
+    model: 'text-bison@002',
+    temperature: 0.7,
+    max_output_tokens: 300,
+    top_p: 0.8,
+    top_k: 40,
+}
 
 /**
  * Main HTTP handler for the Today Feed Content Generation service
@@ -238,9 +248,264 @@ async function handleContentValidation(req: Request): Promise<Response> {
 async function selectDailyTopic(date: string): Promise<HealthTopic> {
     const topics: HealthTopic[] = ['nutrition', 'exercise', 'sleep', 'stress', 'prevention', 'lifestyle']
 
-    // Simple rotation for now - can be enhanced with more sophisticated logic
-    const dayOfYear = Math.floor((new Date(date).getTime() - new Date(date.substring(0, 4)).getTime()) / (1000 * 60 * 60 * 24))
-    const topicIndex = dayOfYear % topics.length
+    try {
+        // Get recent topic history to ensure diversity
+        const recentTopics = await getRecentTopicHistory(date, 7) // Last 7 days
+
+        // Get user engagement data for topic preferences
+        const topicEngagement = await getTopicEngagementData(30) // Last 30 days
+
+        // Calculate topic scores based on multiple factors
+        const topicScores = await calculateTopicScores(topics, date, recentTopics, topicEngagement)
+
+        // Select topic with highest score
+        const selectedTopic = selectBestTopic(topicScores)
+
+        console.log(`Selected topic: ${selectedTopic} for date ${date}`)
+        console.log('Topic scores:', topicScores)
+
+        return selectedTopic
+    } catch (error) {
+        console.error('Error in intelligent topic selection:', error)
+
+        // Fallback to enhanced rotation (better than simple day rotation)
+        return getFallbackTopic(date, topics)
+    }
+}
+
+/**
+ * Get recent topic history to ensure diversity
+ */
+async function getRecentTopicHistory(currentDate: string, days: number): Promise<HealthTopic[]> {
+    try {
+        const endDate = new Date(currentDate)
+        const startDate = new Date(endDate)
+        startDate.setDate(startDate.getDate() - days)
+
+        const { data, error } = await supabase
+            .from('daily_feed_content')
+            .select('topic_category')
+            .gte('content_date', startDate.toISOString().split('T')[0])
+            .lt('content_date', currentDate)
+            .order('content_date', { ascending: false })
+
+        if (error) {
+            console.warn('Could not fetch recent topics:', error)
+            return []
+        }
+
+        return data?.map(row => row.topic_category as HealthTopic) || []
+    } catch (error) {
+        console.warn('Error fetching recent topics:', error)
+        return []
+    }
+}
+
+/**
+ * Get user engagement data for topic preferences
+ */
+async function getTopicEngagementData(days: number): Promise<Record<HealthTopic, number>> {
+    try {
+        const cutoffDate = new Date()
+        cutoffDate.setDate(cutoffDate.getDate() - days)
+
+        const { data, error } = await supabase
+            .from('user_content_interactions')
+            .select(`
+                daily_feed_content!inner(topic_category),
+                interaction_type,
+                session_duration
+            `)
+            .gte('interaction_timestamp', cutoffDate.toISOString())
+            .in('interaction_type', ['view', 'click'])
+
+        if (error) {
+            console.warn('Could not fetch engagement data:', error)
+            return {}
+        }
+
+        // Calculate engagement scores by topic
+        const topicEngagement: Record<HealthTopic, number> = {
+            nutrition: 0,
+            exercise: 0,
+            sleep: 0,
+            stress: 0,
+            prevention: 0,
+            lifestyle: 0
+        }
+
+        data?.forEach(interaction => {
+            const topic = interaction.daily_feed_content.topic_category as HealthTopic
+            // Weight clicks higher than views, and consider session duration
+            const score = interaction.interaction_type === 'click' ? 2 : 1
+            const durationBonus = Math.min((interaction.session_duration || 0) / 60, 2) // Up to 2x bonus for reading time
+            topicEngagement[topic] += score * (1 + durationBonus)
+        })
+
+        return topicEngagement
+    } catch (error) {
+        console.warn('Error fetching engagement data:', error)
+        return {}
+    }
+}
+
+/**
+ * Calculate comprehensive topic scores based on multiple factors
+ */
+async function calculateTopicScores(
+    topics: HealthTopic[],
+    date: string,
+    recentTopics: HealthTopic[],
+    engagement: Record<HealthTopic, number>
+): Promise<Record<HealthTopic, number>> {
+    const scores: Record<HealthTopic, number> = {}
+    const dateObj = new Date(date)
+    const month = dateObj.getMonth() + 1 // 1-12
+    const dayOfWeek = dateObj.getDay() // 0-6 (Sunday-Saturday)
+
+    for (const topic of topics) {
+        let score = 1.0 // Base score
+
+        // 1. Diversity Factor: Penalize recently used topics
+        const daysSinceLastUsed = getLastUsedDays(topic, recentTopics)
+        if (daysSinceLastUsed === 0) {
+            score *= 0.1 // Heavy penalty for yesterday's topic
+        } else if (daysSinceLastUsed === 1) {
+            score *= 0.3 // Moderate penalty for topic used 2 days ago
+        } else if (daysSinceLastUsed <= 3) {
+            score *= 0.7 // Light penalty for recently used topics
+        } else {
+            score *= 1.2 // Slight bonus for topics not used recently
+        }
+
+        // 2. User Engagement Factor: Boost topics users engage with more
+        const engagementScore = engagement[topic] || 0
+        const maxEngagement = Math.max(...Object.values(engagement), 1)
+        const engagementMultiplier = 0.5 + (engagementScore / maxEngagement) * 1.5 // 0.5x to 2.0x
+        score *= engagementMultiplier
+
+        // 3. Seasonal Relevance Factor
+        score *= getSeasonalRelevance(topic, month)
+
+        // 4. Day of Week Factor
+        score *= getDayOfWeekRelevance(topic, dayOfWeek)
+
+        // 5. Randomization Factor: Add some controlled randomness (±20%)
+        const randomFactor = 0.8 + Math.random() * 0.4
+        score *= randomFactor
+
+        scores[topic] = score
+    }
+
+    return scores
+}
+
+/**
+ * Get days since topic was last used
+ */
+function getLastUsedDays(topic: HealthTopic, recentTopics: HealthTopic[]): number {
+    const index = recentTopics.indexOf(topic)
+    return index === -1 ? 30 : index // Return high number if not found recently
+}
+
+/**
+ * Get seasonal relevance multiplier for topics
+ */
+function getSeasonalRelevance(topic: HealthTopic, month: number): number {
+    // Seasonal adjustments based on typical health patterns
+    const seasonalWeights: Record<HealthTopic, Record<string, number>> = {
+        exercise: {
+            'winter': 1.3, // New Year fitness resolutions (Jan-Feb)
+            'spring': 1.2, // Spring activity increase (Mar-May)
+            'summer': 0.9, // People more active naturally (Jun-Aug)
+            'fall': 1.1    // Back to routine (Sep-Dec)
+        },
+        nutrition: {
+            'winter': 1.1, // Holiday eating awareness
+            'spring': 1.3, // Spring detox/fresh starts
+            'summer': 1.2, // Fresh produce season
+            'fall': 1.0    // Baseline
+        },
+        sleep: {
+            'winter': 1.2, // Longer nights, sleep hygiene focus
+            'spring': 1.0, // Baseline
+            'summer': 0.9, // Longer days affect sleep
+            'fall': 1.1    // Back to routine
+        },
+        stress: {
+            'winter': 1.3, // Holiday stress, seasonal depression
+            'spring': 1.0, // Baseline
+            'summer': 0.8, // Generally lower stress
+            'fall': 1.2    // Back to school/work stress
+        },
+        prevention: {
+            'winter': 1.2, // Flu season awareness
+            'spring': 1.1, // Health checkup reminders
+            'summer': 0.9, // Less health focus
+            'fall': 1.3    // Annual checkups, flu shots
+        },
+        lifestyle: {
+            'winter': 1.0, // Baseline
+            'spring': 1.2, // Spring cleaning, new habits
+            'summer': 1.1, // Outdoor activities
+            'fall': 1.1    // Routine establishment
+        }
+    }
+
+    let season: string
+    if (month >= 12 || month <= 2) season = 'winter'
+    else if (month >= 3 && month <= 5) season = 'spring'
+    else if (month >= 6 && month <= 8) season = 'summer'
+    else season = 'fall'
+
+    return seasonalWeights[topic][season] || 1.0
+}
+
+/**
+ * Get day of week relevance multiplier
+ */
+function getDayOfWeekRelevance(topic: HealthTopic, dayOfWeek: number): number {
+    // Day of week patterns (0=Sunday, 6=Saturday)
+    const dayWeights: Record<HealthTopic, number[]> = {
+        exercise: [1.2, 1.3, 1.1, 1.1, 1.1, 0.8, 0.9], // Higher on Mon/Tue (workout motivation)
+        nutrition: [1.3, 1.2, 1.0, 1.0, 0.9, 0.8, 1.1], // Higher on Sun/Mon (meal prep)
+        sleep: [1.1, 0.9, 1.0, 1.0, 1.0, 1.2, 1.3], // Higher on weekends (sleep recovery)
+        stress: [1.2, 1.3, 1.1, 1.1, 1.2, 0.8, 0.9], // Higher on Mon/Tue/Fri (work stress)
+        prevention: [1.0, 1.1, 1.0, 1.0, 1.0, 1.0, 1.0], // Consistent throughout week
+        lifestyle: [1.2, 1.0, 1.0, 1.0, 1.0, 1.1, 1.3] // Higher on weekends (habit focus)
+    }
+
+    return dayWeights[topic][dayOfWeek] || 1.0
+}
+
+/**
+ * Select the best topic based on calculated scores
+ */
+function selectBestTopic(scores: Record<HealthTopic, number>): HealthTopic {
+    let bestTopic: HealthTopic = 'nutrition'
+    let bestScore = 0
+
+    for (const [topic, score] of Object.entries(scores)) {
+        if (score > bestScore) {
+            bestScore = score
+            bestTopic = topic as HealthTopic
+        }
+    }
+
+    return bestTopic
+}
+
+/**
+ * Fallback topic selection with enhanced rotation
+ */
+function getFallbackTopic(date: string, topics: HealthTopic[]): HealthTopic {
+    const dateObj = new Date(date)
+    const dayOfYear = Math.floor((dateObj.getTime() - new Date(dateObj.getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24))
+
+    // Enhanced rotation: Use a pattern that avoids simple sequential order
+    const rotationPattern = [0, 3, 1, 4, 2, 5] // nutrition, stress, exercise, prevention, sleep, lifestyle
+    const patternIndex = dayOfYear % rotationPattern.length
+    const topicIndex = rotationPattern[patternIndex]
 
     return topics[topicIndex]
 }
@@ -250,12 +515,58 @@ async function selectDailyTopic(date: string): Promise<HealthTopic> {
  */
 async function generateContentWithAI(request: ContentGenerationRequest): Promise<ContentGenerationResult> {
     try {
-        // For now, we'll create a mock implementation since setting up Vertex AI requires more infrastructure
-        // This will be replaced with actual Vertex AI integration in the next tasks
         console.log('Generating AI content for:', request)
 
-        const mockContent = await generateMockContent(request)
-        const validationResult = await validateContentQuality(mockContent)
+        // Get Google Cloud access token
+        const accessToken = await getGoogleCloudAccessToken()
+
+        // Generate content using Vertex AI
+        const aiContent = await callVertexAI(request, accessToken)
+
+        if (!aiContent) {
+            // Fallback to mock content if AI generation fails
+            console.warn('Vertex AI generation failed, falling back to mock content')
+            const mockContent = await generateMockContent(request)
+            const validationResult = await validateContentQuality(mockContent)
+
+            if (!validationResult.is_valid) {
+                return {
+                    success: false,
+                    error: 'Generated content failed quality validation',
+                    validation_result: validationResult
+                }
+            }
+
+            // Store content in database
+            const { data, error } = await supabase
+                .from('daily_feed_content')
+                .upsert([mockContent])
+                .select()
+                .single()
+
+            if (error) {
+                throw error
+            }
+
+            return {
+                success: true,
+                content: data,
+                validation_result: validationResult
+            }
+        }
+
+        // Create TodayFeedContent from AI response
+        const content: TodayFeedContent = {
+            content_date: request.date,
+            title: aiContent.title,
+            summary: aiContent.summary,
+            topic_category: request.topic,
+            ai_confidence_score: aiContent.confidence_score,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+        }
+
+        const validationResult = await validateContentQuality(content)
 
         if (!validationResult.is_valid) {
             return {
@@ -268,7 +579,7 @@ async function generateContentWithAI(request: ContentGenerationRequest): Promise
         // Store content in database
         const { data, error } = await supabase
             .from('daily_feed_content')
-            .upsert([mockContent])
+            .upsert([content])
             .select()
             .single()
 
@@ -287,6 +598,323 @@ async function generateContentWithAI(request: ContentGenerationRequest): Promise
             success: false,
             error: error.message
         }
+    }
+}
+
+/**
+ * Get Google Cloud access token for service account authentication
+ */
+async function getGoogleCloudAccessToken(): Promise<string> {
+    try {
+        // Read service account credentials from environment
+        if (!GOOGLE_APPLICATION_CREDENTIALS) {
+            throw new Error('GOOGLE_APPLICATION_CREDENTIALS environment variable not set')
+        }
+
+        const credentials = JSON.parse(GOOGLE_APPLICATION_CREDENTIALS)
+
+        // Create JWT for Google Cloud authentication
+        const jwt = await createJWTForGoogleCloud(credentials)
+
+        // Exchange JWT for access token
+        const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+                assertion: jwt,
+            }),
+        })
+
+        if (!tokenResponse.ok) {
+            throw new Error(`Failed to get access token: ${tokenResponse.status}`)
+        }
+
+        const tokenData = await tokenResponse.json()
+        return tokenData.access_token
+    } catch (error) {
+        console.error('Error getting Google Cloud access token:', error)
+        throw error
+    }
+}
+
+/**
+ * Create JWT for Google Cloud service account authentication
+ */
+async function createJWTForGoogleCloud(credentials: any): Promise<string> {
+    const header = {
+        alg: 'RS256',
+        typ: 'JWT',
+        kid: credentials.private_key_id,
+    }
+
+    const now = Math.floor(Date.now() / 1000)
+    const payload = {
+        iss: credentials.client_email,
+        scope: 'https://www.googleapis.com/auth/cloud-platform',
+        aud: 'https://oauth2.googleapis.com/token',
+        exp: now + 3600, // 1 hour
+        iat: now,
+    }
+
+    // Clean and prepare the private key
+    const privateKeyPem = credentials.private_key.replace(/\\n/g, '\n')
+
+    // Extract the base64 content from the PEM format
+    const privateKeyB64 = privateKeyPem
+        .replace(/-----BEGIN PRIVATE KEY-----/, '')
+        .replace(/-----END PRIVATE KEY-----/, '')
+        .replace(/\s/g, '')
+
+    // Convert base64 to ArrayBuffer
+    const privateKeyBytes = Uint8Array.from(atob(privateKeyB64), c => c.charCodeAt(0))
+
+    // Import the private key
+    const privateKey = await crypto.subtle.importKey(
+        'pkcs8',
+        privateKeyBytes.buffer,
+        {
+            name: 'RSASSA-PKCS1-v1_5',
+            hash: 'SHA-256',
+        },
+        false,
+        ['sign']
+    )
+
+    // Create the JWT
+    const headerBase64 = btoa(JSON.stringify(header)).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_')
+    const payloadBase64 = btoa(JSON.stringify(payload)).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_')
+    const signatureInput = `${headerBase64}.${payloadBase64}`
+
+    const signature = await crypto.subtle.sign(
+        'RSASSA-PKCS1-v1_5',
+        privateKey,
+        new TextEncoder().encode(signatureInput)
+    )
+
+    const signatureBase64 = btoa(String.fromCharCode(...new Uint8Array(signature)))
+        .replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_')
+
+    return `${signatureInput}.${signatureBase64}`
+}
+
+/**
+ * Call Vertex AI to generate content
+ */
+async function callVertexAI(request: ContentGenerationRequest, accessToken: string): Promise<VertexAIResponse | null> {
+    try {
+        const prompt = createPromptForTopic(request)
+
+        const url = `https://${VERTEX_AI_LOCATION}-aiplatform.googleapis.com/v1/projects/${GCP_PROJECT_ID}/locations/${VERTEX_AI_LOCATION}/publishers/google/models/${VERTEX_AI_CONFIG.model}:predict`
+
+        const requestBody = {
+            instances: [
+                {
+                    prompt: prompt
+                }
+            ],
+            parameters: {
+                temperature: VERTEX_AI_CONFIG.temperature,
+                maxOutputTokens: VERTEX_AI_CONFIG.max_output_tokens,
+                topP: VERTEX_AI_CONFIG.top_p,
+                topK: VERTEX_AI_CONFIG.top_k,
+            }
+        }
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+        })
+
+        if (!response.ok) {
+            console.error(`Vertex AI API error: ${response.status} ${response.statusText}`)
+            const errorText = await response.text()
+            console.error('Error details:', errorText)
+            return null
+        }
+
+        const data = await response.json()
+
+        if (!data.predictions || data.predictions.length === 0) {
+            console.error('No predictions returned from Vertex AI')
+            return null
+        }
+
+        const prediction = data.predictions[0]
+        const content = prediction.content || prediction.text || ''
+
+        if (!content) {
+            console.error('No content in Vertex AI prediction')
+            return null
+        }
+
+        // Parse the AI response to extract title and summary
+        const parsedContent = parseAIResponse(content)
+
+        if (!parsedContent) {
+            console.error('Failed to parse AI response')
+            return null
+        }
+
+        return {
+            title: parsedContent.title,
+            summary: parsedContent.summary,
+            confidence_score: prediction.confidence || 0.85, // Default confidence if not provided
+            external_references: parsedContent.external_references
+        }
+    } catch (error) {
+        console.error('Error calling Vertex AI:', error)
+        return null
+    }
+}
+
+/**
+ * Create prompt for specific health topic
+ */
+function createPromptForTopic(request: ContentGenerationRequest): string {
+    const topicPrompts = {
+        nutrition: `Generate an engaging daily health insight about nutrition for a wellness app user.
+        
+Topic: Nutrition and healthy eating
+Target audience: Adults interested in preventive health
+Tone: Conversational, encouraging, science-based
+Requirements:
+- Include one actionable tip
+- Reference credible research when relevant  
+- Avoid medical advice or diagnoses
+- Make it curiosity-driving and engaging
+- Title must be under 60 characters
+- Summary must be exactly 2 sentences under 200 characters
+
+Format your response as:
+Title: [Engaging headline under 60 characters]
+Summary: [Exactly 2 sentences under 200 characters with actionable tip]`,
+
+        exercise: `Generate an engaging daily health insight about exercise and physical activity for a wellness app user.
+        
+Topic: Exercise, movement, and physical activity
+Target audience: Adults interested in preventive health
+Tone: Conversational, encouraging, science-based
+Requirements:
+- Include one actionable tip
+- Reference credible research when relevant  
+- Avoid medical advice or diagnoses
+- Make it curiosity-driving and engaging
+- Title must be under 60 characters
+- Summary must be exactly 2 sentences under 200 characters
+
+Format your response as:
+Title: [Engaging headline under 60 characters]
+Summary: [Exactly 2 sentences under 200 characters with actionable tip]`,
+
+        sleep: `Generate an engaging daily health insight about sleep and rest for a wellness app user.
+        
+Topic: Sleep, rest, and recovery
+Target audience: Adults interested in preventive health
+Tone: Conversational, encouraging, science-based
+Requirements:
+- Include one actionable tip
+- Reference credible research when relevant  
+- Avoid medical advice or diagnoses
+- Make it curiosity-driving and engaging
+- Title must be under 60 characters
+- Summary must be exactly 2 sentences under 200 characters
+
+Format your response as:
+Title: [Engaging headline under 60 characters]
+Summary: [Exactly 2 sentences under 200 characters with actionable tip]`,
+
+        stress: `Generate an engaging daily health insight about stress management and mental health for a wellness app user.
+        
+Topic: Stress management, mindfulness, and mental wellness
+Target audience: Adults interested in preventive health
+Tone: Conversational, encouraging, science-based
+Requirements:
+- Include one actionable tip
+- Reference credible research when relevant  
+- Avoid medical advice or diagnoses
+- Make it curiosity-driving and engaging
+- Title must be under 60 characters
+- Summary must be exactly 2 sentences under 200 characters
+
+Format your response as:
+Title: [Engaging headline under 60 characters]
+Summary: [Exactly 2 sentences under 200 characters with actionable tip]`,
+
+        prevention: `Generate an engaging daily health insight about preventive care and health screenings for a wellness app user.
+        
+Topic: Preventive healthcare and early detection
+Target audience: Adults interested in preventive health
+Tone: Conversational, encouraging, science-based
+Requirements:
+- Include one actionable tip
+- Reference credible research when relevant  
+- Avoid medical advice or diagnoses
+- Make it curiosity-driving and engaging
+- Title must be under 60 characters
+- Summary must be exactly 2 sentences under 200 characters
+
+Format your response as:
+Title: [Engaging headline under 60 characters]
+Summary: [Exactly 2 sentences under 200 characters with actionable tip]`,
+
+        lifestyle: `Generate an engaging daily health insight about healthy lifestyle habits for a wellness app user.
+        
+Topic: Lifestyle habits, behavior change, and wellness
+Target audience: Adults interested in preventive health
+Tone: Conversational, encouraging, science-based
+Requirements:
+- Include one actionable tip
+- Reference credible research when relevant  
+- Avoid medical advice or diagnoses
+- Make it curiosity-driving and engaging
+- Title must be under 60 characters
+- Summary must be exactly 2 sentences under 200 characters
+
+Format your response as:
+Title: [Engaging headline under 60 characters]
+Summary: [Exactly 2 sentences under 200 characters with actionable tip]`
+    }
+
+    return topicPrompts[request.topic] || topicPrompts.lifestyle
+}
+
+/**
+ * Parse AI response to extract title and summary
+ */
+function parseAIResponse(content: string): { title: string; summary: string; external_references?: string[] } | null {
+    try {
+        // Look for structured format in the response
+        const titleMatch = content.match(/Title:\s*(.*?)(?:\n|$)/i)
+        const summaryMatch = content.match(/Summary:\s*(.*?)(?:\n|$)/is)
+
+        if (titleMatch && summaryMatch) {
+            return {
+                title: titleMatch[1].trim(),
+                summary: summaryMatch[1].trim().replace(/\n/g, ' ')
+            }
+        }
+
+        // Fallback: try to extract from unstructured content
+        const lines = content.split('\n').filter(line => line.trim().length > 0)
+
+        if (lines.length >= 2) {
+            return {
+                title: lines[0].trim(),
+                summary: lines.slice(1).join(' ').trim()
+            }
+        }
+
+        return null
+    } catch (error) {
+        console.error('Error parsing AI response:', error)
+        return null
     }
 }
 
