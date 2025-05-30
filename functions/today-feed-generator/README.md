@@ -1,454 +1,273 @@
-# Today Feed Content Generator
+# Today Feed Generator Service
 
-A Google Cloud Run service that generates daily AI-powered health insights for the Bee MVP app's Today Feed feature.
+**Epic 1.3: Today Feed (AI Daily Brief)**  
+**Status**: ✅ Scheduled Content Generation Complete
 
-## 🎯 Overview
+## Overview
 
-This service is part of **Epic 1.3: Today Feed (AI Daily Brief)** and provides:
+The Today Feed Generator is a Cloud Run service that automatically generates daily health content using Vertex AI. It runs on a scheduled basis at 3 AM UTC daily and provides AI-generated health insights across six topic categories.
 
-- **Daily Content Generation**: Automated creation of engaging health insights
-- **AI-Powered Content**: Uses Vertex AI for intelligent content creation
-- **Quality Validation**: Multi-factor content safety and quality checks
-- **RESTful API**: Clean endpoints for content retrieval and management
-- **Supabase Integration**: Direct database integration for content storage
+## Features
 
-## 🏗️ Architecture
+### ✅ Completed Features
+
+- **Automated Daily Generation**: Scheduled content generation at 3 AM UTC via Cloud Scheduler
+- **Vertex AI Integration**: Uses Google's text-bison model for content generation
+- **Intelligent Topic Selection**: Algorithm selects topics based on recency, engagement, and seasonal relevance
+- **Content Quality Validation**: Comprehensive validation including readability, safety, and engagement scoring
+- **Medical Safety Review**: Automated flagging and human review workflow for medical content
+- **Idempotent Operations**: Prevents duplicate content generation for the same date
+- **Retry Logic**: Exponential backoff retry with fallback content generation
+- **Comprehensive Monitoring**: Health checks, error handling, and Cloud Monitoring integration
+
+## Architecture
 
 ```
-Daily Schedule (3 AM UTC)
+Cloud Scheduler (3 AM UTC) 
     ↓
-Cloud Scheduler
+Cloud Run Service (today-feed-generator)
     ↓
-Today Feed Generator (Cloud Run)
+Vertex AI (text-bison@002) → Content Generation
     ↓
-Vertex AI Content Generation
+Quality Validation & Safety Review
     ↓
-Content Quality Validation
-    ↓
-Supabase Database Storage
-    ↓
-Mobile App API Consumption
+Supabase Database (daily_feed_content)
 ```
 
-## 📋 Features
+## API Endpoints
 
-- **Automated Content Generation**: Daily health insights generated at 3 AM UTC
-- **Topic Rotation**: Intelligent selection across 6 health categories
-- **Content Validation**: Safety checks for medical accuracy and appropriateness
-- **Caching Support**: Optimized for mobile app content caching strategies
-- **Health Monitoring**: Built-in health checks and monitoring endpoints
-- **Error Handling**: Comprehensive error handling and logging
+### Core Endpoints
 
-## 🚀 Quick Start
+- `GET /health` - Comprehensive health check with database connectivity
+- `POST /generate` - Generate daily content (supports both manual and scheduled)
+- `GET /current` - Get current day's content
+- `POST /validate` - Validate content quality
+
+### Review System Endpoints
+
+- `GET /review/queue` - Get pending content reviews
+- `POST /review/action` - Approve/reject/escalate content
+- `GET /review/stats` - Review system statistics
+
+## Scheduled Generation
+
+### Cloud Scheduler Configuration
+
+The service is automatically triggered daily at 3 AM UTC by Google Cloud Scheduler with the following configuration:
+
+```json
+{
+  "scheduled": true,
+  "source": "cloud-scheduler",
+  "timezone": "UTC",
+  "trigger_time": "3AM"
+}
+```
+
+### Retry Policy
+
+- **Retry Count**: 3 attempts
+- **Max Retry Duration**: 10 minutes
+- **Backoff**: Exponential (30s to 5 minutes)
+- **Fallback**: Pre-written content if AI generation fails
+
+### Idempotent Behavior
+
+The service checks for existing content before generation:
+- **Scheduled requests**: Skip generation if content exists (returns 200 with `skipped: true`)
+- **Manual requests**: Allow regeneration even if content exists
+
+## Content Generation Process
+
+### 1. Topic Selection Algorithm
+
+The intelligent topic selection considers:
+- **Diversity**: Avoids recently used topics
+- **User Engagement**: Prioritizes topics with higher engagement
+- **Seasonal Relevance**: Adjusts for time of year (e.g., exercise in January)
+- **Day of Week**: Considers weekly patterns (e.g., nutrition on Sundays)
+
+### 2. AI Content Generation
+
+- **Model**: Vertex AI text-bison@002
+- **Temperature**: 0.7 (balanced creativity/consistency)
+- **Max Tokens**: 300
+- **Validation**: Comprehensive quality and safety checks
+
+### 3. Quality Validation
+
+Content is validated for:
+- **Format**: Title ≤60 chars, Summary ≤200 chars
+- **Readability**: Target 8th grade level
+- **Engagement**: Actionable tips and compelling language
+- **Safety**: Medical accuracy and appropriate disclaimers
+- **Appropriateness**: Age-appropriate and educational
+
+### 4. Review Workflow
+
+- **Auto-approve**: High-quality content (safety score ≥0.95)
+- **Human review**: Flagged content (safety score <0.8)
+- **Escalation**: Complex medical topics
+
+## Deployment
 
 ### Prerequisites
 
-1. **Google Cloud Project** with the following APIs enabled:
-   - Cloud Run API
-   - Cloud Build API
-   - AI Platform API (Vertex AI)
+```bash
+# Set environment variables
+export GCP_PROJECT_ID="your-project-id"
+export GCP_REGION="us-central1"
+```
 
-2. **Supabase Project** with the database schema deployed
-
-3. **gcloud CLI** installed and authenticated
-
-### Deployment
-
-1. **Clone and navigate to the service directory**:
-   ```bash
-   cd functions/today-feed-generator
-   ```
-
-2. **Deploy to Cloud Run**:
-   ```bash
-   ./deploy.sh YOUR_PROJECT_ID us-central1
-   ```
-
-3. **Set up Supabase secrets** (see Configuration section below)
-
-4. **Test the deployment**:
-   ```bash
-   curl https://your-service-url/health
-   ```
-
-## ⚙️ Configuration
-
-### Environment Variables
-
-| Variable | Description | Required | Default |
-|----------|-------------|----------|---------|
-| `SUPABASE_URL` | Your Supabase project URL | ✅ | - |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key | ✅ | - |
-| `GCP_PROJECT_ID` | Google Cloud project ID | ✅ | - |
-| `VERTEX_AI_LOCATION` | Vertex AI service region | ❌ | `us-central1` |
-| `GOOGLE_APPLICATION_CREDENTIALS` | Google service account JSON credentials | ✅ | - |
-
-### Setting up Secrets
-
-Create Supabase configuration secrets in Google Secret Manager:
+### Deploy Service
 
 ```bash
-# Create the secret
-gcloud secrets create supabase-config
+# Deploy Cloud Run service
+./deploy.sh
 
-# Add the Supabase URL
-echo -n "https://your-project.supabase.co" | gcloud secrets versions add supabase-config --data-file=-
-
-# Add the service role key
-echo -n "your-service-role-key" | gcloud secrets versions add supabase-config --data-file=-
+# Apply Terraform for Cloud Scheduler
+cd ../../infra
+terraform apply
 ```
 
-### Google Service Account Setup
-
-To enable Vertex AI content generation, you need to create a service account with appropriate permissions:
+### Configure Secrets
 
 ```bash
-# Create service account
-gcloud iam service-accounts create today-feed-ai \
-    --description="Service account for Today Feed AI content generation" \
-    --display-name="Today Feed AI"
-
-# Grant Vertex AI User permission
-gcloud projects add-iam-policy-binding YOUR_PROJECT_ID \
-    --member="serviceAccount:today-feed-ai@YOUR_PROJECT_ID.iam.gserviceaccount.com" \
-    --role="roles/aiplatform.user"
-
-# Create and download service account key
-gcloud iam service-accounts keys create today-feed-ai-key.json \
-    --iam-account=today-feed-ai@YOUR_PROJECT_ID.iam.gserviceaccount.com
-
-# Set as environment variable (the entire JSON content as string)
-export GOOGLE_APPLICATION_CREDENTIALS=$(cat today-feed-ai-key.json | tr -d '\n')
+# Set Supabase secrets in Google Secret Manager
+gcloud secrets versions add supabase-url --data="your-supabase-url"
+gcloud secrets versions add supabase-service-key --data="your-service-key"
 ```
 
-## 📡 API Endpoints
+## Testing
 
-### Health Check
-```http
-GET /health
+### Manual Testing
+
+```bash
+# Test all endpoints
+./test-scheduler.sh https://your-service-url
+
+# Test specific endpoint
+curl https://your-service-url/health
 ```
-Returns service health status and version information.
 
-**Response:**
+### Scheduled Testing
+
+The scheduler can be tested by:
+1. Triggering the Cloud Scheduler job manually
+2. Checking logs for successful execution
+3. Verifying content was generated in database
+
+## Monitoring
+
+### Health Checks
+
+The `/health` endpoint provides comprehensive status:
+
 ```json
 {
   "status": "healthy",
-  "service": "today-feed-generator", 
-  "timestamp": "2024-12-15T10:30:00Z",
-  "version": "1.0.0"
-}
-```
-
-### Generate Content
-```http
-POST /generate
-```
-Generates new content for a specific topic and date.
-
-**Request Body:**
-```json
-{
-  "topic": "nutrition",
-  "date": "2024-12-15"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "content": {
-    "id": 123,
-    "content_date": "2024-12-15",
-    "title": "The Hidden Power of Colorful Eating",
-    "summary": "Different colored fruits and vegetables contain unique antioxidants...",
-    "topic_category": "nutrition",
-    "ai_confidence_score": 0.85,
-    "created_at": "2024-12-15T03:00:00Z"
+  "service": "today-feed-generator",
+  "environment": {
+    "gcp_project": "configured",
+    "vertex_ai_location": "us-central1",
+    "supabase_url": "configured",
+    "google_credentials": "configured"
   },
-  "validation_result": {
-    "is_valid": true,
-    "confidence_score": 0.85,
-    "safety_score": 0.95,
-    "issues": []
+  "database": {
+    "connected": true,
+    "last_check": "2024-12-28T10:00:00Z"
+  },
+  "scheduler": {
+    "ready": true,
+    "next_scheduled_run": "2024-12-29T03:00:00Z",
+    "timezone": "UTC"
   }
 }
 ```
 
-### Get Current Content
-```http
-GET /current
-```
-Retrieves today's published content.
+### Cloud Monitoring
 
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "id": 123,
-    "content_date": "2024-12-15",
-    "title": "The Hidden Power of Colorful Eating",
-    "summary": "Different colored fruits and vegetables contain unique antioxidants...",
-    "topic_category": "nutrition",
-    "ai_confidence_score": 0.85
-  },
-  "cached_at": "2024-12-15T10:30:00Z",
-  "expires_at": "2024-12-16T10:30:00Z"
-}
-```
+- **Alert Policy**: Triggers on Cloud Scheduler job failures
+- **Metrics**: Job success/failure rates, execution duration
+- **Logs**: Structured logging for debugging
 
-### Validate Content
-```http
-POST /validate
-```
-Validates content quality and safety.
+### Key Metrics
 
-**Request Body:**
-```json
-{
-  "title": "Sample Health Title",
-  "summary": "Sample health content summary...",
-  "topic_category": "nutrition"
-}
-```
+- **Generation Success Rate**: >95% target
+- **Content Quality Score**: >0.8 average
+- **Review Queue Size**: <10 pending items
+- **API Response Time**: <2 seconds
 
-**Response:**
-```json
-{
-  "is_valid": true,
-  "confidence_score": 0.85,
-  "safety_score": 0.95,
-  "readability_score": 0.85,
-  "engagement_score": 0.8,
-  "issues": []
-}
-```
+## Error Handling
 
-## 🔧 Content Topics
+### Retry Logic
 
-The service rotates through 6 health topic categories:
+1. **Vertex AI Failures**: 3 retries with exponential backoff
+2. **Database Errors**: Immediate retry, then fallback
+3. **Validation Failures**: Log and use fallback content
 
-1. **Nutrition** - Food science, meal planning, healthy eating
-2. **Exercise** - Movement benefits, workout tips, activity science  
-3. **Sleep** - Sleep hygiene, recovery optimization, rest science
-4. **Stress Management** - Mindfulness, relaxation, mental health
-5. **Preventive Care** - Health screenings, early detection
-6. **Lifestyle** - Habit formation, behavior change, wellness
+### Fallback Content
 
-## 🛡️ Content Safety
+When AI generation fails, the service uses pre-written content:
+- Topic-specific titles and summaries
+- Lower confidence score (0.5)
+- Automatically flagged for review
 
-### Validation Checks
+### Monitoring Alerts
 
-- **Length Limits**: Title ≤60 chars, Summary ≤200 chars
-- **Medical Safety**: Prohibited terms screening (diagnose, prescription, cure, treatment)
-- **Quality Thresholds**: AI confidence ≥0.7, Safety score ≥0.5
-- **Readability**: 8th grade reading level maximum
+- **Scheduler Failures**: Alert after 2+ consecutive failures
+- **High Review Queue**: Alert when >20 items pending
+- **Service Health**: Alert on unhealthy status
 
-### Content Guidelines
-
-- ✅ Evidence-based health claims only
-- ✅ Actionable tips and insights
-- ✅ Encouraging and educational tone
-- ❌ No medical diagnoses or prescription advice
-- ❌ No fear-based messaging
-- ❌ No unsubstantiated health claims
-
-## 🧪 Testing
+## Development
 
 ### Local Development
 
-1. **Install Deno**:
-   ```bash
-   curl -fsSL https://deno.land/install.sh | sh
-   ```
+```bash
+# Install Deno
+curl -fsSL https://deno.land/install.sh | sh
 
-2. **Set environment variables**:
-   ```bash
-   export SUPABASE_URL="your-supabase-url"
-   export SUPABASE_SERVICE_ROLE_KEY="your-service-key"
-   export GCP_PROJECT_ID="your-project-id"
-   ```
+# Run locally
+deno run --allow-net --allow-env index.ts
+```
 
-3. **Run the service**:
-   ```bash
-   deno run --allow-net --allow-env --allow-read index.ts
-   ```
-
-### Testing Endpoints
+### Environment Variables
 
 ```bash
-# Health check
-curl http://localhost:8080/health
-
-# Generate content
-curl -X POST http://localhost:8080/generate \
-  -H "Content-Type: application/json" \
-  -d '{"topic": "nutrition", "date": "2024-12-15"}'
-
-# Get current content
-curl http://localhost:8080/current
-
-# Validate content
-curl -X POST http://localhost:8080/validate \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "Test Title",
-    "summary": "Test summary content.",
-    "topic_category": "nutrition"
-  }'
+SUPABASE_URL=your-supabase-url
+SUPABASE_SERVICE_ROLE_KEY=your-service-key
+GCP_PROJECT_ID=your-project-id
+VERTEX_AI_LOCATION=us-central1
+GOOGLE_APPLICATION_CREDENTIALS=service-account-json
 ```
 
-## 📊 Monitoring
+## Next Steps
 
-### Health Checks
+### Upcoming Tasks (M1.3.1)
 
-The service includes built-in health monitoring:
+- **T1.3.1.7**: Content storage and versioning system
+- **T1.3.1.8**: Content moderation and approval workflow  
+- **T1.3.1.9**: Content delivery and CDN integration
+- **T1.3.1.10**: Content analytics and monitoring system
 
-- **Liveness Probe**: `/health` endpoint every 10 seconds
-- **Readiness Probe**: `/health` endpoint every 5 seconds
-- **Startup Delay**: 30 seconds initial delay
+### Future Enhancements
 
-### Logging
+- A/B testing for content variations
+- Personalized topic selection based on user preferences
+- Multi-language content generation
+- Advanced analytics and engagement tracking
 
-All requests and errors are logged with structured JSON for easy monitoring:
+## Support
 
-```json
-{
-  "level": "info",
-  "timestamp": "2024-12-15T10:30:00Z",
-  "message": "Content generated successfully",
-  "topic": "nutrition",
-  "date": "2024-12-15",
-  "confidence_score": 0.85
-}
-```
-
-## 🔄 Scheduling
-
-For automated daily content generation, set up Cloud Scheduler:
-
-```bash
-# Create a scheduled job to run daily at 3 AM UTC
-gcloud scheduler jobs create http daily-content-generation \
-    --schedule="0 3 * * *" \
-    --uri="https://your-service-url/generate" \
-    --http-method=POST \
-    --headers="Content-Type=application/json" \
-    --message-body='{}' \
-    --time-zone="UTC"
-```
-
-## 🚨 Troubleshooting
-
-### Common Issues
-
-1. **Service won't start**
-   - Check environment variables are set correctly
-   - Verify Supabase connectivity
-   - Check GCP project permissions
-
-2. **Content generation fails**
-   - Verify Vertex AI API is enabled
-   - Check service account permissions
-   - Review content validation rules
-
-3. **Database connection issues**
-   - Verify Supabase URL and keys
-   - Check RLS policies
-   - Ensure database schema is deployed
-
-### Debug Commands
-
-```bash
-# Check service logs
-gcloud run services logs tail today-feed-generator --region=us-central1
-
-# Test service locally
-deno run --allow-net --allow-env --allow-read index.ts
-
-# Validate deployment
-gcloud run services describe today-feed-generator --region=us-central1
-```
-
-## 📚 Related Documentation
-
-- [Epic 1.3 README](../../docs/5_epic_1_3/README.md)
-- [Today Feed PRD](../../docs/5_epic_1_3/prd-today-feed.md)
-- [Task Breakdown](../../docs/5_epic_1_3/tasks-today-feed.md)
-- [Supabase Database Schema](../../supabase/migrations/)
-
-## 🤝 Contributing
-
-This service is part of the larger Bee MVP project. For contribution guidelines and development standards, see the main project README.
-
-## 🧠 Intelligent Topic Selection Algorithm
-
-**Implementation Status:** ✅ Complete (T1.3.1.3)
-
-The Today Feed service uses a sophisticated topic selection algorithm that considers multiple factors to ensure optimal content distribution and user engagement:
-
-### Selection Factors
-
-1. **Topic Diversity (40% weight)**
-   - Heavy penalty for yesterday's topic (0.1x multiplier)
-   - Moderate penalty for topics used 2 days ago (0.3x)
-   - Light penalty for topics used within 3 days (0.7x)
-   - Bonus for topics not used recently (1.2x)
-
-2. **User Engagement History (30% weight)**
-   - Analyzes last 30 days of user interactions
-   - Weights clicks higher than views (2x vs 1x)
-   - Considers session duration for engagement quality
-   - Boosts topics with higher user engagement (0.5x to 2.0x)
-
-3. **Seasonal Relevance (20% weight)**
-   - **Winter**: Exercise (1.3x), Stress (1.3x), Prevention (1.2x), Sleep (1.2x)
-   - **Spring**: Nutrition (1.3x), Exercise (1.2x), Lifestyle (1.2x)
-   - **Summer**: Nutrition (1.2x), Lifestyle (1.1x), reduced Sleep (0.9x)
-   - **Fall**: Prevention (1.3x), Stress (1.2x), Exercise (1.1x)
-
-4. **Day of Week Patterns (10% weight)**
-   - **Monday/Tuesday**: Higher exercise and stress content
-   - **Sunday/Monday**: Higher nutrition content (meal prep)
-   - **Weekends**: Higher sleep and lifestyle content
-   - **Friday**: Higher stress management content
-
-5. **Controlled Randomization (±20%)**
-   - Prevents algorithm from being too predictable
-   - Maintains content freshness and variety
-
-### Algorithm Logic
-
-```typescript
-async function selectDailyTopic(date: string): Promise<HealthTopic> {
-    // 1. Fetch recent topic history (7 days)
-    // 2. Analyze user engagement patterns (30 days)
-    // 3. Calculate comprehensive scores for each topic
-    // 4. Select topic with highest score
-    // 5. Fallback to enhanced rotation if errors occur
-}
-```
-
-### Fallback Mechanism
-
-If the intelligent selection fails (database errors, etc.), the system falls back to an enhanced rotation pattern that avoids simple sequential ordering:
-
-**Pattern**: nutrition → stress → exercise → prevention → sleep → lifestyle
-
-This ensures content diversity even during system issues.
-
-### Benefits
-
-- **Diversity**: No same topic appears two days in a row
-- **Personalization**: Adapts to user engagement preferences
-- **Seasonality**: Relevant content for time of year
-- **Behavioral Psychology**: Considers weekly patterns
-- **Reliability**: Graceful fallback maintains service quality
+For issues or questions:
+1. Check service health: `curl https://your-service-url/health`
+2. Review Cloud Run logs: `gcloud logs tail today-feed-generator`
+3. Check Cloud Scheduler status in GCP Console
+4. Verify Supabase connectivity and secrets
 
 ---
 
-**Status**: ✅ T1.3.1.1 Complete - GCP Cloud Run service setup  
-✅ T1.3.1.2 Complete - Vertex AI integration for content generation pipeline  
-**Next**: T1.3.1.3 - Create content topic selection algorithm  
-**Epic**: 1.3 Today Feed (AI Daily Brief) 
+**Last Updated**: December 2024  
+**Service Version**: 1.0.0  
+**Epic**: 1.3 Today Feed (AI Daily Brief)  
+**Task**: T1.3.1.6 ✅ Complete 
