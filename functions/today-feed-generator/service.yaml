@@ -5,22 +5,29 @@ metadata:
   annotations:
     run.googleapis.com/ingress: all
     run.googleapis.com/execution-environment: gen2
+    # CDN and performance optimizations
+    run.googleapis.com/cpu-throttling: "false"
+    run.googleapis.com/vpc-access-connector: "projects/PROJECT_ID/locations/us-central1/connectors/default"
 spec:
   template:
     metadata:
       annotations:
         run.googleapis.com/cpu-throttling: "false"
-        run.googleapis.com/memory: "1Gi"
-        run.googleapis.com/cpu: "1"
-        autoscaling.knative.dev/maxScale: "10"
-        autoscaling.knative.dev/minScale: "0"
+        run.googleapis.com/memory: "2Gi"
+        run.googleapis.com/cpu: "2"
+        autoscaling.knative.dev/maxScale: "20"
+        autoscaling.knative.dev/minScale: "1"
+        # CDN optimizations
+        run.googleapis.com/timeout: "60s"
+        run.googleapis.com/startup-cpu-boost: "true"
     spec:
-      containerConcurrency: 100
-      timeoutSeconds: 300
+      containerConcurrency: 200
+      timeoutSeconds: 60
       containers:
       - image: gcr.io/PROJECT_ID/today-feed-generator:latest
         ports:
         - containerPort: 8080
+          name: http1
         env:
         - name: SUPABASE_URL
           valueFrom:
@@ -36,13 +43,27 @@ spec:
           value: "PROJECT_ID"
         - name: VERTEX_AI_LOCATION
           value: "us-central1"
+        - name: CDN_ENABLED
+          value: "true"
+        - name: COMPRESSION_ENABLED
+          value: "true"
+        - name: CACHE_WARMING_ENABLED
+          value: "true"
         resources:
           limits:
-            cpu: "1"
-            memory: "1Gi"
+            cpu: "2"
+            memory: "2Gi"
           requests:
-            cpu: "0.1"
-            memory: "256Mi"
+            cpu: "0.5"
+            memory: "512Mi"
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
         livenessProbe:
           httpGet:
             path: /health
@@ -50,10 +71,12 @@ spec:
           initialDelaySeconds: 30
           periodSeconds: 10
           timeoutSeconds: 5
+          failureThreshold: 3
         readinessProbe:
           httpGet:
             path: /health
             port: 8080
-          initialDelaySeconds: 10
+          initialDelaySeconds: 5
           periodSeconds: 5
-          timeoutSeconds: 3 
+          timeoutSeconds: 3
+          failureThreshold: 2 

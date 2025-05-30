@@ -1,72 +1,64 @@
 #!/bin/bash
 
-# Today Feed Content Generator - Cloud Run Deployment Script
-# Usage: ./deploy.sh [PROJECT_ID] [REGION]
+# Today Feed Generator Deployment Script
+# Epic 1.3: Today Feed (AI Daily Brief)
 
 set -e
 
-# Configuration
-PROJECT_ID=${1:-"your-gcp-project-id"}
-REGION=${2:-"us-central1"}
-SERVICE_NAME="today-feed-generator"
-IMAGE_NAME="gcr.io/${PROJECT_ID}/${SERVICE_NAME}"
+echo "🚀 Deploying Today Feed Generator Service..."
 
-echo "🚀 Deploying Today Feed Content Generator to Cloud Run"
-echo "Project: ${PROJECT_ID}"
-echo "Region: ${REGION}"
-echo "Service: ${SERVICE_NAME}"
-
-# Ensure we're in the correct directory
-cd "$(dirname "$0")"
-
-# Check if gcloud is authenticated
-echo "🔐 Checking gcloud authentication..."
-if ! gcloud auth list --filter=status:ACTIVE --format="value(account)" | grep -q "@"; then
-    echo "❌ Please authenticate with gcloud first: gcloud auth login"
+# Check if required environment variables are set
+if [ -z "$GCP_PROJECT_ID" ]; then
+    echo "❌ Error: GCP_PROJECT_ID environment variable is not set"
     exit 1
 fi
 
-# Set the project
-echo "🎯 Setting GCP project..."
-gcloud config set project "${PROJECT_ID}"
+if [ -z "$GCP_REGION" ]; then
+    echo "❌ Error: GCP_REGION environment variable is not set"
+    exit 1
+fi
 
-# Enable required APIs
-echo "🔧 Enabling required APIs..."
-gcloud services enable cloudbuild.googleapis.com
-gcloud services enable run.googleapis.com
-gcloud services enable aiplatform.googleapis.com
+# Build and deploy the Cloud Run service
+echo "📦 Building Docker image..."
+gcloud builds submit --tag gcr.io/$GCP_PROJECT_ID/today-feed-generator:latest .
 
-# Build the container image
-echo "🏗️  Building container image..."
-gcloud builds submit --tag "${IMAGE_NAME}" .
-
-# Deploy to Cloud Run
 echo "🚀 Deploying to Cloud Run..."
-gcloud run deploy "${SERVICE_NAME}" \
-    --image="${IMAGE_NAME}" \
-    --platform=managed \
-    --region="${REGION}" \
+gcloud run deploy today-feed-generator \
+    --image gcr.io/$GCP_PROJECT_ID/today-feed-generator:latest \
+    --platform managed \
+    --region $GCP_REGION \
     --allow-unauthenticated \
-    --memory=1Gi \
-    --cpu=1 \
-    --max-instances=10 \
-    --min-instances=0 \
-    --port=8080 \
-    --timeout=300 \
-    --concurrency=100 \
-    --set-env-vars="GCP_PROJECT_ID=${PROJECT_ID},VERTEX_AI_LOCATION=${REGION}"
+    --memory 1Gi \
+    --cpu 1 \
+    --timeout 300 \
+    --concurrency 100 \
+    --max-instances 10 \
+    --min-instances 0
 
 # Get the service URL
-SERVICE_URL=$(gcloud run services describe "${SERVICE_NAME}" --region="${REGION}" --format="value(status.url)")
+SERVICE_URL=$(gcloud run services describe today-feed-generator --region=$GCP_REGION --format="value(status.url)")
 
-echo "✅ Deployment complete!"
-echo "📍 Service URL: ${SERVICE_URL}"
-echo "🏥 Health check: ${SERVICE_URL}/health"
+echo "✅ Service deployed successfully!"
+echo "🔗 Service URL: $SERVICE_URL"
+
+# Test the health endpoint
+echo "🔍 Testing health endpoint..."
+curl -s "$SERVICE_URL/health" | jq '.'
+
+# Test manual content generation
+echo "🧪 Testing manual content generation..."
+curl -s -X POST "$SERVICE_URL/generate" \
+    -H "Content-Type: application/json" \
+    -d '{"scheduled": false, "source": "manual-test"}' | jq '.'
+
+echo "✅ Deployment and testing complete!"
 echo ""
-echo "🔧 Next steps:"
-echo "1. Set up Supabase secrets (see README.md)"
-echo "2. Configure Cloud Scheduler for daily content generation"
-echo "3. Test the service endpoints"
+echo "📋 Next steps:"
+echo "1. Apply Terraform configuration to set up Cloud Scheduler"
+echo "2. Configure Supabase secrets in Google Secret Manager"
+echo "3. Test scheduled generation at 3 AM UTC"
 echo ""
-echo "🧪 Test the service:"
-echo "curl ${SERVICE_URL}/health" 
+echo "🔧 Useful commands:"
+echo "  Health check: curl $SERVICE_URL/health"
+echo "  Manual generation: curl -X POST $SERVICE_URL/generate -H 'Content-Type: application/json' -d '{}'"
+echo "  View logs: gcloud logs tail today-feed-generator --region=$GCP_REGION" 
