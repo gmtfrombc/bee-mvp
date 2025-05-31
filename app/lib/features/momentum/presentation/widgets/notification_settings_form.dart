@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../../../../core/services/notification_preferences_service.dart';
+import '../../../../core/notifications/domain/services/notification_preferences_service.dart';
 import '../../../../core/services/accessibility_service.dart';
 import 'notification_option_widgets.dart';
 import '../../../../core/notifications/domain/models/notification_types.dart';
