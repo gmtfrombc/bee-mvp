@@ -2,7 +2,7 @@ terraform {
   required_version = ">= 1.5"
   required_providers {
     google   = { source = "hashicorp/google", version = "~> 5.0" }
-    supabase = { source = "Supabase/supabase", version = "~> 0.8" }
+    supabase = { source = "supabase/supabase", version = "~> 1.0" }
   }
 }
 
