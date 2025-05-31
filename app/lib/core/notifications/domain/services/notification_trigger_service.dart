@@ -1,20 +1,41 @@
-import '../notifications/domain/models/notification_types.dart';
-import '../notifications/domain/services/notification_trigger_service.dart'
-    as domain;
+import 'package:flutter/foundation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'notification_preferences_service.dart';
+import '../models/notification_types.dart';
 
-/// Service for manually triggering push notifications and managing notification triggers
+/// Domain service responsible for triggering push notifications and managing
+/// notification triggers, analytics, and user history.
 ///
-/// This service now delegates to the domain NotificationTriggerService
-/// while maintaining backward compatibility for existing code.
-class PushNotificationTriggerService {
-  static PushNotificationTriggerService? _instance;
-  static PushNotificationTriggerService get instance =>
-      _instance ??= PushNotificationTriggerService._();
+/// Consolidates functionality from push_notification_trigger_service.dart into
+/// clean domain architecture following established patterns.
+class NotificationTriggerService {
+  static NotificationTriggerService? _instance;
 
-  PushNotificationTriggerService._();
+  final SupabaseClient _supabase;
+  final NotificationPreferencesService _prefsService;
 
-  // Delegate to domain service
-  final _domainService = domain.NotificationTriggerService.instance;
+  /// Private constructor for dependency injection (mainly for testing)
+  NotificationTriggerService._({
+    SupabaseClient? supabaseClient,
+    NotificationPreferencesService? preferencesService,
+  }) : _supabase = supabaseClient ?? Supabase.instance.client,
+       _prefsService =
+           preferencesService ?? NotificationPreferencesService.instance;
+
+  /// Singleton instance getter for production use
+  static NotificationTriggerService get instance =>
+      _instance ??= NotificationTriggerService._();
+
+  /// Factory constructor for testing with dependency injection
+  factory NotificationTriggerService.forTesting({
+    required SupabaseClient supabaseClient,
+    required NotificationPreferencesService preferencesService,
+  }) {
+    return NotificationTriggerService._(
+      supabaseClient: supabaseClient,
+      preferencesService: preferencesService,
+    );
+  }
 
   /// Manually trigger push notifications for a specific user
   Future<TriggerResult> triggerUserNotifications({
@@ -23,51 +44,104 @@ class PushNotificationTriggerService {
     MomentumData? momentumData,
     NotificationType? notificationType,
   }) async {
-    final domainTriggerType = _convertTriggerType(triggerType);
-    final domainMomentumData =
-        momentumData != null
-            ? domain.MomentumData(
-              currentState: momentumData.currentState,
-              previousState: momentumData.previousState,
-              score: momentumData.score,
-              date: momentumData.date,
-            )
-            : null;
+    try {
+      // Check user preferences before triggering
+      if (notificationType != null &&
+          !_prefsService.shouldSendNotificationType(notificationType)) {
+        if (kDebugMode) {
+          debugPrint(
+            '🚫 Notification blocked by user preferences: ${notificationType.name}',
+          );
+        }
+        return TriggerResult(
+          success: false,
+          error: 'Notification blocked by user preferences',
+          results: [],
+        );
+      }
 
-    final domainResult = await _domainService.triggerUserNotifications(
-      userId: userId,
-      triggerType: domainTriggerType,
-      momentumData: domainMomentumData,
-      notificationType: notificationType,
-    );
+      final response = await _supabase.functions.invoke(
+        'push-notification-triggers',
+        body: {
+          'user_id': userId,
+          'trigger_type': triggerType.name,
+          'notification_type': notificationType?.name,
+          'user_preferences': _prefsService.getDebugInfo(),
+          if (momentumData != null) 'momentum_data': momentumData.toJson(),
+        },
+      );
 
-    return _convertFromDomainTriggerResult(domainResult);
+      if (response.status == 200) {
+        final data = response.data as Map<String, dynamic>;
+        final result = TriggerResult.fromJson(data);
+
+        // Record notification sent if successful
+        if (result.success && result.results.isNotEmpty) {
+          await _prefsService.recordNotificationSent();
+        }
+
+        return result;
+      } else {
+        throw Exception('Failed to trigger notifications: ${response.status}');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Error triggering user notifications: $e');
+      }
+      return TriggerResult(success: false, error: e.toString(), results: []);
+    }
   }
 
   /// Trigger batch processing for all active users
   Future<TriggerResult> triggerBatchNotifications() async {
-    final domainResult = await _domainService.triggerBatchNotifications();
-    return _convertFromDomainTriggerResult(domainResult);
+    try {
+      final response = await _supabase.functions.invoke(
+        'push-notification-triggers',
+        body: {'trigger_type': 'batch_process'},
+      );
+
+      if (response.status == 200) {
+        final data = response.data as Map<String, dynamic>;
+        return TriggerResult.fromJson(data);
+      } else {
+        throw Exception(
+          'Failed to trigger batch notifications: ${response.status}',
+        );
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Error triggering batch notifications: $e');
+      }
+      return TriggerResult(success: false, error: e.toString(), results: []);
+    }
   }
 
   /// Get notification analytics for the current user
   Future<List<NotificationAnalytics>> getNotificationAnalytics({
     int days = 30,
   }) async {
-    final domainAnalytics = await _domainService.getNotificationAnalytics(
-      days: days,
-    );
-    return domainAnalytics
-        .map(
-          (analytics) => NotificationAnalytics(
-            notificationDate: analytics.notificationDate,
-            notificationType: analytics.notificationType,
-            deliveryStatus: analytics.deliveryStatus,
-            count: analytics.count,
-            uniqueUsers: analytics.uniqueUsers,
-          ),
-        )
-        .toList();
+    try {
+      final response = await _supabase
+          .from('notification_analytics')
+          .select()
+          .gte(
+            'notification_date',
+            DateTime.now()
+                .subtract(Duration(days: days))
+                .toIso8601String()
+                .split('T')[0],
+          )
+          .order('notification_date', ascending: false);
+
+      return (response as List)
+          .map((item) => NotificationAnalytics.fromJson(item))
+          .toList();
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Error getting notification analytics: $e');
+      }
+      return [];
+    }
   }
 
   /// Get user's notification history
@@ -75,25 +149,28 @@ class PushNotificationTriggerService {
     String? userId,
     int limit = 50,
   }) async {
-    final domainRecords = await _domainService.getUserNotificationHistory(
-      userId: userId,
-      limit: limit,
-    );
-    return domainRecords
-        .map(
-          (record) => NotificationRecord(
-            id: record.id,
-            userId: record.userId,
-            notificationType: record.notificationType,
-            title: record.title,
-            message: record.message,
-            deliveryStatus: record.deliveryStatus,
-            createdAt: record.createdAt,
-            sentAt: record.sentAt,
-            errorMessage: record.errorMessage,
-          ),
-        )
-        .toList();
+    try {
+      final currentUserId = userId ?? _supabase.auth.currentUser?.id;
+      if (currentUserId == null) {
+        throw Exception('No user ID provided and no current user');
+      }
+
+      final response = await _supabase
+          .from('momentum_notifications')
+          .select()
+          .eq('user_id', currentUserId)
+          .order('created_at', ascending: false)
+          .limit(limit);
+
+      return (response as List)
+          .map((item) => NotificationRecord.fromJson(item))
+          .toList();
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Error getting notification history: $e');
+      }
+      return [];
+    }
   }
 
   /// Check if user has reached notification rate limit
@@ -102,11 +179,28 @@ class PushNotificationTriggerService {
     String? userId,
     int maxPerDay = 3,
   }) async {
-    return await _domainService.checkRateLimit(
-      notificationType: notificationType,
-      userId: userId,
-      maxPerDay: maxPerDay,
-    );
+    try {
+      final currentUserId = userId ?? _supabase.auth.currentUser?.id;
+      if (currentUserId == null) {
+        throw Exception('No user ID provided and no current user');
+      }
+
+      final response = await _supabase.rpc(
+        'check_notification_rate_limit',
+        params: {
+          'p_user_id': currentUserId,
+          'p_notification_type': notificationType,
+          'p_max_per_day': maxPerDay,
+        },
+      );
+
+      return response as bool;
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Error checking rate limit: $e');
+      }
+      return false; // Assume rate limited on error
+    }
   }
 
   /// Update notification preferences for the current user
@@ -114,40 +208,62 @@ class PushNotificationTriggerService {
     required NotificationPreferences preferences,
     String? userId,
   }) async {
-    final domainPreferences = domain.NotificationPreferences(
-      dailyMotivationEnabled: preferences.dailyMotivationEnabled,
-      celebrationEnabled: preferences.celebrationEnabled,
-      supportRemindersEnabled: preferences.supportRemindersEnabled,
-      coachInterventionEnabled: preferences.coachInterventionEnabled,
-      quietHoursStart: preferences.quietHoursStart,
-      quietHoursEnd: preferences.quietHoursEnd,
-      timezone: preferences.timezone,
-    );
+    try {
+      final currentUserId = userId ?? _supabase.auth.currentUser?.id;
+      if (currentUserId == null) {
+        throw Exception('No user ID provided and no current user');
+      }
 
-    return await _domainService.updateNotificationPreferences(
-      preferences: domainPreferences,
-      userId: userId,
-    );
+      await _supabase.from('user_notification_preferences').upsert({
+        'user_id': currentUserId,
+        'daily_motivation_enabled': preferences.dailyMotivationEnabled,
+        'celebration_enabled': preferences.celebrationEnabled,
+        'support_reminders_enabled': preferences.supportRemindersEnabled,
+        'coach_intervention_enabled': preferences.coachInterventionEnabled,
+        'quiet_hours_start': preferences.quietHoursStart,
+        'quiet_hours_end': preferences.quietHoursEnd,
+        'timezone': preferences.timezone,
+        'updated_at': DateTime.now().toIso8601String(),
+      });
+
+      return true;
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Error updating notification preferences: $e');
+      }
+      return false;
+    }
   }
 
   /// Get notification preferences for the current user
   Future<NotificationPreferences?> getNotificationPreferences({
     String? userId,
   }) async {
-    final domainPreferences = await _domainService.getNotificationPreferences(
-      userId: userId,
-    );
-    if (domainPreferences == null) return null;
+    try {
+      final currentUserId = userId ?? _supabase.auth.currentUser?.id;
+      if (currentUserId == null) {
+        throw Exception('No user ID provided and no current user');
+      }
 
-    return NotificationPreferences(
-      dailyMotivationEnabled: domainPreferences.dailyMotivationEnabled,
-      celebrationEnabled: domainPreferences.celebrationEnabled,
-      supportRemindersEnabled: domainPreferences.supportRemindersEnabled,
-      coachInterventionEnabled: domainPreferences.coachInterventionEnabled,
-      quietHoursStart: domainPreferences.quietHoursStart,
-      quietHoursEnd: domainPreferences.quietHoursEnd,
-      timezone: domainPreferences.timezone,
-    );
+      final response =
+          await _supabase
+              .from('user_notification_preferences')
+              .select()
+              .eq('user_id', currentUserId)
+              .maybeSingle();
+
+      if (response != null) {
+        return NotificationPreferences.fromJson(response);
+      }
+
+      // Return default preferences if none exist
+      return NotificationPreferences.defaultPreferences();
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Error getting notification preferences: $e');
+      }
+      return NotificationPreferences.defaultPreferences();
+    }
   }
 
   /// Test notification delivery (for development/testing)
@@ -156,58 +272,29 @@ class PushNotificationTriggerService {
     required String message,
     String? userId,
   }) async {
-    return await _domainService.sendTestNotification(
-      title: title,
-      message: message,
-      userId: userId,
-    );
-  }
+    try {
+      final currentUserId = userId ?? _supabase.auth.currentUser?.id;
+      if (currentUserId == null) {
+        throw Exception('No user ID provided and no current user');
+      }
 
-  /// Convert legacy TriggerType to domain TriggerType
-  domain.TriggerType _convertTriggerType(TriggerType triggerType) {
-    switch (triggerType) {
-      case TriggerType.momentumChange:
-        return domain.TriggerType.momentumChange;
-      case TriggerType.dailyCheck:
-        return domain.TriggerType.dailyCheck;
-      case TriggerType.manual:
-        return domain.TriggerType.manual;
-      case TriggerType.batchProcess:
-        return domain.TriggerType.batchProcess;
+      final result = await triggerUserNotifications(
+        userId: currentUserId,
+        triggerType: TriggerType.manual,
+        momentumData: MomentumData(
+          currentState: 'Rising',
+          score: 85.0,
+          date: DateTime.now().toIso8601String().split('T')[0],
+        ),
+      );
+
+      return result.success;
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Error sending test notification: $e');
+      }
+      return false;
     }
-  }
-
-  /// Convert domain TriggerResult to legacy TriggerResult
-  TriggerResult _convertFromDomainTriggerResult(
-    domain.TriggerResult domainResult,
-  ) {
-    return TriggerResult(
-      success: domainResult.success,
-      error: domainResult.error,
-      results:
-          domainResult.results
-              .map(
-                (result) => UserTriggerResult(
-                  success: result.success,
-                  userId: result.userId,
-                  notificationsSent: result.notificationsSent,
-                  interventionsCreated: result.interventionsCreated,
-                  error: result.error,
-                ),
-              )
-              .toList(),
-      summary:
-          domainResult.summary != null
-              ? TriggerSummary(
-                totalUsersProcessed: domainResult.summary!.totalUsersProcessed,
-                totalNotificationsSent:
-                    domainResult.summary!.totalNotificationsSent,
-                totalInterventionsCreated:
-                    domainResult.summary!.totalInterventionsCreated,
-                failedUsers: domainResult.summary!.failedUsers,
-              )
-              : null,
-    );
   }
 }
 
@@ -394,6 +481,7 @@ class NotificationRecord {
 }
 
 /// User notification preferences
+/// Legacy compatibility class for trigger service
 class NotificationPreferences {
   final bool dailyMotivationEnabled;
   final bool celebrationEnabled;
