@@ -135,7 +135,6 @@ flutter:
     - assets/images/
     - assets/animations/
     - assets/icons/
-    - .env
 
   # Custom fonts for BEE design system (TODO: Add actual font files)
   # fonts:
