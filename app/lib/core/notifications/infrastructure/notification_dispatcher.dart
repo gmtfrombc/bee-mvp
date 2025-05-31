@@ -2,20 +2,21 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import '../domain/models/notification_models.dart';
+import '../domain/services/notification_core_service.dart';
 import 'notification_deep_link_service.dart';
-import '../notifications/domain/models/notification_models.dart';
-import '../../features/momentum/presentation/providers/momentum_api_provider.dart';
-import '../notifications/domain/services/notification_core_service.dart';
+import '../../../features/momentum/presentation/providers/momentum_api_provider.dart';
 
-/// Service for dispatching notification actions and coordinating app state
-class NotificationActionDispatcher {
-  static NotificationActionDispatcher? _instance;
-  static NotificationActionDispatcher get instance {
-    _instance ??= NotificationActionDispatcher._();
+/// Infrastructure service for dispatching notification actions and managing in-app display
+/// Handles action routing, in-app notifications, and UI coordination
+class NotificationDispatcher {
+  static NotificationDispatcher? _instance;
+  static NotificationDispatcher get instance {
+    _instance ??= NotificationDispatcher._();
     return _instance!;
   }
 
-  NotificationActionDispatcher._();
+  NotificationDispatcher._();
 
   BuildContext? _appContext;
   WidgetRef? _appRef;
@@ -28,14 +29,32 @@ class NotificationActionDispatcher {
     _isInitialized = true;
 
     if (kDebugMode) {
-      print('📋 Notification Action Dispatcher initialized');
+      print('📋 NotificationDispatcher initialized');
     }
 
-    // Process any pending actions from background notifications
-    _processPendingBackgroundActions();
+    // Process pending actions and updates asynchronously without blocking initialization
+    _safeProcessBackgroundOperations();
+  }
 
-    // Apply any cached momentum updates
-    _applyCachedMomentumUpdates();
+  /// Safely process background operations with proper context handling
+  Future<void> _safeProcessBackgroundOperations() async {
+    // Store context reference before async operations
+    final context = _appContext;
+    final ref = _appRef;
+
+    if (context == null || ref == null) return;
+
+    try {
+      // Process any pending actions from background notifications
+      await _processPendingBackgroundActions();
+
+      // Apply any cached momentum updates
+      await _applyCachedMomentumUpdates();
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error in background operations: $e');
+      }
+    }
   }
 
   /// Dispose of the dispatcher
@@ -81,7 +100,7 @@ class NotificationActionDispatcher {
       final notificationData = _extractNotificationData(message);
       if (notificationData == null) return;
 
-      // Process deep link action
+      // Process deep link action via infrastructure service
       await NotificationDeepLinkService.processNotificationDeepLink(
         actionType: notificationData.actionType,
         actionData: notificationData.actionData,
@@ -99,14 +118,39 @@ class NotificationActionDispatcher {
     }
   }
 
+  /// Handle app lifecycle state changes
+  Future<void> onAppStateChanged(AppLifecycleState state) async {
+    if (kDebugMode) {
+      print('📱 App state changed: $state');
+    }
+
+    switch (state) {
+      case AppLifecycleState.resumed:
+        // App came to foreground - check for pending actions
+        await _processPendingBackgroundActions();
+        await _applyCachedMomentumUpdates();
+        break;
+      case AppLifecycleState.paused:
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.detached:
+      case AppLifecycleState.hidden:
+        // App going to background - no action needed
+        break;
+    }
+  }
+
   /// Process pending actions from background notifications
   Future<void> _processPendingBackgroundActions() async {
-    if (!_isInitialized || _appContext == null || _appRef == null) return;
+    // Store context and ref before async operations
+    final context = _appContext;
+    final ref = _appRef;
+
+    if (!_isInitialized || context == null || ref == null) return;
 
     try {
       await NotificationDeepLinkService.processPendingActions(
-        context: _appContext!,
-        ref: _appRef!,
+        context: context,
+        ref: ref,
       );
     } catch (e) {
       if (kDebugMode) {
@@ -117,10 +161,13 @@ class NotificationActionDispatcher {
 
   /// Apply cached momentum updates from background processing
   Future<void> _applyCachedMomentumUpdates() async {
-    if (!_isInitialized || _appRef == null) return;
+    // Store ref before async operations
+    final ref = _appRef;
+
+    if (!_isInitialized || ref == null) return;
 
     try {
-      await NotificationDeepLinkService.applyCachedMomentumUpdates(_appRef!);
+      await NotificationDeepLinkService.applyCachedMomentumUpdates(ref);
     } catch (e) {
       if (kDebugMode) {
         print('❌ Error applying cached momentum updates: $e');
@@ -160,7 +207,9 @@ class NotificationActionDispatcher {
 
   /// Show in-app notification for foreground messages
   Future<void> _showInAppNotification(NotificationData data) async {
-    if (_appContext == null || !_appContext!.mounted) return;
+    // Store context before async operations
+    final context = _appContext;
+    if (context == null || !context.mounted) return;
 
     // Determine notification priority and style
     final isHighPriority =
@@ -173,19 +222,22 @@ class NotificationActionDispatcher {
 
     // Choose appropriate in-app notification style
     if (isCelebration) {
-      _showCelebrationNotification(data);
+      _showCelebrationNotification(data, context);
     } else if (isHighPriority) {
-      _showHighPriorityNotification(data);
+      _showHighPriorityNotification(data, context);
     } else {
-      _showStandardNotification(data);
+      _showStandardNotification(data, context);
     }
   }
 
   /// Show celebration in-app notification
-  void _showCelebrationNotification(NotificationData data) {
-    if (_appContext == null || !_appContext!.mounted) return;
+  void _showCelebrationNotification(
+    NotificationData data,
+    BuildContext context,
+  ) {
+    if (!context.mounted) return;
 
-    ScaffoldMessenger.of(_appContext!).showSnackBar(
+    ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
           children: [
@@ -222,10 +274,13 @@ class NotificationActionDispatcher {
   }
 
   /// Show high priority in-app notification
-  void _showHighPriorityNotification(NotificationData data) {
-    if (_appContext == null || !_appContext!.mounted) return;
+  void _showHighPriorityNotification(
+    NotificationData data,
+    BuildContext context,
+  ) {
+    if (!context.mounted) return;
 
-    ScaffoldMessenger.of(_appContext!).showSnackBar(
+    ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
           children: [
@@ -262,10 +317,10 @@ class NotificationActionDispatcher {
   }
 
   /// Show standard in-app notification
-  void _showStandardNotification(NotificationData data) {
-    if (_appContext == null || !_appContext!.mounted) return;
+  void _showStandardNotification(NotificationData data, BuildContext context) {
+    if (!context.mounted) return;
 
-    ScaffoldMessenger.of(_appContext!).showSnackBar(
+    ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
           children: [
@@ -303,13 +358,19 @@ class NotificationActionDispatcher {
 
   /// Handle notification action from in-app notification
   Future<void> _handleNotificationAction(NotificationData data) async {
+    // Store context and ref before async operations
+    final context = _appContext;
+    final ref = _appRef;
+
+    if (context == null || ref == null) return;
+
     try {
       await NotificationDeepLinkService.processNotificationDeepLink(
         actionType: data.actionType,
         actionData: data.actionData,
         notificationId: data.notificationId,
-        context: _appContext,
-        ref: _appRef,
+        context: context,
+        ref: ref,
       );
     } catch (e) {
       if (kDebugMode) {
@@ -341,33 +402,6 @@ class NotificationActionDispatcher {
       if (kDebugMode) {
         print('❌ Error updating momentum from notification: $e');
       }
-    }
-  }
-
-  /// Check if dispatcher is ready to handle notifications
-  bool get isReady => _isInitialized && _appContext != null && _appRef != null;
-
-  /// Get current app context (for debugging)
-  BuildContext? get appContext => _appContext;
-
-  /// Process notification when app state changes
-  Future<void> onAppStateChanged(AppLifecycleState state) async {
-    if (kDebugMode) {
-      print('📱 App state changed: $state');
-    }
-
-    switch (state) {
-      case AppLifecycleState.resumed:
-        // App came to foreground - check for pending actions
-        await _processPendingBackgroundActions();
-        await _applyCachedMomentumUpdates();
-        break;
-      case AppLifecycleState.paused:
-      case AppLifecycleState.inactive:
-      case AppLifecycleState.detached:
-      case AppLifecycleState.hidden:
-        // App going to background - no action needed
-        break;
     }
   }
 
@@ -407,4 +441,10 @@ class NotificationActionDispatcher {
       return {'error': e.toString()};
     }
   }
+
+  /// Check if dispatcher is ready to handle notifications
+  bool get isReady => _isInitialized && _appContext != null && _appRef != null;
+
+  /// Get current app context (for debugging)
+  BuildContext? get appContext => _appContext;
 }

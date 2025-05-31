@@ -2,8 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'notification_service.dart';
 import 'fcm_token_service.dart';
-import 'notification_preferences_service.dart';
-import 'notification_ab_testing_service.dart';
+import '../notifications/domain/services/notification_preferences_service.dart';
+import 'notification_ab_testing_service.dart' as ab_service;
 
 /// Service for generating and executing individual notification test cases
 class NotificationTestGenerator {
@@ -11,7 +11,7 @@ class NotificationTestGenerator {
   final _notificationService = NotificationService.instance;
   final _fcmTokenService = FCMTokenService.instance;
   final _preferencesService = NotificationPreferencesService.instance;
-  final _abTestingService = NotificationABTestingService.instance;
+  final _abTestingService = ab_service.NotificationABTestingService.instance;
 
   /// Test FCM token validation
   Future<TestResult> testFCMToken(String? userId) async {
@@ -233,7 +233,7 @@ class NotificationTestGenerator {
       await _abTestingService.trackNotificationEvent(
         userId: testUserId,
         testName: 'momentum_notification_test',
-        event: NotificationEvent.sent,
+        event: ab_service.NotificationEvent.sent,
         notificationId:
             'test_notification_${DateTime.now().millisecondsSinceEpoch}',
       );
@@ -272,7 +272,7 @@ class NotificationTestGenerator {
         final state = testCase['momentum_state'] as String;
 
         // Test content generation for different momentum states
-        final variant = NotificationVariant.control();
+        final variant = ab_service.NotificationVariant.control();
         final content = _abTestingService.getNotificationContent(
           variant: variant,
           baseTitle: 'Your momentum is $state',

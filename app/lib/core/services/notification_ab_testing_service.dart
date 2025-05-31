@@ -1,9 +1,13 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'dart:math';
+import '../notifications/domain/services/notification_analytics_service.dart';
+import '../notifications/domain/models/notification_models.dart' as domain;
+import '../notifications/domain/models/notification_types.dart' as domain;
 
 /// Service for A/B testing notification effectiveness
+///
+/// ⚠️ MIGRATION NOTICE: This service is being refactored
+/// This class now delegates to NotificationAnalyticsService for core functionality
+/// while maintaining backward compatibility during the transition period.
 class NotificationABTestingService {
   static NotificationABTestingService? _instance;
   static NotificationABTestingService get instance {
@@ -13,57 +17,43 @@ class NotificationABTestingService {
 
   NotificationABTestingService._();
 
-  final _supabase = Supabase.instance.client;
-  final _random = Random();
+  // Delegation to new domain service
+  final _analyticsService = NotificationAnalyticsService.instance;
 
   /// Get notification variant for user
   Future<NotificationVariant> getNotificationVariant({
     required String userId,
     required String testName,
   }) async {
-    try {
-      // Check if user already has a variant assigned
-      final existingAssignment =
-          await _supabase
-              .from('notification_ab_assignments')
-              .select()
-              .eq('user_id', userId)
-              .eq('test_name', testName)
-              .maybeSingle();
+    // Delegate to new domain service
+    final domainVariant = await _analyticsService.getNotificationVariant(
+      userId: userId,
+      testName: testName,
+    );
 
-      if (existingAssignment != null) {
-        return NotificationVariant.fromJson(existingAssignment['variant']);
-      }
+    // Convert domain model to local model for backward compatibility
+    return NotificationVariant(
+      name: domainVariant.name,
+      type: _convertVariantType(domainVariant.type),
+      config: domainVariant.config,
+    );
+  }
 
-      // Get active test configuration
-      final testConfig = await _getTestConfiguration(testName);
-      if (testConfig == null) {
-        return NotificationVariant.control(); // Default to control if no test
-      }
-
-      // Assign user to a variant based on traffic allocation
-      final variant = _assignVariant(testConfig);
-
-      // Store assignment
-      await _supabase.from('notification_ab_assignments').insert({
-        'user_id': userId,
-        'test_name': testName,
-        'variant': variant.toJson(),
-        'assigned_at': DateTime.now().toIso8601String(),
-      });
-
-      if (kDebugMode) {
-        print(
-          '🧪 A/B Test Assignment: $userId -> ${variant.name} for $testName',
-        );
-      }
-
-      return variant;
-    } catch (e) {
-      if (kDebugMode) {
-        print('❌ Error getting notification variant: $e');
-      }
-      return NotificationVariant.control(); // Fallback to control
+  /// Convert domain VariantType to local VariantType
+  VariantType _convertVariantType(domain.VariantType domainType) {
+    switch (domainType) {
+      case domain.VariantType.control:
+        return VariantType.control;
+      case domain.VariantType.personalized:
+        return VariantType.personalized;
+      case domain.VariantType.urgent:
+        return VariantType.urgent;
+      case domain.VariantType.encouraging:
+        return VariantType.encouraging;
+      case domain.VariantType.social:
+        return VariantType.social;
+      case domain.VariantType.gamified:
+        return VariantType.gamified;
     }
   }
 
@@ -75,93 +65,60 @@ class NotificationABTestingService {
     required String notificationId,
     Map<String, dynamic>? metadata,
   }) async {
-    try {
-      // Get user's variant assignment
-      final assignment =
-          await _supabase
-              .from('notification_ab_assignments')
-              .select()
-              .eq('user_id', userId)
-              .eq('test_name', testName)
-              .maybeSingle();
+    // Delegate to new domain service with type conversion
+    await _analyticsService.trackNotificationEvent(
+      userId: userId,
+      testName: testName,
+      event: _convertNotificationEvent(event),
+      notificationId: notificationId,
+      metadata: metadata,
+    );
+  }
 
-      if (assignment == null) {
-        if (kDebugMode) {
-          print(
-            '⚠️ No A/B test assignment found for user $userId in test $testName',
-          );
-        }
-        return;
-      }
-
-      // Track the event
-      await _supabase.from('notification_ab_events').insert({
-        'user_id': userId,
-        'test_name': testName,
-        'variant_name': assignment['variant']['name'],
-        'event_type': event.name,
-        'notification_id': notificationId,
-        'metadata': metadata,
-        'timestamp': DateTime.now().toIso8601String(),
-      });
-
-      if (kDebugMode) {
-        print(
-          '📊 A/B Event Tracked: ${event.name} for ${assignment['variant']['name']}',
-        );
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('❌ Error tracking notification event: $e');
-      }
+  /// Convert local NotificationEvent to domain NotificationEvent
+  domain.NotificationEvent _convertNotificationEvent(NotificationEvent event) {
+    switch (event) {
+      case NotificationEvent.sent:
+        return domain.NotificationEvent.sent;
+      case NotificationEvent.delivered:
+        return domain.NotificationEvent.delivered;
+      case NotificationEvent.opened:
+        return domain.NotificationEvent.opened;
+      case NotificationEvent.clicked:
+        return domain.NotificationEvent.clicked;
+      case NotificationEvent.dismissed:
+        return domain.NotificationEvent.dismissed;
+      case NotificationEvent.converted:
+        return domain.NotificationEvent.converted;
     }
   }
 
   /// Get A/B test results
   Future<ABTestResults> getTestResults(String testName) async {
-    try {
-      final response = await _supabase.functions.invoke(
-        'get-ab-test-results',
-        body: {'test_name': testName},
-      );
+    // Delegate to new domain service
+    final domainResults = await _analyticsService.getTestResults(testName);
 
-      if (response.status == 200 && response.data != null) {
-        return ABTestResults.fromJson(response.data);
-      }
-
-      // Return mock results if function not available
-      return ABTestResults(
-        testName: testName,
-        variants: [
-          VariantResults(
-            name: 'control',
-            participants: 150,
-            deliveryRate: 0.95,
-            openRate: 0.32,
-            clickRate: 0.08,
-            conversionRate: 0.05,
-            engagementScore: 0.28,
-          ),
-          VariantResults(
-            name: 'variant_a',
-            participants: 145,
-            deliveryRate: 0.96,
-            openRate: 0.38,
-            clickRate: 0.12,
-            conversionRate: 0.07,
-            engagementScore: 0.35,
-          ),
-        ],
-        statisticalSignificance: 0.85,
-        winningVariant: 'variant_a',
-        confidenceLevel: 0.95,
-      );
-    } catch (e) {
-      if (kDebugMode) {
-        print('❌ Error getting test results: $e');
-      }
-      throw Exception('Failed to get test results: $e');
-    }
+    // Convert domain model to local model for backward compatibility
+    return ABTestResults(
+      testName: domainResults.testName,
+      variants:
+          domainResults.variants
+              .map(
+                (v) => VariantResults(
+                  name: v.name,
+                  participants: v.participants,
+                  deliveryRate: v.deliveryRate,
+                  openRate: v.openRate,
+                  clickRate: v.clickRate,
+                  conversionRate: v.conversionRate,
+                  engagementScore: v.engagementScore,
+                ),
+              )
+              .toList(),
+      statisticalSignificance: domainResults.statisticalSignificance,
+      winningVariant: domainResults.winningVariant,
+      confidenceLevel: domainResults.confidenceLevel,
+    );
   }
 
   /// Create new A/B test
@@ -173,114 +130,81 @@ class NotificationABTestingService {
     DateTime? startDate,
     DateTime? endDate,
   }) async {
-    try {
-      await _supabase.from('notification_ab_tests').insert({
-        'test_name': testName,
-        'description': description,
-        'variants': variants.map((v) => v.toJson()).toList(),
-        'traffic_allocation': trafficAllocation,
-        'start_date': (startDate ?? DateTime.now()).toIso8601String(),
-        'end_date': endDate?.toIso8601String(),
-        'status': 'active',
-        'created_at': DateTime.now().toIso8601String(),
-      });
+    // Convert local variants to domain variants
+    final domainVariants =
+        variants
+            .map(
+              (v) => domain.NotificationVariant(
+                name: v.name,
+                type: _convertToDomainVariantType(v.type),
+                config: v.config,
+              ),
+            )
+            .toList();
 
-      if (kDebugMode) {
-        print('✅ A/B Test created: $testName');
-      }
+    // Delegate to new domain service
+    return await _analyticsService.createABTest(
+      testName: testName,
+      description: description,
+      variants: domainVariants,
+      trafficAllocation: trafficAllocation,
+      startDate: startDate,
+      endDate: endDate,
+    );
+  }
 
-      return true;
-    } catch (e) {
-      if (kDebugMode) {
-        print('❌ Error creating A/B test: $e');
-      }
-      return false;
+  /// Convert local VariantType to domain VariantType
+  domain.VariantType _convertToDomainVariantType(VariantType type) {
+    switch (type) {
+      case VariantType.control:
+        return domain.VariantType.control;
+      case VariantType.personalized:
+        return domain.VariantType.personalized;
+      case VariantType.urgent:
+        return domain.VariantType.urgent;
+      case VariantType.encouraging:
+        return domain.VariantType.encouraging;
+      case VariantType.social:
+        return domain.VariantType.social;
+      case VariantType.gamified:
+        return domain.VariantType.gamified;
     }
   }
 
   /// Get active A/B tests
   Future<List<ABTest>> getActiveTests() async {
-    try {
-      final response = await _supabase
-          .from('notification_ab_tests')
-          .select()
-          .eq('status', 'active')
-          .order('created_at', ascending: false);
+    // Delegate to new domain service
+    final domainTests = await _analyticsService.getActiveTests();
 
-      return (response as List).map((item) => ABTest.fromJson(item)).toList();
-    } catch (e) {
-      if (kDebugMode) {
-        print('❌ Error getting active tests: $e');
-      }
-      return [];
-    }
+    // Convert domain models to local models for backward compatibility
+    return domainTests
+        .map(
+          (test) => ABTest(
+            testName: test.testName,
+            description: test.description,
+            variants:
+                test.variants
+                    .map(
+                      (v) => NotificationVariant(
+                        name: v.name,
+                        type: _convertVariantType(v.type),
+                        config: v.config,
+                      ),
+                    )
+                    .toList(),
+            trafficAllocation: test.trafficAllocation,
+            startDate: test.startDate,
+            endDate: test.endDate,
+            status: test.status,
+          ),
+        )
+        .toList();
   }
 
   /// Stop A/B test
   Future<bool> stopTest(String testName) async {
-    try {
-      await _supabase
-          .from('notification_ab_tests')
-          .update({
-            'status': 'stopped',
-            'end_date': DateTime.now().toIso8601String(),
-          })
-          .eq('test_name', testName);
-
-      if (kDebugMode) {
-        print('🛑 A/B Test stopped: $testName');
-      }
-
-      return true;
-    } catch (e) {
-      if (kDebugMode) {
-        print('❌ Error stopping test: $e');
-      }
-      return false;
-    }
-  }
-
-  /// Get test configuration
-  Future<Map<String, dynamic>?> _getTestConfiguration(String testName) async {
-    try {
-      final response =
-          await _supabase
-              .from('notification_ab_tests')
-              .select()
-              .eq('test_name', testName)
-              .eq('status', 'active')
-              .maybeSingle();
-
-      return response;
-    } catch (e) {
-      if (kDebugMode) {
-        print('❌ Error getting test configuration: $e');
-      }
-      return null;
-    }
-  }
-
-  /// Assign variant based on traffic allocation
-  NotificationVariant _assignVariant(Map<String, dynamic> testConfig) {
-    final variants = testConfig['variants'] as List;
-    final trafficAllocation =
-        testConfig['traffic_allocation'] as Map<String, dynamic>;
-
-    final randomValue = _random.nextDouble();
-    double cumulativeWeight = 0.0;
-
-    for (final variantData in variants) {
-      final variant = NotificationVariant.fromJson(variantData);
-      final weight = trafficAllocation[variant.name] ?? 0.0;
-      cumulativeWeight += weight;
-
-      if (randomValue <= cumulativeWeight) {
-        return variant;
-      }
-    }
-
-    // Fallback to first variant
-    return NotificationVariant.fromJson(variants.first);
+    // Delegate to new domain service
+    return await _analyticsService.stopTest(testName);
   }
 
   /// Get notification content based on variant
@@ -290,65 +214,19 @@ class NotificationABTestingService {
     required String baseBody,
     Map<String, dynamic>? context,
   }) {
-    switch (variant.type) {
-      case VariantType.control:
-        return {'title': baseTitle, 'body': baseBody};
+    // Convert local variant to domain variant and delegate
+    final domainVariant = domain.NotificationVariant(
+      name: variant.name,
+      type: _convertToDomainVariantType(variant.type),
+      config: variant.config,
+    );
 
-      case VariantType.personalized:
-        return {
-          'title': _personalizeContent(baseTitle, context),
-          'body': _personalizeContent(baseBody, context),
-        };
-
-      case VariantType.urgent:
-        return {'title': '🚨 $baseTitle', 'body': 'Urgent: $baseBody'};
-
-      case VariantType.encouraging:
-        return {
-          'title': '🌟 $baseTitle',
-          'body': 'You\'ve got this! $baseBody',
-        };
-
-      case VariantType.social:
-        return {
-          'title': baseTitle,
-          'body': '$baseBody Join others on their wellness journey!',
-        };
-
-      case VariantType.gamified:
-        return {
-          'title': '🎯 $baseTitle',
-          'body': '$baseBody Earn points for staying engaged!',
-        };
-    }
-  }
-
-  /// Personalize content based on context
-  String _personalizeContent(String content, Map<String, dynamic>? context) {
-    if (context == null) return content;
-
-    String personalized = content;
-
-    // Replace placeholders with context data
-    if (context['user_name'] != null) {
-      personalized = personalized.replaceAll('{name}', context['user_name']);
-    }
-
-    if (context['momentum_state'] != null) {
-      personalized = personalized.replaceAll(
-        '{momentum}',
-        context['momentum_state'],
-      );
-    }
-
-    if (context['streak_days'] != null) {
-      personalized = personalized.replaceAll(
-        '{streak}',
-        '${context['streak_days']} days',
-      );
-    }
-
-    return personalized;
+    return _analyticsService.getNotificationContent(
+      variant: domainVariant,
+      baseTitle: baseTitle,
+      baseBody: baseBody,
+      context: context,
+    );
   }
 }
 

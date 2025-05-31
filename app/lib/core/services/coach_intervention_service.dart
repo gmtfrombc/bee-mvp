@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'notification_preferences_service.dart';
+import '../notifications/domain/services/notification_preferences_service.dart';
 
 /// Service for managing automated coach interventions and call scheduling
 class CoachInterventionService {

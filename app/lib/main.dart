@@ -12,7 +12,7 @@ import 'core/services/notification_action_dispatcher.dart';
 import 'core/services/fcm_token_service.dart';
 import 'core/providers/supabase_provider.dart';
 import 'features/momentum/presentation/screens/momentum_screen.dart';
-import 'core/services/notification_preferences_service.dart';
+import 'core/notifications/domain/services/notification_preferences_service.dart';
 import 'core/providers/theme_provider.dart';
 
 void main() async {
@@ -49,30 +49,79 @@ void main() async {
     // Continue without Firebase for development
   }
 
-  // Initialize notification preferences
-  try {
-    await NotificationPreferencesService.instance.initialize();
-    debugPrint('✅ Notification preferences service initialized');
-  } catch (e) {
-    debugPrint('❌ Failed to initialize notification preferences: $e');
-  }
+  // Central notification system coordination
+  await _initializeNotificationSystem();
 
-  // Initialize notification service with enhanced handlers
+  // Initialize other core services
+  await _initializeCoreServices();
+
+  runApp(const ProviderScope(child: BEEApp()));
+}
+
+/// Central notification system initialization with health checking
+Future<void> _initializeNotificationSystem() async {
+  final stopwatch = Stopwatch()..start();
+  final serviceStatus = <String, bool>{};
+
   try {
-    await NotificationService.instance.initialize(
-      onMessageReceived: _handleForegroundMessage,
-      onMessageOpenedApp: _handleNotificationTap,
-      onTokenRefresh: _handleTokenRefresh,
+    debugPrint('🔄 Initializing notification system...');
+
+    // 1. Initialize notification preferences (domain layer)
+    try {
+      await NotificationPreferencesService.instance.initialize();
+      serviceStatus['preferences'] = true;
+      debugPrint('✅ Notification preferences service initialized');
+    } catch (e) {
+      serviceStatus['preferences'] = false;
+      debugPrint('❌ Failed to initialize notification preferences: $e');
+    }
+
+    // 2. Initialize core notification service
+    try {
+      await NotificationService.instance.initialize(
+        onMessageReceived: _handleForegroundMessage,
+        onMessageOpenedApp: _handleNotificationTap,
+        onTokenRefresh: _handleTokenRefresh,
+      );
+      serviceStatus['core'] = true;
+      debugPrint('✅ Notification service initialized');
+
+      // 3. Initialize FCM token handling
+      await _initializeFCMToken();
+      serviceStatus['fcm'] = true;
+    } catch (e) {
+      serviceStatus['core'] = false;
+      serviceStatus['fcm'] = false;
+      debugPrint('❌ Failed to initialize notification service: $e');
+    }
+
+    stopwatch.stop();
+
+    // Service health summary
+    final successCount = serviceStatus.values.where((status) => status).length;
+    final totalCount = serviceStatus.length;
+
+    debugPrint(
+      '📊 Notification system health: $successCount/$totalCount services',
     );
-    debugPrint('✅ Notification service initialized');
+    debugPrint('⏱️ Initialization time: ${stopwatch.elapsedMilliseconds}ms');
 
-    // Get and store initial FCM token
-    await _initializeFCMToken();
+    if (successCount == totalCount) {
+      debugPrint('✅ Notification system fully operational');
+    } else {
+      debugPrint('⚠️ Notification system partially functional:');
+      serviceStatus.forEach((service, status) {
+        final icon = status ? '✅' : '❌';
+        debugPrint('   $icon $service');
+      });
+    }
   } catch (e) {
-    debugPrint('❌ Failed to initialize notification service: $e');
-    // Continue without notifications for development
+    debugPrint('❌ Critical notification system initialization error: $e');
   }
+}
 
+/// Initialize other core services with error isolation
+Future<void> _initializeCoreServices() async {
   // Initialize connectivity monitoring
   try {
     await ConnectivityService.initialize();
@@ -88,8 +137,6 @@ void main() async {
   } catch (e) {
     debugPrint('❌ Failed to initialize offline cache: $e');
   }
-
-  runApp(const ProviderScope(child: BEEApp()));
 }
 
 /// Handle foreground notifications with enhanced dispatcher
