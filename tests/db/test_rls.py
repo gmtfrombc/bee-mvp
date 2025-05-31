@@ -34,7 +34,7 @@ class TestEngagementEventsRLS:
         """Set up test database connection with environment detection"""
 
         # Environment detection: CI vs Local
-        is_ci = os.getenv('CI') or os.getenv('GITHUB_ACTIONS')
+        is_ci = os.getenv("CI") or os.getenv("GITHUB_ACTIONS")
         current_user = getpass.getuser()
 
         if is_ci:
@@ -42,7 +42,7 @@ class TestEngagementEventsRLS:
             db_user = "postgres"
             db_password = "postgres"
             db_name = "test"
-            print(f"🤖 CI Environment detected - using postgres user")
+            print("🤖 CI Environment detected - using postgres user")
 
             # In CI, test with the postgres user directly
             cls.admin_conn = None  # Not needed in CI
@@ -53,7 +53,8 @@ class TestEngagementEventsRLS:
             admin_user = current_user  # Use current system user (e.g., gmtfr)
             db_name = "test"
             print(
-                f"💻 Local Environment detected - using admin '{admin_user}' + test user 'rls_test_user'")
+                f"💻 Local Environment detected - using admin '{admin_user}' + test user 'rls_test_user'"
+            )
 
             # First, connect as admin to ensure non-superuser role exists
             try:
@@ -66,7 +67,8 @@ class TestEngagementEventsRLS:
 
                 # Create/verify the non-superuser role for testing
                 admin_cursor = cls.admin_conn.cursor()
-                admin_cursor.execute("""
+                admin_cursor.execute(
+                    """
                     DO $$
                     BEGIN
                         IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'rls_test_user') THEN
@@ -81,8 +83,9 @@ class TestEngagementEventsRLS:
                         GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO rls_test_user;
                         GRANT USAGE ON ALL SEQUENCES IN SCHEMA auth TO rls_test_user;
                     END $$;
-                """)
-                print(f"✅ Created/verified non-superuser role 'rls_test_user'")
+                """
+                )
+                print("✅ Created/verified non-superuser role 'rls_test_user'")
 
             except psycopg2.Error as e:
                 print(f"❌ Admin connection failed: {e}")
@@ -107,8 +110,7 @@ class TestEngagementEventsRLS:
 
             cls.conn = psycopg2.connect(**connection_params)
             cls.conn.autocommit = True
-            print(
-                f"✅ Connected to PostgreSQL as '{db_user}' on database '{db_name}'")
+            print(f"✅ Connected to PostgreSQL as '{db_user}' on database '{db_name}'")
 
             # Test auth.uid() function to ensure it works
             cursor = cls.conn.cursor()
@@ -116,18 +118,18 @@ class TestEngagementEventsRLS:
             no_auth = cursor.fetchone()[0]
 
             if no_auth:
-                print(f"✅ auth.uid() returns NULL without context (expected)")
+                print("✅ auth.uid() returns NULL without context (expected)")
             else:
-                print(f"⚠️  WARNING: auth.uid() returns value without context")
+                print("⚠️  WARNING: auth.uid() returns value without context")
 
         except psycopg2.OperationalError as e:
             print(f"❌ Test user connection failed: {e}")
-            print(f"🔧 Troubleshooting:")
-            print(f"   - Ensure PostgreSQL is running locally")
-            print(f"   - For local testing: Create test database with: createdb test")
-            print(f"   - Run database setup: ./scripts/test_database_only.sh")
+            print("🔧 Troubleshooting:")
+            print("   - Ensure PostgreSQL is running locally")
+            print("   - For local testing: Create test database with: createdb test")
+            print("   - Run database setup: ./scripts/test_database_only.sh")
             if not is_ci:
-                print(f"   - Run: psql -d test -f setup_ci_exact.sql")
+                print("   - Run: psql -d test -f setup_ci_exact.sql")
             raise
 
         # Test user IDs
@@ -138,14 +140,14 @@ class TestEngagementEventsRLS:
     def teardown_class(cls):
         """Clean up database connections"""
         cls.conn.close()
-        if hasattr(cls, 'admin_conn') and cls.admin_conn:
+        if hasattr(cls, "admin_conn") and cls.admin_conn:
             cls.admin_conn.close()
 
     def test_rls_user_isolation(self):
         """Test that user A cannot see user B's events"""
 
         # For local testing, use admin connection for setup; for CI, use main connection
-        if hasattr(self, 'admin_conn') and self.admin_conn:
+        if hasattr(self, "admin_conn") and self.admin_conn:
             # Local environment: use admin for setup, test user for RLS verification
             setup_cursor = self.admin_conn.cursor()
             test_cursor = self.conn.cursor()
@@ -274,7 +276,7 @@ class TestEngagementEventsRLS:
         """Test that users can only insert events for themselves"""
 
         # For local testing, use admin connection for setup; for CI, use main connection
-        if hasattr(self, 'admin_conn') and self.admin_conn:
+        if hasattr(self, "admin_conn") and self.admin_conn:
             # Local environment: use admin for setup, test user for RLS verification
             setup_cursor = self.admin_conn.cursor()
             test_cursor = self.conn.cursor()
@@ -322,7 +324,7 @@ class TestEngagementEventsRLS:
             assert (
                 authorized_count == 1
             ), "User should be able to insert their own events"
-            print(f"✅ User A successfully inserted their own event")
+            print("✅ User A successfully inserted their own event")
 
             # Step 2: Test unauthorized insert (User A trying to insert for User B)
             # This should fail with a database error due to RLS policy violation
@@ -345,7 +347,7 @@ class TestEngagementEventsRLS:
             assert (
                 insert_failed
             ), "Unauthorized insert should have failed but succeeded. This is a CRITICAL SECURITY BUG!"
-            print(f"✅ Unauthorized insert correctly failed")
+            print("✅ Unauthorized insert correctly failed")
 
             # Step 3: Verify no unauthorized data was inserted (use admin context)
             setup_cursor.execute("RESET request.jwt.claims")
@@ -411,7 +413,7 @@ class TestEngagementEventsRLS:
         """Test that anonymous users cannot access any events"""
 
         # For local testing, use admin connection for setup; for CI, use main connection
-        if hasattr(self, 'admin_conn') and self.admin_conn:
+        if hasattr(self, "admin_conn") and self.admin_conn:
             # Local environment: use admin for setup, test user for RLS verification
             setup_cursor = self.admin_conn.cursor()
             test_cursor = self.conn.cursor()
@@ -508,7 +510,7 @@ class TestEngagementEventsRLS:
             assert (
                 insert_failed
             ), "Anonymous users should not be able to insert events. CRITICAL SECURITY BUG!"
-            print(f"✅ Anonymous insert correctly failed")
+            print("✅ Anonymous insert correctly failed")
 
             # Step 4: Verify no anonymous data was inserted (use admin context)
             setup_cursor.execute("RESET request.jwt.claims")
