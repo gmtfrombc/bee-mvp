@@ -38,15 +38,44 @@ class TestEngagementEventsRLS:
         current_user = getpass.getuser()
 
         if is_ci:
-            # CI environment (GitHub Actions) - use postgres user directly
-            db_user = "postgres"
+            # CI environment (GitHub Actions) - use rls_test_user for proper RLS testing
+            # The CI workflow creates rls_test_user as non-superuser to enforce RLS
+            db_user = "rls_test_user"
             db_password = "postgres"
             db_name = "test"
-            print("🤖 CI Environment detected - using postgres user")
+            print(
+                "🤖 CI Environment detected - using non-superuser 'rls_test_user' for RLS testing"
+            )
 
-            # In CI, test with the postgres user directly
-            cls.admin_conn = None  # Not needed in CI
-            cls.test_user = db_user
+            # Test if rls_test_user role exists and is properly configured
+            try:
+                # First, verify rls_test_user exists by attempting connection
+                test_conn = psycopg2.connect(
+                    host="localhost",
+                    user=db_user,
+                    password=db_password,
+                    database=db_name,
+                )
+                test_conn.close()
+                print(
+                    "✅ Successfully validated rls_test_user role exists and has proper credentials"
+                )
+
+                # In CI, no admin connection needed since CI workflow handles setup
+                cls.admin_conn = None
+                cls.test_user = db_user
+
+            except psycopg2.Error as e:
+                print(f"❌ rls_test_user connection failed: {e}")
+                print(
+                    "🔧 Falling back to postgres user (will bypass RLS - security tests may fail)"
+                )
+
+                # Fallback to postgres only if rls_test_user doesn't work
+                db_user = "postgres"
+                db_password = "postgres"
+                cls.admin_conn = None
+                cls.test_user = db_user
 
         else:
             # Local development environment - use admin + non-superuser approach
@@ -96,7 +125,7 @@ class TestEngagementEventsRLS:
             db_password = None
             cls.test_user = db_user
 
-        # Connect as the test user (postgres in CI, rls_test_user locally)
+        # Connect as the test user (rls_test_user in both CI and local, unless fallback)
         try:
             connection_params = {
                 "host": "localhost",
@@ -112,8 +141,20 @@ class TestEngagementEventsRLS:
             cls.conn.autocommit = True
             print(f"✅ Connected to PostgreSQL as '{db_user}' on database '{db_name}'")
 
-            # Test auth.uid() function to ensure it works
+            # Check if connected user is superuser (critical security validation)
             cursor = cls.conn.cursor()
+            cursor.execute("SELECT current_setting('is_superuser')")
+            is_superuser = cursor.fetchone()[0] == "on"
+
+            if is_superuser:
+                print("⚠️  WARNING: Connected as SUPERUSER - RLS will be BYPASSED!")
+                print(
+                    "🚨 SECURITY RISK: All RLS tests will fail due to superuser privileges"
+                )
+            else:
+                print("✅ Connected as regular user - RLS will be properly enforced")
+
+            # Test auth.uid() function to ensure it works
             cursor.execute("SELECT auth.uid() IS NULL as no_auth_context")
             no_auth = cursor.fetchone()[0]
 
