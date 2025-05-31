@@ -49,7 +49,7 @@ resource "google_cloud_run_service" "today_feed_generator" {
     spec {
       containers {
         image = "gcr.io/${var.gcp_project}/today-feed-generator:latest"
-        
+
         ports {
           container_port = 8080
         }
@@ -93,13 +93,13 @@ resource "google_cloud_run_service" "today_feed_generator" {
       }
 
       container_concurrency = 100
-      timeout_seconds      = 300
+      timeout_seconds       = 300
     }
 
     metadata {
       annotations = {
-        "autoscaling.knative.dev/maxScale" = "10"
-        "autoscaling.knative.dev/minScale" = "0"
+        "autoscaling.knative.dev/maxScale"  = "10"
+        "autoscaling.knative.dev/minScale"  = "0"
         "run.googleapis.com/cpu-throttling" = "false"
       }
     }
@@ -126,7 +126,7 @@ resource "google_secret_manager_secret" "supabase_url" {
   secret_id = "supabase-url"
 
   replication {
-    automatic = true
+    auto {}
   }
 }
 
@@ -134,25 +134,25 @@ resource "google_secret_manager_secret" "supabase_service_key" {
   secret_id = "supabase-service-key"
 
   replication {
-    automatic = true
+    auto {}
   }
 }
 
 # Cloud Scheduler job for daily content generation
 resource "google_cloud_scheduler_job" "daily_content_generation" {
-  name     = "daily-content-generation"
-  region   = var.gcp_region
-  schedule = "0 3 * * *"  # 3 AM UTC daily
-  time_zone = "UTC"
+  name        = "daily-content-generation"
+  region      = var.gcp_region
+  schedule    = "0 3 * * *" # 3 AM UTC daily
+  time_zone   = "UTC"
   description = "Automated daily content generation for Today Feed at 3 AM UTC"
 
   # Add retry configuration for failed attempts
   retry_config {
-    retry_count = 3
-    max_retry_duration = "600s"  # 10 minutes max for retries
+    retry_count          = 3
+    max_retry_duration   = "600s" # 10 minutes max for retries
     min_backoff_duration = "30s"
-    max_backoff_duration = "300s"  # 5 minutes max backoff
-    max_doublings = 3
+    max_backoff_duration = "300s" # 5 minutes max backoff
+    max_doublings        = 3
   }
 
   http_target {
@@ -161,14 +161,14 @@ resource "google_cloud_scheduler_job" "daily_content_generation" {
 
     headers = {
       "Content-Type" = "application/json"
-      "User-Agent" = "Google-Cloud-Scheduler"
+      "User-Agent"   = "Google-Cloud-Scheduler"
     }
 
     # Enhanced request body with scheduling metadata
     body = base64encode(jsonencode({
-      scheduled = true
-      source = "cloud-scheduler"
-      timezone = "UTC"
+      scheduled    = true
+      source       = "cloud-scheduler"
+      timezone     = "UTC"
       trigger_time = "3AM"
     }))
 
@@ -203,21 +203,25 @@ resource "google_cloud_run_service_iam_member" "scheduler_invoker" {
 # Cloud Monitoring alerting policy for failed content generation
 resource "google_monitoring_alert_policy" "content_generation_failure" {
   display_name = "Today Feed Content Generation Failure"
-  description  = "Alert when daily content generation fails multiple times"
-  
+  combiner     = "OR"
+
+  documentation {
+    content = "Alert when daily content generation fails multiple times"
+  }
+
   conditions {
     display_name = "Cloud Scheduler Job Failure"
-    
+
     condition_threshold {
       filter = "resource.type=\"cloud_scheduler_job\" AND resource.labels.job_id=\"daily-content-generation\" AND metric.type=\"cloudscheduler.googleapis.com/job/num_failed_runs\""
-      
-      comparison = "COMPARISON_GREATER_THAN"
-      threshold_value = 1  # Alert after more than 1 failure
-      duration = "60s"
-      
+
+      comparison      = "COMPARISON_GT"
+      threshold_value = 1 # Alert after more than 1 failure
+      duration        = "60s"
+
       aggregations {
-        alignment_period   = "60s"
-        per_series_aligner = "ALIGN_RATE"
+        alignment_period     = "60s"
+        per_series_aligner   = "ALIGN_RATE"
         cross_series_reducer = "REDUCE_SUM"
       }
     }
@@ -225,9 +229,9 @@ resource "google_monitoring_alert_policy" "content_generation_failure" {
 
   # Notification channels would be configured separately
   notification_channels = []
-  
+
   alert_strategy {
-    auto_close = "604800s"  # 7 days
+    auto_close = "604800s" # 7 days
   }
 
   depends_on = [
