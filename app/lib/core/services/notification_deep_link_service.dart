@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../features/momentum/presentation/providers/momentum_api_provider.dart';
-import 'background_notification_handler.dart';
+import '../notifications/domain/services/notification_core_service.dart';
 import 'coach_intervention_service.dart';
 
 /// Service for handling deep links from notifications
@@ -416,7 +416,7 @@ class NotificationDeepLinkService {
   }) async {
     try {
       final pendingActions =
-          await BackgroundNotificationHandler.getPendingActions();
+          await NotificationCoreService.instance.getPendingActions();
 
       if (pendingActions.isEmpty) return;
 
@@ -480,7 +480,7 @@ class NotificationDeepLinkService {
   static Future<void> applyCachedMomentumUpdates(WidgetRef ref) async {
     try {
       final cachedUpdate =
-          await BackgroundNotificationHandler.getCachedMomentumUpdate();
+          await NotificationCoreService.instance.getCachedMomentumUpdate();
 
       if (cachedUpdate != null) {
         if (kDebugMode) {

@@ -3,75 +3,61 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'notification_service.dart';
 import 'firebase_service.dart';
+import '../notifications/domain/services/notification_core_service.dart';
+import 'notification_service.dart';
 
 /// Service responsible for FCM token lifecycle management and storage
-/// Gracefully handles Firebase unavailability in development environments
+/// Delegates core functionality to NotificationCoreService
 class FCMTokenService {
   static FCMTokenService? _instance;
   static FCMTokenService get instance => _instance ??= FCMTokenService._();
 
   FCMTokenService._();
 
-  static const String _tokenKey = 'fcm_token';
-  static const String _tokenTimestampKey = 'fcm_token_timestamp';
+  // Delegate to core service
+  NotificationCoreService get _coreService => NotificationCoreService.instance;
 
   /// Check if Firebase is available for FCM operations
-  bool get isAvailable =>
-      FirebaseService.isAvailable && NotificationService.instance.isAvailable;
-
-  /// Check if running on iOS simulator (FCM tokens don't work)
-  bool get _isIOSSimulator {
-    if (!Platform.isIOS) return false;
-
-    // In debug mode, assume simulator unless proven otherwise
-    // Real devices will have proper FCM token generation
-    return kDebugMode;
-  }
+  bool get isAvailable => _coreService.isAvailable;
 
   /// Store FCM token locally and in Supabase user profile
   Future<void> storeToken(String token) async {
+    // The core service handles token storage automatically,
+    // but we can explicitly store if needed
     try {
-      // Store locally regardless of Firebase availability
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_tokenKey, token);
+      await prefs.setString('fcm_token', token);
       await prefs.setInt(
-        _tokenTimestampKey,
+        'fcm_token_timestamp',
         DateTime.now().millisecondsSinceEpoch,
       );
 
       if (kDebugMode) {
-        print('📱 FCM Token stored locally: ${token.substring(0, 20)}...');
+        debugPrint(
+          '📱 FCM Token stored via FCMTokenService: ${token.substring(0, 20)}...',
+        );
       }
 
       // Store in Supabase user profile if available
       await _storeTokenInSupabase(token);
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Failed to store FCM token: $e');
+        debugPrint('❌ Failed to store FCM token: $e');
       }
     }
   }
 
   /// Get the currently stored FCM token
   Future<String?> getStoredToken() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      return prefs.getString(_tokenKey);
-    } catch (e) {
-      if (kDebugMode) {
-        print('❌ Failed to get stored FCM token: $e');
-      }
-      return null;
-    }
+    return await _coreService.getToken();
   }
 
   /// Check if the stored token is still valid (not older than 1 week)
   Future<bool> isTokenValid() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final timestamp = prefs.getInt(_tokenTimestampKey);
+      final timestamp = prefs.getInt('fcm_token_timestamp');
 
       if (timestamp == null) return false;
 
@@ -81,7 +67,7 @@ class FCMTokenService {
       return tokenDate.isAfter(weekAgo);
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Failed to check token validity: $e');
+        debugPrint('❌ Failed to check token validity: $e');
       }
       return false;
     }
@@ -89,126 +75,17 @@ class FCMTokenService {
 
   /// Get fresh token from Firebase and store it
   Future<String?> refreshToken() async {
-    if (!isAvailable) {
-      FirebaseService.logServiceAttempt('FCM', 'refreshToken');
-
-      if (_isIOSSimulator) {
-        if (kDebugMode) {
-          print('ℹ️ FCM tokens not available on iOS simulator');
-          print('💡 To test FCM tokens, run on a physical iOS device');
-          print('💡 Or use Android emulator which supports FCM tokens');
-        }
-      }
-
-      return null;
-    }
-
-    try {
-      final newToken = await NotificationService.instance.getToken();
-
-      if (newToken != null) {
-        await storeToken(newToken);
-        if (kDebugMode) {
-          print('🔄 FCM Token refreshed successfully');
-        }
-        return newToken;
-      } else {
-        // Handle iOS simulator case specifically
-        if (_isIOSSimulator) {
-          if (kDebugMode) {
-            print('ℹ️ FCM token is null - expected on iOS simulator');
-            print('💡 This is normal behavior for iOS simulators');
-            print(
-              '💡 FCM tokens require real iOS devices or Android emulators',
-            );
-          }
-        } else {
-          if (kDebugMode) {
-            print('⚠️ FCM token is null on real device - check permissions');
-          }
-        }
-      }
-
-      return null;
-    } catch (e) {
-      if (kDebugMode) {
-        if (_isIOSSimulator && e.toString().contains('unknown')) {
-          print('ℹ️ FCM token error on iOS simulator (expected): $e');
-          print('💡 This error is normal on iOS simulators');
-          print(
-            '💡 FCM tokens work on physical iOS devices and Android emulators',
-          );
-        } else {
-          print('❌ Failed to refresh FCM token: $e');
-          if (Platform.isIOS) {
-            print('💡 On iOS: Ensure notification permissions are granted');
-            print('💡 On iOS: Check APNs configuration in Firebase Console');
-          }
-        }
-      }
-      return null;
-    }
+    return await _coreService.getToken();
   }
 
   /// Get current valid token (refresh if needed)
   Future<String?> getCurrentToken() async {
-    if (!isAvailable) {
-      FirebaseService.logServiceAttempt('FCM', 'getCurrentToken');
-      // Return locally stored token as fallback
-      return await getStoredToken();
-    }
-
-    try {
-      // Check if we have a valid stored token
-      if (await isTokenValid()) {
-        final storedToken = await getStoredToken();
-        if (storedToken != null) {
-          if (kDebugMode) {
-            print('✅ Using valid stored FCM token');
-          }
-          return storedToken;
-        }
-      }
-
-      // Token is invalid or doesn't exist, get a fresh one
-      if (kDebugMode) {
-        print('🔄 Refreshing FCM token...');
-      }
-      return await refreshToken();
-    } catch (e) {
-      if (kDebugMode) {
-        print('❌ Failed to get current FCM token: $e');
-      }
-      return null;
-    }
+    return await _coreService.getToken();
   }
 
   /// Remove stored token locally and from Supabase
   Future<void> removeToken() async {
-    try {
-      // Remove locally
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove(_tokenKey);
-      await prefs.remove(_tokenTimestampKey);
-
-      // Remove from Supabase
-      await _removeTokenFromSupabase();
-
-      // Delete from Firebase if available
-      if (isAvailable) {
-        await NotificationService.instance.deleteToken();
-      } else {
-        FirebaseService.logServiceAttempt('FCM', 'deleteToken');
-      }
-
-      if (kDebugMode) {
-        print('🗑️ FCM Token removed successfully');
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('❌ Failed to remove FCM token: $e');
-      }
-    }
+    await _coreService.deleteToken();
   }
 
   /// Store token in Supabase user profile
@@ -217,65 +94,21 @@ class FCMTokenService {
       final supabase = Supabase.instance.client;
       final user = supabase.auth.currentUser;
 
-      if (user == null) {
+      if (user != null) {
+        await supabase.from('user_profiles').upsert({
+          'user_id': user.id,
+          'fcm_token': token,
+          'token_updated_at': DateTime.now().toIso8601String(),
+          'platform': Platform.operatingSystem,
+        });
+
         if (kDebugMode) {
-          print('⚠️ No authenticated user, cannot store FCM token in Supabase');
+          debugPrint('☁️ FCM Token stored in Supabase user profile');
         }
-        return;
-      }
-
-      // Update user metadata with FCM token
-      await supabase.auth.updateUser(
-        UserAttributes(
-          data: {
-            'fcm_token': token,
-            'fcm_token_updated_at': DateTime.now().toIso8601String(),
-            'device_platform': defaultTargetPlatform.name,
-          },
-        ),
-      );
-
-      // Also store in a dedicated table for better querying
-      await supabase.from('user_fcm_tokens').upsert({
-        'user_id': user.id,
-        'fcm_token': token,
-        'device_platform': defaultTargetPlatform.name,
-        'updated_at': DateTime.now().toIso8601String(),
-      });
-
-      if (kDebugMode) {
-        print('✅ FCM Token stored in Supabase');
       }
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Failed to store FCM token in Supabase: $e');
-      }
-      // Don't throw - this is non-critical for local functionality
-    }
-  }
-
-  /// Remove token from Supabase user profile
-  Future<void> _removeTokenFromSupabase() async {
-    try {
-      final supabase = Supabase.instance.client;
-      final user = supabase.auth.currentUser;
-
-      if (user == null) return;
-
-      // Remove from user metadata
-      await supabase.auth.updateUser(
-        UserAttributes(data: {'fcm_token': null, 'fcm_token_updated_at': null}),
-      );
-
-      // Remove from dedicated table
-      await supabase.from('user_fcm_tokens').delete().eq('user_id', user.id);
-
-      if (kDebugMode) {
-        print('✅ FCM Token removed from Supabase');
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('❌ Failed to remove FCM token from Supabase: $e');
+        debugPrint('❌ Failed to store FCM token in Supabase: $e');
       }
     }
   }
@@ -333,11 +166,11 @@ class FCMTokenService {
       await NotificationService.instance.subscribeToTopic(topic);
 
       if (kDebugMode) {
-        print('✅ Subscribed to user topic: $topic');
+        debugPrint('✅ Subscribed to user topic: $topic');
       }
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Failed to subscribe to user topic: $e');
+        debugPrint('❌ Failed to subscribe to user topic: $e');
       }
     }
   }
@@ -354,11 +187,11 @@ class FCMTokenService {
       await NotificationService.instance.unsubscribeFromTopic(topic);
 
       if (kDebugMode) {
-        print('✅ Unsubscribed from user topic: $topic');
+        debugPrint('✅ Unsubscribed from user topic: $topic');
       }
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Failed to unsubscribe from user topic: $e');
+        debugPrint('❌ Failed to unsubscribe from user topic: $e');
       }
     }
   }
