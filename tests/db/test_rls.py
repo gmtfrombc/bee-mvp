@@ -22,7 +22,6 @@ Usage:
 """
 
 import psycopg2
-import pytest
 
 
 class TestEngagementEventsRLS:
@@ -80,8 +79,10 @@ class TestEngagementEventsRLS:
             )
 
             # Verify both events were inserted (should see 2 total without RLS context)
-            cursor.execute("SELECT COUNT(*) FROM engagement_events WHERE user_id IN (%s, %s)",
-                           (self.user_a_id, self.user_b_id))
+            cursor.execute(
+                "SELECT COUNT(*) FROM engagement_events WHERE user_id IN (%s, %s)",
+                (self.user_a_id, self.user_b_id),
+            )
             total_events = cursor.fetchone()[0]
             assert total_events == 2, f"Expected 2 events inserted, got {total_events}"
 
@@ -96,7 +97,9 @@ class TestEngagementEventsRLS:
             # User A should see only their own event (1 event)
             cursor.execute("SELECT COUNT(*) FROM engagement_events")
             user_a_total_visible = cursor.fetchone()[0]
-            assert user_a_total_visible == 1, f"User A should see only 1 event, saw {user_a_total_visible}"
+            assert (
+                user_a_total_visible == 1
+            ), f"User A should see only 1 event, saw {user_a_total_visible}"
 
             # User A should see their specific event
             cursor.execute(
@@ -125,7 +128,9 @@ class TestEngagementEventsRLS:
             # User B should see only their own event (1 event)
             cursor.execute("SELECT COUNT(*) FROM engagement_events")
             user_b_total_visible = cursor.fetchone()[0]
-            assert user_b_total_visible == 1, f"User B should see only 1 event, saw {user_b_total_visible}"
+            assert (
+                user_b_total_visible == 1
+            ), f"User B should see only 1 event, saw {user_b_total_visible}"
 
             # User B should see their specific event
             cursor.execute(
@@ -189,12 +194,13 @@ class TestEngagementEventsRLS:
                 (self.user_a_id,),
             )
             authorized_count = cursor.fetchone()[0]
-            assert authorized_count == 1, "User should be able to insert their own events"
+            assert (
+                authorized_count == 1
+            ), "User should be able to insert their own events"
 
             # Step 2: Test unauthorized insert (User A trying to insert for User B)
             # This should fail with a database error due to RLS policy violation
             insert_failed = False
-            error_message = ""
 
             try:
                 cursor.execute(
@@ -206,12 +212,13 @@ class TestEngagementEventsRLS:
                 )
                 # If we reach here, the unauthorized insert succeeded (SECURITY BUG!)
                 insert_failed = False
-            except psycopg2.Error as e:
+            except psycopg2.Error:
                 # This is expected - unauthorized insert should fail
                 insert_failed = True
-                error_message = str(e)
 
-            assert insert_failed, f"Unauthorized insert should have failed but succeeded. This is a CRITICAL SECURITY BUG!"
+            assert (
+                insert_failed
+            ), "Unauthorized insert should have failed but succeeded. This is a CRITICAL SECURITY BUG!"
 
             # Step 3: Verify no unauthorized data was inserted
             # Reset to admin context to check all data
@@ -225,7 +232,9 @@ class TestEngagementEventsRLS:
                 (self.user_b_id,),
             )
             unauthorized_count = cursor.fetchone()[0]
-            assert unauthorized_count == 0, "No unauthorized events should exist in database"
+            assert (
+                unauthorized_count == 0
+            ), "No unauthorized events should exist in database"
 
             # Step 4: Test that User B can insert for themselves
             cursor.execute(
@@ -258,7 +267,9 @@ class TestEngagementEventsRLS:
             # User B should not see User A's event, and vice versa
             cursor.execute("SELECT COUNT(*) FROM engagement_events")
             user_b_visible_total = cursor.fetchone()[0]
-            assert user_b_visible_total == 1, f"User B should only see 1 event (their own), saw {user_b_visible_total}"
+            assert (
+                user_b_visible_total == 1
+            ), f"User B should only see 1 event (their own), saw {user_b_visible_total}"
 
         finally:
             # Clean up test data (use admin context)
@@ -300,8 +311,10 @@ class TestEngagementEventsRLS:
             )
 
             # Verify test data was inserted (should see 2 events as admin)
-            cursor.execute("SELECT COUNT(*) FROM engagement_events WHERE user_id IN (%s, %s)",
-                           (self.user_a_id, self.user_b_id))
+            cursor.execute(
+                "SELECT COUNT(*) FROM engagement_events WHERE user_id IN (%s, %s)",
+                (self.user_a_id, self.user_b_id),
+            )
             admin_count = cursor.fetchone()[0]
             assert admin_count == 2, f"Expected 2 test events, got {admin_count}"
 
@@ -312,18 +325,28 @@ class TestEngagementEventsRLS:
             # Anonymous user should see 0 events (critical security test)
             cursor.execute("SELECT COUNT(*) FROM engagement_events")
             anon_count = cursor.fetchone()[0]
-            assert anon_count == 0, f"Anonymous users should not see any events, saw {anon_count} events. CRITICAL SECURITY BUG!"
+            assert (
+                anon_count == 0
+            ), f"Anonymous users should not see any events, saw {anon_count} events. CRITICAL SECURITY BUG!"
 
             # Test specific queries that anonymous users should not access
             cursor.execute(
-                "SELECT COUNT(*) FROM engagement_events WHERE user_id = %s", (self.user_a_id,))
+                "SELECT COUNT(*) FROM engagement_events WHERE user_id = %s",
+                (self.user_a_id,),
+            )
             anon_user_a_count = cursor.fetchone()[0]
-            assert anon_user_a_count == 0, "Anonymous users should not see User A's events"
+            assert (
+                anon_user_a_count == 0
+            ), "Anonymous users should not see User A's events"
 
             cursor.execute(
-                "SELECT COUNT(*) FROM engagement_events WHERE user_id = %s", (self.user_b_id,))
+                "SELECT COUNT(*) FROM engagement_events WHERE user_id = %s",
+                (self.user_b_id,),
+            )
             anon_user_b_count = cursor.fetchone()[0]
-            assert anon_user_b_count == 0, "Anonymous users should not see User B's events"
+            assert (
+                anon_user_b_count == 0
+            ), "Anonymous users should not see User B's events"
 
             # Step 3: Test anonymous INSERT access (should fail)
             insert_failed = False
@@ -341,7 +364,9 @@ class TestEngagementEventsRLS:
                 # This is expected - anonymous insert should fail
                 insert_failed = True
 
-            assert insert_failed, "Anonymous users should not be able to insert events. CRITICAL SECURITY BUG!"
+            assert (
+                insert_failed
+            ), "Anonymous users should not be able to insert events. CRITICAL SECURITY BUG!"
 
             # Step 4: Verify no anonymous data was inserted
             cursor.execute("RESET request.jwt.claims")  # Admin context
@@ -352,7 +377,9 @@ class TestEngagementEventsRLS:
             """
             )
             anon_insert_count = cursor.fetchone()[0]
-            assert anon_insert_count == 0, "No anonymous events should exist in database"
+            assert (
+                anon_insert_count == 0
+            ), "No anonymous events should exist in database"
 
             # Step 5: Verify data still exists and users can still access their own data
             # Test that User A can still see their event
@@ -365,7 +392,9 @@ class TestEngagementEventsRLS:
 
             cursor.execute("SELECT COUNT(*) FROM engagement_events")
             user_a_count = cursor.fetchone()[0]
-            assert user_a_count == 1, "User A should still be able to see their own event after anonymous test"
+            assert (
+                user_a_count == 1
+            ), "User A should still be able to see their own event after anonymous test"
 
         finally:
             # Clean up test data (use admin context)
