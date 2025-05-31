@@ -2,9 +2,9 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../domain/models/notification_models.dart';
 import '../domain/models/notification_types.dart';
+import '../domain/services/notification_preferences_service.dart';
 import '../../services/notification_service.dart';
 import '../../services/fcm_token_service.dart';
-import '../../services/notification_preferences_service.dart';
 import '../../services/notification_ab_testing_service.dart' as ab_service;
 
 /// Unified notification testing framework

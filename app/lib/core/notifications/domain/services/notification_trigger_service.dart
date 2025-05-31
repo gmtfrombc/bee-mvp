@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../../services/notification_preferences_service.dart';
+import 'notification_preferences_service.dart';
 import '../models/notification_types.dart';
 
 /// Domain service responsible for triggering push notifications and managing
@@ -66,7 +66,7 @@ class NotificationTriggerService {
           'user_id': userId,
           'trigger_type': triggerType.name,
           'notification_type': notificationType?.name,
-          'user_preferences': _prefsService.getAllPreferences(),
+          'user_preferences': _prefsService.getDebugInfo(),
           if (momentumData != null) 'momentum_data': momentumData.toJson(),
         },
       );
