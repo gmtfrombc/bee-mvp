@@ -5,6 +5,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 
 import 'background_notification_handler.dart';
 import 'notification_deep_link_service.dart';
+import '../notifications/domain/models/notification_models.dart';
 import '../../features/momentum/presentation/providers/momentum_api_provider.dart';
 
 /// Service for dispatching notification actions and coordinating app state

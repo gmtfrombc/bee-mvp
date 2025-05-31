@@ -1,29 +1,45 @@
 # Notification System Architecture
 
 ## Migration Status
-- [ ] Domain Models
+- [x] Domain Models ✅ **COMPLETE** - Sprint 1 (Unified models created)
 - [ ] Testing Infrastructure  
 - [ ] Core Service
 - [ ] Content & Trigger Services
 - [ ] Analytics Service
 - [ ] Infrastructure Layer
 
-## Current Architecture (Sprint 0 - Baseline)
+## Current Architecture (Sprint 1 - Domain Models Complete)
 
-### Services Being Consolidated
+### ✅ Completed in Sprint 1
+- **Domain Models Created:** Unified notification data models at `app/lib/core/notifications/domain/models/`
+  - `notification_models.dart` (420 lines) - All data classes consolidated
+  - `notification_types.dart` (150 lines) - All enums and constants unified
+- **Core Services Updated:** 4 core services successfully migrated to use unified models
+  - `notification_content_service.dart` ✅ - Updated & tested
+  - `background_notification_handler.dart` ✅ - Import fixed
+  - `notification_preferences_service.dart` ✅ - Using unified types
+  - `notification_action_dispatcher.dart` ✅ - Import updated
+- **UI Components Updated:** Notification UI widgets now use unified enums
+  - `notification_option_widgets.dart` ✅ - Uses unified `NotificationFrequency`
+  - `notification_settings_form.dart` ✅ - Form uses unified types
+  - `push_notification_trigger_service.dart` ✅ - Uses `NotificationType`
+- **All Tests Passing:** ✅ 405 tests with 0 failures
+- **Static Analysis Clean:** ✅ No issues found
+
+### Services Being Consolidated (Remaining)
 - `notification_test_validator.dart` (590 lines) - Testing logic mixed with business logic
 - `notification_ab_testing_service.dart` (516 lines) - Overlaps with analytics
-- `push_notification_trigger_service.dart` (512 lines) - Duplicates content service functionality
-- `notification_test_generator.dart` (505 lines) - Massive testing service
+- `push_notification_trigger_service.dart` (512 lines) - ✅ **Updated to use unified models**
+- `notification_test_generator.dart` (505 lines) - Massive testing service  
 - `notification_deep_link_service.dart` (500 lines) - Navigation logic scattered
 - `notification_service.dart` (498 lines) - Core FCM + permissions mixed
-- `notification_content_service.dart` (456 lines) - Content generation isolated
-- `notification_action_dispatcher.dart` (409 lines) - Action handling fragmented
-- `background_notification_handler.dart` (400 lines) - Background processing unclear
-- `notification_preferences_service.dart` (320 lines) - User settings isolated
+- `notification_content_service.dart` (456 lines) - ✅ **Updated & tested**
+- `notification_action_dispatcher.dart` (409 lines) - ✅ **Updated to use unified models**
+- `background_notification_handler.dart` (400 lines) - ✅ **Updated to use unified models**
+- `notification_preferences_service.dart` (320 lines) - ✅ **Using unified types**
 - `notification_testing_service.dart` (259 lines) - Coordinator for test services
 
-**Total: 11 services, 5,668 lines**
+**Remaining: 7 services to consolidate in future sprints**
 
 ### Target Architecture
 ```
@@ -77,11 +93,11 @@ app/lib/core/notifications/
 
 ## Sprint Progress
 - [x] Sprint 0: Analysis & Setup Complete
-- [ ] Sprint 1: Unified Domain Models
-- [ ] Sprint 2: Testing Infrastructure
-- [ ] Sprint 3: Core FCM Service
-- [ ] Sprint 4: Content & Trigger Services
-- [ ] Sprint 5: Analytics & A/B Testing
-- [ ] Sprint 6: Infrastructure Layer
-- [ ] Sprint 7: Final Integration
-- [ ] Sprint 8: Cleanup & Documentation 
+- [x] Sprint 1: Unified Domain Models ✅ **COMPLETE** (420+150 lines created, 4 services migrated, 405 tests passing)
+- [ ] Sprint 2: Testing Infrastructure (Target: Consolidate test services into unified framework)
+- [ ] Sprint 3: Core FCM Service (Target: Clean core notification service)
+- [ ] Sprint 4: Content & Trigger Services (Target: Merge content generation logic)
+- [ ] Sprint 5: Analytics & A/B Testing (Target: Unified analytics service)
+- [ ] Sprint 6: Infrastructure Layer (Target: Dispatcher and deep link services)
+- [ ] Sprint 7: Final Integration (Target: Remove old services, update main.dart)
+- [ ] Sprint 8: Cleanup & Documentation (Target: Final tests, docs, performance validation) 
