@@ -45,18 +45,23 @@ class PerformanceTester:
         """Get database configuration from environment or defaults"""
         return {
             "host": os.getenv("DB_HOST", "localhost"),
-            # Default Supabase local port
-            "port": os.getenv("DB_PORT", "54322"),
-            "database": os.getenv("DB_NAME", "postgres"),
-            "user": os.getenv("DB_USER", "postgres"),
-            "password": os.getenv("DB_PASSWORD", "postgres"),
+            # Use standard PostgreSQL port (same as test suite)
+            "port": os.getenv("DB_PORT", "5432"),
+            "database": os.getenv("DB_NAME", "bee_test"),
+            "user": os.getenv("DB_USER", "gmtfr"),
+            "password": os.getenv("DB_PASSWORD", ""),
         }
 
     def _get_connection(
         self, user_id: Optional[str] = None
     ) -> psycopg2.extensions.connection:
         """Get database connection with optional user context"""
-        conn = psycopg2.connect(**self.db_config)
+        # Filter out empty password to avoid connection issues
+        config = self.db_config.copy()
+        if not config.get("password"):
+            config.pop("password", None)
+
+        conn = psycopg2.connect(**config)
         conn.autocommit = True
 
         if user_id:
