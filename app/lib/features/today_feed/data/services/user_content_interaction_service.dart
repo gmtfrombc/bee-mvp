@@ -301,21 +301,14 @@ class UserContentInteractionService {
   /// Get pending interactions count for diagnostics
   int getPendingInteractionsCount() => _pendingInteractions.length;
 
-  /// Force sync pending interactions
+  /// Sync pending interactions to database when connectivity is restored
+  ///
+  /// Enhanced for T1.3.4.3 to include Epic 2.1 engagement event logging
+  /// for offline interactions when they are synced
   Future<Map<String, dynamic>> syncPendingInteractions() async {
-    await initialize();
-
     if (_pendingInteractions.isEmpty) {
+      debugPrint('📡 No pending interactions to sync');
       return {'synced': 0, 'failed': 0, 'pending': 0};
-    }
-
-    if (!ConnectivityService.isOnline) {
-      return {
-        'synced': 0,
-        'failed': 0,
-        'pending': _pendingInteractions.length,
-        'error': 'Device offline',
-      };
     }
 
     int synced = 0;
@@ -325,7 +318,12 @@ class UserContentInteractionService {
 
     for (final interaction in toSync) {
       try {
+        // Sync interaction to database
         await _syncInteractionToDatabase(interaction);
+
+        // Also log engagement event for Epic 2.1 integration
+        await _logEngagementEventFromInteraction(interaction);
+
         synced++;
       } catch (e) {
         debugPrint('❌ Failed to sync pending interaction: $e');
@@ -343,6 +341,67 @@ class UserContentInteractionService {
       'failed': failed,
       'pending': _pendingInteractions.length,
     };
+  }
+
+  /// Log engagement event from stored interaction data
+  ///
+  /// Helper method for T1.3.4.3 to ensure Epic 2.1 integration
+  /// works for offline interactions when they are synced
+  Future<void> _logEngagementEventFromInteraction(
+    Map<String, dynamic> interaction,
+  ) async {
+    try {
+      final interactionType = interaction['interaction_type'] as String?;
+      if (interactionType == null) return;
+
+      // Map interaction type string back to enum
+      final type = TodayFeedInteractionType.values.firstWhere(
+        (t) => t.value == interactionType,
+        orElse: () => TodayFeedInteractionType.tap,
+      );
+
+      final eventType = _engagementEventTypes[type] ?? 'today_feed_interaction';
+
+      final eventData = {
+        'user_id': interaction['user_id'],
+        'event_type': eventType,
+        'value': {
+          'content_id': interaction['content_id'],
+          'content_date': interaction['content_date'],
+          'topic_category': interaction['content_category'],
+          'interaction_type': interactionType,
+          'content_title': interaction['content_title'],
+          if (interaction['session_duration'] != null)
+            'session_duration': interaction['session_duration'],
+          if (interaction['session_duration'] != null)
+            'duration_minutes':
+                ((interaction['session_duration'] as int) / 60).round(),
+          'timestamp': interaction['interaction_timestamp'],
+          'epic_source': 'epic_1_3_today_feed',
+          'integration_version': 'T1.3.4.3',
+          'sync_type': 'offline_sync',
+          if (interaction['metadata'] != null)
+            ...interaction['metadata'] as Map<String, dynamic>,
+        },
+        'metadata': {
+          'source': 'today_feed_interaction_service_sync',
+          'app_version': '1.0.0', // TODO: Get from package info
+          'platform': defaultTargetPlatform.name,
+          'service_version': 'UserContentInteractionService_v1.0',
+          'epic_integration': 'Epic_2.1_engagement_events_logging',
+          'sync_source': 'offline_interaction',
+        },
+      };
+
+      await _supabase.from('engagement_events').insert(eventData);
+
+      debugPrint(
+        '✅ Engagement event logged for synced interaction: $eventType (Epic 2.1)',
+      );
+    } catch (e) {
+      debugPrint('❌ Failed to log engagement event for synced interaction: $e');
+      // Don't rethrow - engagement event logging is supplementary
+    }
   }
 
   // Private helper methods
@@ -430,7 +489,7 @@ class UserContentInteractionService {
     }
   }
 
-  /// Log engagement event for Epic 2.3 integration
+  /// Log engagement event for Epic 2.1 integration
   Future<void> _logEngagementEvent({
     required String userId,
     required TodayFeedInteractionType type,
@@ -455,15 +514,27 @@ class UserContentInteractionService {
             'duration_minutes': (sessionDuration / 60).round(),
           'ai_confidence_score': content.aiConfidenceScore,
           'estimated_reading_minutes': content.estimatedReadingMinutes,
+          'timestamp': DateTime.now().toIso8601String(),
+          'epic_source': 'epic_1_3_today_feed',
+          'integration_version': 'T1.3.4.3',
           ...?additionalData,
+        },
+        'metadata': {
+          'source': 'today_feed_interaction_service',
+          'app_version': '1.0.0', // TODO: Get from package info
+          'platform': defaultTargetPlatform.name,
+          'service_version': 'UserContentInteractionService_v1.0',
+          'epic_integration': 'Epic_2.1_engagement_events_logging',
         },
       };
 
       await _supabase.from('engagement_events').insert(eventData);
 
-      debugPrint('✅ Engagement event logged: $eventType');
+      debugPrint(
+        '✅ Engagement event logged: $eventType (Epic 2.1 integration)',
+      );
     } catch (e) {
-      debugPrint('❌ Failed to log engagement event: $e');
+      debugPrint('❌ Failed to log engagement event to Epic 2.1 system: $e');
       // Don't rethrow - engagement event logging is supplementary
     }
   }
