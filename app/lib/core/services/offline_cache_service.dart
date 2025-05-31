@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart';
 import '../../features/momentum/domain/models/momentum_data.dart';
+import 'cache/offline/offline_cache_stats_service.dart';
 
 /// Enhanced service for caching momentum data offline with improved strategies
 class OfflineCacheService {
@@ -34,6 +35,10 @@ class OfflineCacheService {
     _prefs ??= await SharedPreferences.getInstance();
     await _validateCacheVersion();
     await _cleanupExpiredDataSafe(); // Use safe version during initialization
+
+    // Initialize statistics service
+    await OfflineCacheStatsService.initialize(_prefs!);
+
     _isInitialized = true;
   }
 
@@ -452,53 +457,13 @@ class OfflineCacheService {
   /// Get comprehensive cache statistics
   static Future<Map<String, dynamic>> getEnhancedCacheStats() async {
     await initialize();
-
-    final hasCachedData = _prefs!.containsKey(_momentumDataKey);
-    final cacheAge = await getCachedDataAge();
-    final pendingActions = await getPendingActions();
-    final queuedErrors = await getQueuedErrors();
-    final lastSyncAttempt = _prefs!.getString(_lastSyncAttemptKey);
-
-    // Calculate cache health score (0-100)
-    int healthScore = 100;
-    if (!hasCachedData) healthScore -= 40;
-    if (cacheAge != null && cacheAge.inHours > _defaultCacheValidityHours) {
-      healthScore -= 30;
-    }
-    if (pendingActions.length > 5) healthScore -= 20;
-    if (queuedErrors.length > 3) healthScore -= 10;
-
-    return {
-      'hasCachedData': hasCachedData,
-      'cacheAge': cacheAge?.inHours,
-      'cacheAgeMinutes': cacheAge?.inMinutes,
-      'isValid': await isCachedDataValid(),
-      'pendingActionsCount': pendingActions.length,
-      'queuedErrorsCount': queuedErrors.length,
-      'lastUpdate': _prefs!.getString(_lastUpdateKey),
-      'lastSyncAttempt': lastSyncAttempt,
-      'backgroundSyncEnabled': await isBackgroundSyncEnabled(),
-      'cacheVersion': _prefs!.getInt(_cacheVersionKey),
-      'healthScore': healthScore,
-      'hasWeeklyTrend': _prefs!.containsKey(_weeklyTrendKey),
-      'hasMomentumStats': _prefs!.containsKey(_momentumStatsKey),
-    };
+    return await OfflineCacheStatsService.getEnhancedCacheStats();
   }
 
   /// Get the age of cached data
   static Future<Duration?> getCachedDataAge() async {
     await initialize();
-
-    try {
-      final lastUpdateString = _prefs!.getString(_lastUpdateKey);
-      if (lastUpdateString == null) return null;
-
-      final lastUpdate = DateTime.parse(lastUpdateString);
-      return DateTime.now().difference(lastUpdate);
-    } catch (e) {
-      debugPrint('❌ Failed to get cache age: $e');
-      return null;
-    }
+    return await OfflineCacheStatsService.getCachedDataAge();
   }
 
   /// Queue an error for later reporting
@@ -625,7 +590,8 @@ class OfflineCacheService {
 
   /// Get cache statistics (legacy method for backward compatibility)
   static Future<Map<String, dynamic>> getCacheStats() async {
-    return await getEnhancedCacheStats();
+    await initialize();
+    return await OfflineCacheStatsService.getCacheStats();
   }
 
   // ============================================================================
@@ -711,8 +677,10 @@ class OfflineCacheService {
 
   /// Monitor cache size and trigger cleanup if needed
   static Future<void> checkCacheHealth() async {
+    await initialize();
+
     try {
-      final stats = await getEnhancedCacheStats();
+      final stats = await OfflineCacheStatsService.getEnhancedCacheStats();
       final healthScore = stats['healthScore'] as int;
 
       // If health score is low, trigger cleanup
