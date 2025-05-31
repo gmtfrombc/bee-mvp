@@ -23,6 +23,8 @@ jobs:
           chmod +x scripts/check_component_sizes.sh
           ./scripts/check_component_sizes.sh
         working-directory: .
+        env:
+          REFACTOR_MODE: true  # Sprint 0: Notification system refactor in progress
 
       # ---------- Flutter ----------
       - uses: subosito/flutter-action@v2
