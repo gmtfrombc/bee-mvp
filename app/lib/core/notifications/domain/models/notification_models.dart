@@ -565,3 +565,88 @@ class TestError {
     required this.severity,
   });
 }
+
+/// Test category validation
+/// Extracted from notification_test_validator.dart
+class TestCategoryValidation {
+  final String category;
+  Map<String, TestResult> tests = {};
+  int passCount = 0;
+  int failCount = 0;
+  double successRate = 0.0;
+
+  TestCategoryValidation({required this.category});
+
+  void calculateMetrics() {
+    passCount = tests.values.where((r) => r.success).length;
+    failCount = tests.length - passCount;
+    successRate = tests.isNotEmpty ? passCount / tests.length : 0.0;
+  }
+}
+
+/// Production readiness check
+/// Extracted from notification_test_validator.dart
+class ProductionReadinessCheck {
+  final bool isProductionReady;
+  final List<String> criticalTestsPassed;
+  final List<String> criticalTestsFailed;
+  final List<String> optionalTestsPassed;
+  final List<String> optionalTestsFailed;
+  final String report;
+
+  ProductionReadinessCheck({
+    required this.isProductionReady,
+    required this.criticalTestsPassed,
+    required this.criticalTestsFailed,
+    required this.optionalTestsPassed,
+    required this.optionalTestsFailed,
+    required this.report,
+  });
+}
+
+/// Performance benchmark validation
+/// Extracted from notification_test_validator.dart
+class PerformanceBenchmarkValidation {
+  bool fcmTokenValid = false;
+  String edgeFunctionResponseTime = 'unknown';
+  String deliveryPipelineEfficiency = 'unknown';
+  int overallScore = 0;
+
+  void calculateOverallScore() {
+    int score = 0;
+    if (fcmTokenValid) score += 30;
+    if (edgeFunctionResponseTime == 'good') score += 35;
+    if (deliveryPipelineEfficiency == 'efficient') score += 35;
+    overallScore = score;
+  }
+}
+
+/// Error analysis results
+/// Extracted from notification_test_validator.dart
+class ErrorAnalysis {
+  List<TestError> errors = [];
+  List<String> solutions = [];
+
+  void generateSolutions() {
+    solutions.clear();
+    for (final error in errors) {
+      switch (error.category) {
+        case ErrorCategory.configuration:
+          solutions.add('Check Firebase configuration and FCM setup');
+          break;
+        case ErrorCategory.permissions:
+          solutions.add('Request notification permissions from user');
+          break;
+        case ErrorCategory.connectivity:
+          solutions.add('Verify network connectivity and service endpoints');
+          break;
+        case ErrorCategory.delivery:
+          solutions.add('Check notification delivery pipeline configuration');
+          break;
+        case ErrorCategory.general:
+          solutions.add('Review general system configuration');
+          break;
+      }
+    }
+  }
+}
