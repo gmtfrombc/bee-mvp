@@ -190,7 +190,7 @@ class NotificationVariant {
         (e) => e.name == json['type'],
         orElse: () => VariantType.control,
       ),
-      config: json['config'] ?? {},
+      config: Map<String, dynamic>.from(json['config'] ?? {}),
     );
   }
 
@@ -226,7 +226,10 @@ class ABTest {
       description: json['description'],
       variants:
           (json['variants'] as List)
-              .map((v) => NotificationVariant.fromJson(v))
+              .map(
+                (v) =>
+                    NotificationVariant.fromJson(Map<String, dynamic>.from(v)),
+              )
               .toList(),
       trafficAllocation: Map<String, double>.from(json['traffic_allocation']),
       startDate: DateTime.parse(json['start_date']),
@@ -259,7 +262,7 @@ class ABTestResults {
       testName: json['test_name'],
       variants:
           (json['variants'] as List)
-              .map((v) => VariantResults.fromJson(v))
+              .map((v) => VariantResults.fromJson(Map<String, dynamic>.from(v)))
               .toList(),
       statisticalSignificance:
           (json['statistical_significance'] as num).toDouble(),
@@ -311,6 +314,7 @@ class NotificationAnalytics {
   final String deliveryStatus;
   final int count;
   final int uniqueUsers;
+  final double engagementScore;
 
   NotificationAnalytics({
     required this.notificationDate,
@@ -318,6 +322,7 @@ class NotificationAnalytics {
     required this.deliveryStatus,
     required this.count,
     required this.uniqueUsers,
+    required this.engagementScore,
   });
 
   factory NotificationAnalytics.fromJson(Map<String, dynamic> json) {
@@ -327,7 +332,62 @@ class NotificationAnalytics {
       deliveryStatus: json['delivery_status'] ?? '',
       count: json['count'] ?? 0,
       uniqueUsers: json['unique_users'] ?? 0,
+      engagementScore: (json['engagement_score'] as num?)?.toDouble() ?? 0.0,
     );
+  }
+}
+
+/// User interaction types for analytics tracking
+enum NotificationInteractionType {
+  opened,
+  clicked,
+  dismissed,
+  completed,
+  actionTaken,
+  shared,
+}
+
+/// User notification interaction record
+class NotificationInteraction {
+  final String id;
+  final String userId;
+  final String notificationId;
+  final NotificationInteractionType interactionType;
+  final Map<String, dynamic>? metadata;
+  final DateTime timestamp;
+
+  NotificationInteraction({
+    required this.id,
+    required this.userId,
+    required this.notificationId,
+    required this.interactionType,
+    this.metadata,
+    required this.timestamp,
+  });
+
+  factory NotificationInteraction.fromJson(Map<String, dynamic> json) {
+    return NotificationInteraction(
+      id: json['id'] ?? '',
+      userId: json['user_id'] ?? '',
+      notificationId: json['notification_id'] ?? '',
+      interactionType: NotificationInteractionType.values.firstWhere(
+        (type) => type.name == json['interaction_type'],
+        orElse: () => NotificationInteractionType.opened,
+      ),
+      metadata: json['metadata'] as Map<String, dynamic>?,
+      timestamp: DateTime.parse(json['timestamp']),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'user_id': userId,
+      'notification_id': notificationId,
+      'interaction_type': interactionType.name,
+      'metadata': metadata,
+      'timestamp': timestamp.toIso8601String(),
+    };
   }
 }
 
