@@ -356,36 +356,40 @@ class TodayFeedCacheHealthService {
             }
           }).length;
 
-      if (recentErrors > 5)
+      if (recentErrors > 5) {
         score -= 25;
-      else if (recentErrors > 2)
+      } else if (recentErrors > 2) {
         score -= 15;
-      else if (recentErrors > 0)
+      } else if (recentErrors > 0) {
         score -= 5;
+      }
 
       // Cache performance (20 points)
       final readTime = performanceMetrics['average_read_time_ms'] as int? ?? 0;
       final writeTime =
           performanceMetrics['average_write_time_ms'] as int? ?? 0;
 
-      if (readTime > 200 || writeTime > 100)
+      if (readTime > 200 || writeTime > 100) {
         score -= 20;
-      else if (readTime > 100 || writeTime > 50)
+      } else if (readTime > 100 || writeTime > 50) {
         score -= 10;
+      }
 
       // Cache utilization (15 points)
       final utilization = _calculateCacheUtilization(cacheStats);
-      if (utilization > 90)
+      if (utilization > 90) {
         score -= 15;
-      else if (utilization > 80)
+      } else if (utilization > 80) {
         score -= 10;
+      }
 
       // Integrity (10 points)
       final integrityScore = integrityCheck['integrity_score'] as int? ?? 100;
-      if (integrityScore < 60)
+      if (integrityScore < 60) {
         score -= 10;
-      else if (integrityScore < 80)
+      } else if (integrityScore < 80) {
         score -= 5;
+      }
 
       return score.clamp(0, 100);
     } catch (e) {

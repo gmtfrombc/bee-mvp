@@ -44,6 +44,39 @@ linter:
   rules:
     # avoid_print: false  # Uncomment to disable the `avoid_print` rule
     # prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes` rule
+    
+    # ==============================================================
+    # COMPONENT SIZE GOVERNANCE - BEE App Architecture Guidelines
+    # ==============================================================
+    # These rules enforce the component size limits established in
+    # docs/refactor/component_size_audit_refactor_plan.md
+    # 
+    # Guidelines:
+    # - Services: ≤500 lines
+    # - UI Components: ≤300 lines  
+    # - Screen Components: ≤400 lines (special consideration)
+    # - Modal Components: ≤250 lines
+    # - Models: Flexible (complex data structures acceptable)
+    # ==============================================================
+    
+    # Enable file length linting for component size governance
+    # Note: Dart analyzer doesn't have native file_length rule,
+    # but we enforce this through custom scripts and CI/CD
+    # See: scripts/check_component_sizes.sh
 
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options
+
+# ==============================================================
+# COMPONENT SIZE MONITORING
+# ==============================================================
+# Automated size checking is performed by:
+#
+# 1. Pre-commit hooks: .git/hooks/pre-commit
+# 2. CI/CD pipeline: .github/workflows/ci.yml  
+# 3. Manual auditing: scripts/check_component_sizes.sh
+# 4. Weekly reporting: scripts/component_size_audit.sh
+#
+# For violations, see refactoring guidelines:
+# docs/refactor/component_size_audit_refactor_plan.md
+# ==============================================================
