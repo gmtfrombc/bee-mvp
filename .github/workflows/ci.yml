@@ -179,6 +179,32 @@ jobs:
             ('22222222-2222-2222-2222-222222222222', 'test-user-b@example.com', 'encrypted', NOW(), NOW(), NOW())
           ON CONFLICT (id) DO NOTHING;
           
+          -- 🔧 RLS SECURITY FIX: Check if postgres user is superuser
+          -- If postgres is a superuser, create a non-superuser role for RLS testing
+          DO \$rls_fix\$
+          BEGIN
+              -- Check if postgres user is a superuser
+              IF EXISTS (SELECT 1 FROM pg_authid WHERE rolname = 'postgres' AND rolsuper = true) THEN
+                  -- Create non-superuser role for RLS testing
+                  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'rls_test_user') THEN
+                      CREATE ROLE rls_test_user WITH LOGIN NOSUPERUSER;
+                      ALTER ROLE rls_test_user PASSWORD 'postgres';
+                  END IF;
+                  
+                  -- Grant necessary permissions
+                  GRANT USAGE ON SCHEMA auth TO rls_test_user;
+                  GRANT USAGE ON SCHEMA public TO rls_test_user;
+                  GRANT SELECT, INSERT, UPDATE, DELETE ON auth.users TO rls_test_user;
+                  GRANT SELECT, INSERT, UPDATE, DELETE ON engagement_events TO rls_test_user;
+                  GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO rls_test_user;
+                  GRANT USAGE ON ALL SEQUENCES IN SCHEMA auth TO rls_test_user;
+                  
+                  RAISE NOTICE 'Created rls_test_user for proper RLS testing (postgres is superuser)';
+              ELSE
+                  RAISE NOTICE 'postgres user is not a superuser - RLS should work correctly';
+              END IF;
+          END \$rls_fix\$;
+          
           -- Verify RLS is working
           SELECT 'RLS enabled: ' || pg_class.relrowsecurity 
           FROM pg_class 
@@ -188,6 +214,14 @@ jobs:
           SELECT 'Policies created: ' || COUNT(*) 
           FROM pg_policies 
           WHERE tablename = 'engagement_events';
+          
+          -- Show postgres user type for debugging
+          SELECT 'postgres user type: ' || 
+                 CASE WHEN rolsuper THEN 'SUPERUSER (will use rls_test_user)' 
+                      ELSE 'Regular user (RLS enforced)' 
+                 END
+          FROM pg_authid 
+          WHERE rolname = 'postgres';
           "
 
       - name: Run RLS Tests
