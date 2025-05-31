@@ -94,7 +94,7 @@ jobs:
           );
           
           -- Create auth.uid() function to simulate Supabase auth
-          CREATE OR REPLACE FUNCTION auth.uid() RETURNS UUID AS \$\$
+          CREATE OR REPLACE FUNCTION auth.uid() RETURNS UUID AS \$function\$
           BEGIN
             RETURN NULLIF(
               current_setting('request.jwt.claims', true)::jsonb->>'sub',
@@ -104,7 +104,7 @@ jobs:
             WHEN others THEN
               RETURN NULL;
           END;
-          \$\$ LANGUAGE plpgsql SECURITY DEFINER;
+          \$function\$ LANGUAGE plpgsql SECURITY DEFINER;
           
           -- Create engagement_events table matching production schema
           CREATE TABLE IF NOT EXISTS engagement_events (
@@ -127,7 +127,7 @@ jobs:
           ON engagement_events(event_type);
           
           -- Add constraints with PostgreSQL 14 compatible syntax
-          DO $$ 
+          DO \$do\$ 
           BEGIN
               IF NOT EXISTS (
                   SELECT 1 FROM information_schema.table_constraints 
@@ -138,9 +138,9 @@ jobs:
                   ADD CONSTRAINT check_event_type_not_empty 
                   CHECK (event_type != '' AND LENGTH(TRIM(event_type)) > 0);
               END IF;
-          END $$;
+          END \$do\$;
           
-          DO $$ 
+          DO \$do2\$ 
           BEGIN
               IF NOT EXISTS (
                   SELECT 1 FROM information_schema.table_constraints 
@@ -151,7 +151,7 @@ jobs:
                   ADD CONSTRAINT check_timestamp_not_future 
                   CHECK (timestamp <= NOW() + INTERVAL '1 minute');
               END IF;
-          END $$;
+          END \$do2\$;
           
           -- Enable RLS (MUST match production)
           ALTER TABLE engagement_events ENABLE ROW LEVEL SECURITY;
