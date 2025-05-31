@@ -14,7 +14,7 @@ class FirebaseService {
   static const String projectId = 'bee-mvp-3ab43';
 
   /// Initialize Firebase Core with enhanced error handling
-  /// Uses the generated firebase_options.dart configuration
+  /// Uses the generated firebase_options.dart configuration if available
   static Future<void> initialize() async {
     if (_initialized) return;
 
@@ -40,8 +40,8 @@ class FirebaseService {
         print('💡 Notifications and analytics will be disabled');
       }
 
-      // Don't rethrow in development - allow app to continue
-      if (!Environment.isDevelopment) {
+      // Don't rethrow in development/test environments - allow app to continue
+      if (!Environment.isDevelopment && !kDebugMode) {
         rethrow;
       }
     }

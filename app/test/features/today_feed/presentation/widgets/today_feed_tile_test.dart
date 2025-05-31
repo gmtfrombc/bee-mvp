@@ -555,8 +555,8 @@ void main() {
           (widget) =>
               widget is Container &&
               widget.decoration is BoxDecoration &&
-              (widget.decoration as BoxDecoration).color?.value ==
-                  (Colors.blue.withValues(alpha: 0.05).value),
+              (widget.decoration as BoxDecoration).color?.toARGB32() ==
+                  (Colors.blue.withValues(alpha: 0.05).toARGB32()),
         );
         expect(linkContainers, findsWidgets);
       });
