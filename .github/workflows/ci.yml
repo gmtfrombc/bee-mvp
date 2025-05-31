@@ -126,14 +126,32 @@ jobs:
           CREATE INDEX IF NOT EXISTS idx_engagement_events_type 
           ON engagement_events(event_type);
           
-          -- Add constraints
-          ALTER TABLE engagement_events 
-          ADD CONSTRAINT IF NOT EXISTS check_event_type_not_empty 
-          CHECK (event_type != '' AND LENGTH(TRIM(event_type)) > 0);
+          -- Add constraints with PostgreSQL 14 compatible syntax
+          DO $$ 
+          BEGIN
+              IF NOT EXISTS (
+                  SELECT 1 FROM information_schema.table_constraints 
+                  WHERE constraint_name = 'check_event_type_not_empty'
+                  AND table_name = 'engagement_events'
+              ) THEN
+                  ALTER TABLE engagement_events 
+                  ADD CONSTRAINT check_event_type_not_empty 
+                  CHECK (event_type != '' AND LENGTH(TRIM(event_type)) > 0);
+              END IF;
+          END $$;
           
-          ALTER TABLE engagement_events 
-          ADD CONSTRAINT IF NOT EXISTS check_timestamp_not_future 
-          CHECK (timestamp <= NOW() + INTERVAL '1 minute');
+          DO $$ 
+          BEGIN
+              IF NOT EXISTS (
+                  SELECT 1 FROM information_schema.table_constraints 
+                  WHERE constraint_name = 'check_timestamp_not_future'
+                  AND table_name = 'engagement_events'
+              ) THEN
+                  ALTER TABLE engagement_events 
+                  ADD CONSTRAINT check_timestamp_not_future 
+                  CHECK (timestamp <= NOW() + INTERVAL '1 minute');
+              END IF;
+          END $$;
           
           -- Enable RLS (MUST match production)
           ALTER TABLE engagement_events ENABLE ROW LEVEL SECURITY;
