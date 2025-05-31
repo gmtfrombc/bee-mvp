@@ -53,16 +53,39 @@ class TestEngagementEventsRLS:
         cursor = self.conn.cursor()
 
         try:
-            # Insert event for user A
+            # Clean up any existing test data first
+            cursor.execute(
+                "DELETE FROM engagement_events WHERE user_id IN (%s, %s)",
+                (self.user_a_id, self.user_b_id),
+            )
+
+            # Step 1: Insert events for BOTH users (without RLS context)
+            # Use service role context to bypass RLS for test setup
+            cursor.execute("RESET request.jwt.claims")
+
             cursor.execute(
                 """
                 INSERT INTO engagement_events (user_id, event_type, value)
-                VALUES (%s, 'test_event', '{"test": true}')
+                VALUES (%s, 'test_event_user_a', '{"test": "user_a_data"}')
             """,
                 (self.user_a_id,),
             )
 
-            # Set session to user A context
+            cursor.execute(
+                """
+                INSERT INTO engagement_events (user_id, event_type, value)
+                VALUES (%s, 'test_event_user_b', '{"test": "user_b_data"}')
+            """,
+                (self.user_b_id,),
+            )
+
+            # Verify both events were inserted (should see 2 total without RLS context)
+            cursor.execute("SELECT COUNT(*) FROM engagement_events WHERE user_id IN (%s, %s)",
+                           (self.user_a_id, self.user_b_id))
+            total_events = cursor.fetchone()[0]
+            assert total_events == 2, f"Expected 2 events inserted, got {total_events}"
+
+            # Step 2: Test User A isolation
             cursor.execute(
                 """
                 SET LOCAL request.jwt.claims = %s
@@ -70,23 +93,28 @@ class TestEngagementEventsRLS:
                 (f'{{"sub": "{self.user_a_id}"}}',),
             )
 
-            # User A should see their own event
+            # User A should see only their own event (1 event)
+            cursor.execute("SELECT COUNT(*) FROM engagement_events")
+            user_a_total_visible = cursor.fetchone()[0]
+            assert user_a_total_visible == 1, f"User A should see only 1 event, saw {user_a_total_visible}"
+
+            # User A should see their specific event
             cursor.execute(
                 "SELECT COUNT(*) FROM engagement_events WHERE user_id = %s",
                 (self.user_a_id,),
             )
-            user_a_count = cursor.fetchone()[0]
-            assert user_a_count >= 1, "User A should see their own events"
+            user_a_own_count = cursor.fetchone()[0]
+            assert user_a_own_count == 1, "User A should see their own event"
 
-            # User A should NOT see user B's events (if any exist)
+            # User A should NOT see user B's events (critical security test)
             cursor.execute(
                 "SELECT COUNT(*) FROM engagement_events WHERE user_id = %s",
                 (self.user_b_id,),
             )
-            user_b_count = cursor.fetchone()[0]
-            assert user_b_count == 0, "User A should not see user B's events"
+            user_b_from_a_count = cursor.fetchone()[0]
+            assert user_b_from_a_count == 0, "User A should not see user B's events"
 
-            # Switch to user B context
+            # Step 3: Test User B isolation
             cursor.execute(
                 """
                 SET LOCAL request.jwt.claims = %s
@@ -94,7 +122,20 @@ class TestEngagementEventsRLS:
                 (f'{{"sub": "{self.user_b_id}"}}',),
             )
 
-            # User B should NOT see user A's events
+            # User B should see only their own event (1 event)
+            cursor.execute("SELECT COUNT(*) FROM engagement_events")
+            user_b_total_visible = cursor.fetchone()[0]
+            assert user_b_total_visible == 1, f"User B should see only 1 event, saw {user_b_total_visible}"
+
+            # User B should see their specific event
+            cursor.execute(
+                "SELECT COUNT(*) FROM engagement_events WHERE user_id = %s",
+                (self.user_b_id,),
+            )
+            user_b_own_count = cursor.fetchone()[0]
+            assert user_b_own_count == 1, "User B should see their own event"
+
+            # User B should NOT see user A's events (critical security test)
             cursor.execute(
                 "SELECT COUNT(*) FROM engagement_events WHERE user_id = %s",
                 (self.user_a_id,),
@@ -104,6 +145,8 @@ class TestEngagementEventsRLS:
 
         finally:
             # Clean up test data
+            # Remove RLS context for cleanup
+            cursor.execute("RESET request.jwt.claims")
             cursor.execute(
                 "DELETE FROM engagement_events WHERE user_id IN (%s, %s)",
                 (self.user_a_id, self.user_b_id),
@@ -114,7 +157,13 @@ class TestEngagementEventsRLS:
         cursor = self.conn.cursor()
 
         try:
-            # Set session to user A context
+            # Clean up any existing test data first
+            cursor.execute(
+                "DELETE FROM engagement_events WHERE user_id IN (%s, %s)",
+                (self.user_a_id, self.user_b_id),
+            )
+
+            # Step 1: Test authorized insert (User A inserting for themselves)
             cursor.execute(
                 """
                 SET LOCAL request.jwt.claims = %s
@@ -126,34 +175,94 @@ class TestEngagementEventsRLS:
             cursor.execute(
                 """
                 INSERT INTO engagement_events (user_id, event_type, value)
-                VALUES (%s, 'test_insert', '{"test": "insert"}')
+                VALUES (%s, 'test_authorized_insert', '{"test": "authorized"}')
             """,
                 (self.user_a_id,),
             )
 
-            # Verify the insert worked
+            # Verify the authorized insert worked
             cursor.execute(
                 """
                 SELECT COUNT(*) FROM engagement_events 
-                WHERE user_id = %s AND event_type = 'test_insert'
+                WHERE user_id = %s AND event_type = 'test_authorized_insert'
             """,
                 (self.user_a_id,),
             )
-            count = cursor.fetchone()[0]
-            assert count >= 1, "User should be able to insert their own events"
+            authorized_count = cursor.fetchone()[0]
+            assert authorized_count == 1, "User should be able to insert their own events"
 
-            # User A should NOT be able to insert for user B
-            with pytest.raises(psycopg2.Error):
+            # Step 2: Test unauthorized insert (User A trying to insert for User B)
+            # This should fail with a database error due to RLS policy violation
+            insert_failed = False
+            error_message = ""
+
+            try:
                 cursor.execute(
                     """
                     INSERT INTO engagement_events (user_id, event_type, value)
-                    VALUES (%s, 'test_insert_forbidden', '{"test": "forbidden"}')
+                    VALUES (%s, 'test_unauthorized_insert', '{"test": "should_fail"}')
                 """,
                     (self.user_b_id,),
                 )
+                # If we reach here, the unauthorized insert succeeded (SECURITY BUG!)
+                insert_failed = False
+            except psycopg2.Error as e:
+                # This is expected - unauthorized insert should fail
+                insert_failed = True
+                error_message = str(e)
+
+            assert insert_failed, f"Unauthorized insert should have failed but succeeded. This is a CRITICAL SECURITY BUG!"
+
+            # Step 3: Verify no unauthorized data was inserted
+            # Reset to admin context to check all data
+            cursor.execute("RESET request.jwt.claims")
+
+            cursor.execute(
+                """
+                SELECT COUNT(*) FROM engagement_events 
+                WHERE user_id = %s AND event_type = 'test_unauthorized_insert'
+            """,
+                (self.user_b_id,),
+            )
+            unauthorized_count = cursor.fetchone()[0]
+            assert unauthorized_count == 0, "No unauthorized events should exist in database"
+
+            # Step 4: Test that User B can insert for themselves
+            cursor.execute(
+                """
+                SET LOCAL request.jwt.claims = %s
+            """,
+                (f'{{"sub": "{self.user_b_id}"}}',),
+            )
+
+            cursor.execute(
+                """
+                INSERT INTO engagement_events (user_id, event_type, value)
+                VALUES (%s, 'test_user_b_insert', '{"test": "user_b_authorized"}')
+            """,
+                (self.user_b_id,),
+            )
+
+            # Verify User B's insert worked
+            cursor.execute(
+                """
+                SELECT COUNT(*) FROM engagement_events 
+                WHERE user_id = %s AND event_type = 'test_user_b_insert'
+            """,
+                (self.user_b_id,),
+            )
+            user_b_count = cursor.fetchone()[0]
+            assert user_b_count == 1, "User B should be able to insert their own events"
+
+            # Step 5: Verify cross-user isolation of inserts
+            # User B should not see User A's event, and vice versa
+            cursor.execute("SELECT COUNT(*) FROM engagement_events")
+            user_b_visible_total = cursor.fetchone()[0]
+            assert user_b_visible_total == 1, f"User B should only see 1 event (their own), saw {user_b_visible_total}"
 
         finally:
-            # Clean up test data
+            # Clean up test data (use admin context)
+            cursor.execute("RESET request.jwt.claims")
             cursor.execute(
                 "DELETE FROM engagement_events WHERE user_id IN (%s, %s)",
                 (self.user_a_id, self.user_b_id),
@@ -164,27 +273,106 @@ class TestEngagementEventsRLS:
         cursor = self.conn.cursor()
 
         try:
-            # Insert test event
+            # Clean up any existing test data first
+            cursor.execute(
+                "DELETE FROM engagement_events WHERE user_id IN (%s, %s)",
+                (self.user_a_id, self.user_b_id),
+            )
+
+            # Step 1: Insert test events for both users (using admin context)
+            # Ensure no user context
+            cursor.execute("RESET request.jwt.claims")
+
             cursor.execute(
                 """
                 INSERT INTO engagement_events (user_id, event_type, value)
-                VALUES (%s, 'test_anon', '{"test": "anonymous"}')
+                VALUES (%s, 'test_anon_data_a', '{"test": "should_be_hidden"}')
             """,
                 (self.user_a_id,),
             )
 
-            # Clear user context (simulate anonymous access)
+            cursor.execute(
+                """
+                INSERT INTO engagement_events (user_id, event_type, value)
+                VALUES (%s, 'test_anon_data_b', '{"test": "should_be_hidden"}')
+            """,
+                (self.user_b_id,),
+            )
+
+            # Verify test data was inserted (should see 2 events as admin)
+            cursor.execute("SELECT COUNT(*) FROM engagement_events WHERE user_id IN (%s, %s)",
+                           (self.user_a_id, self.user_b_id))
+            admin_count = cursor.fetchone()[0]
+            assert admin_count == 2, f"Expected 2 test events, got {admin_count}"
+
+            # Step 2: Test anonymous SELECT access (should see nothing)
+            # Empty claims = anonymous
             cursor.execute("SET LOCAL request.jwt.claims = '{}'")
 
-            # Anonymous user should see 0 events
+            # Anonymous user should see 0 events (critical security test)
             cursor.execute("SELECT COUNT(*) FROM engagement_events")
-            count = cursor.fetchone()[0]
-            assert count == 0, "Anonymous users should not see any events"
+            anon_count = cursor.fetchone()[0]
+            assert anon_count == 0, f"Anonymous users should not see any events, saw {anon_count} events. CRITICAL SECURITY BUG!"
+
+            # Test specific queries that anonymous users should not access
+            cursor.execute(
+                "SELECT COUNT(*) FROM engagement_events WHERE user_id = %s", (self.user_a_id,))
+            anon_user_a_count = cursor.fetchone()[0]
+            assert anon_user_a_count == 0, "Anonymous users should not see User A's events"
+
+            cursor.execute(
+                "SELECT COUNT(*) FROM engagement_events WHERE user_id = %s", (self.user_b_id,))
+            anon_user_b_count = cursor.fetchone()[0]
+            assert anon_user_b_count == 0, "Anonymous users should not see User B's events"
+
+            # Step 3: Test anonymous INSERT access (should fail)
+            insert_failed = False
+            try:
+                cursor.execute(
+                    """
+                    INSERT INTO engagement_events (user_id, event_type, value)
+                    VALUES (%s, 'test_anon_insert', '{"test": "should_fail"}')
+                """,
+                    (self.user_a_id,),
+                )
+                # If we reach here, anonymous insert succeeded (SECURITY BUG!)
+                insert_failed = False
+            except psycopg2.Error:
+                # This is expected - anonymous insert should fail
+                insert_failed = True
+
+            assert insert_failed, "Anonymous users should not be able to insert events. CRITICAL SECURITY BUG!"
+
+            # Step 4: Verify no anonymous data was inserted
+            cursor.execute("RESET request.jwt.claims")  # Admin context
+            cursor.execute(
+                """
+                SELECT COUNT(*) FROM engagement_events 
+                WHERE event_type = 'test_anon_insert'
+            """
+            )
+            anon_insert_count = cursor.fetchone()[0]
+            assert anon_insert_count == 0, "No anonymous events should exist in database"
+
+            # Step 5: Verify data still exists and users can still access their own data
+            # Test that User A can still see their event
+            cursor.execute(
+                """
+                SET LOCAL request.jwt.claims = %s
+            """,
+                (f'{{"sub": "{self.user_a_id}"}}',),
+            )
+
+            cursor.execute("SELECT COUNT(*) FROM engagement_events")
+            user_a_count = cursor.fetchone()[0]
+            assert user_a_count == 1, "User A should still be able to see their own event after anonymous test"
 
         finally:
-            # Clean up test data
+            # Clean up test data (use admin context)
+            cursor.execute("RESET request.jwt.claims")
             cursor.execute(
-                "DELETE FROM engagement_events WHERE user_id = %s", (self.user_a_id,)
+                "DELETE FROM engagement_events WHERE user_id IN (%s, %s)",
+                (self.user_a_id, self.user_b_id),
             )
 
 
