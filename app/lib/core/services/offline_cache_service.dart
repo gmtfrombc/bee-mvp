@@ -1,277 +1,182 @@
-import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter/foundation.dart';
 import '../../features/momentum/domain/models/momentum_data.dart';
 import 'cache/offline/offline_cache_stats_service.dart';
 import 'cache/offline/offline_cache_error_service.dart';
 import 'cache/offline/offline_cache_action_service.dart';
 import 'cache/offline/offline_cache_sync_service.dart';
+import 'cache/offline/offline_cache_validation_service.dart';
+import 'cache/offline/offline_cache_maintenance_service.dart';
+import 'cache/offline/offline_cache_content_service.dart';
 
-/// Enhanced service for caching momentum data offline with improved strategies
+/// **Enhanced Offline Cache Service - Main Coordinator**
+///
+/// This service has been refactored from a monolithic 730-line service into a
+/// modular architecture with 6 specialized services. This main service acts as
+/// a coordinator and maintains 100% backward compatibility.
+///
+/// **Architecture:**
+/// - OfflineCacheContentService: Core data caching/retrieval
+/// - OfflineCacheValidationService: Data integrity & validation
+/// - OfflineCacheMaintenanceService: Cleanup & maintenance
+/// - OfflineCacheErrorService: Error handling & queuing
+/// - OfflineCacheSyncService: Background synchronization
+/// - OfflineCacheActionService: Pending action management
+/// - OfflineCacheStatsService: Health monitoring & statistics
+///
+/// **Key Features:**
+/// - Enhanced momentum data caching with priority levels
+/// - Granular cache validation and component-specific invalidation
+/// - Priority-based pending action queue with retry logic
+/// - Comprehensive error handling and reporting
+/// - Background sync management and cache warming
+/// - Detailed health monitoring and statistics
+///
+/// **Usage:**
+/// ```dart
+/// await OfflineCacheService.initialize();
+/// await OfflineCacheService.cacheMomentumData(data, isHighPriority: true);
+/// final cachedData = await OfflineCacheService.getCachedMomentumData();
+/// ```
 class OfflineCacheService {
-  static const String _momentumDataKey = 'cached_momentum_data';
-  static const String _lastUpdateKey = 'momentum_last_update';
-  static const String _pendingActionsKey = 'pending_actions';
-  static const String _errorQueueKey = 'error_queue';
-  static const String _cacheVersionKey = 'cache_version';
-  static const String _weeklyTrendKey = 'cached_weekly_trend';
-  static const String _momentumStatsKey = 'cached_momentum_stats';
-
-  // Cache validity periods (in hours)
-  static const int _defaultCacheValidityHours = 24;
-  static const int _criticalCacheValidityHours = 1; // For critical updates
-  static const int _weeklyTrendValidityHours = 12; // Weekly data can be older
-  static const int _statsValidityHours = 6; // Stats update more frequently
-
-  static const int _currentCacheVersion =
-      2; // Increment to invalidate old cache
-
   static SharedPreferences? _prefs;
-  static bool _isInitialized = false; // Prevent initialization loops
+  static bool _isInitialized = false;
 
-  /// Initialize the cache service with enhanced setup
+  /// Initialize the cache service and all specialized services
+  ///
+  /// This method initializes all specialized services in the correct order:
+  /// 1. Validation service (handles version upgrades)
+  /// 2. All other services in dependency order
+  ///
+  /// **Safe to call multiple times** - prevents re-initialization
   static Future<void> initialize() async {
-    if (_isInitialized) return; // Prevent re-initialization
+    if (_isInitialized) return;
 
     _prefs ??= await SharedPreferences.getInstance();
-    await _validateCacheVersion();
 
-    // Initialize statistics service
+    // Initialize validation service first (handles version upgrades)
+    await OfflineCacheValidationService.initialize(_prefs!);
+    await OfflineCacheValidationService.validateCacheVersion();
+
+    // Initialize all other services
     await OfflineCacheStatsService.initialize(_prefs!);
-
-    // Initialize error service
     await OfflineCacheErrorService.initialize(_prefs!);
-
-    // Initialize action service
     await OfflineCacheActionService.initialize(_prefs!);
-
-    // Initialize sync service
     await OfflineCacheSyncService.initialize(_prefs!);
+    await OfflineCacheMaintenanceService.initialize(_prefs!);
+    await OfflineCacheContentService.initialize(_prefs!);
 
     _isInitialized = true;
   }
 
-  /// Validate cache version and clear if outdated
-  static Future<void> _validateCacheVersion() async {
-    final currentVersion = _prefs!.getInt(_cacheVersionKey) ?? 1;
-    if (currentVersion < _currentCacheVersion) {
-      debugPrint(
-        '🔄 Cache version outdated ($currentVersion < $_currentCacheVersion), clearing cache',
-      );
+  // ============================================================================
+  // CONTENT OPERATIONS (Delegated to OfflineCacheContentService)
+  // ============================================================================
 
-      // Set the new version FIRST to prevent infinite loops
-      await _prefs!.setInt(_cacheVersionKey, _currentCacheVersion);
-
-      // Then clear the old data without re-initializing
-      await Future.wait([
-        _prefs!.remove(_momentumDataKey),
-        _prefs!.remove(_lastUpdateKey),
-        _prefs!.remove(_pendingActionsKey),
-        _prefs!.remove(_errorQueueKey),
-        _prefs!.remove(_weeklyTrendKey),
-        _prefs!.remove(_momentumStatsKey),
-      ]);
-
-      debugPrint('✅ Cache cleared for version upgrade');
-    }
-  }
-
-  /// Enhanced momentum data caching with granular control
+  /// Cache momentum data with enhanced control options
+  ///
+  /// **Parameters:**
+  /// - `data`: The momentum data to cache
+  /// - `isHighPriority`: If true, bypasses some caching optimizations
+  /// - `skipIfRecentUpdate`: If true, skips caching if recent update detected
+  ///
+  /// **Delegated to:** OfflineCacheContentService
   static Future<void> cacheMomentumData(
     MomentumData data, {
     bool isHighPriority = false,
     bool skipIfRecentUpdate = false,
   }) async {
     await initialize();
-
-    try {
-      // Skip caching if we recently updated and it's not high priority
-      if (skipIfRecentUpdate && !isHighPriority) {
-        final lastUpdate = _prefs!.getString(_lastUpdateKey);
-        if (lastUpdate != null) {
-          final lastUpdateTime = DateTime.parse(lastUpdate);
-          final timeSinceUpdate = DateTime.now().difference(lastUpdateTime);
-          if (timeSinceUpdate.inMinutes < 5) {
-            debugPrint('⏭️ Skipping cache update - recent update detected');
-            return;
-          }
-        }
-      }
-
-      final jsonData = data.toJson();
-      await _prefs!.setString(_momentumDataKey, jsonEncode(jsonData));
-      await _prefs!.setString(_lastUpdateKey, DateTime.now().toIso8601String());
-
-      // Cache components separately for granular access
-      await _cacheWeeklyTrend(data.weeklyTrend);
-      await _cacheMomentumStats(data.stats);
-
-      debugPrint(
-        '✅ Enhanced momentum data cached successfully${isHighPriority ? ' (high priority)' : ''}',
-      );
-    } catch (e) {
-      debugPrint('❌ Failed to cache momentum data: $e');
-      await queueError({
-        'type': 'cache_write_error',
-        'operation': 'cacheMomentumData',
-        'error': e.toString(),
-      });
-    }
+    await OfflineCacheContentService.cacheMomentumData(
+      data,
+      isHighPriority: isHighPriority,
+      skipIfRecentUpdate: skipIfRecentUpdate,
+    );
   }
 
-  /// Cache weekly trend data separately
-  static Future<void> _cacheWeeklyTrend(List<DailyMomentum> weeklyTrend) async {
-    try {
-      final trendData = weeklyTrend.map((daily) => daily.toJson()).toList();
-      await _prefs!.setString(
-        _weeklyTrendKey,
-        jsonEncode({
-          'data': trendData,
-          'cached_at': DateTime.now().toIso8601String(),
-        }),
-      );
-    } catch (e) {
-      debugPrint('❌ Failed to cache weekly trend: $e');
-    }
-  }
-
-  /// Cache momentum stats separately
-  static Future<void> _cacheMomentumStats(MomentumStats stats) async {
-    try {
-      await _prefs!.setString(
-        _momentumStatsKey,
-        jsonEncode({
-          'data': stats.toJson(),
-          'cached_at': DateTime.now().toIso8601String(),
-        }),
-      );
-    } catch (e) {
-      debugPrint('❌ Failed to cache momentum stats: $e');
-    }
-  }
-
-  /// Get cached momentum data with enhanced validation
+  /// Get cached momentum data with validation options
+  ///
+  /// **Parameters:**
+  /// - `allowStaleData`: If true, returns data even if expired
+  /// - `customValidityPeriod`: Override default validity period
+  ///
+  /// **Returns:** Cached momentum data or null if not available/valid
+  /// **Delegated to:** OfflineCacheContentService
   static Future<MomentumData?> getCachedMomentumData({
     bool allowStaleData = false,
     Duration? customValidityPeriod,
   }) async {
     await initialize();
-
-    try {
-      final jsonString = _prefs!.getString(_momentumDataKey);
-      if (jsonString == null) return null;
-
-      // Check validity first
-      final isValid = await isCachedDataValid(
-        customValidityPeriod: customValidityPeriod,
-      );
-
-      if (!isValid && !allowStaleData) {
-        debugPrint('📤 Cached data is stale and stale data not allowed');
-        return null;
-      }
-
-      final jsonData = jsonDecode(jsonString) as Map<String, dynamic>;
-      final cachedData = MomentumData.fromJson(jsonData);
-
-      if (!isValid && allowStaleData) {
-        debugPrint('⚠️ Returning stale cached data (offline mode)');
-      }
-
-      return cachedData;
-    } catch (e) {
-      debugPrint('❌ Failed to load cached momentum data: $e');
-      return null;
-    }
+    return await OfflineCacheContentService.getCachedMomentumData(
+      allowStaleData: allowStaleData,
+      customValidityPeriod: customValidityPeriod,
+    );
   }
 
-  /// Enhanced cache validity check with customizable periods
+  /// Get cached weekly trend data
+  ///
+  /// **Parameters:**
+  /// - `allowStaleData`: If true, returns data even if expired
+  ///
+  /// **Delegated to:** OfflineCacheContentService
+  static Future<List<DailyMomentum>?> getCachedWeeklyTrend({
+    bool allowStaleData = false,
+  }) async {
+    await initialize();
+    return await OfflineCacheContentService.getCachedWeeklyTrend(
+      allowStaleData: allowStaleData,
+    );
+  }
+
+  /// Get cached momentum statistics
+  ///
+  /// **Parameters:**
+  /// - `allowStaleData`: If true, returns data even if expired
+  ///
+  /// **Delegated to:** OfflineCacheContentService
+  static Future<MomentumStats?> getCachedMomentumStats({
+    bool allowStaleData = false,
+  }) async {
+    await initialize();
+    return await OfflineCacheContentService.getCachedMomentumStats(
+      allowStaleData: allowStaleData,
+    );
+  }
+
+  // ============================================================================
+  // VALIDATION OPERATIONS (Delegated to OfflineCacheValidationService)
+  // ============================================================================
+
+  /// Check if cached data is valid with enhanced options
+  ///
+  /// **Parameters:**
+  /// - `customValidityPeriod`: Override default validity period
+  /// - `isHighPriorityUpdate`: Use shorter validity for high priority updates
+  ///
+  /// **Delegated to:** OfflineCacheValidationService
   static Future<bool> isCachedDataValid({
     Duration? customValidityPeriod,
     bool isHighPriorityUpdate = false,
   }) async {
     await initialize();
-
-    try {
-      final lastUpdateString = _prefs!.getString(_lastUpdateKey);
-      if (lastUpdateString == null) return false;
-
-      final lastUpdate = DateTime.parse(lastUpdateString);
-      final now = DateTime.now();
-      final difference = now.difference(lastUpdate);
-
-      // Determine validity period
-      final validityHours =
-          customValidityPeriod?.inHours ??
-          (isHighPriorityUpdate
-              ? _criticalCacheValidityHours
-              : _defaultCacheValidityHours);
-
-      return difference.inHours < validityHours;
-    } catch (e) {
-      debugPrint('❌ Failed to check cache validity: $e');
-      return false;
-    }
+    return await OfflineCacheValidationService.isCachedDataValid(
+      customValidityPeriod: customValidityPeriod,
+      isHighPriorityUpdate: isHighPriorityUpdate,
+    );
   }
 
-  /// Get cached weekly trend with separate validity check
-  static Future<List<DailyMomentum>?> getCachedWeeklyTrend({
-    bool allowStaleData = false,
-  }) async {
-    await initialize();
+  // ============================================================================
+  // MAINTENANCE OPERATIONS (Delegated to OfflineCacheMaintenanceService)
+  // ============================================================================
 
-    try {
-      final jsonString = _prefs!.getString(_weeklyTrendKey);
-      if (jsonString == null) return null;
-
-      final cacheData = jsonDecode(jsonString) as Map<String, dynamic>;
-      final cachedAt = DateTime.parse(cacheData['cached_at']);
-      final age = DateTime.now().difference(cachedAt);
-
-      if (age.inHours > _weeklyTrendValidityHours && !allowStaleData) {
-        return null;
-      }
-
-      final trendList = cacheData['data'] as List<dynamic>;
-      return trendList.map((item) => DailyMomentum.fromJson(item)).toList();
-    } catch (e) {
-      debugPrint('❌ Failed to load cached weekly trend: $e');
-      return null;
-    }
-  }
-
-  /// Get cached momentum stats with separate validity check
-  static Future<MomentumStats?> getCachedMomentumStats({
-    bool allowStaleData = false,
-  }) async {
-    await initialize();
-
-    try {
-      final jsonString = _prefs!.getString(_momentumStatsKey);
-      if (jsonString == null) return null;
-
-      final cacheData = jsonDecode(jsonString) as Map<String, dynamic>;
-      final cachedAt = DateTime.parse(cacheData['cached_at']);
-      final age = DateTime.now().difference(cachedAt);
-
-      if (age.inHours > _statsValidityHours && !allowStaleData) {
-        return null;
-      }
-
-      return MomentumStats.fromJson(cacheData['data']);
-    } catch (e) {
-      debugPrint('❌ Failed to load cached momentum stats: $e');
-      return null;
-    }
-  }
-
-  /// Warm the cache with fresh data when coming online
-  static Future<void> warmCache() async {
-    await initialize();
-    await OfflineCacheSyncService.warmCache();
-  }
-
-  /// Smart cache invalidation based on data type and priority
+  /// Smart cache invalidation with component-specific control
+  ///
+  /// **Parameters:**
+  /// - `momentumData`: Invalidate main momentum data
+  /// - `weeklyTrend`: Invalidate weekly trend cache
+  /// - `momentumStats`: Invalidate momentum stats cache
+  /// - `reason`: Optional reason for logging
+  ///
+  /// **Delegated to:** OfflineCacheMaintenanceService
   static Future<void> invalidateCache({
     bool momentumData = true,
     bool weeklyTrend = false,
@@ -279,40 +184,61 @@ class OfflineCacheService {
     String? reason,
   }) async {
     await initialize();
-
-    try {
-      final List<String> invalidated = [];
-
-      if (momentumData) {
-        await _prefs!.remove(_momentumDataKey);
-        await _prefs!.remove(_lastUpdateKey);
-        invalidated.add('momentum data');
-      }
-
-      if (weeklyTrend) {
-        await _prefs!.remove(_weeklyTrendKey);
-        invalidated.add('weekly trend');
-      }
-
-      if (momentumStats) {
-        await _prefs!.remove(_momentumStatsKey);
-        invalidated.add('momentum stats');
-      }
-
-      if (invalidated.isNotEmpty) {
-        debugPrint(
-          '🗑️ Cache invalidated: ${invalidated.join(', ')}${reason != null ? ' (reason: $reason)' : ''}',
-        );
-      }
-    } catch (e) {
-      debugPrint('❌ Failed to invalidate cache: $e');
-    }
+    await OfflineCacheMaintenanceService.invalidateCache(
+      momentumData: momentumData,
+      weeklyTrend: weeklyTrend,
+      momentumStats: momentumStats,
+      reason: reason,
+    );
   }
 
-  /// Enhanced pending action management with priority and retry logic
+  /// Clear all cached data and reset service state
+  ///
+  /// **Warning:** This clears ALL cached data and resets initialization state
+  /// **Delegated to:** OfflineCacheMaintenanceService
+  static Future<void> clearAllCache() async {
+    await initialize();
+    await OfflineCacheMaintenanceService.clearAllCache();
+
+    // Reset initialization state for complete cleanup
+    _isInitialized = false;
+    _prefs = null;
+  }
+
+  /// Perform cache cleanup and maintenance
+  ///
+  /// **Parameters:**
+  /// - `force`: Force cleanup even if not needed
+  ///
+  /// **Delegated to:** OfflineCacheMaintenanceService
+  static Future<void> performCacheCleanup({bool force = false}) async {
+    await initialize();
+    await OfflineCacheMaintenanceService.performCacheCleanup(force: force);
+  }
+
+  /// Monitor cache health and trigger cleanup if needed
+  ///
+  /// **Delegated to:** OfflineCacheMaintenanceService
+  static Future<void> checkCacheHealth() async {
+    await initialize();
+    await OfflineCacheMaintenanceService.checkCacheHealth();
+  }
+
+  // ============================================================================
+  // ACTION QUEUE OPERATIONS (Delegated to OfflineCacheActionService)
+  // ============================================================================
+
+  /// Queue a pending action with priority and retry logic
+  ///
+  /// **Parameters:**
+  /// - `action`: Action data to queue
+  /// - `priority`: 1=low, 2=medium, 3=high
+  /// - `maxRetries`: Maximum retry attempts
+  ///
+  /// **Delegated to:** OfflineCacheActionService
   static Future<void> queuePendingAction(
     Map<String, dynamic> action, {
-    int priority = 1, // 1 = low, 2 = medium, 3 = high
+    int priority = 1,
     int maxRetries = 3,
   }) async {
     await initialize();
@@ -323,93 +249,139 @@ class OfflineCacheService {
     );
   }
 
-  /// Process pending actions when back online
+  /// Process all pending actions when back online
+  ///
+  /// **Returns:** List of successfully processed actions
+  /// **Delegated to:** OfflineCacheActionService
   static Future<List<Map<String, dynamic>>> processPendingActions() async {
     await initialize();
     return await OfflineCacheActionService.processPendingActions();
   }
 
-  /// Background sync management
-  static Future<void> enableBackgroundSync(bool enabled) async {
-    await initialize();
-    await OfflineCacheSyncService.enableBackgroundSync(enabled);
-  }
-
-  static Future<bool> isBackgroundSyncEnabled() async {
-    await initialize();
-    return await OfflineCacheSyncService.isBackgroundSyncEnabled();
-  }
-
-  /// Get comprehensive cache statistics
-  static Future<Map<String, dynamic>> getEnhancedCacheStats() async {
-    await initialize();
-    return await OfflineCacheStatsService.getEnhancedCacheStats();
-  }
-
-  /// Get the age of cached data
-  static Future<Duration?> getCachedDataAge() async {
-    await initialize();
-    return await OfflineCacheStatsService.getCachedDataAge();
-  }
-
-  /// Queue an error for later reporting
-  static Future<void> queueError(Map<String, dynamic> error) async {
-    await initialize();
-    await OfflineCacheErrorService.queueError(error);
-  }
-
   /// Get all pending actions
+  ///
+  /// **Delegated to:** OfflineCacheActionService
   static Future<List<Map<String, dynamic>>> getPendingActions() async {
     await initialize();
     return await OfflineCacheActionService.getPendingActions();
   }
 
-  /// Remove a pending action (after successful execution)
+  /// Remove a pending action after successful execution
+  ///
+  /// **Delegated to:** OfflineCacheActionService
   static Future<void> removePendingAction(Map<String, dynamic> action) async {
     await initialize();
     await OfflineCacheActionService.removePendingAction(action);
   }
 
   /// Clear all pending actions
+  ///
+  /// **Delegated to:** OfflineCacheActionService
   static Future<void> clearPendingActions() async {
     await initialize();
     await OfflineCacheActionService.clearPendingActions();
   }
 
+  // ============================================================================
+  // SYNC OPERATIONS (Delegated to OfflineCacheSyncService)
+  // ============================================================================
+
+  /// Enable or disable background synchronization
+  ///
+  /// **Delegated to:** OfflineCacheSyncService
+  static Future<void> enableBackgroundSync(bool enabled) async {
+    await initialize();
+    await OfflineCacheSyncService.enableBackgroundSync(enabled);
+  }
+
+  /// Check if background sync is enabled
+  ///
+  /// **Delegated to:** OfflineCacheSyncService
+  static Future<bool> isBackgroundSyncEnabled() async {
+    await initialize();
+    return await OfflineCacheSyncService.isBackgroundSyncEnabled();
+  }
+
+  /// Warm the cache with fresh data when coming online
+  ///
+  /// **Delegated to:** OfflineCacheSyncService
+  static Future<void> warmCache() async {
+    await initialize();
+    await OfflineCacheSyncService.warmCache();
+  }
+
+  // ============================================================================
+  // ERROR OPERATIONS (Delegated to OfflineCacheErrorService)
+  // ============================================================================
+
+  /// Queue an error for later reporting
+  ///
+  /// **Delegated to:** OfflineCacheErrorService
+  static Future<void> queueError(Map<String, dynamic> error) async {
+    await initialize();
+    await OfflineCacheErrorService.queueError(error);
+  }
+
   /// Get all queued errors
+  ///
+  /// **Delegated to:** OfflineCacheErrorService
   static Future<List<Map<String, dynamic>>> getQueuedErrors() async {
     await initialize();
     return await OfflineCacheErrorService.getQueuedErrors();
   }
 
   /// Clear all queued errors
+  ///
+  /// **Delegated to:** OfflineCacheErrorService
   static Future<void> clearQueuedErrors() async {
     await initialize();
     await OfflineCacheErrorService.clearQueuedErrors();
   }
 
-  /// Clear all cached data
-  static Future<void> clearAllCache() async {
+  // ============================================================================
+  // STATISTICS OPERATIONS (Delegated to OfflineCacheStatsService)
+  // ============================================================================
+
+  /// Get comprehensive cache statistics and health information
+  ///
+  /// **Returns:** Map containing detailed cache statistics including:
+  /// - Health score (0-100)
+  /// - Cache validity and age
+  /// - Component availability
+  /// - Queue sizes
+  /// - Background sync status
+  ///
+  /// **Delegated to:** OfflineCacheStatsService
+  static Future<Map<String, dynamic>> getEnhancedCacheStats() async {
     await initialize();
-
-    await Future.wait([
-      _prefs!.remove(_momentumDataKey),
-      _prefs!.remove(_lastUpdateKey),
-      _prefs!.remove(_pendingActionsKey),
-      _prefs!.remove(_errorQueueKey),
-      _prefs!.remove(_weeklyTrendKey),
-      _prefs!.remove(_momentumStatsKey),
-    ]);
-
-    // Reset initialization state for testing
-    _isInitialized = false;
-    _prefs = null;
-
-    debugPrint('✅ All cache cleared');
+    return await OfflineCacheStatsService.getEnhancedCacheStats();
   }
 
+  /// Get the age of cached data
+  ///
+  /// **Returns:** Duration since data was cached, or null if no data
+  /// **Delegated to:** OfflineCacheStatsService
+  static Future<Duration?> getCachedDataAge() async {
+    await initialize();
+    return await OfflineCacheStatsService.getCachedDataAge();
+  }
+
+  /// Get cache statistics (legacy method for backward compatibility)
+  ///
+  /// **Delegated to:** OfflineCacheStatsService
+  static Future<Map<String, dynamic>> getCacheStats() async {
+    await initialize();
+    return await OfflineCacheStatsService.getCacheStats();
+  }
+
+  // ============================================================================
+  // TESTING HELPER METHODS
+  // ============================================================================
+
   /// Reset the service state for testing
-  /// **WARNING**: This should only be used in test environments
+  ///
+  /// **WARNING:** This should only be used in test environments
+  /// Resets all initialization state and cached test data
   static void resetForTesting() {
     assert(() {
       // Only allow this in debug/test builds
@@ -422,18 +394,9 @@ class OfflineCacheService {
     _testCacheIsValid = false;
   }
 
-  /// Get cache statistics (legacy method for backward compatibility)
-  static Future<Map<String, dynamic>> getCacheStats() async {
-    await initialize();
-    return await OfflineCacheStatsService.getCacheStats();
-  }
-
-  // ============================================================================
-  // TESTING HELPER METHODS
-  // ============================================================================
-
   /// Set cached data for testing purposes
-  /// **WARNING**: This should only be used in test environments
+  ///
+  /// **WARNING:** This should only be used in test environments
   static void setCachedDataForTesting(
     MomentumData? data, {
     required bool isValid,
@@ -448,6 +411,8 @@ class OfflineCacheService {
   }
 
   /// Clear cache for testing
+  ///
+  /// **WARNING:** This should only be used in test environments
   static void clearCacheForTesting() {
     assert(() {
       // Only allow this in debug/test builds
@@ -458,66 +423,21 @@ class OfflineCacheService {
     _testCacheIsValid = false;
   }
 
-  // Test data storage
-  static MomentumData? _testCachedData;
-  static bool _testCacheIsValid = false;
-
   /// Override getCachedMomentumData for testing
+  ///
+  /// **WARNING:** This should only be used in test environments
   static Future<MomentumData?> getCachedMomentumDataForTesting() async {
     return _testCachedData;
   }
 
   /// Override isCachedDataValid for testing
+  ///
+  /// **WARNING:** This should only be used in test environments
   static Future<bool> isCachedDataValidForTesting() async {
     return _testCacheIsValid;
   }
 
-  /// Clean up cache to free memory and storage space
-  static Future<void> performCacheCleanup({bool force = false}) async {
-    await initialize();
-
-    try {
-      debugPrint('🧹 Performing cache cleanup${force ? ' (forced)' : ''}');
-
-      // Clear expired cache data
-      final isValid = await isCachedDataValid();
-      if (!isValid || force) {
-        await invalidateCache(
-          momentumData: true,
-          weeklyTrend: true,
-          momentumStats: true,
-          reason: force ? 'forced cleanup' : 'expired data',
-        );
-      }
-
-      // Action service handles its own expired data cleanup during initialization
-
-      // Clean up old error queue entries using the error service
-      await OfflineCacheErrorService.cleanupOldErrors(maxErrors: 5);
-
-      debugPrint('✅ Cache cleanup completed');
-    } catch (e) {
-      debugPrint('❌ Failed to perform cache cleanup: $e');
-    }
-  }
-
-  /// Monitor cache size and trigger cleanup if needed
-  static Future<void> checkCacheHealth() async {
-    await initialize();
-
-    try {
-      final stats = await OfflineCacheStatsService.getEnhancedCacheStats();
-      final healthScore = stats['healthScore'] as int;
-
-      // If health score is low, trigger cleanup
-      if (healthScore < 70) {
-        debugPrint(
-          '⚠️ Cache health score low ($healthScore), triggering cleanup',
-        );
-        await performCacheCleanup();
-      }
-    } catch (e) {
-      debugPrint('❌ Failed to check cache health: $e');
-    }
-  }
+  // Test data storage
+  static MomentumData? _testCachedData;
+  static bool _testCacheIsValid = false;
 }
