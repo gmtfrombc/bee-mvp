@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import '../domain/models/notification_models.dart';
-import '../domain/models/notification_types.dart';
 import 'notification_test_framework.dart';
 
 /// High-level integration tests for notification system

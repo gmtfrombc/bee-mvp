@@ -2,11 +2,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-
-import 'background_notification_handler.dart';
 import 'notification_deep_link_service.dart';
 import '../notifications/domain/models/notification_models.dart';
 import '../../features/momentum/presentation/providers/momentum_api_provider.dart';
+import '../notifications/domain/services/notification_core_service.dart';
 
 /// Service for dispatching notification actions and coordinating app state
 class NotificationActionDispatcher {
@@ -375,7 +374,7 @@ class NotificationActionDispatcher {
   /// Clear all notification-related cached data
   Future<void> clearNotificationCache() async {
     try {
-      await BackgroundNotificationHandler.clearCachedData();
+      await NotificationCoreService.instance.clearCachedData();
       if (kDebugMode) {
         print('🧹 Notification cache cleared');
       }
@@ -390,9 +389,10 @@ class NotificationActionDispatcher {
   Future<Map<String, dynamic>> getNotificationStats() async {
     try {
       final lastNotification =
-          await BackgroundNotificationHandler.getLastBackgroundNotification();
+          await NotificationCoreService.instance
+              .getLastBackgroundNotification();
       final pendingActions =
-          await BackgroundNotificationHandler.getPendingActions();
+          await NotificationCoreService.instance.getPendingActions();
 
       return {
         'hasLastNotification': lastNotification != null,
