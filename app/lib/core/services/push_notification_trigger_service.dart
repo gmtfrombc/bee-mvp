@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'notification_preferences_service.dart';
+import '../notifications/domain/models/notification_types.dart';
 
 /// Service for manually triggering push notifications and managing notification triggers
 class PushNotificationTriggerService {

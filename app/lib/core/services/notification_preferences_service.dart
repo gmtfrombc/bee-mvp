@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../notifications/domain/models/notification_types.dart';
+
 /// Service for managing user notification preferences
 class NotificationPreferencesService {
   static const String _keyNotificationsEnabled = 'notifications_enabled';
@@ -42,7 +44,7 @@ class NotificationPreferencesService {
   Future<void> setNotificationsEnabled(bool enabled) async {
     await _prefs?.setBool(_keyNotificationsEnabled, enabled);
     if (kDebugMode) {
-      print('🔔 Notifications ${enabled ? 'enabled' : 'disabled'}');
+      debugPrint('🔔 Notifications ${enabled ? 'enabled' : 'disabled'}');
     }
   }
 
@@ -55,7 +57,9 @@ class NotificationPreferencesService {
   Future<void> setMomentumNotificationsEnabled(bool enabled) async {
     await _prefs?.setBool(_keyMomentumNotifications, enabled);
     if (kDebugMode) {
-      print('📊 Momentum notifications ${enabled ? 'enabled' : 'disabled'}');
+      debugPrint(
+        '📊 Momentum notifications ${enabled ? 'enabled' : 'disabled'}',
+      );
     }
   }
 
@@ -68,7 +72,9 @@ class NotificationPreferencesService {
   Future<void> setCelebrationNotificationsEnabled(bool enabled) async {
     await _prefs?.setBool(_keyCelebrationNotifications, enabled);
     if (kDebugMode) {
-      print('🎉 Celebration notifications ${enabled ? 'enabled' : 'disabled'}');
+      debugPrint(
+        '🎉 Celebration notifications ${enabled ? 'enabled' : 'disabled'}',
+      );
     }
   }
 
@@ -81,7 +87,7 @@ class NotificationPreferencesService {
   Future<void> setInterventionNotificationsEnabled(bool enabled) async {
     await _prefs?.setBool(_keyInterventionNotifications, enabled);
     if (kDebugMode) {
-      print(
+      debugPrint(
         '🚨 Intervention notifications ${enabled ? 'enabled' : 'disabled'}',
       );
     }
@@ -96,7 +102,7 @@ class NotificationPreferencesService {
   Future<void> setQuietHoursEnabled(bool enabled) async {
     await _prefs?.setBool(_keyQuietHoursEnabled, enabled);
     if (kDebugMode) {
-      print('🌙 Quiet hours ${enabled ? 'enabled' : 'disabled'}');
+      debugPrint('🌙 Quiet hours ${enabled ? 'enabled' : 'disabled'}');
     }
   }
 
@@ -109,7 +115,7 @@ class NotificationPreferencesService {
   Future<void> setQuietHoursStart(int hour) async {
     await _prefs?.setInt(_keyQuietHoursStart, hour);
     if (kDebugMode) {
-      print('🌙 Quiet hours start set to $hour:00');
+      debugPrint('🌙 Quiet hours start set to $hour:00');
     }
   }
 
@@ -122,7 +128,7 @@ class NotificationPreferencesService {
   Future<void> setQuietHoursEnd(int hour) async {
     await _prefs?.setInt(_keyQuietHoursEnd, hour);
     if (kDebugMode) {
-      print('🌙 Quiet hours end set to $hour:00');
+      debugPrint('🌙 Quiet hours end set to $hour:00');
     }
   }
 
@@ -139,7 +145,7 @@ class NotificationPreferencesService {
   Future<void> setNotificationFrequency(NotificationFrequency frequency) async {
     await _prefs?.setString(_keyNotificationFrequency, frequency.name);
     if (kDebugMode) {
-      print('⏱️ Notification frequency set to ${frequency.name}');
+      debugPrint('⏱️ Notification frequency set to ${frequency.name}');
     }
   }
 
@@ -175,7 +181,7 @@ class NotificationPreferencesService {
     // Check daily limits
     if (dailyCount >= frequency.maxDailyNotifications) {
       if (kDebugMode) {
-        print(
+        debugPrint(
           '⚠️ Daily notification limit reached: $dailyCount/${frequency.maxDailyNotifications}',
         );
       }
@@ -187,7 +193,7 @@ class NotificationPreferencesService {
       final timeSinceLastNotification = now.difference(lastNotificationTime);
       if (timeSinceLastNotification.inMinutes < frequency.minIntervalMinutes) {
         if (kDebugMode) {
-          print(
+          debugPrint(
             '⚠️ Too soon since last notification: ${timeSinceLastNotification.inMinutes}/${frequency.minIntervalMinutes} minutes',
           );
         }
@@ -207,7 +213,9 @@ class NotificationPreferencesService {
     await _prefs?.setInt(_keyDailyNotificationCount, currentCount + 1);
 
     if (kDebugMode) {
-      print('📝 Notification sent recorded. Daily count: ${currentCount + 1}');
+      debugPrint(
+        '📝 Notification sent recorded. Daily count: ${currentCount + 1}',
+      );
     }
   }
 
@@ -240,7 +248,7 @@ class NotificationPreferencesService {
       await _prefs?.setInt(_keyDailyNotificationCount, 0);
       await _prefs?.setInt(_keyLastResetDate, today.millisecondsSinceEpoch);
       if (kDebugMode) {
-        print('🔄 Daily notification count reset for new day');
+        debugPrint('🔄 Daily notification count reset for new day');
       }
     }
   }
@@ -256,6 +264,11 @@ class NotificationPreferencesService {
         return celebrationNotificationsEnabled;
       case NotificationType.intervention:
         return interventionNotificationsEnabled;
+      case NotificationType.engagement:
+      case NotificationType.daily:
+      case NotificationType.coach:
+      case NotificationType.custom:
+        return true; // These use base notification settings
     }
   }
 
@@ -276,45 +289,3 @@ class NotificationPreferencesService {
     };
   }
 }
-
-/// Notification frequency settings
-enum NotificationFrequency {
-  minimal(
-    name: 'minimal',
-    displayName: 'Minimal',
-    description: 'Only urgent notifications',
-    maxDailyNotifications: 2,
-    minIntervalMinutes: 240, // 4 hours
-  ),
-  normal(
-    name: 'normal',
-    displayName: 'Normal',
-    description: 'Balanced notification frequency',
-    maxDailyNotifications: 5,
-    minIntervalMinutes: 120, // 2 hours
-  ),
-  frequent(
-    name: 'frequent',
-    displayName: 'Frequent',
-    description: 'More notifications for extra support',
-    maxDailyNotifications: 8,
-    minIntervalMinutes: 60, // 1 hour
-  );
-
-  const NotificationFrequency({
-    required this.name,
-    required this.displayName,
-    required this.description,
-    required this.maxDailyNotifications,
-    required this.minIntervalMinutes,
-  });
-
-  final String name;
-  final String displayName;
-  final String description;
-  final int maxDailyNotifications;
-  final int minIntervalMinutes;
-}
-
-/// Types of notifications
-enum NotificationType { momentum, celebration, intervention }

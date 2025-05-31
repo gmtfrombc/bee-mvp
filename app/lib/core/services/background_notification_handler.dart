@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
 import 'firebase_service.dart';
+import '../notifications/domain/models/notification_models.dart';
 
 /// Service for handling notifications in background isolate
 class BackgroundNotificationHandler {
@@ -321,80 +322,4 @@ class BackgroundNotificationHandler {
       }
     }
   }
-}
-
-/// Data class for notification information
-class NotificationData {
-  final String notificationId;
-  final String interventionType;
-  final String actionType;
-  final Map<String, dynamic> actionData;
-  final String title;
-  final String body;
-  final DateTime receivedAt;
-
-  const NotificationData({
-    required this.notificationId,
-    required this.interventionType,
-    required this.actionType,
-    required this.actionData,
-    required this.title,
-    required this.body,
-    required this.receivedAt,
-  });
-
-  Map<String, dynamic> toJson() => {
-    'notificationId': notificationId,
-    'interventionType': interventionType,
-    'actionType': actionType,
-    'actionData': actionData,
-    'title': title,
-    'body': body,
-    'receivedAt': receivedAt.toIso8601String(),
-  };
-
-  factory NotificationData.fromJson(Map<String, dynamic> json) =>
-      NotificationData(
-        notificationId: (json['notificationId'] as String?) ?? '',
-        interventionType: (json['interventionType'] as String?) ?? '',
-        actionType: (json['actionType'] as String?) ?? '',
-        actionData:
-            (json['actionData'] as Map<String, dynamic>?) ??
-            <String, dynamic>{},
-        title: (json['title'] as String?) ?? '',
-        body: (json['body'] as String?) ?? '',
-        receivedAt: DateTime.parse(json['receivedAt'] as String),
-      );
-}
-
-/// Data class for pending notification actions
-class PendingNotificationAction {
-  final String notificationId;
-  final String actionType;
-  final Map<String, dynamic> actionData;
-  final DateTime receivedAt;
-
-  const PendingNotificationAction({
-    required this.notificationId,
-    required this.actionType,
-    required this.actionData,
-    required this.receivedAt,
-  });
-
-  Map<String, dynamic> toJson() => {
-    'notificationId': notificationId,
-    'actionType': actionType,
-    'actionData': actionData,
-    'receivedAt': receivedAt.toIso8601String(),
-  };
-
-  factory PendingNotificationAction.fromJson(Map<String, dynamic> json) =>
-      PendingNotificationAction(
-        notificationId: (json['notificationId'] as String?) ?? '',
-        actionType: (json['actionType'] as String?) ?? '',
-        actionData:
-            (json['actionData'] as Map<String, dynamic>?) ??
-            <String, dynamic>{},
-        receivedAt: DateTime.parse(json['receivedAt'] as String),
-      );
 }

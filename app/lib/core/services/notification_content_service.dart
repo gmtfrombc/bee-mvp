@@ -1,5 +1,7 @@
 /// Service responsible for generating personalized notification content
 /// based on momentum states and user context
+library;
+
 class NotificationContentService {
   static NotificationContentService? _instance;
   static NotificationContentService get instance =>
@@ -203,11 +205,12 @@ class NotificationContentService {
     required String lastKnownMomentumState,
   }) {
     if (hoursSinceLastActivity >= 72) {
+      // 72+ hours inactive - gentle reminder
       return NotificationContent(
         type: 'engagement_reminder_gentle',
-        title: 'We miss you! 🌟',
+        title: 'We miss you! 🌱',
         body:
-            'Hi $userName, it\'s been a few days. Just checking in - how are you doing?',
+            '$userName, your momentum is waiting for you to return! Even small steps count.',
         data: {
           'action': 'open_momentum_meter',
           'reminder_type': 'gentle_check_in',
@@ -216,18 +219,19 @@ class NotificationContentService {
         },
         actionButtons: [
           NotificationAction(
-            id: 'check_in',
-            title: 'Quick Check-in',
+            id: 'continue',
+            title: 'Continue',
             action: 'open_momentum_meter',
           ),
         ],
       );
     } else if (hoursSinceLastActivity >= 48) {
+      // 48+ hours inactive - supportive reminder
       return NotificationContent(
         type: 'engagement_reminder_supportive',
-        title: 'Your momentum is waiting! 🌱',
+        title: 'Your momentum is waiting! 💪',
         body:
-            '$userName, ready to take a small step forward? We\'re here to support you.',
+            '$userName, ready to get back on track? Your momentum is ready when you are!',
         data: {
           'action': 'open_momentum_meter',
           'reminder_type': 'supportive',
@@ -236,23 +240,24 @@ class NotificationContentService {
         },
         actionButtons: [
           NotificationAction(
-            id: 'quick_start',
-            title: 'Quick Start',
-            action: 'open_quick_start',
+            id: 'continue',
+            title: 'Continue',
+            action: 'open_momentum_meter',
           ),
           NotificationAction(
-            id: 'view_momentum',
-            title: 'View Momentum',
-            action: 'open_momentum_meter',
+            id: 'get_support',
+            title: 'Get Support',
+            action: 'schedule_coach_call',
           ),
         ],
       );
     } else {
+      // Less than 48 hours - encouraging reminder
       return NotificationContent(
         type: 'engagement_reminder_encouraging',
         title: 'Ready to continue? ✨',
         body:
-            'Hey $userName, you were doing great! Want to keep that momentum going?',
+            '$userName, how are you feeling today? Check in with your momentum!',
         data: {
           'action': 'open_momentum_meter',
           'reminder_type': 'encouraging',
