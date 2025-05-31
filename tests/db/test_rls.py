@@ -44,7 +44,7 @@ class TestEngagementEventsRLS:
             db_password = "postgres"
             db_name = "test"
             print(
-                "🤖 CI Environment detected - using non-superuser 'rls_test_user' for RLS testing"
+                "🤖 CI Environment detected - attempting connection to non-superuser 'rls_test_user'"
             )
 
             # Test if rls_test_user role exists and is properly configured
@@ -61,8 +61,40 @@ class TestEngagementEventsRLS:
                     "✅ Successfully validated rls_test_user role exists and has proper credentials"
                 )
 
-                # In CI, no admin connection needed since CI workflow handles setup
-                cls.admin_conn = None
+                # In CI, we need both a setup connection (can bypass RLS) and test connection (subject to RLS)
+                # For CI, we'll use postgres for setup and rls_test_user for testing
+                try:
+                    # Setup connection using postgres (should have superuser privileges)
+                    cls.admin_conn = psycopg2.connect(
+                        host="localhost",
+                        user="postgres",
+                        password="postgres",
+                        database=db_name,
+                    )
+                    cls.admin_conn.autocommit = True
+                    print(
+                        "✅ Connected to postgres user for test data setup (bypasses RLS)"
+                    )
+
+                    # Verify postgres is superuser
+                    admin_cursor = cls.admin_conn.cursor()
+                    admin_cursor.execute("SELECT current_setting('is_superuser')")
+                    is_super = admin_cursor.fetchone()[0] == "on"
+                    if not is_super:
+                        print(
+                            "⚠️  WARNING: postgres user is not superuser - may not bypass RLS"
+                        )
+                    else:
+                        print(
+                            "✅ postgres user confirmed as superuser - can bypass RLS for setup"
+                        )
+
+                except psycopg2.Error as e:
+                    print(f"❌ postgres setup connection failed: {e}")
+                    # Fall back to using rls_test_user for both setup and testing
+                    cls.admin_conn = None
+                    print("🔧 Will use rls_test_user for both setup and testing")
+
                 cls.test_user = db_user
 
             except psycopg2.Error as e:
@@ -193,45 +225,118 @@ class TestEngagementEventsRLS:
             setup_cursor = self.admin_conn.cursor()
             test_cursor = self.conn.cursor()
             print("🔧 Using admin connection for setup, test user for RLS verification")
+            bypass_rls_for_setup = True
         else:
-            # CI environment: use same connection for both
+            # CI environment: use same connection for both (rls_test_user)
             setup_cursor = self.conn.cursor()
             test_cursor = self.conn.cursor()
-            print("🤖 Using postgres user for both setup and testing (CI environment)")
+            print(
+                "🤖 Using rls_test_user for both setup and testing (RLS applies to both)"
+            )
+            bypass_rls_for_setup = False
 
         try:
-            # Clean up any existing test data first (use admin/setup connection)
-            setup_cursor.execute(
-                "DELETE FROM engagement_events WHERE user_id IN (%s, %s)",
-                (self.user_a_id, self.user_b_id),
-            )
+            # Clean up any existing test data first
+            if bypass_rls_for_setup:
+                # Admin can delete without auth context
+                setup_cursor.execute("RESET request.jwt.claims")
+                setup_cursor.execute(
+                    "DELETE FROM engagement_events WHERE user_id IN (%s, %s)",
+                    (self.user_a_id, self.user_b_id),
+                )
+            else:
+                # Need to delete as each user to respect RLS
+                # Delete as User A
+                setup_cursor.execute(
+                    "SET request.jwt.claims = %s",
+                    (f'{{"sub": "{self.user_a_id}"}}',),
+                )
+                setup_cursor.execute(
+                    "DELETE FROM engagement_events WHERE user_id = %s",
+                    (self.user_a_id,),
+                )
 
-            # Step 1: Insert events for BOTH users using admin/setup connection
-            # This bypasses RLS for test data setup
-            setup_cursor.execute("RESET request.jwt.claims")
+                # Delete as User B
+                setup_cursor.execute(
+                    "SET request.jwt.claims = %s",
+                    (f'{{"sub": "{self.user_b_id}"}}',),
+                )
+                setup_cursor.execute(
+                    "DELETE FROM engagement_events WHERE user_id = %s",
+                    (self.user_b_id,),
+                )
 
-            setup_cursor.execute(
-                """
-                INSERT INTO engagement_events (user_id, event_type, value)
-                VALUES (%s, 'test_event_user_a', '{"test": "user_a_data"}')
-            """,
-                (self.user_a_id,),
-            )
+            # Step 1: Insert events for BOTH users
+            if bypass_rls_for_setup:
+                # Admin connection can bypass RLS for test data setup
+                setup_cursor.execute("RESET request.jwt.claims")
+                setup_cursor.execute(
+                    """
+                    INSERT INTO engagement_events (user_id, event_type, value)
+                    VALUES (%s, 'test_event_user_a', '{"test": "user_a_data"}')
+                """,
+                    (self.user_a_id,),
+                )
 
-            setup_cursor.execute(
-                """
-                INSERT INTO engagement_events (user_id, event_type, value)
-                VALUES (%s, 'test_event_user_b', '{"test": "user_b_data"}')
-            """,
-                (self.user_b_id,),
-            )
+                setup_cursor.execute(
+                    """
+                    INSERT INTO engagement_events (user_id, event_type, value)
+                    VALUES (%s, 'test_event_user_b', '{"test": "user_b_data"}')
+                """,
+                    (self.user_b_id,),
+                )
+            else:
+                # Need to insert as each user to respect RLS
+                # Insert as User A
+                setup_cursor.execute(
+                    "SET request.jwt.claims = %s",
+                    (f'{{"sub": "{self.user_a_id}"}}',),
+                )
+                setup_cursor.execute(
+                    """
+                    INSERT INTO engagement_events (user_id, event_type, value)
+                    VALUES (%s, 'test_event_user_a', '{"test": "user_a_data"}')
+                """,
+                    (self.user_a_id,),
+                )
 
-            # Verify both events were inserted (check with admin/setup connection)
-            setup_cursor.execute(
-                "SELECT COUNT(*) FROM engagement_events WHERE user_id IN (%s, %s)",
-                (self.user_a_id, self.user_b_id),
-            )
-            total_events = setup_cursor.fetchone()[0]
+                # Insert as User B
+                setup_cursor.execute(
+                    "SET request.jwt.claims = %s",
+                    (f'{{"sub": "{self.user_b_id}"}}',),
+                )
+                setup_cursor.execute(
+                    """
+                    INSERT INTO engagement_events (user_id, event_type, value)
+                    VALUES (%s, 'test_event_user_b', '{"test": "user_b_data"}')
+                """,
+                    (self.user_b_id,),
+                )
+
+            # Verify both events were inserted
+            if bypass_rls_for_setup:
+                setup_cursor.execute(
+                    "SELECT COUNT(*) FROM engagement_events WHERE user_id IN (%s, %s)",
+                    (self.user_a_id, self.user_b_id),
+                )
+                total_events = setup_cursor.fetchone()[0]
+            else:
+                # Count as each user and sum
+                setup_cursor.execute(
+                    "SET request.jwt.claims = %s",
+                    (f'{{"sub": "{self.user_a_id}"}}',),
+                )
+                setup_cursor.execute("SELECT COUNT(*) FROM engagement_events")
+                user_a_events = setup_cursor.fetchone()[0]
+
+                setup_cursor.execute(
+                    "SET request.jwt.claims = %s",
+                    (f'{{"sub": "{self.user_b_id}"}}',),
+                )
+                setup_cursor.execute("SELECT COUNT(*) FROM engagement_events")
+                user_b_events = setup_cursor.fetchone()[0]
+                total_events = user_a_events + user_b_events
+
             assert total_events == 2, f"Expected 2 events inserted, got {total_events}"
             print(f"✅ Test data setup: {total_events} events inserted")
 
@@ -306,12 +411,32 @@ class TestEngagementEventsRLS:
             print("✅ RLS user isolation test PASSED!")
 
         finally:
-            # Clean up test data using admin/setup connection
-            setup_cursor.execute("RESET request.jwt.claims")
-            setup_cursor.execute(
-                "DELETE FROM engagement_events WHERE user_id IN (%s, %s)",
-                (self.user_a_id, self.user_b_id),
-            )
+            # Clean up test data
+            if bypass_rls_for_setup:
+                setup_cursor.execute("RESET request.jwt.claims")
+                setup_cursor.execute(
+                    "DELETE FROM engagement_events WHERE user_id IN (%s, %s)",
+                    (self.user_a_id, self.user_b_id),
+                )
+            else:
+                # Delete as each user
+                setup_cursor.execute(
+                    "SET request.jwt.claims = %s",
+                    (f'{{"sub": "{self.user_a_id}"}}',),
+                )
+                setup_cursor.execute(
+                    "DELETE FROM engagement_events WHERE user_id = %s",
+                    (self.user_a_id,),
+                )
+
+                setup_cursor.execute(
+                    "SET request.jwt.claims = %s",
+                    (f'{{"sub": "{self.user_b_id}"}}',),
+                )
+                setup_cursor.execute(
+                    "DELETE FROM engagement_events WHERE user_id = %s",
+                    (self.user_b_id,),
+                )
 
     def test_rls_insert_policy(self):
         """Test that users can only insert events for themselves"""
@@ -322,18 +447,44 @@ class TestEngagementEventsRLS:
             setup_cursor = self.admin_conn.cursor()
             test_cursor = self.conn.cursor()
             print("🔧 Using admin connection for setup, test user for RLS verification")
+            bypass_rls_for_setup = True
         else:
-            # CI environment: use same connection for both
+            # CI environment: use same connection for both (rls_test_user)
             setup_cursor = self.conn.cursor()
             test_cursor = self.conn.cursor()
-            print("🤖 Using postgres user for both setup and testing (CI environment)")
+            print(
+                "🤖 Using rls_test_user for both setup and testing (RLS applies to both)"
+            )
+            bypass_rls_for_setup = False
 
         try:
-            # Clean up any existing test data first (use admin/setup connection)
-            setup_cursor.execute(
-                "DELETE FROM engagement_events WHERE user_id IN (%s, %s)",
-                (self.user_a_id, self.user_b_id),
-            )
+            # Clean up any existing test data first
+            if bypass_rls_for_setup:
+                # Admin can delete without auth context
+                setup_cursor.execute("RESET request.jwt.claims")
+                setup_cursor.execute(
+                    "DELETE FROM engagement_events WHERE user_id IN (%s, %s)",
+                    (self.user_a_id, self.user_b_id),
+                )
+            else:
+                # Need to delete as each user to respect RLS
+                setup_cursor.execute(
+                    "SET request.jwt.claims = %s",
+                    (f'{{"sub": "{self.user_a_id}"}}',),
+                )
+                setup_cursor.execute(
+                    "DELETE FROM engagement_events WHERE user_id = %s",
+                    (self.user_a_id,),
+                )
+
+                setup_cursor.execute(
+                    "SET request.jwt.claims = %s",
+                    (f'{{"sub": "{self.user_b_id}"}}',),
+                )
+                setup_cursor.execute(
+                    "DELETE FROM engagement_events WHERE user_id = %s",
+                    (self.user_b_id,),
+                )
 
             # Step 1: Test authorized insert (User A inserting for themselves)
             test_cursor.execute("RESET request.jwt.claims")
@@ -390,16 +541,32 @@ class TestEngagementEventsRLS:
             ), "Unauthorized insert should have failed but succeeded. This is a CRITICAL SECURITY BUG!"
             print("✅ Unauthorized insert correctly failed")
 
-            # Step 3: Verify no unauthorized data was inserted (use admin context)
-            setup_cursor.execute("RESET request.jwt.claims")
-            setup_cursor.execute(
+            # Step 3: Verify no unauthorized data was inserted
+            if bypass_rls_for_setup:
+                setup_cursor.execute("RESET request.jwt.claims")
+                setup_cursor.execute(
+                    """
+                    SELECT COUNT(*) FROM engagement_events 
+                    WHERE user_id = %s AND event_type = 'test_unauthorized_insert'
+                """,
+                    (self.user_b_id,),
+                )
+                unauthorized_count = setup_cursor.fetchone()[0]
+            else:
+                # Check as User B (would see unauthorized data if it exists)
+                test_cursor.execute("RESET request.jwt.claims")
+                test_cursor.execute(
+                    "SET request.jwt.claims = %s",
+                    (f'{{"sub": "{self.user_b_id}"}}',),
+                )
+                test_cursor.execute(
+                    """
+                    SELECT COUNT(*) FROM engagement_events 
+                    WHERE event_type = 'test_unauthorized_insert'
                 """
-                SELECT COUNT(*) FROM engagement_events 
-                WHERE user_id = %s AND event_type = 'test_unauthorized_insert'
-            """,
-                (self.user_b_id,),
-            )
-            unauthorized_count = setup_cursor.fetchone()[0]
+                )
+                unauthorized_count = test_cursor.fetchone()[0]
+
             assert (
                 unauthorized_count == 0
             ), "No unauthorized events should exist in database"
@@ -443,12 +610,32 @@ class TestEngagementEventsRLS:
             print("✅ RLS insert policy test PASSED!")
 
         finally:
-            # Clean up test data (use admin/setup connection)
-            setup_cursor.execute("RESET request.jwt.claims")
-            setup_cursor.execute(
-                "DELETE FROM engagement_events WHERE user_id IN (%s, %s)",
-                (self.user_a_id, self.user_b_id),
-            )
+            # Clean up test data
+            if bypass_rls_for_setup:
+                setup_cursor.execute("RESET request.jwt.claims")
+                setup_cursor.execute(
+                    "DELETE FROM engagement_events WHERE user_id IN (%s, %s)",
+                    (self.user_a_id, self.user_b_id),
+                )
+            else:
+                # Delete as each user
+                setup_cursor.execute(
+                    "SET request.jwt.claims = %s",
+                    (f'{{"sub": "{self.user_a_id}"}}',),
+                )
+                setup_cursor.execute(
+                    "DELETE FROM engagement_events WHERE user_id = %s",
+                    (self.user_a_id,),
+                )
+
+                setup_cursor.execute(
+                    "SET request.jwt.claims = %s",
+                    (f'{{"sub": "{self.user_b_id}"}}',),
+                )
+                setup_cursor.execute(
+                    "DELETE FROM engagement_events WHERE user_id = %s",
+                    (self.user_b_id,),
+                )
 
     def test_anonymous_access_denied(self):
         """Test that anonymous users cannot access any events"""
@@ -459,44 +646,116 @@ class TestEngagementEventsRLS:
             setup_cursor = self.admin_conn.cursor()
             test_cursor = self.conn.cursor()
             print("🔧 Using admin connection for setup, test user for RLS verification")
+            bypass_rls_for_setup = True
         else:
-            # CI environment: use same connection for both
+            # CI environment: use same connection for both (rls_test_user)
             setup_cursor = self.conn.cursor()
             test_cursor = self.conn.cursor()
-            print("🤖 Using postgres user for both setup and testing (CI environment)")
+            print(
+                "🤖 Using rls_test_user for both setup and testing (RLS applies to both)"
+            )
+            bypass_rls_for_setup = False
 
         try:
-            # Clean up any existing test data first (use admin/setup connection)
-            setup_cursor.execute(
-                "DELETE FROM engagement_events WHERE user_id IN (%s, %s)",
-                (self.user_a_id, self.user_b_id),
-            )
+            # Clean up any existing test data first
+            if bypass_rls_for_setup:
+                # Admin can delete without auth context
+                setup_cursor.execute("RESET request.jwt.claims")
+                setup_cursor.execute(
+                    "DELETE FROM engagement_events WHERE user_id IN (%s, %s)",
+                    (self.user_a_id, self.user_b_id),
+                )
+            else:
+                # Need to delete as each user to respect RLS
+                setup_cursor.execute(
+                    "SET request.jwt.claims = %s",
+                    (f'{{"sub": "{self.user_a_id}"}}',),
+                )
+                setup_cursor.execute(
+                    "DELETE FROM engagement_events WHERE user_id = %s",
+                    (self.user_a_id,),
+                )
 
-            # Step 1: Insert test events for both users using admin connection
-            setup_cursor.execute("RESET request.jwt.claims")
+                setup_cursor.execute(
+                    "SET request.jwt.claims = %s",
+                    (f'{{"sub": "{self.user_b_id}"}}',),
+                )
+                setup_cursor.execute(
+                    "DELETE FROM engagement_events WHERE user_id = %s",
+                    (self.user_b_id,),
+                )
 
-            setup_cursor.execute(
-                """
-                INSERT INTO engagement_events (user_id, event_type, value)
-                VALUES (%s, 'test_anon_data_a', '{"test": "should_be_hidden"}')
-            """,
-                (self.user_a_id,),
-            )
+            # Step 1: Insert test events for both users
+            if bypass_rls_for_setup:
+                # Admin connection can bypass RLS for test data setup
+                setup_cursor.execute("RESET request.jwt.claims")
+                setup_cursor.execute(
+                    """
+                    INSERT INTO engagement_events (user_id, event_type, value)
+                    VALUES (%s, 'test_anon_data_a', '{"test": "should_be_hidden"}')
+                """,
+                    (self.user_a_id,),
+                )
 
-            setup_cursor.execute(
-                """
-                INSERT INTO engagement_events (user_id, event_type, value)
-                VALUES (%s, 'test_anon_data_b', '{"test": "should_be_hidden"}')
-            """,
-                (self.user_b_id,),
-            )
+                setup_cursor.execute(
+                    """
+                    INSERT INTO engagement_events (user_id, event_type, value)
+                    VALUES (%s, 'test_anon_data_b', '{"test": "should_be_hidden"}')
+                """,
+                    (self.user_b_id,),
+                )
+            else:
+                # Need to insert as each user to respect RLS
+                # Insert as User A
+                setup_cursor.execute(
+                    "SET request.jwt.claims = %s",
+                    (f'{{"sub": "{self.user_a_id}"}}',),
+                )
+                setup_cursor.execute(
+                    """
+                    INSERT INTO engagement_events (user_id, event_type, value)
+                    VALUES (%s, 'test_anon_data_a', '{"test": "should_be_hidden"}')
+                """,
+                    (self.user_a_id,),
+                )
 
-            # Verify test data was inserted (should see 2 events as admin)
-            setup_cursor.execute(
-                "SELECT COUNT(*) FROM engagement_events WHERE user_id IN (%s, %s)",
-                (self.user_a_id, self.user_b_id),
-            )
-            admin_count = setup_cursor.fetchone()[0]
+                # Insert as User B
+                setup_cursor.execute(
+                    "SET request.jwt.claims = %s",
+                    (f'{{"sub": "{self.user_b_id}"}}',),
+                )
+                setup_cursor.execute(
+                    """
+                    INSERT INTO engagement_events (user_id, event_type, value)
+                    VALUES (%s, 'test_anon_data_b', '{"test": "should_be_hidden"}')
+                """,
+                    (self.user_b_id,),
+                )
+
+            # Verify test data was inserted
+            if bypass_rls_for_setup:
+                setup_cursor.execute(
+                    "SELECT COUNT(*) FROM engagement_events WHERE user_id IN (%s, %s)",
+                    (self.user_a_id, self.user_b_id),
+                )
+                admin_count = setup_cursor.fetchone()[0]
+            else:
+                # Count as each user and sum
+                setup_cursor.execute(
+                    "SET request.jwt.claims = %s",
+                    (f'{{"sub": "{self.user_a_id}"}}',),
+                )
+                setup_cursor.execute("SELECT COUNT(*) FROM engagement_events")
+                user_a_events = setup_cursor.fetchone()[0]
+
+                setup_cursor.execute(
+                    "SET request.jwt.claims = %s",
+                    (f'{{"sub": "{self.user_b_id}"}}',),
+                )
+                setup_cursor.execute("SELECT COUNT(*) FROM engagement_events")
+                user_b_events = setup_cursor.fetchone()[0]
+                admin_count = user_a_events + user_b_events
+
             assert admin_count == 2, f"Expected 2 test events, got {admin_count}"
             print(f"✅ Test data setup: {admin_count} events inserted")
 
@@ -553,15 +812,31 @@ class TestEngagementEventsRLS:
             ), "Anonymous users should not be able to insert events. CRITICAL SECURITY BUG!"
             print("✅ Anonymous insert correctly failed")
 
-            # Step 4: Verify no anonymous data was inserted (use admin context)
-            setup_cursor.execute("RESET request.jwt.claims")
-            setup_cursor.execute(
+            # Step 4: Verify no anonymous data was inserted
+            if bypass_rls_for_setup:
+                setup_cursor.execute("RESET request.jwt.claims")
+                setup_cursor.execute(
+                    """
+                    SELECT COUNT(*) FROM engagement_events 
+                    WHERE event_type = 'test_anon_insert'
                 """
-                SELECT COUNT(*) FROM engagement_events 
-                WHERE event_type = 'test_anon_insert'
-            """
-            )
-            anon_insert_count = setup_cursor.fetchone()[0]
+                )
+                anon_insert_count = setup_cursor.fetchone()[0]
+            else:
+                # Check as each user to see if anonymous data exists
+                test_cursor.execute("RESET request.jwt.claims")
+                test_cursor.execute(
+                    "SET request.jwt.claims = %s",
+                    (f'{{"sub": "{self.user_a_id}"}}',),
+                )
+                test_cursor.execute(
+                    """
+                    SELECT COUNT(*) FROM engagement_events 
+                    WHERE event_type = 'test_anon_insert'
+                """
+                )
+                anon_insert_count = test_cursor.fetchone()[0]
+
             assert (
                 anon_insert_count == 0
             ), "No anonymous events should exist in database"
@@ -585,12 +860,32 @@ class TestEngagementEventsRLS:
             print("✅ RLS anonymous access test PASSED!")
 
         finally:
-            # Clean up test data (use admin/setup connection)
-            setup_cursor.execute("RESET request.jwt.claims")
-            setup_cursor.execute(
-                "DELETE FROM engagement_events WHERE user_id IN (%s, %s)",
-                (self.user_a_id, self.user_b_id),
-            )
+            # Clean up test data
+            if bypass_rls_for_setup:
+                setup_cursor.execute("RESET request.jwt.claims")
+                setup_cursor.execute(
+                    "DELETE FROM engagement_events WHERE user_id IN (%s, %s)",
+                    (self.user_a_id, self.user_b_id),
+                )
+            else:
+                # Delete as each user
+                setup_cursor.execute(
+                    "SET request.jwt.claims = %s",
+                    (f'{{"sub": "{self.user_a_id}"}}',),
+                )
+                setup_cursor.execute(
+                    "DELETE FROM engagement_events WHERE user_id = %s",
+                    (self.user_a_id,),
+                )
+
+                setup_cursor.execute(
+                    "SET request.jwt.claims = %s",
+                    (f'{{"sub": "{self.user_b_id}"}}',),
+                )
+                setup_cursor.execute(
+                    "DELETE FROM engagement_events WHERE user_id = %s",
+                    (self.user_b_id,),
+                )
 
 
 def main():
