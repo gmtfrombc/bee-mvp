@@ -266,9 +266,9 @@ COMMENT ON FUNCTION deactivate_fcm_token IS 'Marks an FCM token as inactive';
 -- =====================================================
 
 -- Log completion
-DO $$
+DO \$completion\$
 BEGIN
     RAISE NOTICE 'FCM Token Management migration completed successfully';
     RAISE NOTICE 'Created tables: user_fcm_tokens, notification_delivery_log';
     RAISE NOTICE 'Created functions: upsert_fcm_token, get_user_fcm_tokens, cleanup_expired_fcm_tokens, deactivate_fcm_token';
-END $$; 
+END \$completion\$; 
