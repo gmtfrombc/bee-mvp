@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart';
+import 'offline_cache_error_service.dart';
+import 'offline_cache_sync_service.dart';
 
 /// Statistics and health monitoring service for offline cache
 class OfflineCacheStatsService {
@@ -8,11 +10,8 @@ class OfflineCacheStatsService {
   static const String _momentumDataKey = 'cached_momentum_data';
   static const String _lastUpdateKey = 'momentum_last_update';
   static const String _pendingActionsKey = 'pending_actions';
-  static const String _errorQueueKey = 'error_queue';
   static const String _weeklyTrendKey = 'cached_weekly_trend';
   static const String _momentumStatsKey = 'cached_momentum_stats';
-  static const String _backgroundSyncKey = 'background_sync_enabled';
-  static const String _lastSyncAttemptKey = 'last_sync_attempt';
   static const String _cacheVersionKey = 'cache_version';
 
   // Cache validity periods (in hours) - same as main service
@@ -30,8 +29,8 @@ class OfflineCacheStatsService {
     final hasCachedData = _prefs!.containsKey(_momentumDataKey);
     final cacheAge = await getCachedDataAge();
     final pendingActions = await _getPendingActions();
-    final queuedErrors = await _getQueuedErrors();
-    final lastSyncAttempt = _prefs!.getString(_lastSyncAttemptKey);
+    final queuedErrors = await OfflineCacheErrorService.getQueuedErrors();
+    final syncStats = await OfflineCacheSyncService.getSyncStats();
 
     // Calculate cache health score (0-100)
     final healthScore = _calculateHealthScore(
@@ -49,8 +48,9 @@ class OfflineCacheStatsService {
       'pendingActionsCount': pendingActions.length,
       'queuedErrorsCount': queuedErrors.length,
       'lastUpdate': _prefs!.getString(_lastUpdateKey),
-      'lastSyncAttempt': lastSyncAttempt,
-      'backgroundSyncEnabled': await _isBackgroundSyncEnabled(),
+      'lastSyncAttempt': syncStats['lastSyncAttempt'],
+      'backgroundSyncEnabled': syncStats['backgroundSyncEnabled'],
+      'timeSinceLastSync': syncStats['timeSinceLastSync'],
       'cacheVersion': _prefs!.getInt(_cacheVersionKey),
       'healthScore': healthScore,
       'hasWeeklyTrend': _prefs!.containsKey(_weeklyTrendKey),
@@ -99,11 +99,6 @@ class OfflineCacheStatsService {
     }
   }
 
-  /// Helper method to check if background sync is enabled (delegates to main service for now)
-  static Future<bool> _isBackgroundSyncEnabled() async {
-    return _prefs!.getBool(_backgroundSyncKey) ?? true; // Default enabled
-  }
-
   /// Helper method to check cache validity (uses basic validation for now)
   static Future<bool> _isCachedDataValid() async {
     try {
@@ -131,20 +126,6 @@ class OfflineCacheStatsService {
       return jsonList.cast<Map<String, dynamic>>();
     } catch (e) {
       debugPrint('❌ Failed to get pending actions: $e');
-      return [];
-    }
-  }
-
-  /// Get all queued errors (helper method for stats)
-  static Future<List<Map<String, dynamic>>> _getQueuedErrors() async {
-    try {
-      final jsonString = _prefs!.getString(_errorQueueKey);
-      if (jsonString == null) return [];
-
-      final jsonList = jsonDecode(jsonString) as List<dynamic>;
-      return jsonList.cast<Map<String, dynamic>>();
-    } catch (e) {
-      debugPrint('❌ Failed to get queued errors: $e');
       return [];
     }
   }
