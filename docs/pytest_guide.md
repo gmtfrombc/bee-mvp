@@ -8,7 +8,7 @@
 
 Your project **already has pytest** set up and working:
 - ✅ 32 comprehensive unit tests in `test_momentum_calculation_unit_tests.py`
-- ✅ Async tests with proper fixtures in `test_intervention_engine.py`
+- ✅ Functionality testing handled via Flutter service tests (intervention logic tested natively)
 - ✅ Performance and integration tests
 - ✅ Proper test structure and organization
 - ✅ All dependencies installed and working

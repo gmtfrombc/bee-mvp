@@ -72,7 +72,7 @@ class SupabaseConfig {
   
   // Edge Functions
   static const String momentumCalculatorFunction = '/functions/v1/momentum-score-calculator';
-  static const String realtimeSyncFunction = '/functions/v1/realtime-momentum-sync';
+  // Note: Real-time functionality handled by native Supabase channels
 }
 ```
 

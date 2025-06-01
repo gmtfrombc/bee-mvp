@@ -78,7 +78,7 @@ Enum defining content topic categories with backend-compatible string values.
 
 ## 🔧 API Compatibility
 
-The models are designed to match the backend API structure defined in `functions/today-feed-generator/types.d.ts`:
+The models use sample data for MVP development phase.
 
 **Backend JSON Structure:**
 ```json

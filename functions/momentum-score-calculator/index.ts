@@ -171,10 +171,9 @@ class MomentumScoreCalculator {
                 }
 
                 // Calculate scores with validation
-                const calculation = await this.performMomentumCalculation(
+                const calculation = await this.calculateUserMomentumScore(
                     sanitizedUserId,
-                    sanitizedDate,
-                    events || []
+                    sanitizedDate
                 )
 
                 // Validate calculated scores
@@ -431,7 +430,7 @@ class MomentumScoreCalculator {
                     service_info: {
                         name: 'momentum-score-calculator',
                         version: '1.0.0',
-                        uptime: process.uptime ? Math.floor(process.uptime()) : null
+                        uptime: Math.floor(Date.now() / 1000) // Using timestamp instead of process.uptime for Deno compatibility
                     }
                 }),
                 {
@@ -535,7 +534,7 @@ class MomentumScoreCalculator {
     /**
      * Calculate momentum score for a specific user and date
      */
-    async calculateMomentumScore(userId: string, targetDate: string): Promise<DailyEngagementScore> {
+    async calculateUserMomentumScore(userId: string, targetDate: string): Promise<DailyEngagementScore> {
         // Get engagement events for the target date
         const events = await this.getEngagementEvents(userId, targetDate)
 
