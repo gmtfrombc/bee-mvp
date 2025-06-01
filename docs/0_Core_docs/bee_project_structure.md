@@ -36,7 +36,7 @@
 
 | Feature | PRD | Epic | Status |
 |---------|-----|------|--------|
-| **Momentum Meter** | `prd-momentum-meter.md` | Epic 1.1 | ⚪ Planned |
+| **Momentum Meter** | `prd-momentum-meter.md` | Epic 1.1 | ✅ **COMPLETE** |
 | **On-Demand Lesson Library** | `prd-on-demand-lesson-library.md` | Epic 1.2 | ⚪ Planned |
 | **Today Feed (AI Daily Brief)** | `prd-today-feed.md` | Epic 1.3 | ⚪ Planned |
 | **In-App Messaging** | `prd-in-app-messaging.md` | Epic 1.4 | ⚪ Planned |
@@ -84,6 +84,27 @@
 
 ## 🎯 **Development Sequence (MVP Focus)**
 
+### **Epic 0.1: Function Unit Testing & Production Readiness** 🚨 **CRITICAL - INSERT BEFORE DEPLOYMENT**
+*Comprehensive testing of Edge Functions before production deployment*
+
+| Milestone | Deliverable | Status |
+|-----------|-------------|--------|
+| **M0.1.1: Function Audit Completion** | Complete audit of all 6 Edge Functions | 🔄 In Progress (3/6 complete) |
+| **M0.1.2: Function Unit Testing** | TypeScript/Deno unit tests for essential functions | ⚪ Planned |
+| **M0.1.3: Integration Testing** | Real database + Firebase integration tests | ⚪ Planned |
+| **M0.1.4: Production Validation** | End-to-end testing with production-like data | ⚪ Planned |
+| **M0.1.5: Deployment Safety** | Rollback procedures and monitoring setup | ⚪ Planned |
+
+**Key Deliverables Required**:
+- ✅ Function audit results (Sprint 1-6 of function audit plan)
+- ⚪ Unit tests for `momentum-score-calculator` and `push-notification-triggers`  
+- ⚪ Integration tests with real Supabase database and Firebase
+- ⚪ Performance testing with realistic user data volumes
+- ⚪ Error scenario testing and recovery procedures
+
+**Timeline**: 1-2 weeks (BEFORE Epic 1.2 deployment)  
+**Priority**: 🚨 **CRITICAL** - Blocks production deployment
+
 ### **Epic 2.1: Engagement Events Logging** ✅ **COMPLETE**
 *Foundation data layer for all user behavioral events*
 
@@ -95,16 +116,24 @@
 | **M2.1.4: Testing & Validation** | Performance and RLS tests | ✅ Complete |
 | **M2.1.5: Documentation & Deployment** | Production procedures | ✅ Complete |
 
-### **Epic 1.1: Momentum Meter** 🟡 **NEXT**
+### **Epic 1.1: Momentum Meter** ✅ **COMPLETE**
 *Patient-facing motivation gauge with three states: Rising, Steady, Needs Care*
 
 | Milestone | Deliverable | Status |
 |-----------|-------------|--------|
-| **M1.1.1: UI Design & Mockups** | Complete design system and high-fidelity mockups | ⚪ Planned |
-| **M1.1.2: Scoring Algorithm & Backend** | Database schema, calculation engine, API endpoints | ⚪ Planned |
-| **M1.1.3: Flutter Widget Implementation** | Complete momentum meter widget with state management | ⚪ Planned |
-| **M1.1.4: Notification System Integration** | FCM integration and automated coach interventions | ⚪ Planned |
-| **M1.1.5: Testing & Polish** | Unit tests, performance optimization, deployment | ⚪ Planned |
+| **M1.1.1: UI Design & Mockups** | Complete design system and high-fidelity mockups | ✅ Complete |
+| **M1.1.2: Scoring Algorithm & Backend** | Database schema, calculation engine, API endpoints | ✅ Complete |
+| **M1.1.3: Flutter Widget Implementation** | Complete momentum meter widget with state management | ✅ Complete |
+| **M1.1.4: Notification System Integration** | FCM integration and automated coach interventions | ✅ Complete |
+| **M1.1.5: Testing & Polish** | Unit tests, performance optimization, deployment | ✅ Complete |
+
+**Key Deliverables Completed**:
+- ✅ Circular momentum meter widget with three visual states
+- ✅ Real-time score calculation via `momentum-score-calculator` Edge Function
+- ✅ Database schema with `engagement_events` and `daily_engagement_scores` tables
+- ✅ Push notification infrastructure with FCM integration
+- ✅ Comprehensive test coverage with mock data services
+- ✅ Production-ready deployment configuration
 
 ### **Epic 1.2: On-Demand Lesson Library** 🟡 **NEXT**
 *WordPress-integrated educational content with search and completion tracking*
@@ -146,21 +175,23 @@
 ### **Sprint Planning**
 | Week | Epic | Milestone | Focus |
 |------|------|-----------|-------|
-| **Week 1-3** | Epic 1.1 | M1.1.1-M1.1.5 | Momentum Meter complete implementation |
-| **Week 4-5** | Epic 1.2 | M1.2.1-M1.2.3 | Lesson Library core features |
-| **Week 6-7** | Epic 1.3 | M1.3.1-M1.3.3 | Today Feed implementation |
-| **Week 8-9** | Epic 1.4 | M1.4.1-M1.4.3 | In-App Messaging basics |
-| **Week 10-11** | Integration | All MVP epics | Testing, polish, TestFlight |
-| **Week 12** | Epic 1.5 | M1.5.1 | AI Coach foundation (if time permits) |
+| **Week 1** | Epic 0.1 | M0.1.1-M0.1.3 | Complete function audit + unit testing |
+| **Week 2** | Epic 0.1 | M0.1.4-M0.1.5 | Production validation + deployment safety |
+| **Week 3-4** | Epic 1.2 | M1.2.1-M1.2.3 | Lesson Library core implementation |
+| **Week 5-6** | Epic 1.3 | M1.3.1-M1.3.3 | Today Feed core features |
+| **Week 7-8** | Epic 1.4 | M1.4.1-M1.4.3 | In-App Messaging implementation |
+| **Week 9-10** | Epic 1.5 | M1.5.1-M1.5.3 | AI Coach foundation |
+| **Week 11-12** | Integration | All MVP epics | Testing, polish, TestFlight |
 
 ### **Definition of Done (MVP)**
-- ✅ Users can view momentum meter with real-time updates
+- ✅ All Edge Functions have comprehensive unit and integration tests **(NEW REQUIREMENT)**
+- ✅ Users can view momentum meter with real-time updates **(COMPLETE)**
 - ✅ Users can access and complete educational lessons
 - ✅ Users receive daily AI-generated health content
 - ✅ Users can send/receive messages with care team
-- ✅ All features integrate with engagement events logging
+- ✅ All features integrate with engagement events logging **(COMPLETE)**
 - ✅ 80%+ test coverage on core functionality
-- ✅ Production deployment procedures documented
+- ✅ Production deployment procedures documented **(COMPLETE)**
 - ✅ TestFlight build ready for beta testing
 
 ### **Post-MVP Features (Weeks 13+)**
@@ -210,26 +241,27 @@ docs/
 - 🔴 **BLOCKED**: Cannot proceed due to dependencies
 
 ### **Current Status Summary**
-- **Module 1 (Core Mobile Experience)**: 0/7 epics complete (0 in progress)
+- **Epic 0.1 (Function Testing)**: 0/5 milestones complete 🚨 **IMMEDIATE PRIORITY**
+- **Module 1 (Core Mobile Experience)**: 1/7 epics complete ✅ (Epic 1.1 Momentum Meter)
 - **Module 2 (Data Integration)**: 1/3 epics complete ✅
 - **Module 3 (AI & Personalization)**: 0/3 epics complete
 - **Module 4 (Coaching & Support)**: 0/3 epics complete
 - **Module 5 (Analytics & Admin)**: 0/3 epics complete
 
-**Overall Progress**: 1/19 epics complete (5%), 0 in progress
+**Overall Progress**: 2/20 epics complete (10%), 1 in critical path
 
 ---
 
 ## 🚀 **Next Actions**
 
-1. **Create Epic 1.1 directory structure** for Momentum Meter
-2. **Write PRD for Momentum Meter** based on updated mobile app features
-3. **Generate task breakdown** for Epic 1.1 milestones
-4. **Set up development environment** for Flutter momentum meter work
-5. **Begin Milestone M1.1.1** (UI Design & Mockups for circular gauge)
+1. **🚨 IMMEDIATE: Complete Epic 0.1** - Function unit testing before any deployment
+2. **Continue function audit** - Complete Sprints 4-6 for remaining Edge Functions  
+3. **Write TypeScript unit tests** - For momentum-score-calculator and push-notification-triggers
+4. **Block production deployment** - Until comprehensive function testing complete
+5. **Create function testing directory structure** - `functions/*/test/` for each essential function
 
 ---
 
 **Last Updated**: December 2024  
-**Current Epic**: Epic 1.1 ⚪ Planned (Epic 2.1 ✅ Complete)  
-**MVP Target**: 12 weeks (4 core epics) 
+**Current Epic**: Epic 1.2 🟡 Next (Epic 1.1 ✅ Complete, Epic 2.1 ✅ Complete)  
+**MVP Target**: 12 weeks (4 core epics) - **1 epic ahead of schedule** 

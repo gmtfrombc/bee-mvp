@@ -1,7 +1,5 @@
 #!/usr/bin/env dart
 
-import 'dart:io';
-
 /// Demonstration of Today Feed Content Quality Service functionality
 /// This shows what the actual implementation does without requiring Flutter packages
 

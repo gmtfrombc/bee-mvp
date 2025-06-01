@@ -14,8 +14,4 @@ class SupabaseConfig {
   // Edge Functions endpoints
   static const String momentumCalculatorFunction =
       '/functions/v1/momentum-score-calculator';
-  static const String realtimeSyncFunction =
-      '/functions/v1/realtime-momentum-sync';
-  static const String interventionEngineFunction =
-      '/functions/v1/momentum-intervention-engine';
 }

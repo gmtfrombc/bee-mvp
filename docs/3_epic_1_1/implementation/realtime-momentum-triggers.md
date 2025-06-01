@@ -9,24 +9,24 @@
 
 ## 📋 **Overview**
 
-This implementation provides real-time updates for momentum scores, interventions, and notifications through Supabase real-time subscriptions, WebSocket connections, and automated triggers. The system enables live synchronization between the backend and Flutter mobile clients with client-side caching and offline support.
+This implementation provides real-time updates for momentum scores, interventions, and notifications through **native Supabase real-time subscriptions**. The system enables live synchronization between the backend database and Flutter mobile clients using Supabase's built-in real-time capabilities.
 
 ## 🏗️ **Architecture**
 
 ### **Components**
 
 1. **Database Triggers** - PostgreSQL triggers for real-time event publishing
-2. **Edge Function** - WebSocket server for client connections and HTTP API
-3. **Real-time Subscriptions** - Supabase real-time channels for live updates
-4. **Cache Invalidation** - Automated client cache management
+2. **Native Supabase Channels** - Built-in real-time subscriptions for live updates
+3. **Flutter Real-time Service** - Native Supabase client integration
+4. **Cache Management** - Client-side cache with real-time invalidation
 5. **Performance Monitoring** - Event tracking and metrics collection
 
 ### **Data Flow**
 
 ```
-Database Change → Trigger Function → pg_notify → Supabase Realtime → WebSocket → Flutter Client
-                                  ↓
-                            Cache Invalidation → Client Cache Update
+Database Change → Supabase Realtime → Native Flutter Channel → UI Update
+                                    ↓
+                              Cache Update → State Management
 ```
 
 ## 🗄️ **Database Implementation**
@@ -46,246 +46,84 @@ ALTER TABLE coach_interventions REPLICA IDENTITY FULL;
 ALTER PUBLICATION supabase_realtime ADD TABLE coach_interventions;
 ```
 
-#### **Trigger Functions**
+## 📱 **Native Flutter Implementation**
 
-**Momentum Score Updates:**
-```sql
-CREATE OR REPLACE FUNCTION publish_momentum_update()
-RETURNS TRIGGER AS $$
-DECLARE
-    payload JSONB;
-    channel_name TEXT;
-BEGIN
-    -- Build event payload with state change detection
-    IF TG_OP = 'UPDATE' THEN
-        payload := jsonb_build_object(
-            'event_type', 'momentum_score_updated',
-            'user_id', NEW.user_id,
-            'momentum_state', NEW.momentum_state,
-            'previous_state', OLD.momentum_state,
-            'state_changed', (NEW.momentum_state != OLD.momentum_state)
-        );
-    END IF;
-
-    -- Publish to user-specific and admin channels
-    channel_name := 'momentum_updates:' || NEW.user_id::TEXT;
-    PERFORM pg_notify(channel_name, payload::TEXT);
-    PERFORM pg_notify('momentum_updates:all', payload::TEXT);
-
-    RETURN COALESCE(NEW, OLD);
-END;
-$$ LANGUAGE plpgsql;
-```
-
-**Cache Invalidation:**
-```sql
-CREATE OR REPLACE FUNCTION invalidate_momentum_cache()
-RETURNS TRIGGER AS $$
-DECLARE
-    cache_keys TEXT[];
-BEGIN
-    cache_keys := ARRAY[
-        'momentum:current:' || NEW.user_id::TEXT,
-        'momentum:history:' || NEW.user_id::TEXT,
-        'momentum:trend:' || NEW.user_id::TEXT
-    ];
-
-    FOREACH key IN ARRAY cache_keys
-    LOOP
-        PERFORM pg_notify('cache_invalidation', jsonb_build_object(
-            'cache_key', key,
-            'user_id', NEW.user_id
-        )::TEXT);
-    END LOOP;
-
-    RETURN COALESCE(NEW, OLD);
-END;
-$$ LANGUAGE plpgsql;
-```
-
-#### **Helper Functions**
-
-**Get Real-time Momentum State:**
-```sql
-CREATE OR REPLACE FUNCTION get_realtime_momentum_state(target_user_id UUID)
-RETURNS JSONB AS $$
-DECLARE
-    current_score daily_engagement_scores%ROWTYPE;
-BEGIN
-    SELECT * INTO current_score
-    FROM daily_engagement_scores
-    WHERE user_id = target_user_id
-    ORDER BY score_date DESC
-    LIMIT 1;
-
-    RETURN jsonb_build_object(
-        'user_id', target_user_id,
-        'has_data', (current_score.id IS NOT NULL),
-        'momentum_state', current_score.momentum_state,
-        'final_score', current_score.final_score,
-        'last_updated', current_score.updated_at
-    );
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-```
-
-## 🔌 **Edge Function Implementation**
-
-### **WebSocket Server: `functions/realtime-momentum-sync/index.ts`**
-
-#### **Connection Management**
-```typescript
-class RealtimeMomentumSync {
-    private connectedClients: Map<string, WebSocket> = new Map()
-    private userSubscriptions: Map<string, Set<string>> = new Map()
-
-    async handleWebSocketConnection(request: Request): Promise<Response> {
-        const { socket, response } = Deno.upgradeWebSocket(request)
-        const userId = url.searchParams.get('user_id')
-        const clientId = url.searchParams.get('client_id') || crypto.randomUUID()
-
-        socket.onopen = () => {
-            this.connectedClients.set(clientId, socket)
-            this.subscribeUserToChannels(userId, clientId)
-            this.sendInitialMomentumState(userId, clientId)
-        }
-
-        return response
-    }
-}
-```
-
-#### **Channel Subscriptions**
-```typescript
-private async subscribeUserToChannels(userId: string, clientId: string) {
-    const channels = [
-        `momentum_updates:${userId}`,
-        `interventions:${userId}`,
-        `notifications:${userId}`,
-        'cache_invalidation'
-    ]
-
-    // Set up Supabase realtime subscriptions
-    for (const channel of channels) {
-        this.supabase
-            .channel(channel)
-            .on('postgres_changes', { event: '*', schema: 'public' }, (payload) => {
-                this.handleRealtimeEvent(payload, userId, clientId)
-            })
-            .subscribe()
-    }
-}
-```
-
-#### **Message Handling**
-```typescript
-private async handleClientMessage(message: any, userId: string, clientId: string) {
-    switch (message.type) {
-        case 'ping':
-            this.sendMessage(clientId, { type: 'pong', timestamp: new Date().toISOString() })
-            break
-
-        case 'request_momentum_update':
-            await this.sendCurrentMomentumState(userId, clientId)
-            break
-
-        case 'mark_notification_read':
-            await this.markNotificationRead(message.notification_id, userId, clientId)
-            break
-
-        case 'cache_invalidation_ack':
-            await this.handleCacheInvalidationAck(message.cache_key, userId, clientId)
-            break
-    }
-}
-```
-
-## 📱 **Client Integration**
-
-### **WebSocket Connection (Flutter)**
+### **Real-time Subscription Service**
 
 ```dart
 class MomentumRealtimeService {
-  WebSocketChannel? _channel;
-  final String userId;
-  final String clientId = const Uuid().v4();
-
-  Future<void> connect() async {
-    final uri = Uri.parse('ws://localhost:54321/functions/v1/realtime-momentum-sync')
-        .replace(queryParameters: {
-      'user_id': userId,
-      'client_id': clientId,
-    });
-
-    _channel = WebSocketChannel.connect(uri);
-    
-    _channel!.stream.listen(
-      (message) => _handleMessage(jsonDecode(message)),
-      onError: (error) => _handleError(error),
-      onDone: () => _handleDisconnection(),
-    );
-  }
-
-  void _handleMessage(Map<String, dynamic> message) {
-    switch (message['type']) {
-      case 'subscription_confirmed':
-        print('Subscribed to channels: ${message['channels']}');
-        break;
-        
-      case 'initial_state':
-        _updateMomentumState(message['momentum']);
-        _updateInterventions(message['interventions']);
-        break;
-        
-      case 'realtime_event':
-        _processRealtimeEvent(message['event']);
-        break;
-        
-      case 'cache_invalidation_confirmed':
-        _invalidateCache(message['cache_key']);
-        break;
-    }
-  }
-
-  void requestMomentumUpdate() {
-    _channel?.sink.add(jsonEncode({
-      'type': 'request_momentum_update'
-    }));
-  }
-
-  void markNotificationRead(String notificationId) {
-    _channel?.sink.add(jsonEncode({
-      'type': 'mark_notification_read',
-      'notification_id': notificationId
-    }));
+  final SupabaseClient _supabase;
+  RealtimeChannel? _channel;
+  
+  // Subscribe to momentum updates using native Supabase channels
+  RealtimeChannel subscribeToMomentumUpdates({
+    required User user,
+    required Function(MomentumData) onUpdate,
+    required Function(String) onError,
+  }) {
+    return _supabase
+        .channel('momentum_updates_${user.id}')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'daily_engagement_scores',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'user_id',
+            value: user.id,
+          ),
+          callback: (payload) async {
+            try {
+              // Refresh momentum data when changes occur
+              final updatedData = await getCurrentMomentum();
+              onUpdate(updatedData);
+            } catch (e) {
+              onError('Failed to process real-time update: $e');
+            }
+          },
+        )
+        .subscribe();
   }
 }
 ```
 
-### **Cache Management**
+### **Usage in MomentumApiService**
 
 ```dart
-class MomentumCacheManager {
-  final Map<String, dynamic> _cache = {};
-  final Set<String> _invalidatedKeys = {};
-
-  void invalidateKey(String key) {
-    _invalidatedKeys.add(key);
-    _cache.remove(key);
-    
-    // Acknowledge cache invalidation
-    _realtimeService.acknowledgeCacheInvalidation(key);
-  }
-
-  Future<T?> get<T>(String key, Future<T> Function() fetcher) async {
-    if (_invalidatedKeys.contains(key) || !_cache.containsKey(key)) {
-      final data = await fetcher();
-      _cache[key] = data;
-      _invalidatedKeys.remove(key);
-      return data;
+class MomentumApiService {
+  // Subscribe to real-time momentum updates
+  RealtimeChannel subscribeToMomentumUpdates({
+    required Function(MomentumData) onUpdate,
+    required Function(String) onError,
+  }) async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) {
+      onError('User not authenticated');
+      return;
     }
-    
-    return _cache[key] as T?;
+
+    return _supabase
+        .channel('momentum_updates_${user.id}')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'daily_engagement_scores',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'user_id',
+            value: user.id,
+          ),
+          callback: (payload) async {
+            try {
+              // Refresh momentum data when changes occur
+              final updatedData = await getCurrentMomentum();
+              onUpdate(updatedData);
+            } catch (e) {
+              onError('Failed to process real-time update: $e');
+            }
+          },
+        )
+        .subscribe();
   }
 }
 ```
@@ -316,31 +154,6 @@ CREATE POLICY "Coaches can view all interventions" ON coach_interventions
             AND raw_user_meta_data->>'role' = 'coach'
         )
     );
-```
-
-### **WebSocket Authentication**
-
-```typescript
-// Validate user authentication before WebSocket upgrade
-async handleWebSocketConnection(request: Request): Promise<Response> {
-    const authHeader = request.headers.get('Authorization')
-    if (!authHeader) {
-        return new Response('Unauthorized', { status: 401 })
-    }
-
-    // Verify JWT token with Supabase
-    const { data: user, error } = await this.supabase.auth.getUser(
-        authHeader.replace('Bearer ', '')
-    )
-
-    if (error || !user) {
-        return new Response('Invalid token', { status: 401 })
-    }
-
-    // Proceed with WebSocket upgrade
-    const { socket, response } = Deno.upgradeWebSocket(request)
-    // ... connection handling
-}
 ```
 
 ## 📊 **Performance Monitoring**

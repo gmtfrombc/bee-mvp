@@ -54,7 +54,7 @@ Generate a service role API key in the Supabase dashboard for Cloud Function aut
 Store the Supabase service role key as an environment variable in Cloud Functions. Create a Supabase client instance using the service role credentials. Test the authentication connection from Cloud Function to Supabase database to ensure proper access.
 
 ### 4.2 Batch Import Endpoint Design
-Define a JSON schema for the batch event payload that accepts arrays of engagement events. Create a Cloud Function endpoint at `/batch-events` that validates the payload and performs bulk inserts using database transactions. Include comprehensive error handling and validation as specified in the PRD.
+Define a JSON schema for batch event payloads that accepts arrays of engagement events. Implement batch operations using native Supabase client `.from('engagement_events').insert(events)` for bulk inserts with automatic transaction handling. Include comprehensive error handling and validation in the Flutter client as specified in the PRD.
 
 ### 4.3 UTC Timestamp Handling
 Implement timestamp conversion logic to ensure all incoming timestamps are converted to UTC before database insertion. Add validation to reject invalid timezone data. Test with various timezone inputs to ensure consistent UTC storage as required by the technical considerations.

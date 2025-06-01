@@ -41,20 +41,25 @@ graph TD
 
 ### **Core Components**
 
-1. **Edge Function**: `functions/momentum-intervention-engine/index.ts`
-   - Main intervention logic and pattern detection
-   - Notification creation and coach intervention scheduling
-   - Rate limiting and error handling
+1. **Flutter Service**: `app/lib/core/services/coach_intervention_service.dart` (465+ lines)
+   - Native intervention logic handling
+   - Coach dashboard integration
+   - Real-time intervention management
 
-2. **Database Triggers**: `supabase/migrations/20241216000000_intervention_triggers.sql`
+2. **Push Notification Function**: `functions/push-notification-triggers/index.ts` (665 lines)
+   - Intervention triggers and notification delivery
+   - Batch processing for all users
+   - Firebase Cloud Messaging integration
+
+3. **Database Infrastructure**: Complete intervention and notification tables
    - Automatic intervention checks on score updates
    - Rate limiting tables and functions
    - Analytics views and tracking
 
-3. **Test Suite**: `tests/api/test_intervention_engine.py`
-   - Comprehensive testing of all intervention scenarios
-   - Integration tests for database triggers
-   - Performance and error handling tests
+4. **Testing**: Functionality tested via Flutter service tests (intervention logic tested natively)
+   - Comprehensive testing of all intervention scenarios via CoachInterventionService
+   - Integration tests for database operations
+   - Performance and error handling tests in Flutter environment
 
 ---
 
@@ -137,59 +142,53 @@ graph TD
 ## 🚀 **Usage**
 
 ### **Automatic Triggers**
-The intervention engine runs automatically when momentum scores are updated:
+The intervention system runs automatically through native Flutter integration:
 
-```sql
--- Triggered automatically on INSERT/UPDATE
-INSERT INTO daily_engagement_scores (
-    user_id, score_date, final_score, momentum_state, ...
-) VALUES (
-    '550e8400-e29b-41d4-a716-446655440000',
-    '2024-12-15',
-    30.0,
-    'NeedsCare',
-    ...
+```dart
+// CoachInterventionService handles automatic interventions
+final interventionService = CoachInterventionService.instance;
+
+// Check and schedule interventions based on momentum data
+final recommendation = await interventionService.checkInterventionNeeded(
+  userId: currentUser.id,
+  momentumData: currentMomentumData,
 );
+
+if (recommendation != null) {
+  final result = await interventionService.scheduleIntervention(
+    userId: currentUser.id,
+    type: recommendation.type,
+    priority: recommendation.priority,
+    reason: recommendation.reason,
+    momentumData: currentMomentumData,
+  );
+}
 ```
 
 ### **Manual Invocation**
-Call the Edge Function directly for specific users:
+Schedule interventions directly through the Flutter service:
 
-```typescript
-// Check interventions for specific user
-const response = await fetch('/functions/v1/momentum-intervention-engine', {
-  method: 'POST',
-  headers: {
-    'Authorization': `Bearer ${supabaseServiceKey}`,
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({
-    user_id: '550e8400-e29b-41d4-a716-446655440000'
-  })
-});
+```dart
+// Schedule specific intervention type
+final result = await CoachInterventionService.instance.scheduleIntervention(
+  userId: userId,
+  type: InterventionType.momentumDrop,
+  priority: InterventionPriority.high,
+  reason: 'Significant momentum decrease detected',
+  momentumData: {'score': 30.0, 'state': 'NeedsCare'},
+);
 
-const result = await response.json();
-console.log(`Triggered ${result.interventions_triggered} interventions`);
+if (result.success) {
+  print('Intervention scheduled: ${result.interventionId}');
+}
 ```
 
 ### **Bulk Processing**
-Process interventions for all active users (useful for scheduled jobs):
+Push notification triggers handle batch processing for all users:
 
-```typescript
-// Check all users (for scheduled runs)
-const response = await fetch('/functions/v1/momentum-intervention-engine', {
-  method: 'POST',
-  headers: {
-    'Authorization': `Bearer ${supabaseServiceKey}`,
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({
-    check_all_users: true
-  })
-});
-
-const result = await response.json();
-console.log(`Processed ${result.results.length} users`);
+```dart
+// Processed automatically by push-notification-triggers function
+// No manual invocation needed - runs on momentum score updates
 ```
 
 ---
@@ -298,40 +297,17 @@ ORDER BY total_attempts DESC;
 
 ## 🧪 **Testing**
 
-### **Running Tests**
+### **Flutter Service Testing**
 ```bash
-# Install dependencies
-pip install pytest httpx supabase
+# Test intervention functionality via Flutter service
+cd app
+flutter test test/core/services/coach_intervention_service_test.dart
 
-# Run all intervention engine tests
-pytest tests/api/test_intervention_engine.py -v
-
-# Run specific test categories
-pytest tests/api/test_intervention_engine.py::TestInterventionEngine::test_consecutive_needs_care_trigger -v
+# Test coach dashboard functionality
+flutter test test/features/momentum/presentation/screens/coach_dashboard/
 ```
 
-### **Test Coverage**
-The test suite covers:
-- ✅ All intervention trigger scenarios
-- ✅ Rate limiting functionality
-- ✅ Bulk user processing
-- ✅ Error handling and edge cases
-- ✅ Database trigger integration
-- ✅ Analytics and tracking
-
-### **Mock Data Setup**
-```python
-# Create test momentum history
-history = [
-    {'date': '2024-12-15', 'score': 30, 'state': 'NeedsCare'},
-    {'date': '2024-12-14', 'score': 35, 'state': 'NeedsCare'},
-    {'date': '2024-12-13', 'score': 60, 'state': 'Steady'}
-]
-
-await create_momentum_history(supabase_client, test_user_id, history)
-result = await call_intervention_engine(test_user_id)
-assert result['interventions_triggered'] > 0
-```
+### **Note**: Intervention logic is tested via native Flutter CoachInterventionService rather than separate cloud function tests, as the functionality has been consolidated into the Flutter application for better performance and maintainability.
 
 ---
 

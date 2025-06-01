@@ -1,5 +1,3 @@
-/// <reference path="../momentum-intervention-engine/types.d.ts" />
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -192,8 +190,8 @@ class PushNotificationTrigger {
                 throw new Error(`Failed to get active users: ${usersError?.message}`)
             }
 
-            // Get unique user IDs
-            const uniqueUserIds = [...new Set(activeUsers.map(u => u.user_id))]
+            // Get unique user IDs with proper typing
+            const uniqueUserIds = [...new Set(activeUsers.map((u: { user_id: string }) => u.user_id))] as string[]
             console.log(`Processing batch triggers for ${uniqueUserIds.length} users`)
 
             // Process each user

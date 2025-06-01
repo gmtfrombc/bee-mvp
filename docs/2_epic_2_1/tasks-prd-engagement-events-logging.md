@@ -82,8 +82,8 @@
 
 #### 4.2 Batch Import Endpoint Design
 - [x] Define JSON schema for batch event payload
-- [x] Create Cloud Function endpoint `/batch-events`
-- [x] Implement bulk insert logic with transaction handling
+- [x] Use native Supabase batch insert
+- [x] Implement bulk insert logic with transaction handling (via native Supabase .insert())
 - [x] Add error handling and validation
 
 #### 4.3 UTC Timestamp Handling
