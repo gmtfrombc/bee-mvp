@@ -55,6 +55,7 @@ import 'cache/today_feed_timezone_service.dart';
 import 'cache/today_feed_cache_sync_service.dart';
 import 'cache/today_feed_cache_maintenance_service.dart';
 import 'cache/today_feed_content_service.dart';
+import 'cache/today_feed_cache_warming_service.dart';
 
 /// **Today Feed Cache Service - Main Coordinator**
 ///
@@ -123,6 +124,9 @@ class TodayFeedCacheService {
 
       // Initialize maintenance service
       await TodayFeedCacheMaintenanceService.initialize(_prefs!);
+
+      // Initialize warming service
+      await TodayFeedCacheWarmingService.initialize(_prefs!);
 
       await _validateCacheVersion();
       await _detectAndHandleTimezoneChanges();
@@ -511,6 +515,96 @@ class TodayFeedCacheService {
         await TodayFeedCacheStatisticsService.getCacheStatistics(cacheMetadata);
 
     return performance;
+  }
+
+  // ============================================================================
+  // CACHE WARMING & PRELOADING OPERATIONS (T1.3.3.10)
+  // ============================================================================
+
+  /// Execute cache warming strategy
+  ///
+  /// Implements T1.3.3.10: Cache warming and preloading strategies
+  static Future<Map<String, dynamic>> executeWarmingStrategy({
+    String trigger = 'manual',
+    Map<String, dynamic>? context,
+  }) async {
+    await initialize();
+
+    try {
+      // Convert string trigger to enum
+      final warmingTrigger = _parseWarmingTrigger(trigger);
+
+      final result = await TodayFeedCacheWarmingService.executeWarmingStrategy(
+        trigger: warmingTrigger,
+        context: context,
+      );
+
+      return {
+        'success': result.success,
+        'trigger': result.trigger.name,
+        'duration_ms': result.duration?.inMilliseconds,
+        'results': result.results,
+        'error': result.error,
+      };
+    } catch (e) {
+      debugPrint('❌ Cache warming strategy failed: $e');
+      return {'success': false, 'error': e.toString(), 'trigger': trigger};
+    }
+  }
+
+  /// Update cache warming configuration
+  static Future<void> updateWarmingConfiguration({
+    bool? enableContentPreloading,
+    bool? enableHistoryWarming,
+    bool? enablePredictiveWarming,
+    Duration? scheduledInterval,
+    Duration? predictiveInterval,
+  }) async {
+    await initialize();
+
+    try {
+      // Create new configuration with provided values or defaults
+      final newConfig = WarmingConfiguration(
+        enableContentPreloading: enableContentPreloading ?? true,
+        enableHistoryWarming: enableHistoryWarming ?? true,
+        enablePredictiveWarming: enablePredictiveWarming ?? true,
+        scheduledWarmingInterval: scheduledInterval ?? const Duration(hours: 2),
+        predictiveWarmingInterval:
+            predictiveInterval ?? const Duration(minutes: 30),
+      );
+
+      await TodayFeedCacheWarmingService.updateWarmingConfiguration(newConfig);
+      debugPrint('✅ Cache warming configuration updated');
+    } catch (e) {
+      debugPrint('❌ Failed to update warming configuration: $e');
+    }
+  }
+
+  /// Trigger cache warming on app launch
+  static Future<void> warmCacheOnAppLaunch() async {
+    await initialize();
+
+    await executeWarmingStrategy(
+      trigger: 'appLaunch',
+      context: {'app_startup': true},
+    );
+  }
+
+  /// Helper method to parse warming trigger string to enum
+  static WarmingTrigger _parseWarmingTrigger(String trigger) {
+    switch (trigger.toLowerCase()) {
+      case 'connectivity':
+        return WarmingTrigger.connectivity;
+      case 'scheduled':
+        return WarmingTrigger.scheduled;
+      case 'predictive':
+        return WarmingTrigger.predictive;
+      case 'applaunch':
+      case 'app_launch':
+        return WarmingTrigger.appLaunch;
+      default:
+        return WarmingTrigger.manual;
+    }
   }
 
   // ============================================================================
