@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/services/connectivity_service.dart';
 import '../models/today_feed_streak_models.dart';
 import '../../domain/models/today_feed_content.dart';
@@ -11,17 +10,71 @@ import 'streak_services/streak_calculation_service.dart';
 import 'streak_services/streak_milestone_service.dart';
 import 'streak_services/streak_analytics_service.dart';
 
-/// Service for tracking consecutive daily engagement streaks
+/// **Main Coordinator Service for Streak Tracking System**
 ///
-/// Implements T1.3.4.10 - Create streak tracking for consecutive daily engagements
+/// This service coordinates between specialized modular services to provide
+/// comprehensive streak tracking functionality for consecutive daily engagements.
 ///
-/// Features:
-/// - Comprehensive streak calculation and tracking
-/// - Milestone achievement detection and celebration
-/// - Visual feedback and animations for streak progress
-/// - Analytics and performance insights
-/// - Offline support with sync capabilities
-/// - Integration with momentum system for bonus rewards
+/// **Implements:** T1.3.4.10 - Create streak tracking for consecutive daily engagements
+///
+/// ## Architecture Overview
+///
+/// The service uses a modular architecture with 5 specialized services:
+/// - **StreakPersistenceService:** Data storage and cache management
+/// - **StreakCalculationService:** Core streak calculation algorithms
+/// - **StreakMilestoneService:** Milestone detection and celebrations
+/// - **StreakAnalyticsService:** Analytics and insights generation
+/// - **Main Service (this):** Coordination and public API
+///
+/// ## Key Features
+///
+/// - **Comprehensive Tracking:** Accurate streak calculation across timezones
+/// - **Milestone System:** Dynamic achievement detection with celebrations
+/// - **Visual Feedback:** Rich animations and progress indicators
+/// - **Analytics & Insights:** Personalized performance analysis
+/// - **Offline Support:** Queue-based sync with automatic retry
+/// - **Momentum Integration:** Bonus points for milestone achievements
+///
+/// ## Usage Example
+///
+/// ```dart
+/// // Initialize service
+/// final streakService = TodayFeedStreakTrackingService();
+/// await streakService.initialize();
+///
+/// // Get current streak
+/// final streak = await streakService.getCurrentStreak(userId);
+/// print('Current streak: ${streak.currentStreak} days');
+///
+/// // Update streak on engagement
+/// final result = await streakService.updateStreakOnEngagement(
+///   userId: userId,
+///   content: content,
+///   sessionDuration: 300, // 5 minutes
+/// );
+///
+/// if (result.isSuccess && result.newMilestones.isNotEmpty) {
+///   // Show celebration for milestone achievement
+///   showCelebration(result.celebration);
+/// }
+///
+/// // Get analytics
+/// final analytics = await streakService.getStreakAnalytics(userId);
+/// print('Consistency rate: ${analytics.consistencyRate}%');
+/// ```
+///
+/// ## Service Lifecycle
+///
+/// 1. **Initialization:** Call `initialize()` before first use
+/// 2. **Runtime:** All public methods auto-initialize if needed
+/// 3. **Disposal:** Call `dispose()` when service no longer needed
+///
+/// ## Error Handling
+///
+/// - **Graceful Degradation:** Non-critical failures don't break functionality
+/// - **Offline Support:** Updates queued for sync when connectivity restored
+/// - **Fallback Mechanisms:** Empty/default values returned on errors
+/// - **Comprehensive Logging:** All operations logged for debugging
 class TodayFeedStreakTrackingService {
   static final TodayFeedStreakTrackingService _instance =
       TodayFeedStreakTrackingService._internal();
@@ -29,7 +82,6 @@ class TodayFeedStreakTrackingService {
   TodayFeedStreakTrackingService._internal();
 
   // Dependencies
-  late final SupabaseClient _supabase;
   late final DailyEngagementDetectionService _engagementService;
   late final TodayFeedMomentumAwardService _momentumService;
   late final StreakPersistenceService _persistenceService;
@@ -38,19 +90,30 @@ class TodayFeedStreakTrackingService {
   late final StreakAnalyticsService _analyticsService;
   bool _isInitialized = false;
 
-  // Legacy cache support - to be removed after migration
-  final Map<String, EngagementStreak> _streakCache = {};
-  final Map<String, DateTime> _cacheTimestamps = {};
-  final List<Map<String, dynamic>> _pendingUpdates = [];
+  // Connectivity monitoring
   StreamSubscription<ConnectivityStatus>? _connectivitySubscription;
-  Timer? _syncTimer;
 
-  /// Initialize the streak tracking service
+  /// **Initialize the streak tracking service and all dependencies**
+  ///
+  /// Must be called before using any other methods. Subsequent calls are safe
+  /// and will be ignored if already initialized.
+  ///
+  /// **Initialization Order:**
+  /// 1. Core engagement and momentum services
+  /// 2. Specialized streak services (persistence, calculation, milestone, analytics)
+  /// 3. Connectivity monitoring setup
+  ///
+  /// **Example:**
+  /// ```dart
+  /// final service = TodayFeedStreakTrackingService();
+  /// await service.initialize(); // Safe to call multiple times
+  /// ```
+  ///
+  /// **Throws:** Exception if any critical service fails to initialize
   Future<void> initialize() async {
     if (_isInitialized) return;
 
     try {
-      _supabase = Supabase.instance.client;
       _engagementService = DailyEngagementDetectionService();
       _momentumService = TodayFeedMomentumAwardService();
       _persistenceService = StreakPersistenceService();
@@ -76,7 +139,32 @@ class TodayFeedStreakTrackingService {
     }
   }
 
-  /// Get current engagement streak for user
+  /// **Get current engagement streak for user**
+  ///
+  /// Returns the user's current streak information including:
+  /// - Current streak count (consecutive days)
+  /// - Longest streak achieved
+  /// - Last engagement date
+  /// - Active status (engaged today)
+  /// - Pending celebrations
+  ///
+  /// **Features:**
+  /// - Smart caching for performance (30-minute TTL)
+  /// - Timezone-aware calculations
+  /// - Graceful error handling
+  ///
+  /// **Parameters:**
+  /// - `userId`: Unique identifier for the user
+  ///
+  /// **Returns:** [EngagementStreak] with current status or empty streak on error
+  ///
+  /// **Example:**
+  /// ```dart
+  /// final streak = await service.getCurrentStreak('user123');
+  /// if (streak.currentStreak > 0) {
+  ///   print('🔥 ${streak.currentStreak} day streak!');
+  /// }
+  /// ```
   Future<EngagementStreak> getCurrentStreak(String userId) async {
     await initialize();
 
@@ -102,7 +190,42 @@ class TodayFeedStreakTrackingService {
     }
   }
 
-  /// Update streak on new daily engagement
+  /// **Update streak on new daily engagement**
+  ///
+  /// Processes a user engagement event and updates their streak accordingly.
+  /// Handles milestone detection, celebration creation, and momentum integration.
+  ///
+  /// **Process Flow:**
+  /// 1. Check current streak status
+  /// 2. Validate daily engagement limit
+  /// 3. Calculate updated streak
+  /// 4. Detect new milestones
+  /// 5. Create celebrations and award bonuses
+  /// 6. Store updated data
+  ///
+  /// **Parameters:**
+  /// - `userId`: Unique identifier for the user
+  /// - `content`: The content that was engaged with
+  /// - `sessionDuration`: Optional session duration in seconds
+  /// - `additionalMetadata`: Optional additional data for analytics
+  ///
+  /// **Returns:** [StreakUpdateResult] with update status and any achievements
+  ///
+  /// **Example:**
+  /// ```dart
+  /// final result = await service.updateStreakOnEngagement(
+  ///   userId: 'user123',
+  ///   content: todayContent,
+  ///   sessionDuration: 180, // 3 minutes
+  /// );
+  ///
+  /// if (result.isSuccess) {
+  ///   if (result.newMilestones.isNotEmpty) {
+  ///     // Show milestone celebration
+  ///     showMilestoneAchievement(result.celebration);
+  ///   }
+  /// }
+  /// ```
   Future<StreakUpdateResult> updateStreakOnEngagement({
     required String userId,
     required TodayFeedContent content,
@@ -236,32 +359,30 @@ class TodayFeedStreakTrackingService {
     await initialize();
 
     try {
-      await _supabase
-          .from('today_feed_streak_celebrations')
-          .update({
-            'is_shown': true,
-            'shown_at': DateTime.now().toIso8601String(),
-            'updated_at': DateTime.now().toIso8601String(),
-          })
-          .eq('user_id', userId)
-          .eq('celebration_id', celebrationId);
+      // Delegate to milestone service for celebration management
+      final success = await _milestoneService.markCelebrationAsShown(
+        userId,
+        celebrationId,
+      );
 
-      // Update cache
-      final cacheKey = '${userId}_current_streak';
-      final cached = _persistenceService.getCachedStreak(cacheKey);
-      if (cached?.pendingCelebration?.celebrationId == celebrationId) {
-        final updatedCelebration = cached!.pendingCelebration!.copyWith(
-          isShown: true,
-          shownAt: DateTime.now(),
-        );
-        final updatedStreak = cached.copyWith(
-          pendingCelebration: updatedCelebration,
-        );
-        _persistenceService.cacheStreak(cacheKey, updatedStreak);
+      if (success) {
+        // Update cache through persistence service
+        final cacheKey = '${userId}_current_streak';
+        final cached = _persistenceService.getCachedStreak(cacheKey);
+        if (cached?.pendingCelebration?.celebrationId == celebrationId) {
+          final updatedCelebration = cached!.pendingCelebration!.copyWith(
+            isShown: true,
+            shownAt: DateTime.now(),
+          );
+          final updatedStreak = cached.copyWith(
+            pendingCelebration: updatedCelebration,
+          );
+          _persistenceService.cacheStreak(cacheKey, updatedStreak);
+        }
       }
 
       debugPrint('✅ Celebration marked as shown: $celebrationId');
-      return true;
+      return success;
     } catch (e) {
       debugPrint('❌ Failed to mark celebration as shown: $e');
       return false;
@@ -282,7 +403,7 @@ class TodayFeedStreakTrackingService {
         );
       }
 
-      // Calculate broken streak
+      // Calculate broken streak using calculation service
       final brokenStreak = await _calculationService.calculateUpdatedStreak(
         userId,
         currentStreak,
@@ -290,10 +411,10 @@ class TodayFeedStreakTrackingService {
         isBreak: true,
       );
 
-      // Store streak data
+      // Store streak data using persistence service
       await _persistenceService.storeStreakData(userId, brokenStreak);
 
-      // Update cache
+      // Update cache using persistence service
       final cacheKey = '${userId}_current_streak';
       _persistenceService.cacheStreak(cacheKey, brokenStreak);
 
@@ -315,63 +436,25 @@ class TodayFeedStreakTrackingService {
     }
   }
 
-  // Private helper methods
-
- 
-
-  /// Get pending celebration - delegated to milestone service
-  
-
-  // Offline support
-
-  /// Setup connectivity monitoring
+  /// Setup connectivity monitoring for offline sync
   void _setupConnectivityMonitoring() {
     _connectivitySubscription = ConnectivityService.statusStream.listen((
       status,
     ) {
       if (status == ConnectivityStatus.online) {
-        _syncPendingUpdates();
+        // Delegate sync operations to persistence service
+        _persistenceService.syncPendingUpdates();
       }
     });
   }
 
-  /// Sync pending updates when connectivity restored
-  Future<void> _syncPendingUpdates() async {
-    if (_pendingUpdates.isEmpty) return;
-
-    debugPrint('ℹ️ Syncing ${_pendingUpdates.length} pending streak updates');
-
-    final updates = List<Map<String, dynamic>>.from(_pendingUpdates);
-    _pendingUpdates.clear();
-
-    for (final update in updates) {
-      try {
-        if (update['type'] == 'streak_update') {
-          final content = TodayFeedContent.fromJson(update['content']);
-          await updateStreakOnEngagement(
-            userId: update['user_id'],
-            content: content,
-            sessionDuration: update['session_duration'],
-            additionalMetadata: update['additional_metadata'],
-          );
-        }
-      } catch (e) {
-        debugPrint('❌ Failed to sync streak update: $e');
-        // Re-queue failed updates
-        _pendingUpdates.add(update);
-      }
-    }
-
-    debugPrint('✅ Streak updates sync completed');
-  }
-
-  /// Dispose resources
+  /// Dispose resources and cleanup
   void dispose() {
     _connectivitySubscription?.cancel();
-    _syncTimer?.cancel();
-    _streakCache.clear();
-    _cacheTimestamps.clear();
-    _pendingUpdates.clear();
+    _persistenceService.dispose();
+    _calculationService.dispose();
+    _milestoneService.dispose();
+    _analyticsService.dispose();
     debugPrint('✅ TodayFeedStreakTrackingService disposed');
   }
 }

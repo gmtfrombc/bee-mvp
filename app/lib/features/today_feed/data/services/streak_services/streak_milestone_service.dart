@@ -239,6 +239,38 @@ class StreakMilestoneService {
     return _persistenceService.getPendingCelebration(userId);
   }
 
+  /// Mark celebration as shown
+  Future<bool> markCelebrationAsShown(
+    String userId,
+    String celebrationId,
+  ) async {
+    await initialize();
+
+    try {
+      await _supabase
+          .from('today_feed_streak_celebrations')
+          .update({
+            'is_shown': true,
+            'shown_at': DateTime.now().toIso8601String(),
+            'updated_at': DateTime.now().toIso8601String(),
+          })
+          .eq('user_id', userId)
+          .eq('celebration_id', celebrationId);
+
+      debugPrint('✅ Celebration marked as shown: $celebrationId');
+      return true;
+    } catch (e) {
+      debugPrint('❌ Failed to mark celebration as shown: $e');
+      return false;
+    }
+  }
+
+  /// Dispose resources and cleanup
+  void dispose() {
+    // Clean up any resources if needed
+    debugPrint('✅ StreakMilestoneService disposed');
+  }
+
   // Private helper methods
 
   /// Get milestone data for threshold
