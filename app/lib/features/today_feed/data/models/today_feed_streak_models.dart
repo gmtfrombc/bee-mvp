@@ -457,3 +457,79 @@ class DailyStreakData {
     required this.status,
   });
 }
+
+/// Streak insights and recommendations data
+class StreakInsights {
+  final String userId;
+  final List<String> insights;
+  final List<String> recommendations;
+  final String consistencyGrade;
+  final String motivationalMessage;
+  final DateTime generatedAt;
+
+  const StreakInsights({
+    required this.userId,
+    required this.insights,
+    required this.recommendations,
+    required this.consistencyGrade,
+    required this.motivationalMessage,
+    required this.generatedAt,
+  });
+
+  /// Factory for empty insights
+  factory StreakInsights.empty(String userId) {
+    return StreakInsights(
+      userId: userId,
+      insights: [],
+      recommendations: [],
+      consistencyGrade: 'N/A',
+      motivationalMessage: 'Start your streak today!',
+      generatedAt: DateTime.now(),
+    );
+  }
+}
+
+/// Consistency trend analysis data
+class ConsistencyTrend {
+  final String direction;
+  final double strength;
+  final double firstPeriodRate;
+  final double secondPeriodRate;
+  final DateTime calculatedAt;
+
+  const ConsistencyTrend({
+    required this.direction,
+    required this.strength,
+    required this.firstPeriodRate,
+    required this.secondPeriodRate,
+    required this.calculatedAt,
+  });
+
+  /// Factory for empty trend
+  factory ConsistencyTrend.empty() {
+    return ConsistencyTrend(
+      direction: 'stable',
+      strength: 0.0,
+      firstPeriodRate: 0.0,
+      secondPeriodRate: 0.0,
+      calculatedAt: DateTime.now(),
+    );
+  }
+}
+
+/// Performance recommendation for streak improvement
+class StreakRecommendation {
+  final String type;
+  final String priority;
+  final String title;
+  final String description;
+  final List<String> actionableSteps;
+
+  const StreakRecommendation({
+    required this.type,
+    required this.priority,
+    required this.title,
+    required this.description,
+    required this.actionableSteps,
+  });
+}
