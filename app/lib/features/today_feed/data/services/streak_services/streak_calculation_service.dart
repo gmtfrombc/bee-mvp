@@ -257,45 +257,6 @@ class StreakCalculationService {
     );
   }
 
-  /// Check if two dates are consecutive days
-  bool _isConsecutiveDay(DateTime date1, DateTime date2) {
-    final difference = date1.difference(date2).inDays.abs();
-    return difference == 1;
-  }
-
-  /// Calculate streak length from a list of sorted engagement dates
-  int _calculateStreakLength(List<DateTime> sortedDates) {
-    if (sortedDates.isEmpty) return 0;
-
-    int streakLength = 1;
-    for (int i = 1; i < sortedDates.length; i++) {
-      if (_isConsecutiveDay(sortedDates[i], sortedDates[i - 1])) {
-        streakLength++;
-      } else {
-        break;
-      }
-    }
-
-    return streakLength;
-  }
-
-  /// Calculate consistency rate over a time period
-  double _calculateConsistencyRate(
-    List<Map<String, dynamic>> events,
-    int periodDays,
-  ) {
-    if (events.isEmpty || periodDays <= 0) return 0.0;
-
-    final engagementDays = <String>{};
-    for (final event in events) {
-      final eventDate = DateTime.parse(event['created_at']);
-      final dayString = eventDate.toIso8601String().split('T')[0];
-      engagementDays.add(dayString);
-    }
-
-    return engagementDays.length / periodDays;
-  }
-
   /// Dispose resources
   void dispose() {
     debugPrint('✅ StreakCalculationService disposed');
