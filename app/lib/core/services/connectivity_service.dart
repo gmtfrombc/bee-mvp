@@ -16,6 +16,12 @@ class ConnectivityService {
   static StreamSubscription<List<ConnectivityResult>>? _subscription;
   static final StreamController<ConnectivityStatus> _statusController =
       StreamController<ConnectivityStatus>.broadcast();
+  static bool _isTestEnvironment = false;
+
+  /// Set test environment mode to disable connectivity subscriptions
+  static void setTestEnvironment(bool isTest) {
+    _isTestEnvironment = isTest;
+  }
 
   /// Stream of connectivity status changes
   static Stream<ConnectivityStatus> get statusStream =>
@@ -27,6 +33,15 @@ class ConnectivityService {
 
   /// Initialize connectivity monitoring
   static Future<void> initialize() async {
+    // Skip initialization in test environment
+    if (_isTestEnvironment) {
+      _currentStatus = ConnectivityStatus.online;
+      debugPrint(
+        '✅ ConnectivityService test mode - skipping real initialization',
+      );
+      return;
+    }
+
     // Get initial connectivity status
     final initialResult = await _connectivity.checkConnectivity();
     _updateStatus(initialResult);

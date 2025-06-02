@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/models/today_feed_content.dart';
 import '../models/user_feedback_models.dart';
 import '../../../../core/services/connectivity_service.dart';
+import '../../../../core/services/version_service.dart';
 
 /// Configuration for user feedback collection system
 class FeedbackCollectionConfig {
@@ -108,7 +109,7 @@ class UserFeedbackCollectionService {
         improvementSuggestions: improvementSuggestions ?? [],
         wouldRecommend: wouldRecommend,
         metadata: {
-          'app_version': '1.0.0', // TODO: Get from package info
+          'app_version': VersionService.appVersion,
           'platform': defaultTargetPlatform.name,
           'collection_timestamp': DateTime.now().toIso8601String(),
           'ai_confidence_score': content.aiConfidenceScore,

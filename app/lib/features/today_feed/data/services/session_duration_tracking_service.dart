@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/models/today_feed_content.dart';
 import '../../../../core/services/connectivity_service.dart';
+import '../../../../core/services/version_service.dart';
 
 /// Configuration constants for session duration tracking
 class SessionTrackingConfig {
@@ -111,7 +112,7 @@ class ReadingSession {
         'estimated_reading_minutes': content.estimatedReadingMinutes,
         'ai_confidence_score': content.aiConfidenceScore,
         'platform': defaultTargetPlatform.name,
-        'app_version': '1.0.0', // TODO: Get from package info
+        'app_version': VersionService.appVersion,
         ...?additionalMetadata,
       },
     );

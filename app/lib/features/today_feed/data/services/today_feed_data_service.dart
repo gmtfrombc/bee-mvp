@@ -9,6 +9,12 @@ class TodayFeedDataService {
   // Initialization flag
   static bool _isInitialized = false;
   static StreamSubscription<ConnectivityStatus>? _connectivitySubscription;
+  static bool _isTestEnvironment = false;
+
+  /// Set test environment mode to disable connectivity subscriptions
+  static void setTestEnvironment(bool isTest) {
+    _isTestEnvironment = isTest;
+  }
 
   /// Initialize the data service
   static Future<void> initialize() async {
@@ -17,15 +23,19 @@ class TodayFeedDataService {
     try {
       // Initialize dependencies
       await TodayFeedCacheService.initialize();
-      await ConnectivityService.initialize();
 
-      // Listen for connectivity changes to trigger background sync
-      _connectivitySubscription = ConnectivityService.statusStream.listen(
-        _onConnectivityChanged,
-        onError: (error) {
-          debugPrint('❌ Connectivity monitoring error: $error');
-        },
-      );
+      // Only initialize connectivity service in production
+      if (!_isTestEnvironment) {
+        await ConnectivityService.initialize();
+
+        // Listen for connectivity changes to trigger background sync
+        _connectivitySubscription = ConnectivityService.statusStream.listen(
+          _onConnectivityChanged,
+          onError: (error) {
+            debugPrint('❌ Connectivity monitoring error: $error');
+          },
+        );
+      }
 
       _isInitialized = true;
       debugPrint('✅ TodayFeedDataService initialized successfully');
@@ -37,6 +47,8 @@ class TodayFeedDataService {
 
   /// Handle connectivity changes
   static void _onConnectivityChanged(ConnectivityStatus status) {
+    if (_isTestEnvironment) return;
+
     if (status == ConnectivityStatus.online) {
       debugPrint('📡 Device back online, checking for pending operations');
       // Check for pending interactions to sync when back online

@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/models/today_feed_content.dart';
 import '../../../../core/services/connectivity_service.dart';
 import 'daily_engagement_detection_service.dart';
+import '../../../../core/services/version_service.dart';
 
 /// Service for tracking user interactions with Today Feed content
 ///
@@ -385,7 +386,7 @@ class UserContentInteractionService {
         },
         'metadata': {
           'source': 'today_feed_interaction_service_sync',
-          'app_version': '1.0.0', // TODO: Get from package info
+          'app_version': VersionService.appVersion,
           'platform': defaultTargetPlatform.name,
           'service_version': 'UserContentInteractionService_v1.0',
           'epic_integration': 'Epic_2.1_engagement_events_logging',
@@ -465,7 +466,7 @@ class UserContentInteractionService {
       'content_title': content.title,
       'content_category': content.topicCategory.value,
       'metadata': {
-        'app_version': '1.0.0', // TODO: Get from package info
+        'app_version': VersionService.appVersion,
         'platform': defaultTargetPlatform.name,
         'content_confidence_score': content.aiConfidenceScore,
         'estimated_reading_minutes': content.estimatedReadingMinutes,
@@ -521,7 +522,7 @@ class UserContentInteractionService {
         },
         'metadata': {
           'source': 'today_feed_interaction_service',
-          'app_version': '1.0.0', // TODO: Get from package info
+          'app_version': VersionService.appVersion,
           'platform': defaultTargetPlatform.name,
           'service_version': 'UserContentInteractionService_v1.0',
           'epic_integration': 'Epic_2.1_engagement_events_logging',
