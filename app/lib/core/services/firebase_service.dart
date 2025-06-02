@@ -19,6 +19,18 @@ class FirebaseService {
     if (_initialized) return;
 
     try {
+      // Check if Firebase app already exists (handle duplicate app error)
+      if (Firebase.apps.isNotEmpty) {
+        // Firebase is already initialized
+        _initialized = true;
+        _available = true;
+
+        if (kDebugMode) {
+          print('✅ Firebase already initialized for project: $projectId');
+        }
+        return;
+      }
+
       // Initialize Firebase with generated configuration
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
@@ -28,6 +40,33 @@ class FirebaseService {
 
       if (kDebugMode) {
         print('✅ Firebase initialized successfully for project: $projectId');
+      }
+    } on FirebaseException catch (e) {
+      if (e.code == 'duplicate-app') {
+        // Handle duplicate app specifically
+        _initialized = true;
+        _available = true;
+
+        if (kDebugMode) {
+          print('✅ Firebase app already exists - using existing instance');
+        }
+        return;
+      }
+
+      // Other Firebase errors
+      _initialized = true;
+      _available = false;
+      _initializationError = e.toString();
+
+      if (kDebugMode) {
+        print('❌ Firebase initialization failed: $e');
+        print('💡 App will continue with limited functionality');
+        print('💡 Notifications and analytics will be disabled');
+      }
+
+      // Don't rethrow in development/test environments - allow app to continue
+      if (!Environment.isDevelopment && !kDebugMode) {
+        rethrow;
       }
     } catch (e) {
       _initialized = true;

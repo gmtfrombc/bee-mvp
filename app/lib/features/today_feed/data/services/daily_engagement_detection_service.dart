@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/models/today_feed_content.dart';
 import '../../../../core/services/connectivity_service.dart';
+import '../../../../core/services/version_service.dart';
 
 /// Service for detecting and managing daily engagement with Today Feed content
 ///
@@ -331,7 +332,7 @@ class DailyEngagementDetectionService {
       },
       'metadata': {
         'source': 'today_feed_daily_engagement',
-        'app_version': '1.0.0', // TODO: Get from package info
+        'app_version': VersionService.appVersion,
         'platform': defaultTargetPlatform.name,
         'service_version': 'DailyEngagementDetectionService_v1.0',
       },

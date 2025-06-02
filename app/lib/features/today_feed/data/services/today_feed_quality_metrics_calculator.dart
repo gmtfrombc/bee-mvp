@@ -378,16 +378,17 @@ class TodayFeedQualityMetricsCalculator {
     for (final validation in validations) {
       final score = scoreExtractor(validation);
 
-      if (score < 0.2)
+      if (score < 0.2) {
         result['0.0-0.2'] = result['0.0-0.2']! + 1;
-      else if (score < 0.4)
+      } else if (score < 0.4) {
         result['0.2-0.4'] = result['0.2-0.4']! + 1;
-      else if (score < 0.6)
+      } else if (score < 0.6) {
         result['0.4-0.6'] = result['0.4-0.6']! + 1;
-      else if (score < 0.8)
+      } else if (score < 0.8) {
         result['0.6-0.8'] = result['0.6-0.8']! + 1;
-      else
+      } else {
         result['0.8-1.0'] = result['0.8-1.0']! + 1;
+      }
     }
 
     return result;

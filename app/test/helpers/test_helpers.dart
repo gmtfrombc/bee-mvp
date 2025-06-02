@@ -11,11 +11,34 @@ import 'package:app/features/momentum/domain/models/momentum_data.dart';
 import 'package:app/features/momentum/data/services/momentum_api_service.dart';
 import 'package:app/features/momentum/presentation/providers/momentum_api_provider.dart';
 
+// Today Feed imports for provider overrides
+import 'package:app/features/momentum/presentation/providers/today_feed_provider.dart';
+import 'package:app/features/today_feed/domain/models/today_feed_content.dart';
+import 'package:app/features/today_feed/data/services/today_feed_data_service.dart';
+import 'package:app/core/services/connectivity_service.dart';
+import 'package:app/core/services/today_feed_cache_service.dart';
+
 /// Test utilities and helpers for BEE app testing
 class TestHelpers {
   /// Create a mock momentum API service for testing
   static MockMomentumApiService createMockMomentumApiService() {
     return MockMomentumApiService();
+  }
+
+  /// Create mock Today Feed content for testing
+  static TodayFeedContent createMockTodayFeedContent() {
+    return TodayFeedContent(
+      id: 1,
+      title: 'Test Daily Wisdom',
+      summary: 'Test summary for widget testing',
+      topicCategory: HealthTopic.lifestyle,
+      contentDate: DateTime.now(),
+      estimatedReadingMinutes: 3,
+      aiConfidenceScore: 0.85,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+      isCached: true,
+    );
   }
 
   /// Create test provider overrides for momentum-related tests
@@ -31,6 +54,23 @@ class TestHelpers {
     ];
   }
 
+  /// Create test provider overrides including Today Feed mocks
+  static List<Override> createAllTestProviderOverrides() {
+    return [
+      momentumApiServiceProvider.overrideWith((ref) {
+        return TestHelpers.createMockMomentumApiService();
+      }),
+      realtimeMomentumProvider.overrideWith((ref) {
+        // Return a stream that emits test data once and completes
+        return Stream.value(TestHelpers.createSampleMomentumData());
+      }),
+      todayFeedProvider.overrideWith((ref) {
+        // Return a mock StateNotifier that provides loaded state
+        return MockTodayFeedNotifier();
+      }),
+    ];
+  }
+
   /// Create a test app wrapper with proper setup
   static Widget createTestApp({
     required Widget child,
@@ -39,7 +79,7 @@ class TestHelpers {
     bool enableNotifications = false,
   }) {
     return ProviderScope(
-      overrides: providerOverrides ?? createMomentumProviderOverrides(),
+      overrides: providerOverrides ?? createAllTestProviderOverrides(),
       child: MaterialApp(
         title: 'BEE Test',
         theme: theme ?? AppTheme.lightTheme,
@@ -93,6 +133,11 @@ class TestHelpers {
 
   /// Setup test environment before each test
   static Future<void> setUpTest() async {
+    // Enable test mode for services to prevent connectivity subscriptions and timers
+    TodayFeedDataService.setTestEnvironment(true);
+    ConnectivityService.setTestEnvironment(true);
+    TodayFeedCacheService.setTestEnvironment(true);
+
     // No Supabase initialization needed for widget tests
     // Tests will use mocked providers instead
   }
@@ -396,5 +441,31 @@ class MockMomentumApiService implements MomentumApiService {
   Future<void> invalidateMomentumCache({String? reason}) async {
     // Mock cache invalidation
     await Future.delayed(const Duration(milliseconds: 10));
+  }
+}
+
+/// Mock implementation of TodayFeedNotifier for testing
+class MockTodayFeedNotifier extends TodayFeedNotifier {
+  MockTodayFeedNotifier() : super() {
+    // Override initial state with mock loaded data
+    state = TodayFeedState.loaded(TestHelpers.createMockTodayFeedContent());
+  }
+
+  @override
+  Future<void> refresh() async {
+    // Mock refresh - just update state
+    state = TodayFeedState.loaded(TestHelpers.createMockTodayFeedContent());
+  }
+
+  @override
+  Future<void> recordInteraction(TodayFeedInteractionType type) async {
+    // Mock interaction recording - no actual work needed
+    return;
+  }
+
+  @override
+  Future<void> handleTap() async {
+    // Mock tap handling - no actual work needed
+    return;
   }
 }

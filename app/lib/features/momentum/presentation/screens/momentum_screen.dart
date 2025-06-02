@@ -21,6 +21,10 @@ import '../../../../core/services/error_handling_service.dart';
 import 'notification_settings_screen.dart';
 import 'profile_settings_screen.dart';
 
+// Today Feed imports
+import '../../../today_feed/presentation/widgets/today_feed_tile.dart';
+import '../providers/today_feed_provider.dart';
+
 /// Main momentum meter screen
 /// Displays the user's current momentum state and provides quick actions
 class MomentumScreen extends ConsumerWidget {
@@ -126,6 +130,7 @@ class _MomentumContent extends ConsumerWidget {
     final weeklyTrend = ref.watch(weeklyTrendProvider);
     final stats = ref.watch(momentumStatsProvider);
     final momentumState = ref.watch(momentumStateProvider);
+    final todayFeedState = ref.watch(todayFeedProvider);
 
     // Get responsive spacing
     final spacing = ResponsiveService.getResponsiveSpacing(context);
@@ -142,6 +147,28 @@ class _MomentumContent extends ConsumerWidget {
               // T1.1.3.7: Show detail modal
               showMomentumDetailModal(context, momentumData);
             },
+          ),
+
+          SizedBox(height: spacing),
+
+          // Today Feed Tile - Fresh daily content
+          TodayFeedTile(
+            state: todayFeedState,
+            onTap: () {
+              ref.read(todayFeedProvider.notifier).handleTap();
+            },
+            onShare: () {
+              ref.read(todayFeedProvider.notifier).handleShare();
+            },
+            onBookmark: () {
+              ref.read(todayFeedProvider.notifier).handleBookmark();
+            },
+            onInteraction: (type) {
+              ref.read(todayFeedProvider.notifier).recordInteraction(type);
+            },
+            showMomentumIndicator: true,
+            enableAnimations: true,
+            margin: ResponsiveService.getResponsivePadding(context),
           ),
 
           SizedBox(height: spacing),

@@ -10,6 +10,7 @@ import 'core/services/firebase_service.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/notification_action_dispatcher.dart';
 import 'core/services/fcm_token_service.dart';
+import 'core/services/version_service.dart';
 import 'core/providers/supabase_provider.dart';
 import 'features/momentum/presentation/screens/momentum_screen.dart';
 import 'core/notifications/domain/services/notification_preferences_service.dart';
@@ -122,6 +123,14 @@ Future<void> _initializeNotificationSystem() async {
 
 /// Initialize other core services with error isolation
 Future<void> _initializeCoreServices() async {
+  // Initialize version service
+  try {
+    await VersionService.initialize();
+    debugPrint('✅ Version service initialized: ${VersionService.fullVersion}');
+  } catch (e) {
+    debugPrint('❌ Failed to initialize version service: $e');
+  }
+
   // Initialize connectivity monitoring
   try {
     await ConnectivityService.initialize();

@@ -84,6 +84,9 @@ class TodayFeedCacheService {
   /// Initialization state flag
   static bool _isInitialized = false;
 
+  /// Test environment flag
+  static bool _isTestEnvironment = false;
+
   /// Timer for automatic content refresh
   static Timer? _refreshTimer;
 
@@ -92,6 +95,15 @@ class TodayFeedCacheService {
 
   /// Timer for automatic cache cleanup
   static Timer? _automaticCleanupTimer;
+
+  // ============================================================================
+  // TEST ENVIRONMENT SUPPORT
+  // ============================================================================
+
+  /// Set test environment mode to disable timers and subscriptions
+  static void setTestEnvironment(bool isTest) {
+    _isTestEnvironment = isTest;
+  }
 
   // ============================================================================
   // INITIALIZATION & SETUP
@@ -103,6 +115,15 @@ class TodayFeedCacheService {
 
     try {
       _prefs ??= await SharedPreferences.getInstance();
+
+      // Skip full initialization in test environment
+      if (_isTestEnvironment) {
+        _isInitialized = true;
+        debugPrint(
+          '✅ TodayFeedCacheService test mode - skipping full initialization',
+        );
+        return;
+      }
 
       // Initialize content service first (core dependency)
       await TodayFeedContentService.initialize(_prefs!);

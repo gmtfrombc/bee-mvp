@@ -66,6 +66,7 @@ dependencies:
   flutter_dotenv: ^5.1.0
   url_launcher: ^6.2.5
   share_plus: ^7.2.2
+  package_info_plus: ^4.2.0
 
 dev_dependencies:
   flutter_test:
@@ -136,8 +137,9 @@ flutter:
     - assets/images/
     - assets/animations/
     - assets/icons/
+    - .env
 
-  # Custom fonts for BEE design system (TODO: Add actual font files)
+  # Custom fonts for BEE design system
   # fonts:
   #   - family: BEE
   #     fonts:

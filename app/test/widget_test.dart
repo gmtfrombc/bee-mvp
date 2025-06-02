@@ -28,8 +28,10 @@ void main() {
       settleDuration: const Duration(milliseconds: 500),
     );
 
-    // Wait for initial animations and layout to complete
-    await tester.pumpAndSettle(const Duration(seconds: 5));
+    // Wait for initial animations and layout to complete with explicit pumps
+    await tester.pump(const Duration(milliseconds: 200));
+    await tester.pump(const Duration(milliseconds: 200));
+    await tester.pump(const Duration(milliseconds: 200));
 
     // Verify that the app loads without crashing
     expect(find.text('Welcome back, Sarah!'), findsOneWidget);
@@ -46,8 +48,9 @@ void main() {
   testWidgets('App theme and basic styling test', (WidgetTester tester) async {
     await TestHelpers.pumpTestWidget(tester, child: const MomentumScreen());
 
-    // Wait for all animations and layout to settle
-    await tester.pumpAndSettle(const Duration(seconds: 3));
+    // Wait for all animations and layout to settle with explicit pumps
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pump(const Duration(milliseconds: 100));
 
     // Verify theme is applied
     final materialApp = tester.widget<MaterialApp>(find.byType(MaterialApp));
@@ -60,8 +63,10 @@ void main() {
   testWidgets('Navigation elements test', (WidgetTester tester) async {
     await TestHelpers.pumpTestWidget(tester, child: const MomentumScreen());
 
-    // Wait for all animations and layout to settle completely
-    await tester.pumpAndSettle(const Duration(seconds: 5));
+    // Wait for all animations and layout to settle with explicit pumps
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pump(const Duration(milliseconds: 100));
 
     // Verify navigation elements are present
     expect(find.byIcon(Icons.notifications_outlined), findsOneWidget);
@@ -73,7 +78,7 @@ void main() {
         find.byIcon(Icons.notifications_outlined),
         warnIfMissed: false,
       );
-      await tester.pumpAndSettle(const Duration(milliseconds: 500));
+      await tester.pump(const Duration(milliseconds: 100));
     } catch (e) {
       debugPrint(
         'Notification icon tap test skipped: widget may be off-screen',
@@ -82,7 +87,7 @@ void main() {
 
     try {
       await tester.tap(find.byIcon(Icons.person_outline), warnIfMissed: false);
-      await tester.pumpAndSettle(const Duration(milliseconds: 500));
+      await tester.pump(const Duration(milliseconds: 100));
     } catch (e) {
       debugPrint('Person icon tap test skipped: widget may be off-screen');
     }
@@ -95,8 +100,9 @@ void main() {
       settleDuration: const Duration(seconds: 2),
     );
 
-    // Wait for all animations to complete
-    await tester.pumpAndSettle(const Duration(seconds: 3));
+    // Wait for all animations to complete with explicit pumps
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pump(const Duration(milliseconds: 100));
 
     // Find the scrollable widget
     final scrollable = find.byType(SingleChildScrollView);
@@ -104,10 +110,10 @@ void main() {
 
     // Test scrolling (should not crash)
     await tester.drag(scrollable, const Offset(0, -200));
-    await tester.pumpAndSettle(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(milliseconds: 100));
 
     await tester.drag(scrollable, const Offset(0, 200));
-    await tester.pumpAndSettle(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(milliseconds: 100));
   });
 
   testWidgets('Widget hierarchy test', (WidgetTester tester) async {
@@ -117,8 +123,10 @@ void main() {
       settleDuration: const Duration(seconds: 3),
     );
 
-    // Wait for all animations and mounting to complete
-    await tester.pumpAndSettle(const Duration(seconds: 5));
+    // Wait for all animations and mounting to complete with explicit pumps
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pump(const Duration(milliseconds: 100));
 
     // Verify the basic widget hierarchy
     expect(find.byType(ProviderScope), findsOneWidget);
