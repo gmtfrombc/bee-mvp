@@ -242,6 +242,24 @@ class ResponsiveService {
     }
   }
 
+  /// Get responsive Today Feed tile height
+  static double getTodayFeedTileHeight(BuildContext context) {
+    final deviceType = getDeviceType(context);
+
+    switch (deviceType) {
+      case DeviceType.mobileSmall:
+        return 370.0;
+      case DeviceType.mobile:
+        return 400.0;
+      case DeviceType.mobileLarge:
+        return 430.0;
+      case DeviceType.tablet:
+        return 470.0;
+      case DeviceType.desktop:
+        return 500.0;
+    }
+  }
+
   /// Check if device is in landscape orientation
   static bool isLandscape(BuildContext context) {
     return MediaQuery.of(context).orientation == Orientation.landscape;

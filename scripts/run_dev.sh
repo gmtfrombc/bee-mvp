@@ -1,8 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
-
-# BEE Momentum Meter - Development Runner with Supabase Credentials
-echo "🚀 Starting BEE Momentum Meter in development mode..."
 
 # Auto‑provision .env if missing
 if [ ! -f app/.env ]; then

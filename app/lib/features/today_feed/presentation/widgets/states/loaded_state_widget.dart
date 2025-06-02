@@ -116,25 +116,22 @@ class TodayFeedLoadedStateWidget extends StatelessWidget {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(height: ResponsiveService.getMediumSpacing(context)),
-          // Title
-          Flexible(
-            child: Text(
-              content.title,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontSize: _getResponsiveFontSize(context, baseFontSize: 20),
-                fontWeight: FontWeight.w600,
-                height: 1.2,
-                letterSpacing: -0.3,
-              ),
-              maxLines: _getMaxTitleLines(context),
-              overflow: TextOverflow.ellipsis,
+          SizedBox(height: ResponsiveService.getTinySpacing(context)),
+          // Title section with fixed space allocation
+          Text(
+            content.title,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              fontSize: _getResponsiveFontSize(context, baseFontSize: 18),
+              fontWeight: FontWeight.w600,
+              height: 1.2,
+              letterSpacing: -0.3,
             ),
+            maxLines: _getMaxTitleLines(context),
+            overflow: TextOverflow.ellipsis,
           ),
-          SizedBox(height: ResponsiveService.getSmallSpacing(context)),
-          // Rich content in a scrollable container for tile view
-          Flexible(
-            flex: 3,
+          SizedBox(height: ResponsiveService.getMediumSpacing(context)),
+          // Rich content in an expanded scrollable container
+          Expanded(
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
               child: RichContentRenderer(
@@ -165,23 +162,22 @@ class TodayFeedLoadedStateWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(height: ResponsiveService.getMediumSpacing(context)),
-        Flexible(
-          child: Text(
-            content.title,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontSize: _getResponsiveFontSize(context, baseFontSize: 20),
-              fontWeight: FontWeight.w600,
-              height: 1.2,
-              letterSpacing: -0.3,
-            ),
-            maxLines: _getMaxTitleLines(context),
-            overflow: TextOverflow.ellipsis,
+        SizedBox(height: ResponsiveService.getTinySpacing(context)),
+        // Title section with fixed space allocation
+        Text(
+          content.title,
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            fontSize: _getResponsiveFontSize(context, baseFontSize: 18),
+            fontWeight: FontWeight.w600,
+            height: 1.2,
+            letterSpacing: -0.3,
           ),
+          maxLines: _getMaxTitleLines(context),
+          overflow: TextOverflow.ellipsis,
         ),
-        SizedBox(height: ResponsiveService.getSmallSpacing(context)),
-        Flexible(
-          flex: 2,
+        SizedBox(height: ResponsiveService.getMediumSpacing(context)),
+        // Summary content in an expanded container
+        Expanded(
           child: Text(
             content.summary,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
@@ -190,8 +186,6 @@ class TodayFeedLoadedStateWidget extends StatelessWidget {
               letterSpacing: 0.1,
               color: AppTheme.getTextSecondary(context),
             ),
-            maxLines: _getMaxSummaryLines(context),
-            overflow: TextOverflow.fade,
           ),
         ),
         SizedBox(height: ResponsiveService.getSmallSpacing(context)),
@@ -264,7 +258,7 @@ class TodayFeedLoadedStateWidget extends StatelessWidget {
 
         // Action button
         Flexible(
-          child: ElevatedButton.icon(
+          child: OutlinedButton.icon(
             onPressed:
                 isEngaged ? interactionHandler.onTap : interactionHandler.onTap,
             icon:
@@ -272,15 +266,24 @@ class TodayFeedLoadedStateWidget extends StatelessWidget {
                     ? _buildMomentumIcon(context, isEngaged)
                     : Icon(Icons.arrow_forward, size: iconSize),
             label: Text(isEngaged ? "Read Again" : "Read More"),
-            style: ElevatedButton.styleFrom(
-              minimumSize: Size(100, buttonHeight),
+            style: OutlinedButton.styleFrom(
+              minimumSize: Size(90, buttonHeight - 4),
               padding: ResponsiveService.getHorizontalPadding(
                 context,
-                multiplier: 0.75,
+                multiplier: 0.6,
               ),
               textStyle: _getButtonTextStyle(context),
-              backgroundColor: isEngaged ? null : AppTheme.momentumRising,
-              foregroundColor: isEngaged ? null : Colors.white,
+              foregroundColor:
+                  isEngaged
+                      ? AppTheme.getTextSecondary(context)
+                      : AppTheme.momentumRising,
+              side: BorderSide(
+                color:
+                    isEngaged
+                        ? AppTheme.getTextTertiary(context)
+                        : AppTheme.momentumRising,
+                width: 1.5,
+              ),
             ),
           ),
         ),
@@ -365,7 +368,7 @@ class TodayFeedLoadedStateWidget extends StatelessWidget {
 
   TextStyle _getButtonTextStyle(BuildContext context) {
     final baseSize =
-        ResponsiveService.shouldUseCompactLayout(context) ? 14.0 : 16.0;
+        ResponsiveService.shouldUseCompactLayout(context) ? 12.0 : 14.0;
     return TextStyle(
       fontSize: _getResponsiveFontSize(context, baseFontSize: baseSize),
       fontWeight: FontWeight.w600,

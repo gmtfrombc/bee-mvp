@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+if git diff --cached --name-only | grep -qE '^app/\.env$'; then
+  echo "❌  Refusing to commit app/.env (contains secrets)"
+  exit 1
+fi 
