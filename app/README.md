@@ -1,4 +1,6 @@
-# BEE Momentum Meter - Flutter App
+# BEE MVP - Momentum Meter App
+
+<!-- GitHub build test: credentials restored 2025-01-06 -->
 
 ## Overview
 
