@@ -147,6 +147,8 @@ jobs:
         cp .env.example .env
         
         echo "✅ Created .env file from template"
+        echo "📋 Verifying .env file exists:"
+        ls -la .env
         
     # FIREBASE CONFIG: Dynamic creation based on CI needs
     - name: Create Firebase iOS Configuration
