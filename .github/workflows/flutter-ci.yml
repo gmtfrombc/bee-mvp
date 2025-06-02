@@ -22,8 +22,35 @@ jobs:
       working-directory: ./app
       run: |
         # Create .env file from template for GitHub builds
+        echo "📋 Current directory: $(pwd)"
+        echo "📋 Available files:"
+        ls -la
+        echo "📋 Creating .env file from template..."
+        
+        # Check if .env.example exists, if not create a minimal one
+        if [ ! -f ".env.example" ]; then
+          echo "⚠️  .env.example not found, creating minimal template..."
+          echo "ENVIRONMENT=development" > .env.example
+          echo "SUPABASE_URL=https://your-project.supabase.co" >> .env.example
+          echo "SUPABASE_ANON_KEY=your-supabase-anon-key-here" >> .env.example
+          echo "FIREBASE_PROJECT_ID=bee-mvp-3ab43" >> .env.example
+          echo "APP_VERSION=1.0.0" >> .env.example
+        fi
+        
+        # Copy template to .env
         cp .env.example .env
         echo "✅ Created .env file from template"
+        
+        # Verify .env file exists and has content
+        if [ ! -f ".env" ]; then
+          echo "❌ ERROR: .env file was not created!"
+          exit 1
+        fi
+        
+        echo "📋 Verifying .env file:"
+        ls -la .env*
+        echo "📋 .env file contents:"
+        cat .env
         
     - name: Get dependencies
       working-directory: ./app
@@ -59,8 +86,35 @@ jobs:
       working-directory: ./app
       run: |
         # Create .env file from template for GitHub builds
+        echo "📋 Current directory: $(pwd)"
+        echo "📋 Available files:"
+        ls -la
+        echo "📋 Creating .env file from template..."
+        
+        # Check if .env.example exists, if not create a minimal one
+        if [ ! -f ".env.example" ]; then
+          echo "⚠️  .env.example not found, creating minimal template..."
+          echo "ENVIRONMENT=development" > .env.example
+          echo "SUPABASE_URL=https://your-project.supabase.co" >> .env.example
+          echo "SUPABASE_ANON_KEY=your-supabase-anon-key-here" >> .env.example
+          echo "FIREBASE_PROJECT_ID=bee-mvp-3ab43" >> .env.example
+          echo "APP_VERSION=1.0.0" >> .env.example
+        fi
+        
+        # Copy template to .env
         cp .env.example .env
         echo "✅ Created .env file from template"
+        
+        # Verify .env file exists and has content
+        if [ ! -f ".env" ]; then
+          echo "❌ ERROR: .env file was not created!"
+          exit 1
+        fi
+        
+        echo "📋 Verifying .env file:"
+        ls -la .env*
+        echo "📋 .env file contents:"
+        cat .env
         
     - name: Get dependencies
       working-directory: ./app
@@ -92,8 +146,35 @@ jobs:
       working-directory: ./app
       run: |
         # Create .env file from template for GitHub builds
+        echo "📋 Current directory: $(pwd)"
+        echo "📋 Available files:"
+        ls -la
+        echo "📋 Creating .env file from template..."
+        
+        # Check if .env.example exists, if not create a minimal one
+        if [ ! -f ".env.example" ]; then
+          echo "⚠️  .env.example not found, creating minimal template..."
+          echo "ENVIRONMENT=development" > .env.example
+          echo "SUPABASE_URL=https://your-project.supabase.co" >> .env.example
+          echo "SUPABASE_ANON_KEY=your-supabase-anon-key-here" >> .env.example
+          echo "FIREBASE_PROJECT_ID=bee-mvp-3ab43" >> .env.example
+          echo "APP_VERSION=1.0.0" >> .env.example
+        fi
+        
+        # Copy template to .env
         cp .env.example .env
         echo "✅ Created .env file from template"
+        
+        # Verify .env file exists and has content
+        if [ ! -f ".env" ]; then
+          echo "❌ ERROR: .env file was not created!"
+          exit 1
+        fi
+        
+        echo "📋 Verifying .env file:"
+        ls -la .env*
+        echo "📋 .env file contents:"
+        cat .env
         
     - name: Get dependencies
       working-directory: ./app
