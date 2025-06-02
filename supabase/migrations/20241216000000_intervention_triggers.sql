@@ -78,10 +78,7 @@ CREATE TABLE IF NOT EXISTS intervention_rate_limits (
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     intervention_type TEXT NOT NULL,
     last_triggered_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    trigger_count INTEGER NOT NULL DEFAULT 1,
-    
-    -- Composite unique constraint to prevent duplicates
-    UNIQUE(user_id, intervention_type, DATE(last_triggered_at))
+    trigger_count INTEGER NOT NULL DEFAULT 1
 );
 
 -- Index for efficient rate limit checks
@@ -124,11 +121,7 @@ BEGIN
     
     -- Record this intervention attempt
     INSERT INTO intervention_rate_limits (user_id, intervention_type)
-    VALUES (p_user_id, p_intervention_type)
-    ON CONFLICT (user_id, intervention_type, DATE(last_triggered_at))
-    DO UPDATE SET 
-        trigger_count = intervention_rate_limits.trigger_count + 1,
-        last_triggered_at = NOW();
+    VALUES (p_user_id, p_intervention_type);
     
     RETURN TRUE;
 END;

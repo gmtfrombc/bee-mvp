@@ -172,24 +172,25 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- SCHEDULED JOBS SETUP
 -- =====================================================
 -- Schedule daily score calculation at 1 AM UTC
+-- Temporarily commented out for local development
 
-SELECT cron.schedule(
-    'daily-momentum-calculation',
-    '0 1 * * *', -- 1 AM UTC daily
-    $$
-    SELECT trigger_daily_score_calculation(CURRENT_DATE - INTERVAL '1 day');
-    $$
-);
+-- SELECT cron.schedule(
+--     'daily-momentum-calculation',
+--     '0 1 * * *', -- 1 AM UTC daily
+--     $$
+--     SELECT trigger_daily_score_calculation(CURRENT_DATE - INTERVAL '1 day');
+--     $$
+-- );
 
 -- Schedule cleanup of old job records (keep 90 days)
-SELECT cron.schedule(
-    'cleanup-score-calculation-jobs',
-    '0 2 * * 0', -- 2 AM UTC every Sunday
-    $$
-    DELETE FROM score_calculation_jobs 
-    WHERE created_at < NOW() - INTERVAL '90 days';
-    $$
-);
+-- SELECT cron.schedule(
+--     'cleanup-score-calculation-jobs',
+--     '0 2 * * 0', -- 2 AM UTC every Sunday
+--     $$
+--     DELETE FROM score_calculation_jobs 
+--     WHERE created_at < NOW() - INTERVAL '90 days';
+--     $$
+-- );
 
 -- =====================================================
 -- MONITORING AND ALERTING
@@ -320,19 +321,19 @@ CREATE OR REPLACE FUNCTION backfill_momentum_scores(
 ) RETURNS UUID[] AS $$
 DECLARE
     job_ids UUID[] := '{}';
-    current_date DATE;
+    iter_date DATE;
     job_id UUID;
 BEGIN
-    current_date := p_start_date;
+    iter_date := p_start_date;
     
-    WHILE current_date <= p_end_date LOOP
+    WHILE iter_date <= p_end_date LOOP
         -- Create backfill job
         INSERT INTO score_calculation_jobs (
             job_date,
             job_type,
             triggered_by
         ) VALUES (
-            current_date,
+            iter_date,
             'backfill',
             'backfill_operation'
         ) RETURNING id INTO job_id;
@@ -348,11 +349,11 @@ BEGIN
             ),
             body := jsonb_build_object(
                 'calculate_all_users', true,
-                'target_date', current_date::text
+                'target_date', iter_date::text
             )
         );
         
-        current_date := current_date + INTERVAL '1 day';
+        iter_date := iter_date + INTERVAL '1 day';
     END LOOP;
     
     RETURN job_ids;

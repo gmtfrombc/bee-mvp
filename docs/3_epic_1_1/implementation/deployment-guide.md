@@ -256,7 +256,7 @@ SELECT pg_reload_conf();
 
 #### **GitHub Actions Production Workflow**
 ```yaml
-# .github/workflows/production-deploy.yml
+# .github/workflows/app-release.yml
 name: Production Deployment
 
 on:

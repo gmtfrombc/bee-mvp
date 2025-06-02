@@ -82,32 +82,35 @@ $$ LANGUAGE plpgsql;
 -- Create a scheduled job for daily notifications (requires pg_cron extension)
 -- This will run daily at 9 AM to send motivational notifications
 -- Note: pg_cron needs to be enabled in your Supabase project
-SELECT cron.schedule(
-    'daily-motivation-notifications',
-    '0 9 * * *', -- Every day at 9 AM
-    'SELECT schedule_daily_notifications();'
-);
+-- Temporarily commented out for local development
+-- SELECT cron.schedule(
+--     'daily-motivation-notifications',
+--     '0 9 * * *', -- Every day at 9 AM
+--     'SELECT schedule_daily_notifications();'
+-- );
 
 -- Create indexes for better performance on notification queries
 CREATE INDEX IF NOT EXISTS idx_momentum_notifications_user_created 
 ON momentum_notifications(user_id, created_at DESC);
 
 CREATE INDEX IF NOT EXISTS idx_momentum_notifications_delivery_status 
-ON momentum_notifications(delivery_status, created_at);
+ON momentum_notifications(status, created_at);
 
-CREATE INDEX IF NOT EXISTS idx_user_fcm_tokens_active 
-ON user_fcm_tokens(user_id, is_active) WHERE is_active = true;
+-- Index on user_fcm_tokens table - commented out since table is created in later migration
+-- CREATE INDEX IF NOT EXISTS idx_user_fcm_tokens_active 
+-- ON user_fcm_tokens(user_id, is_active) WHERE is_active = true;
 
 -- Add rate limiting table to prevent notification spam
 CREATE TABLE IF NOT EXISTS notification_rate_limits (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     notification_type TEXT NOT NULL,
+    rate_limit_date DATE NOT NULL DEFAULT CURRENT_DATE,
     last_sent_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     count_today INTEGER NOT NULL DEFAULT 1,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     
-    UNIQUE(user_id, notification_type, DATE(last_sent_at))
+    UNIQUE(user_id, notification_type, rate_limit_date)
 );
 
 -- Create function to check rate limits
@@ -126,7 +129,7 @@ BEGIN
     FROM notification_rate_limits
     WHERE user_id = p_user_id
     AND notification_type = p_notification_type
-    AND DATE(last_sent_at) = CURRENT_DATE;
+    AND rate_limit_date = CURRENT_DATE;
     
     -- Return true if under the limit
     RETURN COALESCE(current_count, 0) < p_max_per_day;
@@ -140,9 +143,9 @@ CREATE OR REPLACE FUNCTION update_notification_rate_limit(
 )
 RETURNS void AS $$
 BEGIN
-    INSERT INTO notification_rate_limits (user_id, notification_type, last_sent_at, count_today)
-    VALUES (p_user_id, p_notification_type, NOW(), 1)
-    ON CONFLICT (user_id, notification_type, DATE(last_sent_at))
+    INSERT INTO notification_rate_limits (user_id, notification_type, rate_limit_date, last_sent_at, count_today)
+    VALUES (p_user_id, p_notification_type, CURRENT_DATE, NOW(), 1)
+    ON CONFLICT (user_id, notification_type, rate_limit_date)
     DO UPDATE SET
         count_today = notification_rate_limits.count_today + 1,
         last_sent_at = NOW();
@@ -163,12 +166,12 @@ CREATE OR REPLACE VIEW notification_analytics AS
 SELECT 
     DATE(created_at) as notification_date,
     notification_type,
-    delivery_status,
+    status,
     COUNT(*) as count,
     COUNT(DISTINCT user_id) as unique_users
 FROM momentum_notifications
 WHERE created_at >= CURRENT_DATE - INTERVAL '30 days'
-GROUP BY DATE(created_at), notification_type, delivery_status
+GROUP BY DATE(created_at), notification_type, status
 ORDER BY notification_date DESC, notification_type;
 
 -- Grant permissions

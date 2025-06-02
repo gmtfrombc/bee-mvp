@@ -376,6 +376,12 @@ ALTER TABLE daily_engagement_scores ENABLE ROW LEVEL SECURITY;
 ALTER TABLE momentum_notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE coach_interventions ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies to avoid conflicts
+DROP POLICY IF EXISTS "Users can view own momentum scores" ON daily_engagement_scores;
+DROP POLICY IF EXISTS "Users can view own notifications" ON momentum_notifications;  
+DROP POLICY IF EXISTS "Users can view own interventions" ON coach_interventions;
+DROP POLICY IF EXISTS "Coaches can view all interventions" ON coach_interventions;
+
 -- Policy for users to see their own momentum data
 CREATE POLICY "Users can view own momentum scores" ON daily_engagement_scores
     FOR SELECT USING (auth.uid() = user_id);

@@ -40,6 +40,10 @@ resource "google_project_service" "logging" {
   service = "logging.googleapis.com"
 }
 
+resource "google_project_service" "secret_manager" {
+  service = "secretmanager.googleapis.com"
+}
+
 # Secret Manager secrets for Supabase configuration
 resource "google_secret_manager_secret" "supabase_url" {
   secret_id = "supabase-url"
@@ -47,6 +51,8 @@ resource "google_secret_manager_secret" "supabase_url" {
   replication {
     auto {}
   }
+
+  depends_on = [google_project_service.secret_manager]
 }
 
 resource "google_secret_manager_secret" "supabase_service_key" {
@@ -55,4 +61,6 @@ resource "google_secret_manager_secret" "supabase_service_key" {
   replication {
     auto {}
   }
+
+  depends_on = [google_project_service.secret_manager]
 }

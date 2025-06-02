@@ -531,9 +531,3 @@ COMMENT ON COLUMN coach_interventions.trigger_pattern IS 'JSONB containing momen
 
 -- =====================================================
 -- MIGRATION COMPLETION
--- =====================================================
-
--- Insert migration record
-INSERT INTO public.schema_migrations (version, applied_at) 
-VALUES ('20241215000000_momentum_meter', NOW())
-ON CONFLICT (version) DO NOTHING; 
