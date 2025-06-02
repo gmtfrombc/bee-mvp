@@ -1,0 +1,104 @@
+name: Flutter CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.32.1'
+        
+    - name: Setup Environment
+      working-directory: ./app
+      run: |
+        # Create .env file from template for GitHub builds
+        cp .env.example .env
+        echo "✅ Created .env file from template"
+        
+    - name: Get dependencies
+      working-directory: ./app
+      run: flutter pub get
+      
+    - name: Verify the build
+      working-directory: ./app
+      run: flutter analyze
+      
+    - name: Run tests
+      working-directory: ./app
+      run: flutter test --coverage
+      
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./app/coverage/lcov.info
+        fail_ci_if_error: false
+
+  build-android:
+    needs: test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.32.1'
+        
+    - name: Setup Environment
+      working-directory: ./app
+      run: |
+        # Create .env file from template for GitHub builds
+        cp .env.example .env
+        echo "✅ Created .env file from template"
+        
+    - name: Get dependencies
+      working-directory: ./app
+      run: flutter pub get
+      
+    - name: Build APK
+      working-directory: ./app
+      run: flutter build apk --release
+      
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: app-release.apk
+        path: app/build/app/outputs/flutter-apk/app-release.apk
+
+  build-ios:
+    needs: test
+    runs-on: macos-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.32.1'
+        
+    - name: Setup Environment
+      working-directory: ./app
+      run: |
+        # Create .env file from template for GitHub builds
+        cp .env.example .env
+        echo "✅ Created .env file from template"
+        
+    - name: Get dependencies
+      working-directory: ./app
+      run: flutter pub get
+      
+    - name: Build iOS
+      working-directory: ./app
+      run: flutter build ios --release --no-codesign 
