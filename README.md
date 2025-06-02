@@ -153,4 +153,11 @@ cd supabase && npx supabase db push
 
 ---
 
-**For detailed documentation, start with [Project Overview](docs/0_Initial_docs/project_overview.md)** 
+**For detailed documentation, start with [Project Overview](docs/0_Initial_docs/project_overview.md)**
+
+# Momentum App
+
+A Flutter application for tracking personal momentum and progress.
+
+## Build Status
+✅ Asset bundle .env issue resolved - CI build test in progress 

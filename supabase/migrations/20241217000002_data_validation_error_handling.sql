@@ -727,21 +727,24 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE OR REPLACE FUNCTION cleanup_error_logs()
 RETURNS INTEGER AS $$
 DECLARE
-    deleted_count INTEGER;
+    deleted_count INTEGER := 0;
+    temp_count INTEGER;
 BEGIN
     -- Delete resolved errors older than 90 days
     DELETE FROM momentum_error_logs
     WHERE is_resolved = true 
       AND resolved_at < NOW() - INTERVAL '90 days';
     
-    GET DIAGNOSTICS deleted_count = ROW_COUNT;
+    GET DIAGNOSTICS temp_count = ROW_COUNT;
+    deleted_count := deleted_count + temp_count;
     
     -- Delete low severity errors older than 30 days
     DELETE FROM momentum_error_logs
     WHERE severity = 'low' 
       AND created_at < NOW() - INTERVAL '30 days';
     
-    GET DIAGNOSTICS deleted_count = deleted_count + ROW_COUNT;
+    GET DIAGNOSTICS temp_count = ROW_COUNT;
+    deleted_count := deleted_count + temp_count;
     
     RETURN deleted_count;
 END;

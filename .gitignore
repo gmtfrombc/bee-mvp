@@ -1,11 +1,20 @@
+# Environment Variables (SECURITY: Never commit these)
 .env*
 
 # Firebase Configuration Files (SECURITY: Never commit these)
 **/firebase_options.dart
 **/google-services.json
 **/GoogleService-Info.plist
+**/firebase-adminsdk-*.json
 firebase-debug.log
 .firebase/
+
+# Additional Security Files
+**/*credentials*.json
+**/*serviceAccountKey*.json
+**/*private-key*.json
+**/secrets.yaml
+**/secrets.yml
 
 # Python virtual environments
 venv/
@@ -30,4 +39,5 @@ env/
 .coverage
 .tox/
 
+# Archived functions (cleanup safety)
 archive/

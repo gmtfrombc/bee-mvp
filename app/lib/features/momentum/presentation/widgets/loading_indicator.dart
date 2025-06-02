@@ -3,9 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/services/responsive_service.dart';
 import '../providers/loading_state_provider.dart';
+import 'components/loading_animations.dart';
+
+// Export all loading components for external use
+export 'components/loading_animations.dart';
+export 'components/loading_indicator_variants.dart';
 
 /// Enhanced loading indicator with progress and messages
-class MomentumLoadingIndicator extends ConsumerStatefulWidget {
+/// Refactored to use extracted animation and variant components for better maintainability
+class MomentumLoadingIndicator extends ConsumerWidget {
   final bool showProgress;
   final bool showMessage;
   final double size;
@@ -20,59 +26,7 @@ class MomentumLoadingIndicator extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<MomentumLoadingIndicator> createState() =>
-      _MomentumLoadingIndicatorState();
-}
-
-class _MomentumLoadingIndicatorState
-    extends ConsumerState<MomentumLoadingIndicator>
-    with TickerProviderStateMixin {
-  late AnimationController _rotationController;
-  late AnimationController _pulseController;
-  late Animation<double> _rotationAnimation;
-  late Animation<double> _pulseAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _setupAnimations();
-    _startAnimations();
-  }
-
-  void _setupAnimations() {
-    _rotationController = AnimationController(
-      duration: const Duration(seconds: 2),
-      vsync: this,
-    );
-
-    _pulseController = AnimationController(
-      duration: const Duration(milliseconds: 1500),
-      vsync: this,
-    );
-
-    _rotationAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _rotationController, curve: Curves.linear),
-    );
-
-    _pulseAnimation = Tween<double>(begin: 0.8, end: 1.2).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
-    );
-  }
-
-  void _startAnimations() {
-    _rotationController.repeat();
-    _pulseController.repeat(reverse: true);
-  }
-
-  @override
-  void dispose() {
-    _rotationController.dispose();
-    _pulseController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final progress = ref.watch(loadingProgressProvider);
     final message = ref.watch(loadingMessageProvider);
     final isRefreshing = ref.watch(isAnyComponentRefreshingProvider);
@@ -80,44 +34,44 @@ class _MomentumLoadingIndicatorState
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Loading indicator with progress
-        AnimatedBuilder(
-          animation: Listenable.merge([_rotationAnimation, _pulseAnimation]),
-          builder: (context, child) {
+        // Loading indicator with progress using extracted animations
+        LoadingAnimations(
+          rotationPulseBuilder: (rotation, pulse) {
             return Transform.scale(
-              scale: _pulseAnimation.value,
+              scale: pulse,
               child: Transform.rotate(
-                angle: _rotationAnimation.value * 2 * 3.14159,
+                angle: rotation * 2 * 3.14159,
                 child: SizedBox(
-                  width: widget.size,
-                  height: widget.size,
+                  width: size,
+                  height: size,
                   child: Stack(
                     children: [
                       // Background circle
                       CircularProgressIndicator(
                         value: 1.0,
                         strokeWidth: 3.0,
-                        color: (widget.color ?? AppTheme.momentumRising)
-                            .withValues(alpha: 0.2),
+                        color: (color ?? AppTheme.momentumRising).withValues(
+                          alpha: 0.2,
+                        ),
                       ),
                       // Progress circle
-                      if (widget.showProgress)
+                      if (showProgress)
                         CircularProgressIndicator(
                           value: isRefreshing ? null : progress,
                           strokeWidth: 3.0,
-                          color: widget.color ?? AppTheme.momentumRising,
+                          color: color ?? AppTheme.momentumRising,
                         )
                       else
                         CircularProgressIndicator(
                           strokeWidth: 3.0,
-                          color: widget.color ?? AppTheme.momentumRising,
+                          color: color ?? AppTheme.momentumRising,
                         ),
                       // Center icon
                       Center(
                         child: Icon(
                           isRefreshing ? Icons.refresh : Icons.trending_up,
-                          size: widget.size * 0.4,
-                          color: widget.color ?? AppTheme.momentumRising,
+                          size: size * 0.4,
+                          color: color ?? AppTheme.momentumRising,
                         ),
                       ),
                     ],
@@ -129,19 +83,19 @@ class _MomentumLoadingIndicatorState
         ),
 
         // Progress percentage
-        if (widget.showProgress && !isRefreshing) ...[
+        if (showProgress && !isRefreshing) ...[
           SizedBox(height: ResponsiveService.getSmallSpacing(context)),
           Text(
             '${(progress * 100).round()}%',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: widget.color ?? AppTheme.momentumRising,
+              color: color ?? AppTheme.momentumRising,
               fontWeight: FontWeight.w600,
             ),
           ),
         ],
 
         // Loading message
-        if (widget.showMessage) ...[
+        if (showMessage) ...[
           SizedBox(height: ResponsiveService.getMediumSpacing(context)),
           AnimatedSwitcher(
             duration: const Duration(milliseconds: 300),
@@ -263,7 +217,8 @@ class _CompactLoadingIndicatorState extends State<CompactLoadingIndicator>
 }
 
 /// Staggered loading animation for multiple components
-class StaggeredLoadingAnimation extends StatefulWidget {
+/// Uses extracted StaggeredAnimationController component
+class StaggeredLoadingAnimation extends StatelessWidget {
   final List<Widget> children;
   final Duration staggerDelay;
   final Duration animationDuration;
@@ -278,87 +233,12 @@ class StaggeredLoadingAnimation extends StatefulWidget {
   });
 
   @override
-  State<StaggeredLoadingAnimation> createState() =>
-      _StaggeredLoadingAnimationState();
-}
-
-class _StaggeredLoadingAnimationState extends State<StaggeredLoadingAnimation>
-    with TickerProviderStateMixin {
-  late List<AnimationController> _controllers;
-  late List<Animation<double>> _animations;
-
-  @override
-  void initState() {
-    super.initState();
-    _setupAnimations();
-    _startStaggeredAnimations();
-  }
-
-  void _setupAnimations() {
-    _controllers = List.generate(
-      widget.children.length,
-      (index) =>
-          AnimationController(duration: widget.animationDuration, vsync: this),
-    );
-
-    _animations =
-        _controllers
-            .map(
-              (controller) => Tween<double>(begin: 0.0, end: 1.0).animate(
-                CurvedAnimation(parent: controller, curve: widget.curve),
-              ),
-            )
-            .toList();
-  }
-
-  void _startStaggeredAnimations() {
-    for (int i = 0; i < _controllers.length; i++) {
-      final delay = Duration(
-        milliseconds:
-            (widget.staggerDelay.inMilliseconds * (1 + i * 0.3)).round(),
-      );
-
-      Future.delayed(delay, () {
-        if (mounted) {
-          _controllers[i].forward();
-        }
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    for (final controller in _controllers) {
-      controller.dispose();
-    }
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return Column(
-      children: List.generate(widget.children.length, (index) {
-        return AnimatedBuilder(
-          animation: _animations[index],
-          builder: (context, child) {
-            final animationValue = _animations[index].value.clamp(0.0, 1.0);
-
-            final slideOffset = 30 * (1 - animationValue);
-            final scaleValue = 0.8 + (0.2 * animationValue);
-
-            return Transform.translate(
-              offset: Offset(0, slideOffset),
-              child: Transform.scale(
-                scale: scaleValue,
-                child: Opacity(
-                  opacity: animationValue,
-                  child: widget.children[index],
-                ),
-              ),
-            );
-          },
-        );
-      }),
+    return StaggeredAnimationController(
+      staggerDelay: staggerDelay,
+      animationDuration: animationDuration,
+      curve: curve,
+      children: children,
     );
   }
 }

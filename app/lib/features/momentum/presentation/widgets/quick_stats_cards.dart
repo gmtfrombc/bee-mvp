@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_theme.dart';
-import '../../../../core/services/responsive_service.dart';
-import '../../../../core/services/accessibility_service.dart';
 import '../../domain/models/momentum_data.dart';
+import 'components/stats_cards_layout.dart';
 import 'dart:async';
 
 /// Quick stats cards component displaying lessons, streak, and today's activity
 /// Three horizontal cards with icons, values, and labels
-/// Optimized for performance with reduced animation controllers
+/// Optimized for performance with extracted components and reduced complexity
 class QuickStatsCards extends StatefulWidget {
   final MomentumStats stats;
   final EdgeInsets? margin;
@@ -30,20 +28,18 @@ class QuickStatsCards extends StatefulWidget {
 
 class _QuickStatsCardsState extends State<QuickStatsCards>
     with SingleTickerProviderStateMixin {
-  // Optimized: Use single animation controller instead of multiple controllers
   late AnimationController _controller;
   late Animation<double> _progressAnimation;
-  Timer? _animationTimer; // Store timer reference
+  Timer? _animationTimer;
 
   @override
   void initState() {
     super.initState();
-    _setupOptimizedAnimations();
-    _startOptimizedAnimation();
+    _setupAnimations();
+    _startAnimation();
   }
 
-  void _setupOptimizedAnimations() {
-    // Optimized: Single controller for all animations
+  void _setupAnimations() {
     _controller = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
@@ -55,8 +51,7 @@ class _QuickStatsCardsState extends State<QuickStatsCards>
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
   }
 
-  void _startOptimizedAnimation() {
-    // Optimized: Start animation immediately without staggering
+  void _startAnimation() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _animationTimer = Timer(const Duration(milliseconds: 100), () {
@@ -70,7 +65,6 @@ class _QuickStatsCardsState extends State<QuickStatsCards>
 
   @override
   void dispose() {
-    // Optimized: Only one timer and controller to dispose
     _animationTimer?.cancel();
     _controller.dispose();
     super.dispose();
@@ -78,113 +72,19 @@ class _QuickStatsCardsState extends State<QuickStatsCards>
 
   @override
   Widget build(BuildContext context) {
-    final spacing =
-        ResponsiveService.getResponsiveSpacing(context) *
-        0.4; // Smaller spacing between cards
-    final shouldUseCompactLayout = ResponsiveService.shouldUseCompactLayout(
-      context,
-    );
-
     return Container(
       margin: widget.margin,
-      child:
-          shouldUseCompactLayout
-              ? _buildCompactLayout(spacing)
-              : _buildStandardLayout(spacing),
+      child: StatsCardsLayout(
+        stats: widget.stats,
+        onLessonsTap: widget.onLessonsTap,
+        onStreakTap: widget.onStreakTap,
+        onTodayTap: widget.onTodayTap,
+        cardWrapper: _wrapCardWithAnimation,
+      ),
     );
   }
 
-  Widget _buildStandardLayout(double spacing) {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildStatCard(
-            index: 0,
-            icon: Icons.menu_book_rounded,
-            value: widget.stats.lessonsRatio,
-            label: 'Lessons',
-            color: AppTheme.momentumRising,
-            onTap: widget.onLessonsTap,
-          ),
-        ),
-        SizedBox(width: spacing),
-        Expanded(
-          child: _buildStatCard(
-            index: 1,
-            icon: Icons.local_fire_department_rounded,
-            value: widget.stats.streakText,
-            label: 'Streak',
-            color: AppTheme.momentumCare,
-            onTap: widget.onStreakTap,
-          ),
-        ),
-        SizedBox(width: spacing),
-        Expanded(
-          child: _buildStatCard(
-            index: 2,
-            icon: Icons.schedule_rounded,
-            value: widget.stats.todayText,
-            label: 'Today',
-            color: AppTheme.momentumSteady,
-            onTap: widget.onTodayTap,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCompactLayout(double spacing) {
-    return Column(
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: _buildStatCard(
-                index: 0,
-                icon: Icons.menu_book_rounded,
-                value: widget.stats.lessonsRatio,
-                label: 'Lessons',
-                color: AppTheme.momentumRising,
-                onTap: widget.onLessonsTap,
-              ),
-            ),
-            SizedBox(width: spacing),
-            Expanded(
-              child: _buildStatCard(
-                index: 1,
-                icon: Icons.local_fire_department_rounded,
-                value: widget.stats.streakText,
-                label: 'Streak',
-                color: AppTheme.momentumCare,
-                onTap: widget.onStreakTap,
-              ),
-            ),
-          ],
-        ),
-        SizedBox(height: spacing),
-        SizedBox(
-          width: double.infinity,
-          child: _buildStatCard(
-            index: 2,
-            icon: Icons.schedule_rounded,
-            value: widget.stats.todayText,
-            label: 'Today',
-            color: AppTheme.momentumSteady,
-            onTap: widget.onTodayTap,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStatCard({
-    required int index,
-    required IconData icon,
-    required String value,
-    required String label,
-    required Color color,
-    VoidCallback? onTap,
-  }) {
+  Widget _wrapCardWithAnimation(Widget card) {
     return AnimatedBuilder(
       animation: _progressAnimation,
       builder: (context, child) {
@@ -197,168 +97,7 @@ class _QuickStatsCardsState extends State<QuickStatsCards>
             ).animate(
               CurvedAnimation(parent: _controller, curve: Curves.easeOut),
             ),
-            child: _StatCard(
-              icon: icon,
-              value: value,
-              label: label,
-              color: color,
-              onTap: onTap,
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-/// Individual stat card component
-class _StatCard extends StatefulWidget {
-  final IconData icon;
-  final String value;
-  final String label;
-  final Color color;
-  final VoidCallback? onTap;
-
-  const _StatCard({
-    required this.icon,
-    required this.value,
-    required this.label,
-    required this.color,
-    this.onTap,
-  });
-
-  @override
-  State<_StatCard> createState() => _StatCardState();
-}
-
-class _StatCardState extends State<_StatCard>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _scaleController;
-  late Animation<double> _scaleAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _scaleController = AnimationController(
-      duration: const Duration(milliseconds: 150),
-      vsync: this,
-    );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
-      CurvedAnimation(parent: _scaleController, curve: Curves.easeInOut),
-    );
-  }
-
-  @override
-  void dispose() {
-    _scaleController.dispose();
-    super.dispose();
-  }
-
-  void _handleTap() {
-    if (widget.onTap != null) {
-      _scaleController.forward().then((_) {
-        if (mounted) {
-          _scaleController.reverse();
-        }
-      });
-      widget.onTap!();
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _scaleAnimation,
-      builder: (context, child) {
-        return Transform.scale(
-          scale: _scaleAnimation.value,
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: widget.onTap != null ? _handleTap : null,
-              borderRadius: BorderRadius.circular(
-                ResponsiveService.getBorderRadius(context),
-              ),
-              child: Semantics(
-                label: AccessibilityService.getQuickStatsLabel(
-                  widget.label,
-                  widget.value,
-                  'Quick stat',
-                ),
-                hint: widget.onTap != null ? 'Tap for more details' : null,
-                button: widget.onTap != null,
-                child: Card(
-                  elevation: 1,
-                  shadowColor: widget.color.withValues(alpha: 0.1),
-                  child: Container(
-                    height: ResponsiveService.getQuickStatsCardHeight(context),
-                    padding: EdgeInsets.all(
-                      ResponsiveService.getResponsivePadding(context).left *
-                          0.6,
-                    ),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(
-                        ResponsiveService.getBorderRadius(context),
-                      ),
-                      border: Border.all(
-                        color: widget.color.withValues(alpha: 0.1),
-                        width: 1,
-                      ),
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          widget.icon,
-                          color: widget.color,
-                          size: ResponsiveService.getIconSize(
-                            context,
-                            baseSize: 18,
-                          ),
-                        ),
-                        SizedBox(
-                          height:
-                              ResponsiveService.getResponsiveSpacing(context) *
-                              0.1,
-                        ),
-                        Flexible(
-                          child: Text(
-                            widget.value,
-                            style: Theme.of(
-                              context,
-                            ).textTheme.titleSmall?.copyWith(
-                              color: widget.color,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        SizedBox(
-                          height:
-                              ResponsiveService.getResponsiveSpacing(context) *
-                              0.05,
-                        ),
-                        Flexible(
-                          child: Text(
-                            widget.label,
-                            style: Theme.of(
-                              context,
-                            ).textTheme.bodySmall?.copyWith(
-                              color: AppTheme.getTextSecondary(context),
-                              fontSize: 11,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
+            child: card,
           ),
         );
       },

@@ -297,52 +297,54 @@ class _MomentumPointFeedbackWidgetState
       return const SizedBox.shrink();
     }
 
-    return Semantics(
-      liveRegion: true,
-      label: _getAccessibilityLabel(),
-      child: AnimatedBuilder(
-        animation: Listenable.merge([
-          _fadeAnimation,
-          _scaleAnimation,
-          _slideAnimation,
-          _bounceAnimation,
-          _glowAnimation,
-        ]),
-        builder: (context, child) {
-          return Opacity(
-            opacity: _fadeAnimation.value,
-            child: Transform.scale(
-              scale: _bounceAnimation.value,
-              child: Container(
-                decoration: BoxDecoration(
-                  boxShadow:
-                      widget.enableAnimations
-                          ? [
-                            BoxShadow(
-                              color: AppTheme.momentumRising.withValues(
-                                alpha: _glowAnimation.value * 0.4,
+    return RepaintBoundary(
+      child: Semantics(
+        liveRegion: true,
+        label: _getAccessibilityLabel(),
+        child: AnimatedBuilder(
+          animation: Listenable.merge([
+            _fadeAnimation,
+            _scaleAnimation,
+            _slideAnimation,
+            _bounceAnimation,
+            _glowAnimation,
+          ]),
+          builder: (context, child) {
+            return Opacity(
+              opacity: _fadeAnimation.value,
+              child: Transform.scale(
+                scale: _bounceAnimation.value,
+                child: Container(
+                  decoration: BoxDecoration(
+                    boxShadow:
+                        widget.enableAnimations
+                            ? [
+                              BoxShadow(
+                                color: AppTheme.momentumRising.withValues(
+                                  alpha: _glowAnimation.value * 0.4,
+                                ),
+                                blurRadius: 20 * _glowAnimation.value,
+                                spreadRadius: 2 * _glowAnimation.value,
                               ),
-                              blurRadius: 20 * _glowAnimation.value,
-                              spreadRadius: 2 * _glowAnimation.value,
-                            ),
-                          ]
-                          : null,
+                            ]
+                            : null,
+                  ),
+                  child: RepaintBoundary(child: _buildFeedbackContent(context)),
                 ),
-                child: _buildFeedbackContent(context),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
 
   Widget _buildFeedbackContent(BuildContext context) {
     if (widget.awardResult.isQueued) {
-      return _buildQueuedFeedback(context);
+      return RepaintBoundary(child: _buildQueuedFeedback(context));
     }
 
-    return _buildSuccessFeedback(context);
+    return RepaintBoundary(child: _buildSuccessFeedback(context));
   }
 
   Widget _buildSuccessFeedback(BuildContext context) {
@@ -415,96 +417,102 @@ class _MomentumPointFeedbackWidgetState
     final pointSize = ResponsiveService.getIconSize(context, baseSize: 48);
     final iconSize = ResponsiveService.getIconSize(context, baseSize: 24);
 
-    return AnimatedBuilder(
-      animation: _scaleAnimation,
-      builder: (context, child) {
-        return Transform.scale(
-          scale: _scaleAnimation.value,
-          child: Container(
-            width: pointSize,
-            height: pointSize,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppTheme.momentumRising,
-            ),
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                // Background circle with pulse effect
-                AnimatedBuilder(
-                  animation: _glowAnimation,
-                  builder: (context, child) {
-                    return Container(
-                      width: pointSize * (1 + _glowAnimation.value * 0.2),
-                      height: pointSize * (1 + _glowAnimation.value * 0.2),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: AppTheme.momentumRising.withValues(
-                          alpha: 0.3 * (1 - _glowAnimation.value),
-                        ),
+    return RepaintBoundary(
+      child: AnimatedBuilder(
+        animation: _scaleAnimation,
+        builder: (context, child) {
+          return Transform.scale(
+            scale: _scaleAnimation.value,
+            child: Container(
+              width: pointSize,
+              height: pointSize,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppTheme.momentumRising,
+              ),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  // Background circle with pulse effect
+                  RepaintBoundary(
+                    child: AnimatedBuilder(
+                      animation: _glowAnimation,
+                      builder: (context, child) {
+                        return Container(
+                          width: pointSize * (1 + _glowAnimation.value * 0.2),
+                          height: pointSize * (1 + _glowAnimation.value * 0.2),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: AppTheme.momentumRising.withValues(
+                              alpha: 0.3 * (1 - _glowAnimation.value),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  // Main point indicator
+                  Icon(Icons.add_circle, size: iconSize, color: Colors.white),
+                  // Point text
+                  Positioned(
+                    bottom: -2,
+                    right: -2,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 4,
+                        vertical: 2,
                       ),
-                    );
-                  },
-                ),
-                // Main point indicator
-                Icon(Icons.add_circle, size: iconSize, color: Colors.white),
-                // Point text
-                Positioned(
-                  bottom: -2,
-                  right: -2,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 4,
-                      vertical: 2,
-                    ),
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Text(
-                      '+${widget.awardResult.pointsAwarded}',
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: AppTheme.momentumRising,
-                        fontWeight: FontWeight.w800,
-                        fontSize:
-                            ResponsiveService.getFontSizeMultiplier(context) *
-                            10,
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Text(
+                        '+${widget.awardResult.pointsAwarded}',
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: AppTheme.momentumRising,
+                          fontWeight: FontWeight.w800,
+                          fontSize:
+                              ResponsiveService.getFontSizeMultiplier(context) *
+                              10,
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 
   Widget _buildSuccessMessage(BuildContext context) {
-    return SlideTransition(
-      position: _slideAnimation,
-      child: Column(
-        children: [
-          Text(
-            'Momentum +${widget.awardResult.pointsAwarded}!',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: AppTheme.momentumRising,
-              fontWeight: FontWeight.w700,
+    return RepaintBoundary(
+      child: SlideTransition(
+        position: _slideAnimation,
+        child: Column(
+          children: [
+            Text(
+              'Momentum +${widget.awardResult.pointsAwarded}!',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: AppTheme.momentumRising,
+                fontWeight: FontWeight.w700,
+              ),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
-          ),
-          SizedBox(height: ResponsiveService.getTinySpacing(context)),
-          Text(
-            _getSuccessMessage(),
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: AppTheme.getTextSecondary(context),
+            SizedBox(height: ResponsiveService.getTinySpacing(context)),
+            Text(
+              _getSuccessMessage(),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: AppTheme.getTextSecondary(context),
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

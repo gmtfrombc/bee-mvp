@@ -13,12 +13,13 @@
 migrate_working_dir/
 
 # Environment files and secrets (SECURITY CRITICAL)
-.env*
-*.env
+.env
 .env.local
 .env.dev
 .env.production
 .env.staging
+# Allow .env.example to be committed as template
+!.env.example
 config.json
 secrets.json
 *.key
