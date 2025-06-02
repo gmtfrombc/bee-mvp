@@ -242,19 +242,7 @@ class _TodayFeedTileState extends State<TodayFeedTile>
   double _getCardHeight(BuildContext context) {
     if (widget.height != null) return widget.height!;
 
-    final deviceType = ResponsiveService.getDeviceType(context);
-    switch (deviceType) {
-      case DeviceType.mobileSmall:
-        return 230.0;
-      case DeviceType.mobile:
-        return 250.0;
-      case DeviceType.mobileLarge:
-        return 270.0;
-      case DeviceType.tablet:
-        return 290.0;
-      case DeviceType.desktop:
-        return 310.0;
-    }
+    return ResponsiveService.getTodayFeedTileHeight(context);
   }
 
   EdgeInsets _getCardMargin(BuildContext context) {

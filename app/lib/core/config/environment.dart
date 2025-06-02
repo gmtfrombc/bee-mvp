@@ -17,11 +17,35 @@ class Environment {
     if (_isLoaded) return;
 
     try {
-      await dotenv.load(fileName: '.env');
+      // First, try to load from --dart-define compile-time variables
+      const String supaUrlDefine = String.fromEnvironment('SUPABASE_URL');
+      const String supaAnonDefine = String.fromEnvironment('SUPABASE_ANON_KEY');
+
+      if (supaUrlDefine.isNotEmpty && supaAnonDefine.isNotEmpty) {
+        dotenv.testLoad();
+        dotenv.env.addAll({
+          'SUPABASE_URL': supaUrlDefine,
+          'SUPABASE_ANON_KEY': supaAnonDefine,
+        });
+        debugPrint('✅ Loaded Supabase creds from --dart-define');
+      } else {
+        // Fallback to .env.example for CI / release builds
+        await dotenv.load(fileName: '.env.example');
+        debugPrint('✅ Environment configuration loaded from .env.example');
+      }
       _isLoaded = true;
-      debugPrint('✅ Environment configuration loaded from .env');
+
+      // Sanity checks – fail fast if critical vars are missing
+      assert(
+        dotenv.env['SUPABASE_URL']?.isNotEmpty ?? false,
+        'Missing SUPABASE_URL – check .env or env vars',
+      );
+      assert(
+        dotenv.env['SUPABASE_ANON_KEY']?.isNotEmpty ?? false,
+        'Missing SUPABASE_ANON_KEY – check .env or env vars',
+      );
     } catch (e) {
-      debugPrint('⚠️ Failed to load .env file: $e');
+      debugPrint('⚠️ Failed to load environment file: $e');
       debugPrint('   Using default values for development');
       _isLoaded = true; // Mark as loaded to prevent retry
     }
