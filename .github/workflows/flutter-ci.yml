@@ -13,25 +13,13 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Create Environment File
+    - name: Setup Environment File
       working-directory: ./app
       run: |
-        echo "📋 Creating .env file for Flutter asset bundling..."
-        
-        # Create .env.example with proper content
-        echo "# Environment Configuration Template" > .env.example
-        echo "# This file provides template values for GitHub builds" >> .env.example
-        echo "" >> .env.example
-        echo "ENVIRONMENT=development" >> .env.example
-        echo "SUPABASE_URL=https://your-project.supabase.co" >> .env.example
-        echo "SUPABASE_ANON_KEY=your-supabase-anon-key-here" >> .env.example
-        echo "FIREBASE_PROJECT_ID=bee-mvp-3ab43" >> .env.example
-        echo "APP_VERSION=1.0.0" >> .env.example
-        
-        # Create .env from template for CI builds
+        echo "📋 Setting up environment for Flutter builds..."
+        # Copy committed .env.example to .env for CI builds
         cp .env.example .env
-        
-        echo "✅ Created .env file from template"
+        echo "✅ Environment configured from committed .env.example"
         echo "📋 Verifying .env file exists:"
         ls -la .env
         
@@ -65,25 +53,13 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Create Environment File
+    - name: Setup Environment File
       working-directory: ./app
       run: |
-        echo "📋 Creating .env file for Flutter asset bundling..."
-        
-        # Create .env.example with proper content
-        echo "# Environment Configuration Template" > .env.example
-        echo "# This file provides template values for GitHub builds" >> .env.example
-        echo "" >> .env.example
-        echo "ENVIRONMENT=development" >> .env.example
-        echo "SUPABASE_URL=https://your-project.supabase.co" >> .env.example
-        echo "SUPABASE_ANON_KEY=your-supabase-anon-key-here" >> .env.example
-        echo "FIREBASE_PROJECT_ID=bee-mvp-3ab43" >> .env.example
-        echo "APP_VERSION=1.0.0" >> .env.example
-        
-        # Create .env from template for CI builds
+        echo "📋 Setting up environment for Flutter builds..."
+        # Copy committed .env.example to .env for CI builds
         cp .env.example .env
-        
-        echo "✅ Created .env file from template"
+        echo "✅ Environment configured from committed .env.example"
         echo "📋 Verifying .env file exists:"
         ls -la .env
         
@@ -127,25 +103,13 @@ jobs:
         fi
         echo "✅ Repository is credential-free - no Firebase plist found"
     
-    - name: Create Environment File
+    - name: Setup Environment File
       working-directory: ./app
       run: |
-        echo "📋 Creating .env file for Flutter asset bundling..."
-        
-        # Create .env.example with proper content
-        echo "# Environment Configuration Template" > .env.example
-        echo "# This file provides template values for GitHub builds" >> .env.example
-        echo "" >> .env.example
-        echo "ENVIRONMENT=development" >> .env.example
-        echo "SUPABASE_URL=https://your-project.supabase.co" >> .env.example
-        echo "SUPABASE_ANON_KEY=your-supabase-anon-key-here" >> .env.example
-        echo "FIREBASE_PROJECT_ID=bee-mvp-3ab43" >> .env.example
-        echo "APP_VERSION=1.0.0" >> .env.example
-        
-        # Create .env from template for CI builds
+        echo "📋 Setting up environment for Flutter builds..."
+        # Copy committed .env.example to .env for CI builds
         cp .env.example .env
-        
-        echo "✅ Created .env file from template"
+        echo "✅ Environment configured from committed .env.example"
         echo "📋 Verifying .env file exists:"
         ls -la .env
         

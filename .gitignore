@@ -1,5 +1,5 @@
 # Environment Variables (SECURITY: Never commit these)
-.env*
+.env
 
 # Firebase Configuration Files (SECURITY: Never commit these)
 **/firebase_options.dart

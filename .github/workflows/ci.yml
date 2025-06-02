@@ -1,9 +1,23 @@
-name: CI
+name: Backend & Integration Tests
 
 on:
   push:
     branches: [ main ]
+    paths:
+      - 'tests/**'
+      - 'infra/**' 
+      - 'supabase/**'
+      - 'scripts/**'
+      - 'app/lib/**'
+      - '.github/workflows/ci.yml'
   pull_request:
+    paths:
+      - 'tests/**'
+      - 'infra/**'
+      - 'supabase/**' 
+      - 'scripts/**'
+      - 'app/lib/**'
+      - '.github/workflows/ci.yml'
 
 jobs:
   build:
@@ -26,23 +40,26 @@ jobs:
         env:
           REFACTOR_MODE: true  # Sprint 0: Notification system refactor in progress
 
-      # ---------- Flutter ----------
+      # ---------- Flutter Basic Validation ----------
       - uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          flutter-version: '3.32.1'
       
-      # Setup CI-safe Firebase options for testing
-      - name: Setup CI Firebase Configuration
+      # Create environment file using new .env.example approach
+      - name: Setup Flutter Environment
+        working-directory: ./app
         run: |
-          cd app
-          echo "🔧 Setting up CI-safe Firebase configuration..."
-          cp lib/firebase_options_ci.dart lib/firebase_options.dart
-          echo "✅ Firebase options configured for CI environment"
+          echo "🔧 Setting up Flutter environment for basic validation..."
+          # Copy existing .env.example to .env for CI
+          cp .env.example .env
+          echo "✅ Environment configured from .env.example"
       
-      - run: |
-          cd app
+      - name: Flutter Dependencies & Basic Validation
+        working-directory: ./app
+        run: |
           flutter pub get
-          flutter test
+          flutter analyze --fatal-infos
+          echo "✅ Flutter basic validation complete"
 
       # ---------- Terraform ----------
       - name: Setup Terraform
