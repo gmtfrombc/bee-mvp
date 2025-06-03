@@ -22,6 +22,15 @@ jobs:
         echo "✅ Environment configured from committed .env.example"
         echo "📋 Verifying .env file exists:"
         ls -la .env
+
+    # FIREBASE OPTIONS: Create CI-safe firebase_options.dart
+    - name: Create Firebase Options Configuration
+      working-directory: ./app
+      run: |
+        echo "🔧 Creating CI-safe Firebase options configuration"
+        echo "📋 This allows Flutter compilation to succeed without exposing production credentials"
+        cp lib/firebase_options_ci.dart lib/firebase_options.dart
+        echo "✅ CI-safe Firebase options configuration created"
         
     - name: Setup Flutter
       uses: subosito/flutter-action@v2
@@ -76,6 +85,15 @@ jobs:
         echo "✅ Environment configured from committed .env.example"
         echo "📋 Verifying .env file exists:"
         ls -la .env
+
+    # FIREBASE OPTIONS: Create CI-safe firebase_options.dart
+    - name: Create Firebase Options Configuration
+      working-directory: ./app
+      run: |
+        echo "🔧 Creating CI-safe Firebase options configuration"
+        echo "📋 This allows Flutter compilation to succeed without exposing production credentials"
+        cp lib/firebase_options_ci.dart lib/firebase_options.dart
+        echo "✅ CI-safe Firebase options configuration created"
         
     # FIREBASE CONFIG: Dynamic creation based on CI needs
     - name: Create Firebase Android Configuration
@@ -193,6 +211,15 @@ jobs:
         echo "✅ Environment configured from committed .env.example"
         echo "📋 Verifying .env file exists:"
         ls -la .env
+
+    # FIREBASE OPTIONS: Create CI-safe firebase_options.dart
+    - name: Create Firebase Options Configuration
+      working-directory: ./app
+      run: |
+        echo "🔧 Creating CI-safe Firebase options configuration"
+        echo "📋 This allows Flutter compilation to succeed without exposing production credentials"
+        cp lib/firebase_options_ci.dart lib/firebase_options.dart
+        echo "✅ CI-safe Firebase options configuration created"
         
     # FIREBASE CONFIG: Dynamic creation based on CI needs
     - name: Create Firebase iOS Configuration
