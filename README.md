@@ -160,4 +160,5 @@ cd supabase && npx supabase db push
 A Flutter application for tracking personal momentum and progress.
 
 ## Build Status
-✅ Asset bundle .env issue resolved - CI build test in progress 
+✅ Asset bundle .env issue resolved
+✅ Lint issues (print & unused element) resolved - CI build test in progress 

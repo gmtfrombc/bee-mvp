@@ -45,14 +45,14 @@ class AppSecrets {
   /// Log configuration status (development only)
   static void logStatus() {
     if (kDebugMode) {
-      print('🔧 App Secrets Configuration:');
+      debugPrint('🔧 App Secrets Configuration:');
       configStatus.forEach((key, value) {
-        print('   $key: $value');
+        debugPrint('   $key: $value');
       });
 
       if (!hasValidSecrets) {
-        print('⚠️  Missing secrets! Use:');
-        print(
+        debugPrint('⚠️  Missing secrets! Use:');
+        debugPrint(
           '   flutter run --dart-define="SUPABASE_URL=your_url" --dart-define="SUPABASE_ANON_KEY=your_key"',
         );
       }
