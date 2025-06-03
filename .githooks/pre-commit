@@ -4,7 +4,7 @@ set -e
 echo "🔧 Pre-commit hook starting..."
 
 # 1. Block committing any dotenv file (.env, .env.*) but ALLOW .env.example files
-blocked_files=$(git diff --cached --name-only | grep -E '(^|/)\.env' | grep -v '\.env\.example' || true)
+blocked_files=$(git diff --cached --name-only | grep -E '\.env($|\..*$)' | grep -v '\.env\.example' || true)
 if [ -n "$blocked_files" ]; then
   echo "❌  Refusing to commit .env files (contains secrets)"
   echo "💡  Note: .env.example files are allowed and safe to commit"
