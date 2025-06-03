@@ -43,9 +43,9 @@
             "program": "lib/main.dart",
             "args": [
                 "--dart-define",
-                "SUPABASE_URL=https://okptsizouuanwnpqjfui.supabase.co",
+                "SUPABASE_URL=https://your-project-ref.supabase.co",
                 "--dart-define",
-                "SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9rcHRzaXpvdXVhbnducHFqZnVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgyOTI1NTEsImV4cCI6MjA2Mzg2ODU1MX0.8BX_qzXATqkN25HSuxgmAhQuIIStoJzy7Mc74EC-pDI"
+                "SUPABASE_ANON_KEY=your_anon_key_here"
             ]
         }
     ]

@@ -1,0 +1,131 @@
+# GitLeaks Configuration for BEE Momentum Meter
+# This configuration catches secrets while minimizing false positives
+
+title = "BEE Momentum Meter Secret Scanner"
+
+# Use default built-in rules as baseline
+[extend]
+useDefault = true
+
+# Disable some rules that cause false positives in our codebase
+disabledRules = [
+    "generic-api-key",  # Too many false positives in documentation
+]
+
+# Custom rules specific to our tech stack
+[[rules]]
+id = "supabase-service-role-key"
+description = "Supabase Service Role Key (NEVER use in client apps)"
+regex = '''supabase_service_role_key[_-]?[=:]\s*["']?(eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\.[A-Za-z0-9_-]*\.[A-Za-z0-9_-]*)["']?'''
+secretGroup = 1
+entropy = 3.5
+keywords = ["service_role", "supabase", "secret"]
+
+[[rules]]
+id = "flutter-dart-define-secrets"
+description = "Flutter --dart-define secrets in scripts"
+regex = '''--dart-define[=\s]+"[^"]*(?:SECRET|PASSWORD|KEY)[^"]*=[^"]*"'''
+entropy = 3.0
+keywords = ["dart-define", "SECRET", "PASSWORD", "KEY"]
+
+[[rules]]
+id = "real-supabase-anon-key"
+description = "Real Supabase Anon Key (should only be in --dart-define)"
+regex = '''eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\.eyJpc3MiOiJzdXBhYmFzZSI[A-Za-z0-9_-]*\.[A-Za-z0-9_-]*'''
+entropy = 4.5
+keywords = ["supabase", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"]
+
+# Global allowlists (high precedence)
+[[allowlists]]
+description = "Ignore test files and documentation examples"
+paths = [
+    '''.*test.*''',
+    '''.*mock.*''',
+    '''.*example.*''',
+    '''.*README\.md''',
+    '''.*\.md''',
+    '''.*/docs/.*''',
+]
+
+[[allowlists]]
+description = "Ignore CI placeholder values"
+stopwords = [
+    "placeholder",
+    "example",
+    "test",
+    "dummy",
+    "ci-placeholder",
+    "your_key_here",
+    "your-project",
+    "000000000000",
+]
+
+[[allowlists]]
+description = "Ignore safe placeholder patterns"
+regexes = [
+    '''.*placeholder.*''',
+    '''.*example.*''',
+    '''.*your[_-]?project.*''',
+    '''.*0{6,}.*''',
+    '''ci-placeholder-.*''',
+]
+
+# File-specific allowlists
+[[allowlists]]
+description = "Allow safe Firebase placeholder configuration"
+paths = [
+    '''.*firebase_options\.dart''',
+    '''.*firebase_options_ci\.dart''',
+]
+regexes = [
+    '''ci-placeholder-.*''',
+    '''0{10,}''',
+]
+
+[[allowlists]]
+description = "Allow documentation examples with placeholder values"
+paths = [
+    '''.*/docs/.*''',
+    '''.*README.*''',
+    '''.*\.md''',
+]
+stopwords = [
+    "YOUR_API_KEY",
+    "YOUR_SERVICE_KEY", 
+    "YOUR_ANON_KEY",
+    "your_key_here",
+    "example",
+    "placeholder",
+]
+
+# Environment-specific allowlists
+[[allowlists]]
+description = "Development environment patterns"
+regexTarget = "line"
+regexes = [
+    '''#.*example.*''',
+    '''#.*placeholder.*''',
+    '''#.*template.*''',
+]
+
+# Allow variable references and safe script patterns
+[[allowlists]]
+description = "Allow safe variable references in scripts"
+regexTarget = "match"
+regexes = [
+    '''\$SUPABASE_ANON_KEY''',
+    '''\$SUPABASE_URL''',
+    '''your_key''',
+    '''your_url''',
+]
+
+# Allow flutter-dart-define patterns with variables or placeholders
+[[allowlists]]
+description = "Allow safe dart-define patterns"
+targetRules = ["flutter-dart-define-secrets"]
+regexTarget = "line"
+regexes = [
+    '''.*\$[A-Z_]+.*''',  # Variable references like $SUPABASE_ANON_KEY
+    '''.*your_key.*''',   # Placeholder text
+    '''.*your_url.*''',   # Placeholder text
+] 
