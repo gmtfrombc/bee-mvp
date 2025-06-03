@@ -1,1 +1,1 @@
-const apiKey = '***REMOVED***';
+const apiKey = 'sk_live_1234567890abcdef123456789012345678901234';
