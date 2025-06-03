@@ -1,5 +1,29 @@
 #!/usr/bin/env bash
-if git diff --cached --name-only | grep -qE '^app/\.env$'; then
-  echo "❌  Refusing to commit app/.env (contains secrets)"
+set -e
+
+# 1. Block committing any dotenv file (.env, .env.*) but ALLOW .env.example files
+if git diff --cached --name-only | grep -qE '(^|/)\.env($|\.(?!example)[^/]*$)'; then
+  echo "❌  Refusing to commit .env files (contains secrets)"
+  echo "💡  Note: .env.example files are allowed and safe to commit"
   exit 1
+fi
+
+# 2. Run gitleaks (if available) against staged changes to prevent committing secrets
+if command -v gitleaks >/dev/null 2>&1; then
+  echo "🔍  Running gitleaks scan on staged changes..."
+
+  # Temporarily stash unstaged changes so gitleaks only scans the index
+  git stash -q --keep-index
+
+  if ! gitleaks protect --staged --redact; then
+    echo '❌  Gitleaks detected potential secrets in your staged changes. Commit aborted.'
+    # Restore unstaged changes before exiting
+    git stash pop -q
+    exit 1
+  fi
+
+  # Restore unstaged changes after successful scan
+  git stash pop -q
+else
+  echo "⚠️  Gitleaks not installed; skipping automatic secret scan. See SECURITY.md for setup instructions."
 fi 
