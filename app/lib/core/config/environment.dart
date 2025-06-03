@@ -29,9 +29,17 @@ class Environment {
         });
         debugPrint('✅ Loaded Supabase creds from --dart-define');
       } else {
-        // Fallback to .env.example for CI / release builds
-        await dotenv.load(fileName: '.env.example');
-        debugPrint('✅ Environment configuration loaded from .env.example');
+        // Fallback to .env file for local development
+        try {
+          await dotenv.load(fileName: '.env');
+          debugPrint('✅ Environment configuration loaded from .env file');
+        } catch (e) {
+          // Final fallback to .env.example for CI / release builds
+          await dotenv.load(fileName: '.env.example');
+          debugPrint(
+            '✅ Environment configuration loaded from .env.example (fallback)',
+          );
+        }
       }
       _isLoaded = true;
 
@@ -112,7 +120,7 @@ class Environment {
     debugPrint('Supabase URL: ${_maskUrl(supabaseUrl)}');
     debugPrint('Supabase Anon Key: ${_maskKey(supabaseAnonKey)}');
     debugPrint('Valid Config: $hasValidConfiguration');
-    debugPrint('Source: .env file');
+    debugPrint('Source: Environment variables or .env file');
     debugPrint('================================');
   }
 
