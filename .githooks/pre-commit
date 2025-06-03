@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -e
 
+echo "🔧 Pre-commit hook starting..."
+
 # 1. Block committing any dotenv file (.env, .env.*) but ALLOW .env.example files
 blocked_files=$(git diff --cached --name-only | grep -E '(^|/)\.env' | grep -v '\.env\.example' || true)
 if [ -n "$blocked_files" ]; then
@@ -29,4 +31,6 @@ if command -v gitleaks >/dev/null 2>&1; then
   git stash pop -q
 else
   echo "⚠️  Gitleaks not installed; skipping automatic secret scan. See SECURITY.md for setup instructions."
-fi 
+fi
+
+echo "✅ Pre-commit hook completed successfully"
