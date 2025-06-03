@@ -49,9 +49,23 @@ jobs:
   build-android:
     needs: test
     runs-on: ubuntu-latest
+    env:
+      NEEDS_REAL_FIREBASE: false  # Set to 'true' when integration tests or Play Store deployment needed
     
     steps:
     - uses: actions/checkout@v4
+    
+    # GUARD RAIL: Fail fast if someone accidentally committed real Firebase config
+    - name: Ensure repository is credential-free
+      working-directory: ./app
+      run: |
+        if [ -f android/app/google-services.json ]; then
+          echo "::error file=android/app/google-services.json::Real Firebase config must not be committed to repository"
+          echo "::error::This file contains production credentials and should remain gitignored"
+          echo "::error::Please remove the file and recommit without Firebase credentials"
+          exit 1
+        fi
+        echo "✅ Repository is credential-free - no Firebase config found"
     
     - name: Setup Environment File
       working-directory: ./app
@@ -62,6 +76,62 @@ jobs:
         echo "✅ Environment configured from committed .env.example"
         echo "📋 Verifying .env file exists:"
         ls -la .env
+        
+    # FIREBASE CONFIG: Dynamic creation based on CI needs
+    - name: Create Firebase Android Configuration
+      working-directory: ./app
+      run: |
+        if [[ "$NEEDS_REAL_FIREBASE" == "true" && -n "$ANDROID_GOOGLE_SERVICES_B64" ]]; then
+          echo "🔥 Restoring real Firebase config from GitHub Secrets"
+          echo "📋 Use this for integration tests, Play Store deployment, or E2E testing"
+          echo "$ANDROID_GOOGLE_SERVICES_B64" | base64 --decode > android/app/google-services.json
+          echo "✅ Real Firebase configuration restored"
+        else
+          echo "🔧 Creating CI-safe dummy Firebase config"
+          echo "📋 This allows Android build to succeed without exposing production credentials"
+          cat > android/app/google-services.json <<'EOF'
+        {
+          "project_info": {
+            "project_number": "000000000000",
+            "project_id": "bee-mvp-ci-placeholder",
+            "storage_bucket": "bee-mvp-ci-placeholder.appspot.com"
+          },
+          "client": [
+            {
+              "client_info": {
+                "mobilesdk_app_id": "1:000000000000:android:0000000000000000000000",
+                "android_client_info": {
+                  "package_name": "com.momentumhealth.beemvp"
+                }
+              },
+              "oauth_client": [
+                {
+                  "client_id": "000000000000-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com",
+                  "client_type": 3
+                }
+              ],
+              "api_key": [
+                {
+                  "current_key": "ci-placeholder-android-api-key"
+                }
+              ],
+              "services": {
+                "appinvite_service": {
+                  "other_platform_oauth_client": [
+                    {
+                      "client_id": "000000000000-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com",
+                      "client_type": 3
+                    }
+                  ]
+                }
+              }
+            }
+          ],
+          "configuration_version": "1"
+        }
+        EOF
+          echo "✅ CI-safe Firebase configuration created"
+        fi
         
     - name: Setup Flutter
       uses: subosito/flutter-action@v2
@@ -81,6 +151,17 @@ jobs:
       with:
         name: app-release.apk
         path: app/build/app/outputs/flutter-apk/app-release.apk
+
+    # SECURITY CLEANUP: Always remove Firebase config to prevent artifact contamination
+    - name: Scrub Firebase configuration
+      working-directory: ./app
+      if: always()
+      run: |
+        if [ -f android/app/google-services.json ]; then
+          echo "🧹 Removing Firebase config to prevent artifact contamination"
+          rm -f android/app/google-services.json
+          echo "✅ Firebase configuration scrubbed"
+        fi
 
   build-ios:
     needs: test
