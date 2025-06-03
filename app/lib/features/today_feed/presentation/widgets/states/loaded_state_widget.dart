@@ -362,9 +362,6 @@ class TodayFeedLoadedStateWidget extends StatelessWidget {
     return ResponsiveService.shouldUseCompactLayout(context) ? 2 : 3;
   }
 
-  int _getMaxSummaryLines(BuildContext context) {
-    return ResponsiveService.shouldUseCompactLayout(context) ? 3 : 4;
-  }
 
   TextStyle _getButtonTextStyle(BuildContext context) {
     final baseSize =
