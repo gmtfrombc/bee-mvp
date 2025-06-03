@@ -2,7 +2,7 @@
 set -e
 
 # 1. Block committing any dotenv file (.env, .env.*) but ALLOW .env.example files
-if git diff --cached --name-only | grep -qE '(^|/)\.env($|\.(?!example)[^/]*$)'; then
+if git diff --cached --name-only | grep -E '(^|/)\.env' | grep -v '\.env\.example'; then
   echo "❌  Refusing to commit .env files (contains secrets)"
   echo "💡  Note: .env.example files are allowed and safe to commit"
   exit 1
