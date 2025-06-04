@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../../../core/services/coach_intervention_service.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../widgets/coach_dashboard/coach_dashboard_stat_card.dart';
+import '../widgets/coach_dashboard/coach_dashboard_time_selector.dart';
 
 class CoachDashboardScreen extends ConsumerStatefulWidget {
   const CoachDashboardScreen({super.key});
@@ -99,7 +100,14 @@ class _CoachDashboardScreenState extends ConsumerState<CoachDashboardScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildTimeRangeSelector(),
+              CoachDashboardTimeSelector(
+                selectedTimeRange: _selectedTimeRange,
+                onTimeRangeChanged: (value) {
+                  setState(() {
+                    _selectedTimeRange = value;
+                  });
+                },
+              ),
               const SizedBox(height: 24),
               _buildOverviewCards(data),
               const SizedBox(height: 24),
@@ -110,43 +118,6 @@ class _CoachDashboardScreenState extends ConsumerState<CoachDashboardScreen>
           ),
         );
       },
-    );
-  }
-
-  Widget _buildTimeRangeSelector() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.date_range, color: AppTheme.momentumRising),
-          const SizedBox(width: 12),
-          const Text(
-            'Time Range:',
-            style: TextStyle(fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: SegmentedButton<String>(
-              segments: const [
-                ButtonSegment(value: '24h', label: Text('24h')),
-                ButtonSegment(value: '7d', label: Text('7d')),
-                ButtonSegment(value: '30d', label: Text('30d')),
-              ],
-              selected: {_selectedTimeRange},
-              onSelectionChanged: (Set<String> selection) {
-                setState(() {
-                  _selectedTimeRange = selection.first;
-                });
-              },
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -708,7 +679,14 @@ class _CoachDashboardScreenState extends ConsumerState<CoachDashboardScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildTimeRangeSelector(),
+              CoachDashboardTimeSelector(
+                selectedTimeRange: _selectedTimeRange,
+                onTimeRangeChanged: (value) {
+                  setState(() {
+                    _selectedTimeRange = value;
+                  });
+                },
+              ),
               const SizedBox(height: 24),
               _buildAnalyticsCards(analytics),
               const SizedBox(height: 24),
