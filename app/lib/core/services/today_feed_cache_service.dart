@@ -50,15 +50,16 @@ import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart';
 import '../../features/today_feed/domain/models/today_feed_content.dart';
-import 'cache/today_feed_cache_statistics_service.dart';
-import 'cache/today_feed_cache_health_service.dart';
-import 'cache/today_feed_cache_performance_service.dart';
-import 'cache/today_feed_timezone_service.dart';
-import 'cache/today_feed_cache_sync_service.dart';
-import 'cache/today_feed_cache_maintenance_service.dart';
-import 'cache/today_feed_content_service.dart';
-import 'cache/today_feed_cache_warming_service.dart';
 import 'cache/today_feed_cache_configuration.dart';
+import 'cache/today_feed_cache_compatibility_layer.dart';
+import 'cache/today_feed_cache_health_service.dart';
+import 'cache/today_feed_cache_maintenance_service.dart';
+import 'cache/today_feed_cache_performance_service.dart';
+import 'cache/today_feed_cache_statistics_service.dart';
+import 'cache/today_feed_cache_sync_service.dart';
+import 'cache/today_feed_cache_warming_service.dart';
+import 'cache/today_feed_content_service.dart';
+import 'cache/today_feed_timezone_service.dart';
 
 /// **Today Feed Cache Service - Main Coordinator**
 ///
@@ -697,159 +698,98 @@ class TodayFeedCacheService {
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // BACKWARD COMPATIBILITY METHODS
+  // BACKWARD COMPATIBILITY LAYER - Sprint 2.1 REFACTORED
   // ═══════════════════════════════════════════════════════════════════════════
   //
-  // This section maintains 100% backward compatibility with existing code.
-  // These methods provide familiar interfaces while delegating to the new
-  // modular architecture. Will be moved to separate compatibility layer in Sprint 2.
+  // All backward compatibility methods have been extracted to a dedicated
+  // compatibility layer while maintaining 100% backward compatibility.
+  // Legacy methods are delegated to TodayFeedCacheCompatibilityLayer.
 
   /// Clear all cache (compatibility wrapper)
-  static Future<void> clearAllCache() async {
-    await initialize();
-    await invalidateCache();
-  }
+  static Future<void> clearAllCache() async =>
+      await TodayFeedCacheCompatibilityLayer.clearAllCache();
 
   /// Get cache stats (compatibility wrapper)
-  static Future<Map<String, dynamic>> getCacheStats() async {
-    await initialize();
-    return await getCacheMetadata();
-  }
+  static Future<Map<String, dynamic>> getCacheStats() async =>
+      await TodayFeedCacheCompatibilityLayer.getCacheStats();
 
   /// Queue interaction (compatibility wrapper)
-  static Future<void> queueInteraction(Map<String, dynamic> interaction) async {
-    await initialize();
-    await TodayFeedCacheSyncService.cachePendingInteraction(interaction);
-  }
+  static Future<void> queueInteraction(
+    Map<String, dynamic> interaction,
+  ) async =>
+      await TodayFeedCacheCompatibilityLayer.queueInteraction(interaction);
 
   /// Get content history (compatibility method)
-  static Future<List<Map<String, dynamic>>> getContentHistory() async {
-    await initialize();
-    return await TodayFeedContentService.getContentHistory();
-  }
+  static Future<List<Map<String, dynamic>>> getContentHistory() async =>
+      await TodayFeedCacheCompatibilityLayer.getContentHistory();
 
   /// Cache pending interaction (compatibility method)
   static Future<void> cachePendingInteraction(
     Map<String, dynamic> interaction,
-  ) async {
-    await initialize();
-    await TodayFeedCacheSyncService.cachePendingInteraction(interaction);
-  }
+  ) async => await TodayFeedCacheCompatibilityLayer.cachePendingInteraction(
+    interaction,
+  );
 
   /// Get pending interactions (compatibility method)
-  static Future<List<Map<String, dynamic>>> getPendingInteractions() async {
-    await initialize();
-    return await TodayFeedCacheSyncService.getPendingInteractions();
-  }
+  static Future<List<Map<String, dynamic>>> getPendingInteractions() async =>
+      await TodayFeedCacheCompatibilityLayer.getPendingInteractions();
 
   /// Clear pending interactions (compatibility method)
-  static Future<void> clearPendingInteractions() async {
-    await initialize();
-    await TodayFeedCacheSyncService.clearPendingInteractions();
-  }
+  static Future<void> clearPendingInteractions() async =>
+      await TodayFeedCacheCompatibilityLayer.clearPendingInteractions();
 
   /// Sync when online (compatibility wrapper)
-  static Future<void> syncWhenOnline() async {
-    await initialize();
-    await TodayFeedCacheSyncService.syncWhenOnline();
-  }
+  static Future<void> syncWhenOnline() async =>
+      await TodayFeedCacheCompatibilityLayer.syncWhenOnline();
 
   /// Selective cleanup (compatibility wrapper)
-  static Future<void> selectiveCleanup() async {
-    await initialize();
-    await TodayFeedCacheMaintenanceService.selectiveCleanup();
-  }
+  static Future<void> selectiveCleanup() async =>
+      await TodayFeedCacheCompatibilityLayer.selectiveCleanup();
 
   /// Get diagnostic info (compatibility wrapper)
-  static Future<Map<String, dynamic>> getDiagnosticInfo() async {
-    await initialize();
-
-    final timers = <String, bool>{
-      'refresh_timer': _refreshTimer != null,
-      'timezone_timer': _timezoneCheckTimer != null,
-      'cleanup_timer': _automaticCleanupTimer != null,
-    };
-
-    return await TodayFeedCacheHealthService.getDiagnosticInfo(
-      _isInitialized,
-      false, // sync in progress handled by sync service
-      null, // connectivity subscription handled by sync service
-      timers,
-    );
-  }
+  static Future<Map<String, dynamic>> getDiagnosticInfo() async =>
+      await TodayFeedCacheCompatibilityLayer.getDiagnosticInfo();
 
   /// Mark content as viewed (compatibility wrapper)
-  static Future<void> markContentAsViewed(TodayFeedContent content) async {
-    await initialize();
-    await TodayFeedCacheSyncService.markContentAsViewed(content);
-  }
+  static Future<void> markContentAsViewed(TodayFeedContent content) async =>
+      await TodayFeedCacheCompatibilityLayer.markContentAsViewed(content);
 
   /// Get cache statistics (compatibility wrapper)
-  static Future<Map<String, dynamic>> getCacheStatistics() async {
-    await initialize();
-    final cacheMetadata = await getCacheMetadata();
-    return await TodayFeedCacheStatisticsService.getCacheStatistics(
-      cacheMetadata,
-    );
-  }
+  static Future<Map<String, dynamic>> getCacheStatistics() async =>
+      await TodayFeedCacheCompatibilityLayer.getCacheStatistics();
 
   /// Get cache health status (compatibility wrapper)
-  static Future<Map<String, dynamic>> getCacheHealthStatus() async {
-    await initialize();
-    final cacheMetadata = await getCacheMetadata();
-    final syncStatus = await TodayFeedCacheSyncService.getSyncStatus();
-    return await TodayFeedCacheHealthService.getCacheHealthStatus(
-      cacheMetadata,
-      syncStatus,
-    );
-  }
+  static Future<Map<String, dynamic>> getCacheHealthStatus() async =>
+      await TodayFeedCacheCompatibilityLayer.getCacheHealthStatus();
 
   /// Invalidate content (compatibility method)
   static Future<void> invalidateContent({
     bool clearHistory = false,
     bool clearMetadata = false,
     String? reason,
-  }) async {
-    await initialize();
-    await TodayFeedCacheMaintenanceService.invalidateContent(
-      clearHistory: clearHistory,
-      clearMetadata: clearMetadata,
-      reason: reason,
-    );
-  }
+  }) async => await TodayFeedCacheCompatibilityLayer.invalidateContent(
+    clearHistory: clearHistory,
+    clearMetadata: clearMetadata,
+    reason: reason,
+  );
 
   /// Get cache invalidation stats (compatibility method)
-  static Future<Map<String, dynamic>> getCacheInvalidationStats() async {
-    await initialize();
-    return await TodayFeedCacheMaintenanceService.getCacheInvalidationStats();
-  }
+  static Future<Map<String, dynamic>> getCacheInvalidationStats() async =>
+      await TodayFeedCacheCompatibilityLayer.getCacheInvalidationStats();
 
   /// Set background sync enabled (compatibility wrapper)
-  static Future<void> setBackgroundSyncEnabled(bool enabled) async {
-    await initialize();
-    await TodayFeedCacheSyncService.setBackgroundSyncEnabled(enabled);
-  }
+  static Future<void> setBackgroundSyncEnabled(bool enabled) async =>
+      await TodayFeedCacheCompatibilityLayer.setBackgroundSyncEnabled(enabled);
 
   /// Check if background sync is enabled (compatibility wrapper)
-  static Future<bool> isBackgroundSyncEnabled() async {
-    await initialize();
-    return await TodayFeedCacheSyncService.isBackgroundSyncEnabled();
-  }
+  static Future<bool> isBackgroundSyncEnabled() async =>
+      await TodayFeedCacheCompatibilityLayer.isBackgroundSyncEnabled();
 
   /// Export metrics for monitoring (compatibility wrapper)
-  static Future<Map<String, dynamic>> exportMetricsForMonitoring() async {
-    await initialize();
-    final cacheMetadata = await getCacheMetadata();
-    final healthStatus = await getCacheHealthStatus();
-    return await TodayFeedCacheStatisticsService.exportMetricsForMonitoring(
-      cacheMetadata,
-      healthStatus,
-    );
-  }
+  static Future<Map<String, dynamic>> exportMetricsForMonitoring() async =>
+      await TodayFeedCacheCompatibilityLayer.exportMetricsForMonitoring();
 
   /// Perform cache integrity check (compatibility wrapper)
-  static Future<Map<String, dynamic>> performCacheIntegrityCheck() async {
-    await initialize();
-    return await TodayFeedCacheHealthService.performCacheIntegrityCheck();
-  }
+  static Future<Map<String, dynamic>> performCacheIntegrityCheck() async =>
+      await TodayFeedCacheCompatibilityLayer.performCacheIntegrityCheck();
 }

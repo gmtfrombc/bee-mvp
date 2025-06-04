@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter/foundation.dart';
 import 'package:app/core/services/cache/today_feed_cache_configuration.dart';
 
 void main() {
