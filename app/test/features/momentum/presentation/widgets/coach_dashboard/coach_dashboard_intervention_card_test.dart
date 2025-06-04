@@ -4,7 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
 
 import 'package:app/core/services/coach_intervention_service.dart';
-import 'package:app/core/services/responsive_service.dart';
 import 'package:app/features/momentum/presentation/widgets/coach_dashboard/coach_dashboard_intervention_card.dart';
 
 // Mock service for testing
@@ -233,7 +232,6 @@ void main() {
 
       testWidgets('displays all priority levels correctly', (tester) async {
         final priorities = ['high', 'medium', 'low'];
-        final expectedColors = [Colors.red, Colors.orange, Colors.green];
 
         for (int i = 0; i < priorities.length; i++) {
           final intervention = createInterventionData(priority: priorities[i]);
@@ -552,13 +550,11 @@ void main() {
         final errorService = TestCoachInterventionService(
           shouldThrowError: true,
         );
-        bool callbackCalled = false;
 
         await tester.pumpWidget(
           createTestWidget(
             intervention: intervention,
             testService: errorService,
-            onComplete: () => callbackCalled = true,
           ),
         );
         await tester.pumpAndSettle();
