@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../../core/theme/app_theme.dart';
+import '../../../../../core/services/responsive_service.dart';
 
 class CoachDashboardFilters extends StatelessWidget {
   final String selectedTimeRange;
@@ -26,40 +27,76 @@ class CoachDashboardFilters extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: ResponsiveService.getResponsivePadding(context),
       decoration: BoxDecoration(
         color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(
+          ResponsiveService.getBorderRadius(context),
+        ),
         border: Border.all(color: Colors.grey[200]!),
       ),
       child: Column(
         children: [
-          _buildTimeRangeSelector(),
+          _buildTimeRangeSelector(context),
           if (showPriorityFilter || showStatusFilter) ...[
-            const SizedBox(height: 16),
-            _buildFilterRow(),
+            SizedBox(height: ResponsiveService.getResponsiveSpacing(context)),
+            _buildFilterRow(context),
           ],
         ],
       ),
     );
   }
 
-  Widget _buildTimeRangeSelector() {
+  Widget _buildTimeRangeSelector(BuildContext context) {
     return Row(
       children: [
-        const Icon(Icons.date_range, color: AppTheme.momentumRising),
-        const SizedBox(width: 12),
-        const Text(
-          'Time Range:',
-          style: TextStyle(fontWeight: FontWeight.w600),
+        Icon(
+          Icons.date_range,
+          color: AppTheme.momentumRising,
+          size: ResponsiveService.getIconSize(context),
         ),
-        const SizedBox(width: 16),
+        SizedBox(width: ResponsiveService.getMediumSpacing(context)),
+        Text(
+          'Time Range:',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 16 * ResponsiveService.getFontSizeMultiplier(context),
+          ),
+        ),
+        SizedBox(width: ResponsiveService.getResponsiveSpacing(context)),
         Expanded(
           child: SegmentedButton<String>(
-            segments: const [
-              ButtonSegment(value: '24h', label: Text('24h')),
-              ButtonSegment(value: '7d', label: Text('7d')),
-              ButtonSegment(value: '30d', label: Text('30d')),
+            segments: [
+              ButtonSegment(
+                value: '24h',
+                label: Text(
+                  '24h',
+                  style: TextStyle(
+                    fontSize:
+                        14 * ResponsiveService.getFontSizeMultiplier(context),
+                  ),
+                ),
+              ),
+              ButtonSegment(
+                value: '7d',
+                label: Text(
+                  '7d',
+                  style: TextStyle(
+                    fontSize:
+                        14 * ResponsiveService.getFontSizeMultiplier(context),
+                  ),
+                ),
+              ),
+              ButtonSegment(
+                value: '30d',
+                label: Text(
+                  '30d',
+                  style: TextStyle(
+                    fontSize:
+                        14 * ResponsiveService.getFontSizeMultiplier(context),
+                  ),
+                ),
+              ),
             ],
             selected: {selectedTimeRange},
             onSelectionChanged: (Set<String> selection) {
@@ -71,52 +108,146 @@ class CoachDashboardFilters extends StatelessWidget {
     );
   }
 
-  Widget _buildFilterRow() {
+  Widget _buildFilterRow(BuildContext context) {
     return Row(
       children: [
         if (showPriorityFilter) ...[
           Expanded(
             child: DropdownButtonFormField<String>(
               value: selectedPriority,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Priority',
-                border: OutlineInputBorder(),
+                labelStyle: TextStyle(
+                  fontSize:
+                      14 * ResponsiveService.getFontSizeMultiplier(context),
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(
+                    ResponsiveService.getBorderRadius(context),
+                  ),
+                ),
                 contentPadding: EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
+                  horizontal: ResponsiveService.getMediumSpacing(context),
+                  vertical: ResponsiveService.getSmallSpacing(context),
                 ),
               ),
-              items: const [
-                DropdownMenuItem(value: 'all', child: Text('All Priorities')),
-                DropdownMenuItem(value: 'high', child: Text('High')),
-                DropdownMenuItem(value: 'medium', child: Text('Medium')),
-                DropdownMenuItem(value: 'low', child: Text('Low')),
+              style: TextStyle(
+                fontSize: 14 * ResponsiveService.getFontSizeMultiplier(context),
+                color: Colors.black87,
+              ),
+              items: [
+                DropdownMenuItem(
+                  value: 'all',
+                  child: Text(
+                    'All Priorities',
+                    style: TextStyle(
+                      fontSize:
+                          14 * ResponsiveService.getFontSizeMultiplier(context),
+                    ),
+                  ),
+                ),
+                DropdownMenuItem(
+                  value: 'high',
+                  child: Text(
+                    'High',
+                    style: TextStyle(
+                      fontSize:
+                          14 * ResponsiveService.getFontSizeMultiplier(context),
+                    ),
+                  ),
+                ),
+                DropdownMenuItem(
+                  value: 'medium',
+                  child: Text(
+                    'Medium',
+                    style: TextStyle(
+                      fontSize:
+                          14 * ResponsiveService.getFontSizeMultiplier(context),
+                    ),
+                  ),
+                ),
+                DropdownMenuItem(
+                  value: 'low',
+                  child: Text(
+                    'Low',
+                    style: TextStyle(
+                      fontSize:
+                          14 * ResponsiveService.getFontSizeMultiplier(context),
+                    ),
+                  ),
+                ),
               ],
               onChanged: (value) => onPriorityChanged?.call(value!),
             ),
           ),
-          if (showStatusFilter) const SizedBox(width: 16),
+          if (showStatusFilter)
+            SizedBox(width: ResponsiveService.getResponsiveSpacing(context)),
         ],
         if (showStatusFilter) ...[
           Expanded(
             child: DropdownButtonFormField<String>(
               value: selectedStatus,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Status',
-                border: OutlineInputBorder(),
+                labelStyle: TextStyle(
+                  fontSize:
+                      14 * ResponsiveService.getFontSizeMultiplier(context),
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(
+                    ResponsiveService.getBorderRadius(context),
+                  ),
+                ),
                 contentPadding: EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
+                  horizontal: ResponsiveService.getMediumSpacing(context),
+                  vertical: ResponsiveService.getSmallSpacing(context),
                 ),
               ),
-              items: const [
-                DropdownMenuItem(value: 'all', child: Text('All Statuses')),
-                DropdownMenuItem(value: 'pending', child: Text('Pending')),
+              style: TextStyle(
+                fontSize: 14 * ResponsiveService.getFontSizeMultiplier(context),
+                color: Colors.black87,
+              ),
+              items: [
+                DropdownMenuItem(
+                  value: 'all',
+                  child: Text(
+                    'All Statuses',
+                    style: TextStyle(
+                      fontSize:
+                          14 * ResponsiveService.getFontSizeMultiplier(context),
+                    ),
+                  ),
+                ),
+                DropdownMenuItem(
+                  value: 'pending',
+                  child: Text(
+                    'Pending',
+                    style: TextStyle(
+                      fontSize:
+                          14 * ResponsiveService.getFontSizeMultiplier(context),
+                    ),
+                  ),
+                ),
                 DropdownMenuItem(
                   value: 'in_progress',
-                  child: Text('In Progress'),
+                  child: Text(
+                    'In Progress',
+                    style: TextStyle(
+                      fontSize:
+                          14 * ResponsiveService.getFontSizeMultiplier(context),
+                    ),
+                  ),
                 ),
-                DropdownMenuItem(value: 'completed', child: Text('Completed')),
+                DropdownMenuItem(
+                  value: 'completed',
+                  child: Text(
+                    'Completed',
+                    style: TextStyle(
+                      fontSize:
+                          14 * ResponsiveService.getFontSizeMultiplier(context),
+                    ),
+                  ),
+                ),
               ],
               onChanged: (value) => onStatusChanged?.call(value!),
             ),

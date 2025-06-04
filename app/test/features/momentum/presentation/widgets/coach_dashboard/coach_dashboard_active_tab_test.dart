@@ -465,8 +465,8 @@ void main() {
 
         expect(find.text('Reschedule Intervention'), findsOneWidget);
         expect(
-          find.textContaining(
-            'Reschedule functionality would be implemented here with date/time picker',
+          find.text(
+            'Would you like to reschedule this intervention for John Doe?',
           ),
           findsOneWidget,
         );
