@@ -58,6 +58,7 @@ import 'cache/today_feed_cache_sync_service.dart';
 import 'cache/today_feed_cache_maintenance_service.dart';
 import 'cache/today_feed_content_service.dart';
 import 'cache/today_feed_cache_warming_service.dart';
+import 'cache/today_feed_cache_configuration.dart';
 
 /// **Today Feed Cache Service - Main Coordinator**
 ///
@@ -72,13 +73,17 @@ class TodayFeedCacheService {
   // configuration values. Following ResponsiveService pattern of centralizing
   // constants to avoid hardcoded values throughout the codebase.
 
-  /// Cache keys for Today Feed content storage
-  static const String _cacheVersionKey = 'today_feed_cache_version';
-  static const String _timezoneMetadataKey = 'today_feed_timezone_metadata';
-  static const String _lastTimezoneCheckKey = 'today_feed_last_timezone_check';
+  /// Cache keys for Today Feed content storage - now using configuration
+  static String get _cacheVersionKey =>
+      TodayFeedCacheConfiguration.cacheVersionKey;
+  static String get _timezoneMetadataKey =>
+      TodayFeedCacheConfiguration.timezoneMetadataKey;
+  static String get _lastTimezoneCheckKey =>
+      TodayFeedCacheConfiguration.lastTimezoneCheckKey;
 
-  /// Cache version for migration management
-  static const int _currentCacheVersion = 1;
+  /// Cache version for migration management - now using configuration
+  static int get _currentCacheVersion =>
+      TodayFeedCacheConfiguration.currentCacheVersion;
 
   // ═══════════════════════════════════════════════════════════════════════════
   // SECTION 2: INITIALIZATION & LIFECYCLE
@@ -108,6 +113,12 @@ class TodayFeedCacheService {
   /// Set test environment mode to disable timers and subscriptions
   static void setTestEnvironment(bool isTest) {
     _isTestEnvironment = isTest;
+    // Update configuration environment based on test flag
+    if (isTest) {
+      TodayFeedCacheConfiguration.forTestEnvironment();
+    } else {
+      TodayFeedCacheConfiguration.forProductionEnvironment();
+    }
   }
 
   /// Initialize the Today Feed cache service
@@ -121,8 +132,13 @@ class TodayFeedCacheService {
     try {
       _prefs ??= await SharedPreferences.getInstance();
 
+      // Validate configuration before initialization
+      if (!TodayFeedCacheConfiguration.validateConfiguration()) {
+        throw Exception('Invalid cache configuration detected');
+      }
+
       // Skip full initialization in test environment
-      if (_isTestEnvironment) {
+      if (_isTestEnvironment || TodayFeedCacheConfiguration.isTestEnvironment) {
         _isInitialized = true;
         debugPrint(
           '✅ TodayFeedCacheService test mode - skipping full initialization',
@@ -146,6 +162,9 @@ class TodayFeedCacheService {
       _isInitialized = true;
 
       debugPrint('✅ TodayFeedCacheService initialized successfully');
+      debugPrint(
+        '📊 Configuration: ${TodayFeedCacheConfiguration.environment.name}',
+      );
     } catch (e) {
       debugPrint('❌ Failed to initialize TodayFeedCacheService: $e');
       rethrow;
@@ -429,8 +448,10 @@ class TodayFeedCacheService {
       );
     } catch (e) {
       debugPrint('❌ Failed to schedule next refresh: $e');
-      // Fallback to 24-hour refresh
-      _refreshTimer = Timer(const Duration(hours: 24), () async {
+      // Fallback to configured fallback refresh interval
+      final fallbackInterval =
+          TodayFeedCacheConfiguration.fallbackRefreshInterval;
+      _refreshTimer = Timer(fallbackInterval, () async {
         debugPrint('⏰ Fallback refresh triggered');
         await _triggerRefresh();
       });
@@ -628,14 +649,17 @@ class TodayFeedCacheService {
     await initialize();
 
     try {
-      // Create new configuration with provided values or defaults
+      // Use configuration values with fallbacks
       final newConfig = WarmingConfiguration(
         enableContentPreloading: enableContentPreloading ?? true,
         enableHistoryWarming: enableHistoryWarming ?? true,
         enablePredictiveWarming: enablePredictiveWarming ?? true,
-        scheduledWarmingInterval: scheduledInterval ?? const Duration(hours: 2),
+        scheduledWarmingInterval:
+            scheduledInterval ??
+            TodayFeedCacheConfiguration.scheduledWarmingInterval,
         predictiveWarmingInterval:
-            predictiveInterval ?? const Duration(minutes: 30),
+            predictiveInterval ??
+            TodayFeedCacheConfiguration.predictiveWarmingInterval,
       );
 
       await TodayFeedCacheWarmingService.updateWarmingConfiguration(newConfig);
