@@ -5,8 +5,8 @@ import '../../../../core/services/coach_intervention_service.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../widgets/coach_dashboard/coach_dashboard_stat_card.dart';
 import '../widgets/coach_dashboard/coach_dashboard_time_selector.dart';
-import '../widgets/coach_dashboard/coach_dashboard_filter_bar.dart';
 import '../widgets/coach_dashboard/coach_dashboard_overview_tab.dart';
+import '../widgets/coach_dashboard/coach_dashboard_active_tab.dart';
 
 class CoachDashboardScreen extends ConsumerStatefulWidget {
   const CoachDashboardScreen({super.key});
@@ -69,81 +69,27 @@ class _CoachDashboardScreenState extends ConsumerState<CoachDashboardScreen>
               });
             },
           ),
-          _buildActiveInterventionsTab(interventionService),
+          CoachDashboardActiveTab(
+            selectedPriority: _selectedPriority,
+            selectedStatus: _selectedStatus,
+            onPriorityChanged: (value) {
+              setState(() {
+                _selectedPriority = value;
+              });
+            },
+            onStatusChanged: (value) {
+              setState(() {
+                _selectedStatus = value;
+              });
+            },
+            onInterventionUpdated: () {
+              setState(() {});
+            },
+          ),
           _buildScheduledInterventionsTab(interventionService),
           _buildAnalyticsTab(interventionService),
         ],
       ),
-    );
-  }
-
-  Widget _buildActiveInterventionsTab(CoachInterventionService service) {
-    return FutureBuilder<List<Map<String, dynamic>>>(
-      future: service.getActiveInterventions(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
-        }
-
-        final interventions = snapshot.data ?? [];
-
-        return Column(
-          children: [
-            CoachDashboardFilterBar(
-              selectedPriority: _selectedPriority,
-              selectedStatus: _selectedStatus,
-              onPriorityChanged: (value) {
-                setState(() {
-                  _selectedPriority = value;
-                });
-              },
-              onStatusChanged: (value) {
-                setState(() {
-                  _selectedStatus = value;
-                });
-              },
-            ),
-            Expanded(
-              child:
-                  interventions.isEmpty
-                      ? const Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.psychology_outlined,
-                              size: 64,
-                              color: Colors.grey,
-                            ),
-                            SizedBox(height: 16),
-                            Text(
-                              'No active interventions',
-                              style: TextStyle(
-                                fontSize: 18,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                      : ListView.builder(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: interventions.length,
-                        itemBuilder: (context, index) {
-                          return _buildInterventionCard(
-                            interventions[index],
-                            service,
-                          );
-                        },
-                      ),
-            ),
-          ],
-        );
-      },
     );
   }
 
