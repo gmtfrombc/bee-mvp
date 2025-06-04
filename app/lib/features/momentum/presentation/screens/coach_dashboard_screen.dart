@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../domain/models/coach_dashboard_filters.dart';
 import '../widgets/coach_dashboard/coach_dashboard_overview_tab.dart';
 import '../widgets/coach_dashboard/coach_dashboard_active_tab.dart';
 import '../widgets/coach_dashboard/coach_dashboard_scheduled_tab.dart';
@@ -17,9 +18,7 @@ class CoachDashboardScreen extends ConsumerStatefulWidget {
 class _CoachDashboardScreenState extends ConsumerState<CoachDashboardScreen>
     with TickerProviderStateMixin {
   late TabController _tabController;
-  String _selectedTimeRange = '7d';
-  String _selectedPriority = 'all';
-  String _selectedStatus = 'all';
+  CoachDashboardFilters _filters = const CoachDashboardFilters();
 
   @override
   void initState() {
@@ -31,6 +30,13 @@ class _CoachDashboardScreenState extends ConsumerState<CoachDashboardScreen>
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  /// Updates the filter state using immutable copyWith pattern
+  void _updateFilters(CoachDashboardFilters newFilters) {
+    setState(() {
+      _filters = newFilters;
+    });
   }
 
   @override
@@ -58,25 +64,19 @@ class _CoachDashboardScreenState extends ConsumerState<CoachDashboardScreen>
         controller: _tabController,
         children: [
           CoachDashboardOverviewTab(
-            selectedTimeRange: _selectedTimeRange,
+            selectedTimeRange: _filters.timeRange,
             onTimeRangeChanged: (value) {
-              setState(() {
-                _selectedTimeRange = value;
-              });
+              _updateFilters(_filters.copyWith(timeRange: value));
             },
           ),
           CoachDashboardActiveTab(
-            selectedPriority: _selectedPriority,
-            selectedStatus: _selectedStatus,
+            selectedPriority: _filters.priority,
+            selectedStatus: _filters.status,
             onPriorityChanged: (value) {
-              setState(() {
-                _selectedPriority = value;
-              });
+              _updateFilters(_filters.copyWith(priority: value));
             },
             onStatusChanged: (value) {
-              setState(() {
-                _selectedStatus = value;
-              });
+              _updateFilters(_filters.copyWith(status: value));
             },
             onInterventionUpdated: () {
               setState(() {});
@@ -88,11 +88,9 @@ class _CoachDashboardScreenState extends ConsumerState<CoachDashboardScreen>
             },
           ),
           CoachDashboardAnalyticsTab(
-            selectedTimeRange: _selectedTimeRange,
+            selectedTimeRange: _filters.timeRange,
             onTimeRangeChanged: (value) {
-              setState(() {
-                _selectedTimeRange = value;
-              });
+              _updateFilters(_filters.copyWith(timeRange: value));
             },
           ),
         ],
