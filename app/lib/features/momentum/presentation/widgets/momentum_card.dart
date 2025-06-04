@@ -146,11 +146,9 @@ class _MomentumCardState extends State<MomentumCard>
                           gradient: _getCardGradient(),
                         ),
                         child: Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
                             _buildHeader(),
-                            Expanded(child: _buildGaugeSection()),
-                            _buildMessageSection(),
+                            _buildGaugeSection(),
                             if (widget.showProgressBar) _buildProgressBar(),
                           ],
                         ),
@@ -167,60 +165,50 @@ class _MomentumCardState extends State<MomentumCard>
   }
 
   Widget _buildHeader() {
+    final fontSizeMultiplier = ResponsiveService.getFontSizeMultiplier(context);
     return AccessibilityService.createAccessibleText(
       'YOUR MOMENTUM',
-      baseStyle: Theme.of(context).textTheme.labelLarge!.copyWith(
+      baseStyle: Theme.of(context).textTheme.titleMedium!.copyWith(
         color: AppTheme.getTextSecondary(context),
         letterSpacing: 0.5,
+        fontSize:
+            Theme.of(context).textTheme.titleMedium!.fontSize! *
+            fontSizeMultiplier *
+            1.2,
       ),
       context: context,
     );
   }
 
   Widget _buildGaugeSection() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Flexible(
-          child: MomentumGauge(
-            state: widget.momentumData.state,
-            percentage: widget.momentumData.percentage,
-            onTap: widget.onTap,
-            showGlow: true,
-            size: ResponsiveService.getMomentumGaugeSize(context),
+    return Expanded(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Flexible(
+            child: MomentumGauge(
+              state: widget.momentumData.state,
+              percentage: widget.momentumData.percentage,
+              onTap: widget.onTap,
+              showGlow: true,
+              size: ResponsiveService.getMomentumGaugeSize(context),
+            ),
           ),
-        ),
-        SizedBox(height: ResponsiveService.getSmallSpacing(context)),
-        AccessibilityService.createAccessibleText(
-          _getStateDisplayText(),
-          baseStyle: Theme.of(context).textTheme.headlineMedium!.copyWith(
-            color: AppTheme.getMomentumColor(widget.momentumData.state),
-            fontWeight: FontWeight.w600,
-          ),
-          context: context,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMessageSection() {
-    return Flexible(
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: ResponsiveService.getSmallSpacing(context),
-        ),
-        child: AccessibilityService.createAccessibleText(
-          widget.momentumData.message,
-          baseStyle: Theme.of(context).textTheme.titleLarge!.copyWith(
-            color: AppTheme.getTextPrimary(context),
-            fontWeight: FontWeight.w500,
-            height: 1.3,
-          ),
-          context: context,
-          textAlign: TextAlign.center,
-          maxLines: 2,
-        ),
+          if (_getStateDisplayText().isNotEmpty) ...[
+            SizedBox(height: ResponsiveService.getTinySpacing(context)),
+            Flexible(
+              child: AccessibilityService.createAccessibleText(
+                _getStateDisplayText(),
+                baseStyle: Theme.of(context).textTheme.headlineMedium!.copyWith(
+                  color: AppTheme.getMomentumColor(widget.momentumData.state),
+                  fontWeight: FontWeight.w600,
+                ),
+                context: context,
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
@@ -271,17 +259,6 @@ class _MomentumCardState extends State<MomentumCard>
     );
   }
 
-  String _getStateDisplayText() {
-    switch (widget.momentumData.state) {
-      case MomentumState.rising:
-        return 'Rising!';
-      case MomentumState.steady:
-        return 'Steady!';
-      case MomentumState.needsCare:
-        return 'Growing!';
-    }
-  }
-
   LinearGradient? _getCardGradient() {
     final color = AppTheme.getMomentumColor(widget.momentumData.state);
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -293,6 +270,17 @@ class _MomentumCardState extends State<MomentumCard>
       end: Alignment.bottomRight,
       colors: [surfaceColor, color.withValues(alpha: 0.02)],
     );
+  }
+
+  String _getStateDisplayText() {
+    switch (widget.momentumData.state) {
+      case MomentumState.rising:
+        return 'Rising!';
+      case MomentumState.steady:
+        return 'Steady!';
+      case MomentumState.needsCare:
+        return '';
+    }
   }
 
   @override
@@ -319,9 +307,11 @@ class CompactMomentumCard extends StatelessWidget {
     return MomentumCard(
       momentumData: momentumData,
       onTap: onTap,
-      height: 140,
+      height: ResponsiveService.getMomentumCardHeight(context) * 0.6,
       showProgressBar: false,
-      margin: const EdgeInsets.symmetric(horizontal: 8),
+      margin: EdgeInsets.symmetric(
+        horizontal: ResponsiveService.getSmallSpacing(context),
+      ),
     );
   }
 }
@@ -344,7 +334,7 @@ class AccessibleMomentumCard extends StatelessWidget {
     return Semantics(
       label:
           customSemanticLabel ??
-          'Momentum meter showing ${momentumData.state.name} state at ${momentumData.percentage.round()} percent. ${momentumData.message}',
+          'Momentum meter showing ${momentumData.state.name} state at ${momentumData.percentage.round()} percent.',
       hint: onTap != null ? 'Double tap to view details' : null,
       button: onTap != null,
       child: MomentumCard(momentumData: momentumData, onTap: onTap),
