@@ -6,14 +6,15 @@
 ///
 /// **Architecture Overview:**
 /// ```
-/// TodayFeedCacheService (Main Coordinator ~600 lines)
+/// TodayFeedCacheService (Main Coordinator ~300 lines)
 /// ├── TodayFeedContentService (Content storage/retrieval)
 /// ├── TodayFeedCacheSyncService (Background sync/connectivity)
 /// ├── TodayFeedTimezoneService (Timezone/DST handling)
 /// ├── TodayFeedCacheMaintenanceService (Cleanup/invalidation)
 /// ├── TodayFeedCacheHealthService (Health monitoring/diagnostics)
 /// ├── TodayFeedCacheStatisticsService (Statistics/metrics)
-/// └── TodayFeedCachePerformanceService (Performance analysis)
+/// ├── TodayFeedCachePerformanceService (Performance analysis)
+/// └── TodayFeedCacheWarmingService (Cache warming/preloading)
 /// ```
 ///
 /// **Key Features:**
@@ -24,6 +25,7 @@
 /// - Comprehensive health monitoring
 /// - Performance metrics and statistics
 /// - Automatic cache maintenance
+/// - Cache warming and preloading strategies
 ///
 /// **Usage:**
 /// ```dart
@@ -62,21 +64,28 @@ import 'cache/today_feed_cache_warming_service.dart';
 /// Main coordinator service that orchestrates all cache-related operations
 /// through specialized service modules. Maintains 100% backward compatibility.
 class TodayFeedCacheService {
-  // ============================================================================
-  // CONSTANTS & CONFIGURATION
-  // ============================================================================
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SECTION 1: CONSTANTS & CONFIGURATION
+  // ═══════════════════════════════════════════════════════════════════════════
+  //
+  // This section contains all configuration constants, cache keys, and static
+  // configuration values. Following ResponsiveService pattern of centralizing
+  // constants to avoid hardcoded values throughout the codebase.
 
-  /// Cache keys for Today Feed content
+  /// Cache keys for Today Feed content storage
   static const String _cacheVersionKey = 'today_feed_cache_version';
   static const String _timezoneMetadataKey = 'today_feed_timezone_metadata';
   static const String _lastTimezoneCheckKey = 'today_feed_last_timezone_check';
 
-  /// Cache configuration
+  /// Cache version for migration management
   static const int _currentCacheVersion = 1;
 
-  // ============================================================================
-  // STATIC VARIABLES & STATE
-  // ============================================================================
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SECTION 2: INITIALIZATION & LIFECYCLE
+  // ═══════════════════════════════════════════════════════════════════════════
+  //
+  // This section handles service initialization, dependency setup, state management,
+  // and lifecycle operations including disposal and testing utilities.
 
   /// SharedPreferences instance for cache storage
   static SharedPreferences? _prefs;
@@ -84,7 +93,7 @@ class TodayFeedCacheService {
   /// Initialization state flag
   static bool _isInitialized = false;
 
-  /// Test environment flag
+  /// Test environment flag for disabling timers and subscriptions
   static bool _isTestEnvironment = false;
 
   /// Timer for automatic content refresh
@@ -96,20 +105,16 @@ class TodayFeedCacheService {
   /// Timer for automatic cache cleanup
   static Timer? _automaticCleanupTimer;
 
-  // ============================================================================
-  // TEST ENVIRONMENT SUPPORT
-  // ============================================================================
-
   /// Set test environment mode to disable timers and subscriptions
   static void setTestEnvironment(bool isTest) {
     _isTestEnvironment = isTest;
   }
 
-  // ============================================================================
-  // INITIALIZATION & SETUP
-  // ============================================================================
-
   /// Initialize the Today Feed cache service
+  ///
+  /// Sets up all specialized services in proper dependency order and configures
+  /// timezone handling, cache validation, and refresh scheduling. Optimized for
+  /// test environments to skip expensive operations.
   static Future<void> initialize() async {
     if (_isInitialized) return;
 
@@ -125,28 +130,14 @@ class TodayFeedCacheService {
         return;
       }
 
-      // Initialize content service first (core dependency)
+      // Initialize services in dependency order
       await TodayFeedContentService.initialize(_prefs!);
-
-      // Initialize statistics service
       await TodayFeedCacheStatisticsService.initialize(_prefs!);
-
-      // Initialize health service
       await TodayFeedCacheHealthService.initialize(_prefs!);
-
-      // Initialize performance service
       await TodayFeedCachePerformanceService.initialize(_prefs!);
-
-      // Initialize timezone service
       await TodayFeedTimezoneService.initialize(_prefs!);
-
-      // Initialize sync service
       await TodayFeedCacheSyncService.initialize(_prefs!);
-
-      // Initialize maintenance service
       await TodayFeedCacheMaintenanceService.initialize(_prefs!);
-
-      // Initialize warming service
       await TodayFeedCacheWarmingService.initialize(_prefs!);
 
       await _validateCacheVersion();
@@ -197,11 +188,58 @@ class TodayFeedCacheService {
     }
   }
 
-  // ============================================================================
-  // CORE CONTENT OPERATIONS
-  // ============================================================================
+  /// Dispose of resources and cleanup timers
+  ///
+  /// Properly disposes all services and cleans up timers to prevent memory leaks.
+  /// Follows proper disposal order to maintain service dependencies.
+  static Future<void> dispose() async {
+    try {
+      _refreshTimer?.cancel();
+      _timezoneCheckTimer?.cancel();
+      _automaticCleanupTimer?.cancel();
+
+      // Dispose maintenance service first since it manages the cleanup timer
+      await TodayFeedCacheMaintenanceService.dispose();
+
+      // Dispose content service
+      await TodayFeedContentService.dispose();
+
+      _refreshTimer = null;
+      _timezoneCheckTimer = null;
+      _automaticCleanupTimer = null;
+      _isInitialized = false;
+
+      debugPrint('✅ TodayFeedCacheService disposed');
+    } catch (e) {
+      debugPrint('❌ Failed to dispose TodayFeedCacheService: $e');
+    }
+  }
+
+  /// Reset service for testing (clears all state)
+  static void resetForTesting() {
+    _isInitialized = false;
+    _prefs = null;
+    _refreshTimer?.cancel();
+    _timezoneCheckTimer?.cancel();
+    _automaticCleanupTimer?.cancel();
+
+    _refreshTimer = null;
+    _timezoneCheckTimer = null;
+    _automaticCleanupTimer = null;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SECTION 3: CORE CONTENT OPERATIONS
+  // ═══════════════════════════════════════════════════════════════════════════
+  //
+  // This section contains the primary content operations that users interact with
+  // most frequently: caching, retrieving, and managing Today Feed content with
+  // validation and fallback support.
 
   /// Cache today's content with metadata and size enforcement
+  ///
+  /// Primary method for storing Today Feed content with automatic validation,
+  /// metadata generation, and history tracking.
   static Future<void> cacheTodayContent(
     TodayFeedContent content, {
     bool isFromAPI = true,
@@ -214,6 +252,9 @@ class TodayFeedCacheService {
   }
 
   /// Get today's cached content with validation
+  ///
+  /// Primary method for retrieving cached Today Feed content with automatic
+  /// validation and stale content handling.
   static Future<TodayFeedContent?> getTodayContent({
     bool allowStale = false,
   }) async {
@@ -224,21 +265,50 @@ class TodayFeedCacheService {
   }
 
   /// Get previous day's content as fallback with enhanced metadata
+  ///
+  /// Retrieves previous day's content when today's content is unavailable,
+  /// providing seamless fallback experience.
   static Future<TodayFeedContent?> getPreviousDayContent() async {
     await initialize();
     return await TodayFeedContentService.getPreviousDayContent();
   }
 
   /// Move today's content to previous day storage
+  ///
+  /// Internal method for archiving current content before refresh operations.
   static Future<void> _archiveTodayContent() async {
     await TodayFeedContentService.archiveTodayContent();
   }
 
-  // ============================================================================
-  // REFRESH & TIMING OPERATIONS
-  // ============================================================================
+  /// Clear today's content only (keeps history and metadata)
+  static Future<void> clearTodayContent() async {
+    await initialize();
+    await TodayFeedContentService.clearTodayContent();
+  }
+
+  /// Check if fallback content should be used
+  static Future<bool> shouldUseFallbackContent() async {
+    await initialize();
+    return await TodayFeedContentService.shouldUseFallbackContent();
+  }
+
+  /// Get fallback content with metadata
+  static Future<TodayFeedContent?> getFallbackContentWithMetadata() async {
+    await initialize();
+    return await TodayFeedContentService.getFallbackContentWithMetadata();
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SECTION 4: REFRESH & TIMING OPERATIONS
+  // ═══════════════════════════════════════════════════════════════════════════
+  //
+  // This section handles refresh logic, timezone-aware scheduling, and timing
+  // operations including DST handling and automatic refresh triggers.
 
   /// Check if cached content needs refresh (timezone-aware with DST handling)
+  ///
+  /// Determines if content refresh is needed based on local timezone, DST changes,
+  /// and preferred refresh timing. Accounts for timezone transitions.
   static Future<bool> needsRefresh() async {
     await initialize();
 
@@ -258,7 +328,7 @@ class TodayFeedCacheService {
       final isNewDay =
           !TodayFeedTimezoneService.isSameLocalDay(lastRefresh, now);
 
-      // Check if we're past the preferred refresh time (_refreshHour AM local)
+      // Check if we're past the preferred refresh time
       final isPastRefreshTime =
           TodayFeedTimezoneService.isPastRefreshTimeEnhanced(now);
 
@@ -291,30 +361,10 @@ class TodayFeedCacheService {
     }
   }
 
-  // ============================================================================
-  // CACHE MANAGEMENT & CLEANUP
-  // ============================================================================
-
-  /// Clear all cached data
-  static Future<void> _clearAllCacheData() async {
-    try {
-      await TodayFeedContentService.clearAllContentData();
-      await _prefs!.remove(_timezoneMetadataKey);
-      await _prefs!.remove(_lastTimezoneCheckKey);
-
-      debugPrint('🧹 All Today Feed cache data cleared');
-    } catch (e) {
-      debugPrint('❌ Failed to clear cache data: $e');
-    }
-  }
-
-  /// Clear today's content only
-  static Future<void> clearTodayContent() async {
-    await initialize();
-    await TodayFeedContentService.clearTodayContent();
-  }
-
   /// Force refresh content immediately
+  ///
+  /// Manually triggers content refresh, bypassing normal scheduling.
+  /// Useful for user-initiated refresh or recovery scenarios.
   static Future<void> forceRefresh() async {
     await initialize();
 
@@ -327,11 +377,10 @@ class TodayFeedCacheService {
     }
   }
 
-  // ============================================================================
-  // INTERNAL REFRESH & SCHEDULING
-  // ============================================================================
-
-  /// Trigger content refresh
+  /// Trigger content refresh (internal operation)
+  ///
+  /// Internal method that orchestrates the complete refresh process including
+  /// content archiving, cache clearing, and refresh scheduling.
   static Future<void> _triggerRefresh() async {
     try {
       // Archive current content before refresh
@@ -351,6 +400,9 @@ class TodayFeedCacheService {
   }
 
   /// Schedule next refresh based on timezone and DST
+  ///
+  /// Calculates and schedules the next refresh time accounting for timezone
+  /// changes and DST transitions.
   static Future<void> _scheduleNextRefresh() async {
     _refreshTimer?.cancel();
 
@@ -385,19 +437,46 @@ class TodayFeedCacheService {
     }
   }
 
-  /// Queue error for later analysis
-  static Future<void> _queueError(String operation, String error) async {
+  /// Get timezone statistics for debugging and monitoring
+  static Future<Map<String, dynamic>> getTimezoneStats() async {
+    await initialize();
+    return TodayFeedTimezoneService.getTimezoneStats();
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SECTION 5: CACHE MANAGEMENT & MONITORING
+  // ═══════════════════════════════════════════════════════════════════════════
+  //
+  // This section handles cache maintenance, monitoring, statistics, health checks,
+  // performance metrics, and administrative operations including cleanup and
+  // diagnostic utilities.
+
+  /// Clear all cached data (complete cache reset)
+  ///
+  /// Removes all cached content, metadata, and settings. Used for cache
+  /// migrations and complete resets.
+  static Future<void> _clearAllCacheData() async {
     try {
-      // Delegate error queueing to sync service which handles sync errors
-      await TodayFeedCacheSyncService.initialize(_prefs!);
-      // For now, just log the error - sync service handles its own errors
-      debugPrint('📝 Error queued via sync service: $operation - $error');
+      await TodayFeedContentService.clearAllContentData();
+      await _prefs!.remove(_timezoneMetadataKey);
+      await _prefs!.remove(_lastTimezoneCheckKey);
+
+      debugPrint('🧹 All Today Feed cache data cleared');
     } catch (e) {
-      debugPrint('❌ Failed to queue error: $e');
+      debugPrint('❌ Failed to clear cache data: $e');
     }
   }
 
-  /// Get cache metadata for debugging
+  /// Manual invalidation for testing and maintenance
+  static Future<void> invalidateCache({String? reason}) async {
+    await initialize();
+    await TodayFeedCacheMaintenanceService.invalidateCache(reason: reason);
+  }
+
+  /// Get cache metadata for debugging and monitoring
+  ///
+  /// Provides comprehensive cache information including size, content status,
+  /// timezone data, and service health metrics.
   static Future<Map<String, dynamic>> getCacheMetadata() async {
     await initialize();
 
@@ -422,47 +501,7 @@ class TodayFeedCacheService {
     }
   }
 
-  /// Dispose of resources
-  static Future<void> dispose() async {
-    try {
-      _refreshTimer?.cancel();
-      _timezoneCheckTimer?.cancel();
-      _automaticCleanupTimer?.cancel();
-
-      // Dispose maintenance service first since it manages the cleanup timer
-      await TodayFeedCacheMaintenanceService.dispose();
-
-      // Dispose content service
-      await TodayFeedContentService.dispose();
-
-      _refreshTimer = null;
-      _timezoneCheckTimer = null;
-      _automaticCleanupTimer = null;
-      _isInitialized = false;
-
-      debugPrint('✅ TodayFeedCacheService disposed');
-    } catch (e) {
-      debugPrint('❌ Failed to dispose TodayFeedCacheService: $e');
-    }
-  }
-
-  // ============================================================================
-  // UTILITY & DEBUG METHODS
-  // ============================================================================
-
-  /// Get timezone statistics for debugging
-  static Future<Map<String, dynamic>> getTimezoneStats() async {
-    await initialize();
-    return TodayFeedTimezoneService.getTimezoneStats();
-  }
-
-  /// Manual invalidation for testing
-  static Future<void> invalidateCache({String? reason}) async {
-    await initialize();
-    await TodayFeedCacheMaintenanceService.invalidateCache(reason: reason);
-  }
-
-  /// Get sync status for debugging
+  /// Get sync status for debugging and monitoring
   static Map<String, dynamic> getSyncStatus() {
     return {
       'is_initialized': _isInitialized,
@@ -472,11 +511,19 @@ class TodayFeedCacheService {
     };
   }
 
-  // ============================================================================
-  // AGGREGATED METRICS & STATISTICS
-  // ============================================================================
+  /// Queue error for later analysis and sync
+  static Future<void> _queueError(String operation, String error) async {
+    try {
+      // Delegate error queueing to sync service which handles sync errors
+      await TodayFeedCacheSyncService.initialize(_prefs!);
+      // For now, just log the error - sync service handles its own errors
+      debugPrint('📝 Error queued via sync service: $operation - $error');
+    } catch (e) {
+      debugPrint('❌ Failed to queue error: $e');
+    }
+  }
 
-  /// Get statistics from all services
+  /// Get statistics from all services (comprehensive metrics)
   static Future<Map<String, dynamic>> getAllStatistics() async {
     await initialize();
 
@@ -538,13 +585,10 @@ class TodayFeedCacheService {
     return performance;
   }
 
-  // ============================================================================
-  // CACHE WARMING & PRELOADING OPERATIONS (T1.3.3.10)
-  // ============================================================================
-
   /// Execute cache warming strategy
   ///
-  /// Implements T1.3.3.10: Cache warming and preloading strategies
+  /// Implements cache warming and preloading strategies for optimal performance.
+  /// Supports different triggers and context-aware optimization.
   static Future<Map<String, dynamic>> executeWarmingStrategy({
     String trigger = 'manual',
     Map<String, dynamic>? context,
@@ -628,22 +672,13 @@ class TodayFeedCacheService {
     }
   }
 
-  // ============================================================================
+  // ═══════════════════════════════════════════════════════════════════════════
   // BACKWARD COMPATIBILITY METHODS
-  // ============================================================================
-
-  /// Reset service for testing (compatibility method)
-  static void resetForTesting() {
-    _isInitialized = false;
-    _prefs = null;
-    _refreshTimer?.cancel();
-    _timezoneCheckTimer?.cancel();
-    _automaticCleanupTimer?.cancel();
-
-    _refreshTimer = null;
-    _timezoneCheckTimer = null;
-    _automaticCleanupTimer = null;
-  }
+  // ═══════════════════════════════════════════════════════════════════════════
+  //
+  // This section maintains 100% backward compatibility with existing code.
+  // These methods provide familiar interfaces while delegating to the new
+  // modular architecture. Will be moved to separate compatibility layer in Sprint 2.
 
   /// Clear all cache (compatibility wrapper)
   static Future<void> clearAllCache() async {
@@ -763,18 +798,6 @@ class TodayFeedCacheService {
   static Future<Map<String, dynamic>> getCacheInvalidationStats() async {
     await initialize();
     return await TodayFeedCacheMaintenanceService.getCacheInvalidationStats();
-  }
-
-  /// Should use fallback content (compatibility method)
-  static Future<bool> shouldUseFallbackContent() async {
-    await initialize();
-    return await TodayFeedContentService.shouldUseFallbackContent();
-  }
-
-  /// Get fallback content with metadata (compatibility method)
-  static Future<TodayFeedContent?> getFallbackContentWithMetadata() async {
-    await initialize();
-    return await TodayFeedContentService.getFallbackContentWithMetadata();
   }
 
   /// Set background sync enabled (compatibility wrapper)
