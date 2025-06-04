@@ -5,6 +5,7 @@ import '../../../../core/services/coach_intervention_service.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../widgets/coach_dashboard/coach_dashboard_stat_card.dart';
 import '../widgets/coach_dashboard/coach_dashboard_time_selector.dart';
+import '../widgets/coach_dashboard/coach_dashboard_filter_bar.dart';
 
 class CoachDashboardScreen extends ConsumerStatefulWidget {
   const CoachDashboardScreen({super.key});
@@ -348,7 +349,20 @@ class _CoachDashboardScreenState extends ConsumerState<CoachDashboardScreen>
 
         return Column(
           children: [
-            _buildFilterBar(),
+            CoachDashboardFilterBar(
+              selectedPriority: _selectedPriority,
+              selectedStatus: _selectedStatus,
+              onPriorityChanged: (value) {
+                setState(() {
+                  _selectedPriority = value;
+                });
+              },
+              onStatusChanged: (value) {
+                setState(() {
+                  _selectedStatus = value;
+                });
+              },
+            ),
             Expanded(
               child:
                   interventions.isEmpty
@@ -386,238 +400,6 @@ class _CoachDashboardScreenState extends ConsumerState<CoachDashboardScreen>
           ],
         );
       },
-    );
-  }
-
-  Widget _buildFilterBar() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.grey[50],
-        border: Border(bottom: BorderSide(color: Colors.grey[200]!)),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: DropdownButtonFormField<String>(
-              value: _selectedPriority,
-              decoration: const InputDecoration(
-                labelText: 'Priority',
-                border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-              ),
-              items: const [
-                DropdownMenuItem(value: 'all', child: Text('All Priorities')),
-                DropdownMenuItem(value: 'high', child: Text('High')),
-                DropdownMenuItem(value: 'medium', child: Text('Medium')),
-                DropdownMenuItem(value: 'low', child: Text('Low')),
-              ],
-              onChanged: (value) {
-                setState(() {
-                  _selectedPriority = value!;
-                });
-              },
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: DropdownButtonFormField<String>(
-              value: _selectedStatus,
-              decoration: const InputDecoration(
-                labelText: 'Status',
-                border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-              ),
-              items: const [
-                DropdownMenuItem(value: 'all', child: Text('All Statuses')),
-                DropdownMenuItem(value: 'pending', child: Text('Pending')),
-                DropdownMenuItem(
-                  value: 'in_progress',
-                  child: Text('In Progress'),
-                ),
-                DropdownMenuItem(value: 'completed', child: Text('Completed')),
-              ],
-              onChanged: (value) {
-                setState(() {
-                  _selectedStatus = value!;
-                });
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInterventionCard(
-    Map<String, dynamic> intervention,
-    CoachInterventionService service,
-  ) {
-    final priority = intervention['priority'] as String? ?? 'medium';
-    final status = intervention['status'] as String? ?? 'pending';
-    final patientName = intervention['patient_name'] as String? ?? 'Unknown';
-    final type = intervention['type'] as String? ?? 'general';
-    final scheduledAt = DateTime.tryParse(
-      intervention['scheduled_at'] as String? ?? '',
-    );
-    final notes = intervention['notes'] as String? ?? '';
-
-    Color priorityColor;
-    switch (priority) {
-      case 'high':
-        priorityColor = Colors.red;
-        break;
-      case 'medium':
-        priorityColor = Colors.orange;
-        break;
-      case 'low':
-        priorityColor = Colors.green;
-        break;
-      default:
-        priorityColor = Colors.grey;
-    }
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: priorityColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: priorityColor.withValues(alpha: 0.3),
-                    ),
-                  ),
-                  child: Text(
-                    priority.toUpperCase(),
-                    style: TextStyle(
-                      color: priorityColor,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    status.replaceAll('_', ' ').toUpperCase(),
-                    style: const TextStyle(
-                      color: Colors.blue,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-                const Spacer(),
-                PopupMenuButton<String>(
-                  onSelected: (value) async {
-                    switch (value) {
-                      case 'complete':
-                        await service.completeIntervention(intervention['id']);
-                        setState(() {});
-                        break;
-                      case 'reschedule':
-                        _showRescheduleDialog(intervention, service);
-                        break;
-                      case 'cancel':
-                        await service.cancelIntervention(intervention['id']);
-                        setState(() {});
-                        break;
-                    }
-                  },
-                  itemBuilder:
-                      (context) => [
-                        const PopupMenuItem(
-                          value: 'complete',
-                          child: Row(
-                            children: [
-                              Icon(Icons.check_circle, color: Colors.green),
-                              SizedBox(width: 8),
-                              Text('Mark Complete'),
-                            ],
-                          ),
-                        ),
-                        const PopupMenuItem(
-                          value: 'reschedule',
-                          child: Row(
-                            children: [
-                              Icon(Icons.schedule, color: Colors.orange),
-                              SizedBox(width: 8),
-                              Text('Reschedule'),
-                            ],
-                          ),
-                        ),
-                        const PopupMenuItem(
-                          value: 'cancel',
-                          child: Row(
-                            children: [
-                              Icon(Icons.cancel, color: Colors.red),
-                              SizedBox(width: 8),
-                              Text('Cancel'),
-                            ],
-                          ),
-                        ),
-                      ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              patientName,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Type: ${type.replaceAll('_', ' ').toUpperCase()}',
-              style: TextStyle(
-                color: Colors.grey[600],
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            if (scheduledAt != null) ...[
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  Icon(Icons.schedule, size: 16, color: Colors.grey[600]),
-                  const SizedBox(width: 4),
-                  Text(
-                    'Scheduled: ${DateFormat('MMM d, h:mm a').format(scheduledAt)}',
-                    style: TextStyle(color: Colors.grey[600]),
-                  ),
-                ],
-              ),
-            ],
-            if (notes.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Text(notes, style: const TextStyle(fontSize: 14)),
-            ],
-          ],
-        ),
-      ),
     );
   }
 
@@ -833,6 +615,172 @@ class _CoachDashboardScreenState extends ConsumerState<CoachDashboardScreen>
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildInterventionCard(
+    Map<String, dynamic> intervention,
+    CoachInterventionService service,
+  ) {
+    final priority = intervention['priority'] as String? ?? 'medium';
+    final status = intervention['status'] as String? ?? 'pending';
+    final patientName = intervention['patient_name'] as String? ?? 'Unknown';
+    final type = intervention['type'] as String? ?? 'general';
+    final scheduledAt = DateTime.tryParse(
+      intervention['scheduled_at'] as String? ?? '',
+    );
+    final notes = intervention['notes'] as String? ?? '';
+
+    Color priorityColor;
+    switch (priority) {
+      case 'high':
+        priorityColor = Colors.red;
+        break;
+      case 'medium':
+        priorityColor = Colors.orange;
+        break;
+      case 'low':
+        priorityColor = Colors.green;
+        break;
+      default:
+        priorityColor = Colors.grey;
+    }
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: priorityColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: priorityColor.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Text(
+                    priority.toUpperCase(),
+                    style: TextStyle(
+                      color: priorityColor,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    status.replaceAll('_', ' ').toUpperCase(),
+                    style: const TextStyle(
+                      color: Colors.blue,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+                const Spacer(),
+                PopupMenuButton<String>(
+                  onSelected: (value) async {
+                    switch (value) {
+                      case 'complete':
+                        await service.completeIntervention(intervention['id']);
+                        setState(() {});
+                        break;
+                      case 'reschedule':
+                        _showRescheduleDialog(intervention, service);
+                        break;
+                      case 'cancel':
+                        await service.cancelIntervention(intervention['id']);
+                        setState(() {});
+                        break;
+                    }
+                  },
+                  itemBuilder:
+                      (context) => [
+                        const PopupMenuItem(
+                          value: 'complete',
+                          child: Row(
+                            children: [
+                              Icon(Icons.check_circle, color: Colors.green),
+                              SizedBox(width: 8),
+                              Text('Mark Complete'),
+                            ],
+                          ),
+                        ),
+                        const PopupMenuItem(
+                          value: 'reschedule',
+                          child: Row(
+                            children: [
+                              Icon(Icons.schedule, color: Colors.orange),
+                              SizedBox(width: 8),
+                              Text('Reschedule'),
+                            ],
+                          ),
+                        ),
+                        const PopupMenuItem(
+                          value: 'cancel',
+                          child: Row(
+                            children: [
+                              Icon(Icons.cancel, color: Colors.red),
+                              SizedBox(width: 8),
+                              Text('Cancel'),
+                            ],
+                          ),
+                        ),
+                      ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              patientName,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Type: ${type.replaceAll('_', ' ').toUpperCase()}',
+              style: TextStyle(
+                color: Colors.grey[600],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            if (scheduledAt != null) ...[
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  Icon(Icons.schedule, size: 16, color: Colors.grey[600]),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Scheduled: ${DateFormat('MMM d, h:mm a').format(scheduledAt)}',
+                    style: TextStyle(color: Colors.grey[600]),
+                  ),
+                ],
+              ),
+            ],
+            if (notes.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(notes, style: const TextStyle(fontSize: 14)),
+            ],
+          ],
+        ),
       ),
     );
   }
