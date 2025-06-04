@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../../../core/services/coach_intervention_service.dart';
+import '../../../../../core/services/responsive_service.dart';
 
 class CoachInterventionCard extends StatelessWidget {
   final Map<String, dynamic> intervention;
@@ -41,22 +42,31 @@ class CoachInterventionCard extends StatelessWidget {
     }
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: EdgeInsets.only(
+        bottom: ResponsiveService.getResponsiveSpacing(context),
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(
+          ResponsiveService.getBorderRadius(context),
+        ),
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: ResponsiveService.getResponsivePadding(context),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: ResponsiveService.getSmallSpacing(context),
+                    vertical: ResponsiveService.getTinySpacing(context),
                   ),
                   decoration: BoxDecoration(
                     color: priorityColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(
+                      ResponsiveService.getBorderRadius(context),
+                    ),
                     border: Border.all(
                       color: priorityColor.withValues(alpha: 0.3),
                     ),
@@ -66,26 +76,30 @@ class CoachInterventionCard extends StatelessWidget {
                     style: TextStyle(
                       color: priorityColor,
                       fontWeight: FontWeight.bold,
-                      fontSize: 12,
+                      fontSize:
+                          12 * ResponsiveService.getFontSizeMultiplier(context),
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: ResponsiveService.getSmallSpacing(context)),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: ResponsiveService.getSmallSpacing(context),
+                    vertical: ResponsiveService.getTinySpacing(context),
                   ),
                   decoration: BoxDecoration(
                     color: Colors.blue.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(
+                      ResponsiveService.getBorderRadius(context),
+                    ),
                   ),
                   child: Text(
                     status.replaceAll('_', ' ').toUpperCase(),
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: Colors.blue,
                       fontWeight: FontWeight.bold,
-                      fontSize: 12,
+                      fontSize:
+                          12 * ResponsiveService.getFontSizeMultiplier(context),
                     ),
                   ),
                 ),
@@ -108,33 +122,93 @@ class CoachInterventionCard extends StatelessWidget {
                   },
                   itemBuilder:
                       (context) => [
-                        const PopupMenuItem(
+                        PopupMenuItem(
                           value: 'complete',
                           child: Row(
                             children: [
-                              Icon(Icons.check_circle, color: Colors.green),
-                              SizedBox(width: 8),
-                              Text('Mark Complete'),
+                              Icon(
+                                Icons.check_circle,
+                                color: Colors.green,
+                                size: ResponsiveService.getIconSize(
+                                  context,
+                                  baseSize: 20,
+                                ),
+                              ),
+                              SizedBox(
+                                width: ResponsiveService.getSmallSpacing(
+                                  context,
+                                ),
+                              ),
+                              Text(
+                                'Mark Complete',
+                                style: TextStyle(
+                                  fontSize:
+                                      14 *
+                                      ResponsiveService.getFontSizeMultiplier(
+                                        context,
+                                      ),
+                                ),
+                              ),
                             ],
                           ),
                         ),
-                        const PopupMenuItem(
+                        PopupMenuItem(
                           value: 'reschedule',
                           child: Row(
                             children: [
-                              Icon(Icons.schedule, color: Colors.orange),
-                              SizedBox(width: 8),
-                              Text('Reschedule'),
+                              Icon(
+                                Icons.schedule,
+                                color: Colors.orange,
+                                size: ResponsiveService.getIconSize(
+                                  context,
+                                  baseSize: 20,
+                                ),
+                              ),
+                              SizedBox(
+                                width: ResponsiveService.getSmallSpacing(
+                                  context,
+                                ),
+                              ),
+                              Text(
+                                'Reschedule',
+                                style: TextStyle(
+                                  fontSize:
+                                      14 *
+                                      ResponsiveService.getFontSizeMultiplier(
+                                        context,
+                                      ),
+                                ),
+                              ),
                             ],
                           ),
                         ),
-                        const PopupMenuItem(
+                        PopupMenuItem(
                           value: 'cancel',
                           child: Row(
                             children: [
-                              Icon(Icons.cancel, color: Colors.red),
-                              SizedBox(width: 8),
-                              Text('Cancel'),
+                              Icon(
+                                Icons.cancel,
+                                color: Colors.red,
+                                size: ResponsiveService.getIconSize(
+                                  context,
+                                  baseSize: 20,
+                                ),
+                              ),
+                              SizedBox(
+                                width: ResponsiveService.getSmallSpacing(
+                                  context,
+                                ),
+                              ),
+                              Text(
+                                'Cancel',
+                                style: TextStyle(
+                                  fontSize:
+                                      14 *
+                                      ResponsiveService.getFontSizeMultiplier(
+                                        context,
+                                      ),
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -142,35 +216,53 @@ class CoachInterventionCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: ResponsiveService.getMediumSpacing(context)),
             Text(
               patientName,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 18 * ResponsiveService.getFontSizeMultiplier(context),
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            const SizedBox(height: 4),
+            SizedBox(height: ResponsiveService.getTinySpacing(context)),
             Text(
               'Type: ${type.replaceAll('_', ' ').toUpperCase()}',
               style: TextStyle(
                 color: Colors.grey[600],
                 fontWeight: FontWeight.w500,
+                fontSize: 14 * ResponsiveService.getFontSizeMultiplier(context),
               ),
             ),
             if (scheduledAt != null) ...[
-              const SizedBox(height: 4),
+              SizedBox(height: ResponsiveService.getTinySpacing(context)),
               Row(
                 children: [
-                  Icon(Icons.schedule, size: 16, color: Colors.grey[600]),
-                  const SizedBox(width: 4),
+                  Icon(
+                    Icons.schedule,
+                    size: ResponsiveService.getIconSize(context, baseSize: 16),
+                    color: Colors.grey[600],
+                  ),
+                  SizedBox(width: ResponsiveService.getTinySpacing(context)),
                   Text(
                     'Scheduled: ${DateFormat('MMM d, h:mm a').format(scheduledAt)}',
-                    style: TextStyle(color: Colors.grey[600]),
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontSize:
+                          14 * ResponsiveService.getFontSizeMultiplier(context),
+                    ),
                   ),
                 ],
               ),
             ],
             if (notes.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Text(notes, style: const TextStyle(fontSize: 14)),
+              SizedBox(height: ResponsiveService.getSmallSpacing(context)),
+              Text(
+                notes,
+                style: TextStyle(
+                  fontSize:
+                      14 * ResponsiveService.getFontSizeMultiplier(context),
+                ),
+              ),
             ],
           ],
         ),
@@ -183,21 +275,46 @@ class CoachInterventionCard extends StatelessWidget {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('Reschedule Intervention'),
-            content: const Text(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(
+                ResponsiveService.getBorderRadius(context),
+              ),
+            ),
+            title: Text(
+              'Reschedule Intervention',
+              style: TextStyle(
+                fontSize: 18 * ResponsiveService.getFontSizeMultiplier(context),
+              ),
+            ),
+            content: Text(
               'Reschedule functionality would be implemented here',
+              style: TextStyle(
+                fontSize: 16 * ResponsiveService.getFontSizeMultiplier(context),
+              ),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Cancel'),
+                child: Text(
+                  'Cancel',
+                  style: TextStyle(
+                    fontSize:
+                        14 * ResponsiveService.getFontSizeMultiplier(context),
+                  ),
+                ),
               ),
               ElevatedButton(
                 onPressed: () {
                   Navigator.of(context).pop();
                   // Implement reschedule logic
                 },
-                child: const Text('Reschedule'),
+                child: Text(
+                  'Reschedule',
+                  style: TextStyle(
+                    fontSize:
+                        14 * ResponsiveService.getFontSizeMultiplier(context),
+                  ),
+                ),
               ),
             ],
           ),

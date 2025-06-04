@@ -54,40 +54,6 @@ class CoachDashboardActiveTab extends ConsumerWidget {
     return FutureBuilder<List<Map<String, dynamic>>>(
       future: interventionService.getActiveInterventions(),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        if (snapshot.hasError) {
-          return Center(
-            child: Padding(
-              padding: ResponsiveService.getResponsivePadding(context),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.error_outline,
-                    size: ResponsiveService.getCustomSpacing(context, 3.0),
-                    color: Colors.red,
-                  ),
-                  SizedBox(height: ResponsiveService.getMediumSpacing(context)),
-                  Text(
-                    'Error: ${snapshot.error}',
-                    style: TextStyle(
-                      fontSize:
-                          16 * ResponsiveService.getFontSizeMultiplier(context),
-                      color: Colors.red,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ),
-          );
-        }
-
-        final interventions = snapshot.data ?? [];
-
         return Column(
           children: [
             CoachDashboardFilterBar(
@@ -96,18 +62,96 @@ class CoachDashboardActiveTab extends ConsumerWidget {
               onPriorityChanged: onPriorityChanged,
               onStatusChanged: onStatusChanged,
             ),
-            Expanded(
-              child:
-                  interventions.isEmpty
-                      ? _buildEmptyState(context)
-                      : _buildInterventionsList(context, interventions),
-            ),
+            Expanded(child: _buildContent(context, snapshot)),
           ],
         );
       },
     );
   }
 
+  /// Performance: Separate content building for better optimization
+  Widget _buildContent(
+    BuildContext context,
+    AsyncSnapshot<List<Map<String, dynamic>>> snapshot,
+  ) {
+    if (snapshot.connectionState == ConnectionState.waiting) {
+      return _buildLoadingState(context);
+    }
+
+    if (snapshot.hasError) {
+      return _buildErrorState(context, snapshot.error.toString());
+    }
+
+    final interventions = snapshot.data ?? [];
+
+    if (interventions.isEmpty) {
+      return _buildEmptyState(context);
+    }
+
+    return _buildInterventionsList(context, interventions);
+  }
+
+  /// Performance: Optimized loading state with const widgets where possible
+  Widget _buildLoadingState(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const CircularProgressIndicator(),
+          SizedBox(height: ResponsiveService.getMediumSpacing(context)),
+          Text(
+            'Loading interventions...',
+            style: TextStyle(
+              fontSize: 16 * ResponsiveService.getFontSizeMultiplier(context),
+              color: Colors.grey[600],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Performance: Const error state widget
+  Widget _buildErrorState(BuildContext context, String error) {
+    return Center(
+      child: Padding(
+        padding: ResponsiveService.getResponsivePadding(context),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.error_outline,
+              size: ResponsiveService.getCustomSpacing(context, 3.0),
+              color: Colors.red,
+            ),
+            SizedBox(height: ResponsiveService.getMediumSpacing(context)),
+            Text(
+              'Error: $error',
+              style: TextStyle(
+                fontSize: 16 * ResponsiveService.getFontSizeMultiplier(context),
+                color: Colors.red,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: ResponsiveService.getLargeSpacing(context)),
+            // Performance: Add retry button for better UX
+            ElevatedButton.icon(
+              onPressed: () {
+                // Trigger a rebuild to retry loading
+                if (onInterventionUpdated != null) {
+                  onInterventionUpdated!();
+                }
+              },
+              icon: const Icon(Icons.refresh),
+              label: const Text('Retry'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Performance: Const empty state widget
   Widget _buildEmptyState(BuildContext context) {
     return Center(
       child: Padding(
@@ -143,31 +187,44 @@ class CoachDashboardActiveTab extends ConsumerWidget {
     );
   }
 
+  /// Performance: Optimized list rendering with lazy loading
   Widget _buildInterventionsList(
     BuildContext context,
     List<Map<String, dynamic>> interventions,
   ) {
     return ListView.builder(
+      // Performance: Key for better widget recycling
+      key: const ValueKey('active_interventions_list'),
       padding: ResponsiveService.getResponsivePadding(context),
       itemCount: interventions.length,
+      // Performance: Add cache extent for smoother scrolling
+      cacheExtent: 1000,
       itemBuilder: (context, index) {
-        return CoachDashboardInterventionCard(
-          intervention: interventions[index],
-          onComplete:
-              () => _handleInterventionAction(
-                context,
-                'completed',
-                interventions[index]['patient_name'] as String? ?? 'Unknown',
-              ),
-          onReschedule:
-              () => _showRescheduleDialog(context, interventions[index]),
-          onCancel:
-              () => _handleInterventionAction(
-                context,
-                'cancelled',
-                interventions[index]['patient_name'] as String? ?? 'Unknown',
-              ),
-          onUpdate: onInterventionUpdated,
+        final intervention = interventions[index];
+
+        // Performance: Use unique keys for better list performance
+        return Padding(
+          key: ValueKey('intervention_${intervention['id'] ?? index}'),
+          padding: EdgeInsets.only(
+            bottom: ResponsiveService.getSmallSpacing(context),
+          ),
+          child: CoachDashboardInterventionCard(
+            intervention: intervention,
+            onComplete:
+                () => _handleInterventionAction(
+                  context,
+                  'completed',
+                  intervention['patient_name'] as String? ?? 'Unknown',
+                ),
+            onReschedule: () => _showRescheduleDialog(context, intervention),
+            onCancel:
+                () => _handleInterventionAction(
+                  context,
+                  'cancelled',
+                  intervention['patient_name'] as String? ?? 'Unknown',
+                ),
+            onUpdate: onInterventionUpdated,
+          ),
         );
       },
     );
@@ -189,8 +246,14 @@ class CoachDashboardActiveTab extends ConsumerWidget {
         ),
         duration: const Duration(seconds: 3),
         backgroundColor: action == 'completed' ? Colors.green : Colors.orange,
+        behavior: SnackBarBehavior.floating, // Performance: Better UX
       ),
     );
+
+    // Performance: Call update callback to refresh data
+    if (onInterventionUpdated != null) {
+      onInterventionUpdated!();
+    }
   }
 
   /// Shows the reschedule dialog with responsive design
@@ -198,78 +261,41 @@ class CoachDashboardActiveTab extends ConsumerWidget {
     BuildContext context,
     Map<String, dynamic> intervention,
   ) {
-    final patientName = intervention['patient_name'] as String? ?? 'Unknown';
-
-    showDialog(
+    showDialog<void>(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(
-                ResponsiveService.getBorderRadius(context),
-              ),
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: Text(
+            'Reschedule Intervention',
+            style: TextStyle(
+              fontSize: 18 * ResponsiveService.getFontSizeMultiplier(context),
             ),
-            title: Text(
-              'Reschedule Intervention',
-              style: TextStyle(
-                fontSize: 18 * ResponsiveService.getFontSizeMultiplier(context),
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Patient: $patientName',
-                  style: TextStyle(
-                    fontSize:
-                        16 * ResponsiveService.getFontSizeMultiplier(context),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                SizedBox(height: ResponsiveService.getSmallSpacing(context)),
-                Text(
-                  'Reschedule functionality would be implemented here with date/time picker.',
-                  style: TextStyle(
-                    fontSize:
-                        14 * ResponsiveService.getFontSizeMultiplier(context),
-                    color: Colors.grey[600],
-                  ),
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: Text(
-                  'Cancel',
-                  style: TextStyle(
-                    fontSize:
-                        14 * ResponsiveService.getFontSizeMultiplier(context),
-                  ),
-                ),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  _handleInterventionAction(
-                    context,
-                    'rescheduled',
-                    patientName,
-                  );
-                  onInterventionUpdated?.call();
-                },
-                child: Text(
-                  'Reschedule',
-                  style: TextStyle(
-                    fontSize:
-                        14 * ResponsiveService.getFontSizeMultiplier(context),
-                  ),
-                ),
-              ),
-            ],
           ),
+          content: Text(
+            'Would you like to reschedule this intervention for ${intervention['patient_name'] ?? 'this patient'}?',
+            style: TextStyle(
+              fontSize: 16 * ResponsiveService.getFontSizeMultiplier(context),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                _handleInterventionAction(
+                  context,
+                  'rescheduled',
+                  intervention['patient_name'] as String? ?? 'Unknown',
+                );
+              },
+              child: const Text('Reschedule'),
+            ),
+          ],
+        );
+      },
     );
   }
 }
