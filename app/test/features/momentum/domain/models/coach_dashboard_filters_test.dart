@@ -352,8 +352,18 @@ void main() {
       });
 
       test('should not be equal to null or different types', () {
-        expect(defaultFilters == null, isFalse);
-        expect(defaultFilters.hashCode == null.hashCode, isFalse);
+        // Test that the object is not null
+        expect(defaultFilters, isNotNull);
+
+        // Test that different instances with different values are not equal
+        final differentFilters = const CoachDashboardFilters(timeRange: '24h');
+        expect(defaultFilters, isNot(equals(differentFilters)));
+
+        // Test hashCode inequality for different instances
+        expect(
+          defaultFilters.hashCode,
+          isNot(equals(differentFilters.hashCode)),
+        );
       });
     });
 

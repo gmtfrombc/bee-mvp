@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../../domain/models/coach_dashboard_filters.dart';
+import '../providers/coach_dashboard_state_provider.dart';
 import '../widgets/coach_dashboard/coach_dashboard_overview_tab.dart';
 import '../widgets/coach_dashboard/coach_dashboard_active_tab.dart';
 import '../widgets/coach_dashboard/coach_dashboard_scheduled_tab.dart';
@@ -18,7 +18,6 @@ class CoachDashboardScreen extends ConsumerStatefulWidget {
 class _CoachDashboardScreenState extends ConsumerState<CoachDashboardScreen>
     with TickerProviderStateMixin {
   late TabController _tabController;
-  CoachDashboardFilters _filters = const CoachDashboardFilters();
 
   @override
   void initState() {
@@ -32,15 +31,11 @@ class _CoachDashboardScreenState extends ConsumerState<CoachDashboardScreen>
     super.dispose();
   }
 
-  /// Updates the filter state using immutable copyWith pattern
-  void _updateFilters(CoachDashboardFilters newFilters) {
-    setState(() {
-      _filters = newFilters;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
+    final filters = ref.watch(coachDashboardStateProvider);
+    final stateActions = ref.read(coachDashboardStateActionsProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Coach Dashboard'),
@@ -64,34 +59,28 @@ class _CoachDashboardScreenState extends ConsumerState<CoachDashboardScreen>
         controller: _tabController,
         children: [
           CoachDashboardOverviewTab(
-            selectedTimeRange: _filters.timeRange,
-            onTimeRangeChanged: (value) {
-              _updateFilters(_filters.copyWith(timeRange: value));
-            },
+            selectedTimeRange: filters.timeRange,
+            onTimeRangeChanged: stateActions.updateTimeRange,
           ),
           CoachDashboardActiveTab(
-            selectedPriority: _filters.priority,
-            selectedStatus: _filters.status,
-            onPriorityChanged: (value) {
-              _updateFilters(_filters.copyWith(priority: value));
-            },
-            onStatusChanged: (value) {
-              _updateFilters(_filters.copyWith(status: value));
-            },
+            selectedPriority: filters.priority,
+            selectedStatus: filters.status,
+            onPriorityChanged: stateActions.updatePriority,
+            onStatusChanged: stateActions.updateStatus,
             onInterventionUpdated: () {
-              setState(() {});
+              // State will be managed by the provider automatically
+              // No need for manual setState calls
             },
           ),
           CoachDashboardScheduledTab(
             onInterventionUpdated: () {
-              setState(() {});
+              // State will be managed by the provider automatically
+              // No need for manual setState calls
             },
           ),
           CoachDashboardAnalyticsTab(
-            selectedTimeRange: _filters.timeRange,
-            onTimeRangeChanged: (value) {
-              _updateFilters(_filters.copyWith(timeRange: value));
-            },
+            selectedTimeRange: filters.timeRange,
+            onTimeRangeChanged: stateActions.updateTimeRange,
           ),
         ],
       ),
