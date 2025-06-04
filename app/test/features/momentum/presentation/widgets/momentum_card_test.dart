@@ -32,12 +32,6 @@ void main() {
       // Verify the card is displayed
       expect(find.byType(Card), findsOneWidget);
 
-      // Verify the message is displayed
-      expect(
-        find.text("You're doing great! Keep up the excellent work."),
-        findsOneWidget,
-      );
-
       // Verify the percentage is displayed
       expect(find.text('85% this week'), findsOneWidget);
 
@@ -62,9 +56,6 @@ void main() {
       // Verify the card is displayed
       expect(find.byType(Card), findsOneWidget);
 
-      // Verify the message is displayed
-      expect(find.text("Steady progress! You're doing great!"), findsOneWidget);
-
       // Verify the percentage is displayed
       expect(find.text('65% this week'), findsOneWidget);
 
@@ -88,9 +79,6 @@ void main() {
 
       // Verify the card is displayed
       expect(find.byType(Card), findsOneWidget);
-
-      // Verify the message is displayed
-      expect(find.text("Let's get back on track together! 🌱"), findsOneWidget);
 
       // Verify the percentage is displayed
       expect(find.text('35% this week'), findsOneWidget);
@@ -154,7 +142,6 @@ void main() {
       // The current MomentumCard implementation doesn't display timestamp
       // Instead, verify the card renders properly with the momentum data
       expect(find.byType(Card), findsOneWidget);
-      expect(find.text("You're doing great!"), findsOneWidget);
       expect(find.text('85% this week'), findsOneWidget);
     });
 
@@ -232,9 +219,6 @@ void main() {
       // Verify state text
       expect(find.text('Rising!'), findsOneWidget);
 
-      // Verify message
-      expect(find.text(sampleData.message), findsOneWidget);
-
       // Verify progress bar percentage
       expect(find.text('85% this week'), findsOneWidget);
 
@@ -284,7 +268,8 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(find.text('Growing!'), findsOneWidget);
+      // Verify that 'Growing!' text is not displayed (as per UX requirement)
+      expect(find.text('Growing!'), findsNothing);
     });
 
     testWidgets('handles tap interaction correctly', (tester) async {

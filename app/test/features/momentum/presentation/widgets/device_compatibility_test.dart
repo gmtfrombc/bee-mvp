@@ -83,7 +83,7 @@ void main() {
                 final cardHeight = ResponsiveService.getMomentumCardHeight(
                   context,
                 );
-                expect(cardHeight, 180.0);
+                expect(cardHeight, 220.0);
 
                 final spacing = ResponsiveService.getResponsiveSpacing(context);
                 expect(spacing, 18.0);
@@ -210,7 +210,7 @@ void main() {
                 final cardHeight = ResponsiveService.getMomentumCardHeight(
                   context,
                 );
-                expect(cardHeight, 200.0);
+                expect(cardHeight, 240.0);
 
                 final spacing = ResponsiveService.getResponsiveSpacing(context);
                 expect(spacing, 22.0);
@@ -299,7 +299,7 @@ void main() {
                 final cardHeight = ResponsiveService.getMomentumCardHeight(
                   context,
                 );
-                expect(cardHeight, 220.0);
+                expect(cardHeight, 260.0);
 
                 final spacing = ResponsiveService.getResponsiveSpacing(context);
                 expect(spacing, 24.0);
@@ -447,11 +447,11 @@ void main() {
 
       testWidgets('Responsive sizing scales appropriately', (tester) async {
         final testCases = [
-          (const Size(375.0, 667.0), 110.0, 180.0, 120.0, 0.95, 'iPhone SE'),
+          (const Size(375.0, 667.0), 110.0, 220.0, 120.0, 0.95, 'iPhone SE'),
           (
             const Size(390.0, 844.0),
             130.0,
-            200.0,
+            240.0,
             140.0,
             1.0,
             'iPhone 12/13/14',
@@ -459,7 +459,7 @@ void main() {
           (
             const Size(428.0, 926.0),
             140.0,
-            220.0,
+            260.0,
             160.0,
             1.05,
             'iPhone 14 Plus',
