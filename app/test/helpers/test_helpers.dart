@@ -19,7 +19,7 @@ import 'package:app/core/services/connectivity_service.dart';
 import 'package:app/core/services/today_feed_cache_service.dart';
 
 // AI Coaching imports for Epic 1.3
-import 'ai_coaching_test_helpers.dart';
+import 'ai_coaching/ai_coaching_test_helpers.dart';
 
 /// Test utilities and helpers for BEE app testing
 class TestHelpers {

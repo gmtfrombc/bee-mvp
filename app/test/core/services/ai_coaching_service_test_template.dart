@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import '../../helpers/ai_coaching_test_helpers.dart';
+import '../../helpers/ai_coaching/ai_coaching_test_helpers.dart';
 
 /// AI Coaching Service Test Template for Epic 1.3
 ///

@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-
+import 'package:app/core/services/fcm_token_service.dart';
+import 'package:app/core/services/notification_action_dispatcher.dart';
 import 'core/config/environment.dart';
 import 'core/theme/app_theme.dart';
 import 'core/services/connectivity_service.dart';
 import 'core/services/offline_cache_service.dart';
 import 'core/services/firebase_service.dart';
-import 'core/services/notification_service.dart';
-import 'core/services/notification_action_dispatcher.dart';
-import 'core/services/fcm_token_service.dart';
+import 'core/notifications/domain/services/notification_core_service.dart';
+import 'core/notifications/infrastructure/notification_dispatcher.dart';
 import 'core/services/version_service.dart';
 import 'core/providers/supabase_provider.dart';
 import 'features/momentum/presentation/screens/momentum_screen.dart';
@@ -79,7 +79,7 @@ Future<void> _initializeNotificationSystem() async {
 
     // 2. Initialize core notification service
     try {
-      await NotificationService.instance.initialize(
+      await NotificationCoreService.instance.initialize(
         onMessageReceived: _handleForegroundMessage,
         onMessageOpenedApp: _handleNotificationTap,
         onTokenRefresh: _handleTokenRefresh,
@@ -152,8 +152,8 @@ Future<void> _initializeCoreServices() async {
 void _handleForegroundMessage(RemoteMessage message) {
   debugPrint('📱 Foreground notification: ${message.notification?.title}');
 
-  // Use the action dispatcher for comprehensive handling
-  final dispatcher = NotificationActionDispatcher.instance;
+  // Use the notification dispatcher for comprehensive handling
+  final dispatcher = NotificationDispatcher.instance;
   if (dispatcher.isReady) {
     dispatcher.handleForegroundNotification(message);
   } else {
