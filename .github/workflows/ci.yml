@@ -53,7 +53,15 @@ jobs:
           # Copy existing .env.example to .env for CI
           cp .env.example .env
           echo "✅ Environment configured from .env.example"
-      
+
+      # FIREBASE OPTIONS: Create CI-safe firebase_options.dart
+      - name: Create Firebase Options Configuration
+        working-directory: ./app
+        run: |
+          echo "🔧 Creating CI-safe Firebase options configuration"
+          cp lib/firebase_options_ci.dart lib/firebase_options.dart
+          echo "✅ CI-safe Firebase options configuration created"
+
       - name: Flutter Dependencies & Basic Validation
         working-directory: ./app
         run: |
