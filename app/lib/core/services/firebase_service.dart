@@ -39,7 +39,9 @@ class FirebaseService {
       _available = true;
 
       if (kDebugMode) {
-        debugPrint('✅ Firebase initialized successfully for project: $projectId');
+        debugPrint(
+          '✅ Firebase initialized successfully for project: $projectId',
+        );
       }
     } on FirebaseException catch (e) {
       if (e.code == 'duplicate-app') {
