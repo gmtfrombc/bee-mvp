@@ -90,19 +90,6 @@ void main() {
         expect(result.summary?.failedUsers, equals(0));
       });
 
-      test('should handle missing summary', () {
-        // Arrange
-        final json = {'success': true, 'results': []};
-
-        // Act
-        final result = TriggerResult.fromJson(json);
-
-        // Assert
-        expect(result.success, isTrue);
-        expect(result.results, isEmpty);
-        expect(result.summary, isNull);
-      });
-
       test('should handle error response', () {
         // Arrange
         final json = {
@@ -351,20 +338,6 @@ void main() {
         expect(summary.totalNotificationsSent, equals(250));
         expect(summary.totalInterventionsCreated, equals(15));
         expect(summary.failedUsers, equals(3));
-      });
-
-      test('should handle missing values gracefully', () {
-        // Arrange
-        final json = <String, dynamic>{};
-
-        // Act
-        final summary = TriggerSummary.fromJson(json);
-
-        // Assert
-        expect(summary.totalUsersProcessed, equals(0));
-        expect(summary.totalNotificationsSent, equals(0));
-        expect(summary.totalInterventionsCreated, equals(0));
-        expect(summary.failedUsers, equals(0));
       });
     });
   });

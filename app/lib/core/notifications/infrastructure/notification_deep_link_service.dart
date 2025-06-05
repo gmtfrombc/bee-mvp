@@ -17,7 +17,7 @@ class NotificationDeepLinkService {
   }) async {
     try {
       if (kDebugMode) {
-        print('🔗 Processing deep link: $actionType with data: $actionData');
+        debugPrint('🔗 Processing deep link: $actionType with data: $actionData');
       }
 
       // First check if we need UI context for this action type
@@ -26,7 +26,7 @@ class NotificationDeepLinkService {
       // If UI context is needed, verify it's available and mounted NOW
       if (needsUIContext && (context == null || !context.mounted)) {
         if (kDebugMode) {
-          print('⚠️ UI context required but not available for: $actionType');
+          debugPrint('⚠️ UI context required but not available for: $actionType');
         }
         return;
       }
@@ -65,7 +65,7 @@ class NotificationDeepLinkService {
       // For UI-requiring actions, check mounted again after async tracking
       if (context == null || !context.mounted) {
         if (kDebugMode) {
-          print('⚠️ Context unmounted after tracking for: $actionType');
+          debugPrint('⚠️ Context unmounted after tracking for: $actionType');
         }
         return;
       }
@@ -80,12 +80,12 @@ class NotificationDeepLinkService {
           break;
         default:
           if (kDebugMode) {
-            print('⚠️ Unknown UI action type: $actionType');
+            debugPrint('⚠️ Unknown UI action type: $actionType');
           }
       }
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Error processing deep link: $e');
+        debugPrint('❌ Error processing deep link: $e');
       }
     }
   }
@@ -101,7 +101,7 @@ class NotificationDeepLinkService {
     WidgetRef? ref,
   ) async {
     if (kDebugMode) {
-      print('📊 Navigating to momentum meter (data only)');
+      debugPrint('📊 Navigating to momentum meter (data only)');
     }
 
     // Refresh momentum data (pure navigation action, no context needed)
@@ -117,7 +117,7 @@ class NotificationDeepLinkService {
     WidgetRef? ref,
   ) async {
     if (kDebugMode) {
-      print('📱 Navigating within app (data only)');
+      debugPrint('📱 Navigating within app (data only)');
     }
 
     final focus = actionData['focus'] as String?;
@@ -137,7 +137,7 @@ class NotificationDeepLinkService {
     BuildContext context, // Pre-verified as mounted
   ) async {
     if (kDebugMode) {
-      print('📞 Navigating to schedule call flow');
+      debugPrint('📞 Navigating to schedule call flow');
     }
 
     final priority = actionData['priority'] as String?;
@@ -157,7 +157,7 @@ class NotificationDeepLinkService {
     BuildContext context, // Pre-verified as mounted
   ) async {
     if (kDebugMode) {
-      print('📚 Navigating to lesson completion flow');
+      debugPrint('📚 Navigating to lesson completion flow');
     }
 
     final suggestedLesson = actionData['suggested_lesson'] as String?;
@@ -353,7 +353,7 @@ class NotificationDeepLinkService {
   /// Navigate to schedule call (pure navigation logic)
   static void _navigateToScheduleCall() {
     if (kDebugMode) {
-      print('🚀 Navigating to schedule call flow');
+      debugPrint('🚀 Navigating to schedule call flow');
     }
 
     // Trigger navigation to coach intervention scheduling
@@ -364,7 +364,7 @@ class NotificationDeepLinkService {
   /// Navigate to lesson flow (pure navigation logic)
   static void _navigateToLessonFlow(String? suggestedLesson) {
     if (kDebugMode) {
-      print('🚀 Navigating to lesson flow: ${suggestedLesson ?? 'general'}');
+      debugPrint('🚀 Navigating to lesson flow: ${suggestedLesson ?? 'general'}');
     }
     // TODO: Implement actual lesson navigation routing
     // This would route to appropriate lesson screens
@@ -374,7 +374,7 @@ class NotificationDeepLinkService {
   static Future<void> _triggerCoachInterventionFlow() async {
     try {
       if (kDebugMode) {
-        print('🚀 Navigating to coach intervention scheduling');
+        debugPrint('🚀 Navigating to coach intervention scheduling');
       }
 
       // Pure navigation trigger - the business logic will be handled
@@ -382,11 +382,11 @@ class NotificationDeepLinkService {
       // For now, this is just navigation coordination
 
       if (kDebugMode) {
-        print('✅ Coach intervention navigation triggered');
+        debugPrint('✅ Coach intervention navigation triggered');
       }
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Error triggering coach intervention navigation: $e');
+        debugPrint('❌ Error triggering coach intervention navigation: $e');
       }
     }
   }
@@ -398,7 +398,7 @@ class NotificationDeepLinkService {
   ) async {
     try {
       if (kDebugMode) {
-        print(
+        debugPrint(
           '📊 Tracking notification interaction: $notificationId -> $actionType',
         );
       }
@@ -407,7 +407,7 @@ class NotificationDeepLinkService {
       // For now, this is just navigation coordination
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Error tracking notification interaction: $e');
+        debugPrint('❌ Error tracking notification interaction: $e');
       }
     }
   }
@@ -424,7 +424,7 @@ class NotificationDeepLinkService {
       if (pendingActions.isEmpty) return;
 
       if (kDebugMode) {
-        print(
+        debugPrint(
           '🔄 Processing ${pendingActions.length} pending notification actions',
         );
       }
@@ -449,7 +449,7 @@ class NotificationDeepLinkService {
       }
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Error processing pending actions: $e');
+        debugPrint('❌ Error processing pending actions: $e');
       }
     }
   }
@@ -487,7 +487,7 @@ class NotificationDeepLinkService {
 
       if (cachedUpdate != null) {
         if (kDebugMode) {
-          print('📊 Applying cached momentum update via navigation');
+          debugPrint('📊 Applying cached momentum update via navigation');
         }
 
         // Navigation coordination to refresh UI data
@@ -496,7 +496,7 @@ class NotificationDeepLinkService {
       }
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Error applying cached momentum updates: $e');
+        debugPrint('❌ Error applying cached momentum updates: $e');
       }
     }
   }

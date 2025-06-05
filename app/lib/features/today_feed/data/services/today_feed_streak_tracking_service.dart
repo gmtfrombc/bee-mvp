@@ -44,7 +44,7 @@ import 'streak_services/streak_analytics_service.dart';
 ///
 /// // Get current streak
 /// final streak = await streakService.getCurrentStreak(userId);
-/// print('Current streak: ${streak.currentStreak} days');
+/// debugPrint('Current streak: ${streak.currentStreak} days');
 ///
 /// // Update streak on engagement
 /// final result = await streakService.updateStreakOnEngagement(
@@ -60,7 +60,7 @@ import 'streak_services/streak_analytics_service.dart';
 ///
 /// // Get analytics
 /// final analytics = await streakService.getStreakAnalytics(userId);
-/// print('Consistency rate: ${analytics.consistencyRate}%');
+/// debugPrint('Consistency rate: ${analytics.consistencyRate}%');
 /// ```
 ///
 /// ## Service Lifecycle
@@ -162,7 +162,7 @@ class TodayFeedStreakTrackingService {
   /// ```dart
   /// final streak = await service.getCurrentStreak('user123');
   /// if (streak.currentStreak > 0) {
-  ///   print('🔥 ${streak.currentStreak} day streak!');
+  ///   debugPrint('🔥 ${streak.currentStreak} day streak!');
   /// }
   /// ```
   Future<EngagementStreak> getCurrentStreak(String userId) async {

@@ -18,6 +18,9 @@ import 'package:app/features/today_feed/data/services/today_feed_data_service.da
 import 'package:app/core/services/connectivity_service.dart';
 import 'package:app/core/services/today_feed_cache_service.dart';
 
+// AI Coaching imports for Epic 1.3
+import 'ai_coaching_test_helpers.dart';
+
 /// Test utilities and helpers for BEE app testing
 class TestHelpers {
   /// Create a mock momentum API service for testing
@@ -333,6 +336,168 @@ class TestHelpers {
         });
       }
     }
+  }
+
+  // =============================================================================
+  // AI COACHING HELPER METHODS FOR EPIC 1.3
+  // =============================================================================
+
+  /// Create a mock AI coaching service for testing
+  static MockAICoachingService createMockAICoachingService({
+    Map<String, dynamic>? mockResponses,
+    bool shouldSimulateDelay = false,
+    bool shouldThrowError = false,
+  }) {
+    return AICoachingTestHelpers.createMockAICoachingService(
+      mockResponses: mockResponses,
+      shouldSimulateDelay: shouldSimulateDelay,
+      shouldThrowError: shouldThrowError,
+    );
+  }
+
+  /// Create a mock AI response for testing
+  static AICoachResponse createMockAIResponse({
+    String? message,
+    double? confidenceScore,
+    List<String>? suggestedActions,
+  }) {
+    return AICoachingTestHelpers.createMockAIResponse(
+      message: message,
+      confidenceScore: confidenceScore,
+      suggestedActions: suggestedActions,
+    );
+  }
+
+  /// Create a mock personalization profile for testing
+  static PersonalizationProfile createMockPersonalizationProfile({
+    String? userId,
+    CoachingStyle? preferredStyle,
+    List<String>? topicPreferences,
+  }) {
+    return AICoachingTestHelpers.createMockPersonalizationProfile(
+      userId: userId,
+      preferredStyle: preferredStyle,
+      topicPreferences: topicPreferences,
+    );
+  }
+
+  /// Create AI coaching test data for momentum integration testing
+  static Map<String, dynamic> createAIMomentumIntegrationData({
+    MomentumState? momentumState,
+    double? percentage,
+  }) {
+    final state = momentumState ?? MomentumState.needsCare;
+
+    // Create different context topics based on momentum state
+    List<String> contextTopics = ['momentum', 'wellness'];
+    if (state == MomentumState.needsCare) {
+      contextTopics.addAll(['low', 'needscare', 'intervention']);
+    } else if (state == MomentumState.rising) {
+      contextTopics.addAll(['progress', 'improvement', 'celebration']);
+    } else {
+      contextTopics.addAll(['steady', 'maintenance']);
+    }
+
+    return {
+      'momentum_data': createSampleMomentumData(
+        state: state,
+        percentage:
+            percentage ?? (state == MomentumState.needsCare ? 30.0 : 75.0),
+      ),
+      'ai_context': AICoachingTestHelpers.createMockConversationContext(
+        previousTopics: contextTopics,
+      ),
+      'expected_response_type':
+          state == MomentumState.needsCare
+              ? AIResponseType.intervention
+              : AIResponseType.support,
+    };
+  }
+
+  /// Create AI coaching test data for today feed integration
+  static Map<String, dynamic> createAITodayFeedIntegrationData() {
+    return {
+      'today_feed_content': createMockTodayFeedContent(),
+      'ai_context': AICoachingTestHelpers.createMockConversationContext(
+        previousTopics: ['today_feed', 'content'],
+      ),
+      'user_interaction': 'I found today\'s content helpful',
+      'expected_response_type': AIResponseType.celebration,
+    };
+  }
+
+  /// Create conversation flow test data for Epic 1.3 testing
+  static List<Map<String, dynamic>> createConversationFlowTestData() {
+    return [
+      {
+        'turn': 1,
+        'user_message': 'I\'m struggling with my wellness goals',
+        'expected_ai_response_type': AIResponseType.intervention,
+        'expected_suggestions': ['break', 'support', 'plan'],
+      },
+      {
+        'turn': 2,
+        'user_message': 'That helps, what should I do next?',
+        'expected_ai_response_type': AIResponseType.guidance,
+        'expected_suggestions': ['action', 'goal', 'step'],
+      },
+      {
+        'turn': 3,
+        'user_message': 'Thank you, I feel much better now',
+        'expected_ai_response_type': AIResponseType.celebration,
+        'expected_suggestions': ['continue', 'maintain', 'progress'],
+      },
+    ];
+  }
+
+  /// Validate AI coaching integration with existing systems
+  static Future<void> validateAICoachingIntegration({
+    required MockAICoachingService aiService,
+    required MomentumData momentumData,
+    required TodayFeedContent todayFeedContent,
+  }) async {
+    // Test AI response to momentum changes
+    final momentumContext = AICoachingTestHelpers.createMockConversationContext(
+      previousTopics: ['momentum'],
+    );
+
+    final momentumResponse = await aiService.generateResponse(
+      userId: 'test-user-123',
+      userMessage: 'My momentum dropped to ${momentumData.percentage}%',
+      context: momentumContext,
+    );
+
+    // Validate momentum-based AI response
+    expect(
+      momentumResponse.responseType,
+      isIn([AIResponseType.intervention, AIResponseType.support]),
+    );
+
+    // Test AI response to today feed interaction
+    final feedContext = AICoachingTestHelpers.createMockConversationContext(
+      previousTopics: ['today_feed'],
+    );
+
+    final feedResponse = await aiService.generateResponse(
+      userId: 'test-user-123',
+      userMessage: 'I read "${todayFeedContent.title}" today',
+      context: feedContext,
+    );
+
+    // Validate today feed integration
+    expect(feedResponse.message, isNotEmpty);
+    expect(feedResponse.suggestedActions, isNotEmpty);
+  }
+
+  /// Create provider overrides including AI coaching mocks for Epic 1.3
+  static List<Override> createAICoachingTestProviderOverrides() {
+    return [
+      ...createAllTestProviderOverrides(),
+      // Add AI coaching provider overrides when they exist
+      // aiCoachingServiceProvider.overrideWith((ref) {
+      //   return createMockAICoachingService();
+      // }),
+    ];
   }
 }
 

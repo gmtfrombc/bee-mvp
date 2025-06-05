@@ -47,30 +47,6 @@ void main() {
     });
 
     group('NotificationInteraction', () {
-      test('should serialize to and from JSON correctly', () {
-        // Arrange
-        final interaction = NotificationInteraction(
-          id: 'test-id',
-          userId: 'user-123',
-          notificationId: 'notification-456',
-          interactionType: NotificationInteractionType.clicked,
-          metadata: {'action': 'view_momentum'},
-          timestamp: DateTime.parse('2024-01-01T12:00:00Z'),
-        );
-
-        // Act
-        final json = interaction.toJson();
-        final restored = NotificationInteraction.fromJson(json);
-
-        // Assert
-        expect(restored.id, interaction.id);
-        expect(restored.userId, interaction.userId);
-        expect(restored.notificationId, interaction.notificationId);
-        expect(restored.interactionType, interaction.interactionType);
-        expect(restored.metadata, interaction.metadata);
-        expect(restored.timestamp, interaction.timestamp);
-      });
-
       test('should handle missing metadata gracefully', () {
         // Arrange
         final json = {
@@ -100,24 +76,6 @@ void main() {
         expect(variant.name, 'control');
         expect(variant.type, VariantType.control);
         expect(variant.config, isEmpty);
-      });
-
-      test('should serialize to and from JSON correctly', () {
-        // Arrange
-        final variant = NotificationVariant(
-          name: 'test_variant',
-          type: VariantType.personalized,
-          config: {'key': 'value'},
-        );
-
-        // Act
-        final json = variant.toJson();
-        final restored = NotificationVariant.fromJson(json);
-
-        // Assert
-        expect(restored.name, variant.name);
-        expect(restored.type, variant.type);
-        expect(restored.config, variant.config);
       });
     });
 

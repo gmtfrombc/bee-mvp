@@ -26,7 +26,7 @@ class FirebaseService {
         _available = true;
 
         if (kDebugMode) {
-          print('✅ Firebase already initialized for project: $projectId');
+          debugPrint('✅ Firebase already initialized for project: $projectId');
         }
         return;
       }
@@ -39,7 +39,7 @@ class FirebaseService {
       _available = true;
 
       if (kDebugMode) {
-        print('✅ Firebase initialized successfully for project: $projectId');
+        debugPrint('✅ Firebase initialized successfully for project: $projectId');
       }
     } on FirebaseException catch (e) {
       if (e.code == 'duplicate-app') {
@@ -48,7 +48,7 @@ class FirebaseService {
         _available = true;
 
         if (kDebugMode) {
-          print('✅ Firebase app already exists - using existing instance');
+          debugPrint('✅ Firebase app already exists - using existing instance');
         }
         return;
       }
@@ -59,9 +59,9 @@ class FirebaseService {
       _initializationError = e.toString();
 
       if (kDebugMode) {
-        print('❌ Firebase initialization failed: $e');
-        print('💡 App will continue with limited functionality');
-        print('💡 Notifications and analytics will be disabled');
+        debugPrint('❌ Firebase initialization failed: $e');
+        debugPrint('💡 App will continue with limited functionality');
+        debugPrint('💡 Notifications and analytics will be disabled');
       }
 
       // Don't rethrow in development/test environments - allow app to continue
@@ -74,9 +74,9 @@ class FirebaseService {
       _initializationError = e.toString();
 
       if (kDebugMode) {
-        print('❌ Firebase initialization failed: $e');
-        print('💡 App will continue with limited functionality');
-        print('💡 Notifications and analytics will be disabled');
+        debugPrint('❌ Firebase initialization failed: $e');
+        debugPrint('💡 App will continue with limited functionality');
+        debugPrint('💡 Notifications and analytics will be disabled');
       }
 
       // Don't rethrow in development/test environments - allow app to continue
@@ -94,8 +94,8 @@ class FirebaseService {
     } catch (e) {
       // In development, log the error but continue
       if (kDebugMode) {
-        print('🔧 Firebase unavailable in development mode: $e');
-        print('🔧 App functionality will work without Firebase services');
+        debugPrint('🔧 Firebase unavailable in development mode: $e');
+        debugPrint('🔧 App functionality will work without Firebase services');
       }
 
       _initialized = true;
@@ -125,7 +125,7 @@ class FirebaseService {
       return Firebase.app();
     } catch (e) {
       if (kDebugMode) {
-        print('⚠️ Failed to get Firebase app: $e');
+        debugPrint('⚠️ Failed to get Firebase app: $e');
       }
       return null;
     }
@@ -135,7 +135,7 @@ class FirebaseService {
   static bool isServiceAvailable(String serviceName) {
     if (!_available) {
       if (kDebugMode) {
-        print(
+        debugPrint(
           '⚠️ Firebase service $serviceName not available: Firebase not initialized',
         );
       }
@@ -148,12 +148,12 @@ class FirebaseService {
   static void logServiceAttempt(String serviceName, String operation) {
     if (kDebugMode) {
       if (_available) {
-        print('🔥 Firebase $serviceName: $operation');
+        debugPrint('🔥 Firebase $serviceName: $operation');
       } else {
-        print(
+        debugPrint(
           '⚠️ Attempted to use Firebase $serviceName ($operation) but Firebase is not available',
         );
-        print('💡 Reason: ${_initializationError ?? 'Unknown'}');
+        debugPrint('💡 Reason: ${_initializationError ?? 'Unknown'}');
       }
     }
   }

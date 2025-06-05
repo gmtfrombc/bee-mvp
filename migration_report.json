@@ -1,0 +1,364 @@
+{
+  "scan_date": "2025-06-04T17:42:04.389869",
+  "files_scanned": 1213,
+  "files_with_legacy_usage": 4,
+  "total_legacy_usages": 37,
+  "legacy_method_breakdown": {
+    "resetForTesting": 5,
+    "clearAllCache": 3,
+    "getCacheStats": 3,
+    "queueInteraction": 2,
+    "getPendingInteractions": 4,
+    "clearPendingInteractions": 1,
+    "markContentAsViewed": 1,
+    "getContentHistory": 2,
+    "invalidateContent": 1,
+    "syncWhenOnline": 1,
+    "setBackgroundSyncEnabled": 3,
+    "isBackgroundSyncEnabled": 3,
+    "selectiveCleanup": 1,
+    "getCacheInvalidationStats": 1,
+    "getDiagnosticInfo": 1,
+    "getCacheStatistics": 1,
+    "getCacheHealthStatus": 1,
+    "exportMetricsForMonitoring": 1,
+    "performCacheIntegrityCheck": 1,
+    "cachePendingInteraction": 1
+  },
+  "files": [
+    {
+      "file": "./app/test/core/services/today_feed_cache_service_test.dart",
+      "legacy_usages": [
+        {
+          "method": "resetForTesting",
+          "line": 16,
+          "content": "TodayFeedCacheService.resetForTesting();",
+          "modern_equivalent": "TodayFeedCacheService.resetForTesting()",
+          "position": 617
+        },
+        {
+          "method": "clearAllCache",
+          "line": 23,
+          "content": "await TodayFeedCacheService.clearAllCache();",
+          "modern_equivalent": "TodayFeedCacheService.invalidateCache()",
+          "position": 799
+        },
+        {
+          "method": "clearAllCache",
+          "line": 120,
+          "content": "await TodayFeedCacheService.clearAllCache();",
+          "modern_equivalent": "TodayFeedCacheService.invalidateCache()",
+          "position": 3868
+        },
+        {
+          "method": "getCacheStats",
+          "line": 34,
+          "content": "final stats = await TodayFeedCacheService.getCacheStats();",
+          "modern_equivalent": "TodayFeedCacheService.getCacheMetadata()",
+          "position": 1199
+        },
+        {
+          "method": "getCacheStats",
+          "line": 93,
+          "content": "final stats = await TodayFeedCacheService.getCacheStats();",
+          "modern_equivalent": "TodayFeedCacheService.getCacheMetadata()",
+          "position": 3044
+        },
+        {
+          "method": "queueInteraction",
+          "line": 164,
+          "content": "await TodayFeedCacheService.queueInteraction(interaction);",
+          "modern_equivalent": "TodayFeedCacheSyncService.cachePendingInteraction()",
+          "position": 5162
+        },
+        {
+          "method": "queueInteraction",
+          "line": 176,
+          "content": "await TodayFeedCacheService.queueInteraction(interaction);",
+          "modern_equivalent": "TodayFeedCacheSyncService.cachePendingInteraction()",
+          "position": 5642
+        },
+        {
+          "method": "getPendingInteractions",
+          "line": 166,
+          "content": "await TodayFeedCacheService.getPendingInteractions();",
+          "modern_equivalent": "TodayFeedCacheSyncService.getPendingInteractions()",
+          "position": 5269
+        },
+        {
+          "method": "getPendingInteractions",
+          "line": 181,
+          "content": "await TodayFeedCacheService.getPendingInteractions();",
+          "modern_equivalent": "TodayFeedCacheSyncService.getPendingInteractions()",
+          "position": 5829
+        },
+        {
+          "method": "getPendingInteractions",
+          "line": 206,
+          "content": "await TodayFeedCacheService.getPendingInteractions();",
+          "modern_equivalent": "TodayFeedCacheSyncService.getPendingInteractions()",
+          "position": 6581
+        },
+        {
+          "method": "clearPendingInteractions",
+          "line": 179,
+          "content": "await TodayFeedCacheService.clearPendingInteractions();",
+          "modern_equivalent": "TodayFeedCacheSyncService.clearPendingInteractions()",
+          "position": 5725
+        },
+        {
+          "method": "markContentAsViewed",
+          "line": 204,
+          "content": "await TodayFeedCacheService.markContentAsViewed(testContent);",
+          "modern_equivalent": "TodayFeedCacheSyncService.markContentAsViewed()",
+          "position": 6471
+        },
+        {
+          "method": "getContentHistory",
+          "line": 326,
+          "content": "final history = await TodayFeedCacheService.getContentHistory();",
+          "modern_equivalent": "TodayFeedContentService.getContentHistory()",
+          "position": 10272
+        },
+        {
+          "method": "getContentHistory",
+          "line": 350,
+          "content": "final history = await TodayFeedCacheService.getContentHistory();",
+          "modern_equivalent": "TodayFeedContentService.getContentHistory()",
+          "position": 10998
+        },
+        {
+          "method": "invalidateContent",
+          "line": 243,
+          "content": "await TodayFeedCacheService.invalidateContent();",
+          "modern_equivalent": "TodayFeedCacheMaintenanceService.invalidateContent()",
+          "position": 7727
+        },
+        {
+          "method": "syncWhenOnline",
+          "line": 284,
+          "content": "() async => await TodayFeedCacheService.syncWhenOnline(),",
+          "modern_equivalent": "TodayFeedCacheSyncService.syncWhenOnline()",
+          "position": 9017
+        },
+        {
+          "method": "setBackgroundSyncEnabled",
+          "line": 309,
+          "content": "await TodayFeedCacheService.setBackgroundSyncEnabled(false);",
+          "modern_equivalent": "TodayFeedCacheSyncService.setBackgroundSyncEnabled()",
+          "position": 9707
+        },
+        {
+          "method": "setBackgroundSyncEnabled",
+          "line": 316,
+          "content": "await TodayFeedCacheService.setBackgroundSyncEnabled(true);",
+          "modern_equivalent": "TodayFeedCacheSyncService.setBackgroundSyncEnabled()",
+          "position": 9930
+        },
+        {
+          "method": "isBackgroundSyncEnabled",
+          "line": 310,
+          "content": "final isEnabled = await TodayFeedCacheService.isBackgroundSyncEnabled();",
+          "modern_equivalent": "TodayFeedCacheSyncService.isBackgroundSyncEnabled()",
+          "position": 9794
+        },
+        {
+          "method": "isBackgroundSyncEnabled",
+          "line": 318,
+          "content": "await TodayFeedCacheService.isBackgroundSyncEnabled();",
+          "modern_equivalent": "TodayFeedCacheSyncService.isBackgroundSyncEnabled()",
+          "position": 10033
+        },
+        {
+          "method": "selectiveCleanup",
+          "line": 219,
+          "content": "() async => await TodayFeedCacheService.selectiveCleanup(),",
+          "modern_equivalent": "TodayFeedCacheMaintenanceService.selectiveCleanup()",
+          "position": 7053
+        },
+        {
+          "method": "getCacheInvalidationStats",
+          "line": 252,
+          "content": "final stats = await TodayFeedCacheService.getCacheInvalidationStats();",
+          "modern_equivalent": "TodayFeedCacheMaintenanceService.getCacheInvalidationStats()",
+          "position": 8008
+        },
+        {
+          "method": "getDiagnosticInfo",
+          "line": 150,
+          "content": "final diagnostics = await TodayFeedCacheService.getDiagnosticInfo();",
+          "modern_equivalent": "TodayFeedCacheHealthService.getDiagnosticInfo()",
+          "position": 4768
+        },
+        {
+          "method": "getCacheStatistics",
+          "line": 131,
+          "content": "final stats = await TodayFeedCacheService.getCacheStatistics();",
+          "modern_equivalent": "TodayFeedCacheStatisticsService.getCacheStatistics()",
+          "position": 4184
+        },
+        {
+          "method": "getCacheHealthStatus",
+          "line": 140,
+          "content": "final health = await TodayFeedCacheService.getCacheHealthStatus();",
+          "modern_equivalent": "TodayFeedCacheHealthService.getCacheHealthStatus()",
+          "position": 4443
+        },
+        {
+          "method": "exportMetricsForMonitoring",
+          "line": 392,
+          "content": "await TodayFeedCacheService.exportMetricsForMonitoring();",
+          "modern_equivalent": "TodayFeedCacheStatisticsService.exportMetricsForMonitoring()",
+          "position": 12256
+        },
+        {
+          "method": "performCacheIntegrityCheck",
+          "line": 415,
+          "content": "await TodayFeedCacheService.performCacheIntegrityCheck();",
+          "modern_equivalent": "TodayFeedCacheHealthService.performCacheIntegrityCheck()",
+          "position": 12929
+        }
+      ],
+      "required_imports": [
+        "import 'package:your_app/core/services/cache/today_feed_cache_sync_service.dart';",
+        "import 'package:your_app/core/services/cache/today_feed_content_service.dart';",
+        "import 'package:your_app/core/services/cache/today_feed_cache_maintenance_service.dart';",
+        "import 'package:your_app/core/services/cache/today_feed_cache_health_service.dart';",
+        "import 'package:your_app/core/services/cache/today_feed_cache_statistics_service.dart';"
+      ],
+      "migration_suggestions": [
+        "Found 27 legacy method usage(s)",
+        "Add 5 new import(s)"
+      ]
+    },
+    {
+      "file": "./app/lib/core/services/cache/today_feed_cache_compatibility_layer.dart",
+      "legacy_usages": [
+        {
+          "method": "resetForTesting",
+          "line": 53,
+          "content": "/// **Modern Alternative**: Use TodayFeedCacheService.resetForTesting() directly",
+          "modern_equivalent": "TodayFeedCacheService.resetForTesting()",
+          "position": 2166
+        },
+        {
+          "method": "resetForTesting",
+          "line": 60,
+          "content": "TodayFeedCacheService.resetForTesting();",
+          "modern_equivalent": "TodayFeedCacheService.resetForTesting()",
+          "position": 2489
+        },
+        {
+          "method": "resetForTesting",
+          "line": 333,
+          "content": "'resetForTesting': 'TodayFeedCacheService.resetForTesting()',",
+          "modern_equivalent": "TodayFeedCacheService.resetForTesting()",
+          "position": 13839
+        },
+        {
+          "method": "clearAllCache",
+          "line": 16,
+          "content": "/// await TodayFeedCacheService.clearAllCache();",
+          "modern_equivalent": "TodayFeedCacheService.invalidateCache()",
+          "position": 592
+        },
+        {
+          "method": "getCacheStats",
+          "line": 17,
+          "content": "/// await TodayFeedCacheService.getCacheStats();",
+          "modern_equivalent": "TodayFeedCacheService.getCacheMetadata()",
+          "position": 641
+        }
+      ],
+      "required_imports": [],
+      "migration_suggestions": [
+        "Found 5 legacy method usage(s)"
+      ]
+    },
+    {
+      "file": "./app/lib/features/today_feed/data/services/today_feed_data_service.dart",
+      "legacy_usages": [
+        {
+          "method": "cachePendingInteraction",
+          "line": 157,
+          "content": "await TodayFeedCacheService.cachePendingInteraction({",
+          "modern_equivalent": "TodayFeedCacheSyncService.cachePendingInteraction()",
+          "position": 5109
+        },
+        {
+          "method": "getPendingInteractions",
+          "line": 57,
+          "content": "await TodayFeedCacheService.getPendingInteractions();",
+          "modern_equivalent": "TodayFeedCacheSyncService.getPendingInteractions()",
+          "position": 1978
+        },
+        {
+          "method": "setBackgroundSyncEnabled",
+          "line": 287,
+          "content": "await TodayFeedCacheService.setBackgroundSyncEnabled(enabled);",
+          "modern_equivalent": "TodayFeedCacheSyncService.setBackgroundSyncEnabled()",
+          "position": 8968
+        },
+        {
+          "method": "isBackgroundSyncEnabled",
+          "line": 299,
+          "content": "return await TodayFeedCacheService.isBackgroundSyncEnabled();",
+          "modern_equivalent": "TodayFeedCacheSyncService.isBackgroundSyncEnabled()",
+          "position": 9338
+        }
+      ],
+      "required_imports": [
+        "import 'package:your_app/core/services/cache/today_feed_cache_sync_service.dart';"
+      ],
+      "migration_suggestions": [
+        "Found 4 legacy method usage(s)",
+        "Add 1 new import(s)"
+      ]
+    },
+    {
+      "file": "./scripts/migration_helper.dart",
+      "legacy_usages": [
+        {
+          "method": "resetForTesting",
+          "line": 27,
+          "content": "'resetForTesting': 'TodayFeedCacheService.resetForTesting()',",
+          "modern_equivalent": "TodayFeedCacheService.resetForTesting()",
+          "position": 706
+        }
+      ],
+      "required_imports": [],
+      "migration_suggestions": [
+        "Found 1 legacy method usage(s)"
+      ]
+    }
+  ],
+  "migration_priority": [
+    "resetForTesting (5 usages)",
+    "getPendingInteractions (4 usages)",
+    "clearAllCache (3 usages)",
+    "getCacheStats (3 usages)",
+    "setBackgroundSyncEnabled (3 usages)",
+    "isBackgroundSyncEnabled (3 usages)",
+    "queueInteraction (2 usages)",
+    "getContentHistory (2 usages)",
+    "clearPendingInteractions (1 usages)",
+    "markContentAsViewed (1 usages)",
+    "invalidateContent (1 usages)",
+    "syncWhenOnline (1 usages)",
+    "selectiveCleanup (1 usages)",
+    "getCacheInvalidationStats (1 usages)",
+    "getDiagnosticInfo (1 usages)",
+    "getCacheStatistics (1 usages)",
+    "getCacheHealthStatus (1 usages)",
+    "exportMetricsForMonitoring (1 usages)",
+    "performCacheIntegrityCheck (1 usages)",
+    "cachePendingInteraction (1 usages)"
+  ],
+  "required_imports": {
+    "import 'package:your_app/core/services/cache/today_feed_cache_sync_service.dart';": 2,
+    "import 'package:your_app/core/services/cache/today_feed_content_service.dart';": 1,
+    "import 'package:your_app/core/services/cache/today_feed_cache_maintenance_service.dart';": 1,
+    "import 'package:your_app/core/services/cache/today_feed_cache_health_service.dart';": 1,
+    "import 'package:your_app/core/services/cache/today_feed_cache_statistics_service.dart';": 1
+  }
+}

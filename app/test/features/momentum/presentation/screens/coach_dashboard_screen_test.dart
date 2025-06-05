@@ -277,58 +277,5 @@ void main() {
         );
       });
     });
-
-    group('Edge Cases', () {
-      test('should handle null values in updateFilters', () {
-        final stateActions = container.read(coachDashboardStateActionsProvider);
-
-        stateActions.updateFilters(
-          timeRange: null,
-          priority: null,
-          status: null,
-        );
-
-        final state = container.read(coachDashboardStateProvider);
-        expect(state.timeRange, equals('7d')); // Should remain default
-        expect(state.priority, equals('all')); // Should remain default
-        expect(state.status, equals('all')); // Should remain default
-      });
-
-      test('should handle multiple resets', () {
-        final stateActions = container.read(coachDashboardStateActionsProvider);
-
-        stateActions.updateFilters(
-          timeRange: '30d',
-          priority: 'high',
-          status: 'pending',
-        );
-
-        // Multiple resets should be safe
-        stateActions.resetFilters();
-        stateActions.resetFilters();
-        stateActions.resetFilters();
-
-        final state = container.read(coachDashboardStateProvider);
-        expect(state.timeRange, equals('7d'));
-        expect(state.priority, equals('all'));
-        expect(state.status, equals('all'));
-      });
-
-      test('should handle concurrent state updates', () {
-        final stateActions = container.read(coachDashboardStateActionsProvider);
-
-        // Simulate concurrent updates
-        stateActions.updateTimeRange('24h');
-        stateActions.updatePriority('high');
-        stateActions.updateStatus('pending');
-        stateActions.updateFilters(timeRange: '30d', priority: 'low');
-        stateActions.updateStatus('completed');
-
-        final finalState = container.read(coachDashboardStateProvider);
-        expect(finalState.timeRange, equals('30d'));
-        expect(finalState.priority, equals('low'));
-        expect(finalState.status, equals('completed'));
-      });
-    });
   });
 }

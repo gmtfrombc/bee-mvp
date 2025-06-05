@@ -14,7 +14,8 @@
 /// ├── TodayFeedCacheHealthService (Health monitoring/diagnostics)
 /// ├── TodayFeedCacheStatisticsService (Statistics/metrics)
 /// ├── TodayFeedCachePerformanceService (Performance analysis)
-/// └── TodayFeedCacheWarmingService (Cache warming/preloading)
+/// ├── TodayFeedCacheWarmingService (Cache warming/preloading)
+/// └── TodayFeedCacheMetricsAggregator (Advanced metrics aggregation)
 /// ```
 ///
 /// **Key Features:**
@@ -26,6 +27,7 @@
 /// - Performance metrics and statistics
 /// - Automatic cache maintenance
 /// - Cache warming and preloading strategies
+/// - Advanced metrics aggregation and analytics
 ///
 /// **Usage:**
 /// ```dart
@@ -60,6 +62,8 @@ import 'cache/today_feed_cache_sync_service.dart';
 import 'cache/today_feed_cache_warming_service.dart';
 import 'cache/today_feed_content_service.dart';
 import 'cache/today_feed_timezone_service.dart';
+import 'cache/managers/today_feed_cache_metrics_aggregator.dart';
+import 'cache/strategies/today_feed_cache_optimization_strategy.dart';
 
 /// **Today Feed Cache Service - Main Coordinator**
 ///
@@ -548,63 +552,19 @@ class TodayFeedCacheService {
   /// Get statistics from all services (comprehensive metrics)
   static Future<Map<String, dynamic>> getAllStatistics() async {
     await initialize();
-
-    final stats = <String, dynamic>{};
-    final cacheMetadata = await getCacheMetadata();
-    final syncStatus = getSyncStatus();
-
-    // Get statistics from each service
-    stats['cache'] = cacheMetadata;
-    stats['statistics'] =
-        await TodayFeedCacheStatisticsService.getCacheStatistics(cacheMetadata);
-    stats['health'] = await TodayFeedCacheHealthService.getCacheHealthStatus(
-      cacheMetadata,
-      syncStatus,
-    );
-    stats['performance'] =
-        await TodayFeedCachePerformanceService.getDetailedPerformanceStatistics();
-    stats['timezone'] = await TodayFeedTimezoneService.getTimezoneStats();
-    stats['sync'] = syncStatus;
-
-    return stats;
+    return await TodayFeedCacheMetricsAggregator.getAllStatistics();
   }
 
   /// Get health metrics from all services
   static Future<Map<String, dynamic>> getAllHealthMetrics() async {
     await initialize();
-
-    final health = <String, dynamic>{};
-    final cacheMetadata = await getCacheMetadata();
-    final syncStatus = getSyncStatus();
-
-    // Get health metrics from each service
-    health['cache'] = cacheMetadata;
-    health['health'] = await TodayFeedCacheHealthService.getCacheHealthStatus(
-      cacheMetadata,
-      syncStatus,
-    );
-    health['performance'] =
-        await TodayFeedCachePerformanceService.getDetailedPerformanceStatistics();
-    health['timezone'] = await TodayFeedTimezoneService.getTimezoneStats();
-
-    return health;
+    return await TodayFeedCacheMetricsAggregator.getAllHealthMetrics();
   }
 
   /// Get performance metrics from all services
   static Future<Map<String, dynamic>> getAllPerformanceMetrics() async {
     await initialize();
-
-    final performance = <String, dynamic>{};
-    final cacheMetadata = await getCacheMetadata();
-
-    // Get performance metrics from each service
-    performance['cache'] = cacheMetadata;
-    performance['performance'] =
-        await TodayFeedCachePerformanceService.getDetailedPerformanceStatistics();
-    performance['statistics'] =
-        await TodayFeedCacheStatisticsService.getCacheStatistics(cacheMetadata);
-
-    return performance;
+    return await TodayFeedCacheMetricsAggregator.getAllPerformanceMetrics();
   }
 
   /// Execute cache warming strategy
@@ -695,6 +655,155 @@ class TodayFeedCacheService {
       default:
         return WarmingTrigger.manual;
     }
+  }
+
+  /// Execute cache optimization strategy
+  ///
+  /// Implements cache optimization strategies for different usage patterns,
+  /// device capabilities, and memory constraints. Automatically selects
+  /// optimal strategy and provides performance tracking.
+  static Future<Map<String, dynamic>> executeOptimizationStrategy({
+    String trigger = 'manual',
+    Map<String, dynamic>? context,
+  }) async {
+    await initialize();
+
+    try {
+      // Convert string trigger to enum
+      final optimizationTrigger = _parseOptimizationTrigger(trigger);
+
+      // Create optimization context
+      final optimizationContext = _createOptimizationContext(
+        trigger: optimizationTrigger,
+        userContext: context,
+      );
+
+      final result =
+          await TodayFeedCacheOptimizationStrategy.executeWithAutoSelection(
+            optimizationContext,
+          );
+
+      return {
+        'success': result.success,
+        'strategy_type': result.strategyType.name,
+        'duration_ms': result.duration.inMilliseconds,
+        'actions_performed': result.actionsPerformed,
+        'memory_freed_mb': result.memoryFreedMB,
+        'entries_removed': result.entriesRemoved,
+        'entries_optimized': result.entriesOptimized,
+        'performance_improvement': result.performanceImprovement,
+        'error': result.error,
+        'trigger': trigger,
+        'metrics': result.metrics,
+      };
+    } catch (e) {
+      debugPrint('❌ Cache optimization strategy failed: $e');
+      return {
+        'success': false,
+        'error': e.toString(),
+        'trigger': trigger,
+        'strategy_type': 'unknown',
+      };
+    }
+  }
+
+  /// Trigger cache optimization on memory pressure
+  static Future<void> optimizeCacheOnMemoryPressure({
+    int? availableMemoryMB,
+    double? currentCacheSizeMB,
+  }) async {
+    await initialize();
+
+    await executeOptimizationStrategy(
+      trigger: 'memoryPressure',
+      context: {
+        'memory_pressure': true,
+        'available_memory_mb': availableMemoryMB ?? 256,
+        'current_cache_size_mb': currentCacheSizeMB ?? 0.0,
+      },
+    );
+  }
+
+  /// Trigger cache optimization on performance issues
+  static Future<void> optimizeCacheOnPerformanceIssues({
+    int? averageResponseTimeMs,
+  }) async {
+    await initialize();
+
+    await executeOptimizationStrategy(
+      trigger: 'performance',
+      context: {
+        'performance_issue': true,
+        'average_response_time_ms': averageResponseTimeMs ?? 600,
+      },
+    );
+  }
+
+  /// Trigger cache optimization on app launch
+  static Future<void> optimizeCacheOnAppLaunch() async {
+    await initialize();
+
+    await executeOptimizationStrategy(
+      trigger: 'appLaunch',
+      context: {'app_startup': true},
+    );
+  }
+
+  /// Helper method to parse optimization trigger string to enum
+  static OptimizationTrigger _parseOptimizationTrigger(String trigger) {
+    switch (trigger.toLowerCase()) {
+      case 'memorypressure':
+      case 'memory_pressure':
+        return OptimizationTrigger.memoryPressure;
+      case 'performance':
+        return OptimizationTrigger.performance;
+      case 'applaunch':
+      case 'app_launch':
+        return OptimizationTrigger.appLaunch;
+      case 'background':
+        return OptimizationTrigger.background;
+      case 'automatic':
+        return OptimizationTrigger.automatic;
+      default:
+        return OptimizationTrigger.manual;
+    }
+  }
+
+  /// Create optimization context from trigger and user context
+  static OptimizationContext _createOptimizationContext({
+    required OptimizationTrigger trigger,
+    Map<String, dynamic>? userContext,
+  }) {
+    final context = userContext ?? {};
+
+    // Memory pressure context
+    if (trigger == OptimizationTrigger.memoryPressure ||
+        context['memory_pressure'] == true) {
+      return OptimizationContext.memoryPressure(
+        availableMemoryMB: context['available_memory_mb'] ?? 256,
+        currentCacheSizeMB: context['current_cache_size_mb'] ?? 0.0,
+      );
+    }
+
+    // Performance optimization context
+    if (trigger == OptimizationTrigger.performance ||
+        context['performance_issue'] == true) {
+      return OptimizationContext.performance(
+        averageResponseTimeMs: context['average_response_time_ms'] ?? 600,
+      );
+    }
+
+    // App launch context
+    if (trigger == OptimizationTrigger.appLaunch ||
+        context['app_startup'] == true) {
+      return OptimizationContext.appLaunch();
+    }
+
+    // Default to automatic context
+    return OptimizationContext.automatic(
+      availableMemoryMB: context['available_memory_mb'] ?? 512,
+      currentCacheSizeMB: context['current_cache_size_mb'] ?? 0.0,
+    );
   }
 
   // ═══════════════════════════════════════════════════════════════════════════

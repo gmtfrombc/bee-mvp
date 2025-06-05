@@ -28,7 +28,7 @@ class CoachInterventionService {
       // Check if user has intervention notifications enabled
       if (!_prefsService.interventionNotificationsEnabled) {
         if (kDebugMode) {
-          print('🚫 Coach intervention blocked by user preferences');
+          debugPrint('🚫 Coach intervention blocked by user preferences');
         }
         return InterventionResult(
           success: false,
@@ -65,7 +65,7 @@ class CoachInterventionService {
       );
 
       if (kDebugMode) {
-        print(
+        debugPrint(
           '✅ Coach intervention scheduled: $interventionId (${type.name}, ${priority.name})',
         );
       }
@@ -77,7 +77,7 @@ class CoachInterventionService {
       );
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Error scheduling coach intervention: $e');
+        debugPrint('❌ Error scheduling coach intervention: $e');
       }
       return InterventionResult(
         success: false,
@@ -112,7 +112,7 @@ class CoachInterventionService {
           .toList();
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Error getting pending interventions: $e');
+        debugPrint('❌ Error getting pending interventions: $e');
       }
       return [];
     }
@@ -138,7 +138,7 @@ class CoachInterventionService {
           .eq('id', interventionId);
 
       if (kDebugMode) {
-        print(
+        debugPrint(
           '✅ Intervention status updated: $interventionId -> ${status.name}',
         );
       }
@@ -146,7 +146,7 @@ class CoachInterventionService {
       return true;
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Error updating intervention status: $e');
+        debugPrint('❌ Error updating intervention status: $e');
       }
       return false;
     }
@@ -174,7 +174,7 @@ class CoachInterventionService {
       return null;
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Error checking intervention need: $e');
+        debugPrint('❌ Error checking intervention need: $e');
       }
       return null;
     }
@@ -200,7 +200,7 @@ class CoachInterventionService {
       );
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Error scheduling intervention notification: $e');
+        debugPrint('❌ Error scheduling intervention notification: $e');
       }
     }
   }
@@ -264,7 +264,7 @@ class CoachInterventionService {
           .toList();
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Error getting intervention history: $e');
+        debugPrint('❌ Error getting intervention history: $e');
       }
       return [];
     }
@@ -314,7 +314,7 @@ class CoachInterventionService {
       };
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Error getting dashboard overview: $e');
+        debugPrint('❌ Error getting dashboard overview: $e');
       }
       return {};
     }
@@ -344,7 +344,7 @@ class CoachInterventionService {
       }).toList();
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Error getting active interventions: $e');
+        debugPrint('❌ Error getting active interventions: $e');
       }
       return [];
     }
@@ -371,7 +371,7 @@ class CoachInterventionService {
       }).toList();
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Error getting scheduled interventions: $e');
+        debugPrint('❌ Error getting scheduled interventions: $e');
       }
       return [];
     }
@@ -424,7 +424,7 @@ class CoachInterventionService {
       };
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Error getting intervention analytics: $e');
+        debugPrint('❌ Error getting intervention analytics: $e');
       }
       return {};
     }

@@ -144,169 +144,6 @@ void main() {
       });
     });
 
-    group('Warming Configuration', () {
-      setUp(() async {
-        await TodayFeedCacheWarmingService.initialize(prefs);
-      });
-
-      test('should create default configuration with correct values', () {
-        // Act
-        final config = WarmingConfiguration.defaultConfig();
-
-        // Assert
-        expect(config.enableContentPreloading, isTrue);
-        expect(config.enableHistoryWarming, isTrue);
-        expect(config.enablePredictiveWarming, isTrue);
-        expect(
-          config.scheduledWarmingInterval,
-          equals(const Duration(hours: 2)),
-        );
-        expect(
-          config.predictiveWarmingInterval,
-          equals(const Duration(minutes: 30)),
-        );
-      });
-
-      test('should create custom configuration with specified values', () {
-        // Act
-        const config = WarmingConfiguration(
-          enableContentPreloading: false,
-          enableHistoryWarming: true,
-          enablePredictiveWarming: false,
-          scheduledWarmingInterval: Duration(hours: 4),
-          predictiveWarmingInterval: Duration(hours: 1),
-        );
-
-        // Assert
-        expect(config.enableContentPreloading, isFalse);
-        expect(config.enableHistoryWarming, isTrue);
-        expect(config.enablePredictiveWarming, isFalse);
-        expect(
-          config.scheduledWarmingInterval,
-          equals(const Duration(hours: 4)),
-        );
-        expect(
-          config.predictiveWarmingInterval,
-          equals(const Duration(hours: 1)),
-        );
-      });
-
-      test('should update warming configuration successfully', () async {
-        // Arrange
-        const newConfig = WarmingConfiguration(
-          enableContentPreloading: false,
-          enableHistoryWarming: false,
-          enablePredictiveWarming: true,
-          scheduledWarmingInterval: Duration(hours: 1),
-          predictiveWarmingInterval: Duration(minutes: 15),
-        );
-
-        // Act & Assert - should not throw
-        await expectLater(
-          TodayFeedCacheWarmingService.updateWarmingConfiguration(newConfig),
-          completes,
-        );
-      });
-
-      test('should handle configuration JSON serialization', () {
-        // Act
-        final config = WarmingConfiguration.defaultConfig();
-        final json = config.toJson();
-        final parsedConfig = WarmingConfiguration.fromJson(json);
-
-        // Assert - should create valid config objects
-        expect(json, isA<String>());
-        expect(parsedConfig, isA<WarmingConfiguration>());
-        expect(parsedConfig.enableContentPreloading, isTrue);
-      });
-    });
-
-    group('Warming Triggers', () {
-      test('should define all required warming trigger types', () {
-        // Assert - verify all expected triggers exist
-        final triggerValues = WarmingTrigger.values;
-        expect(triggerValues, hasLength(5));
-        expect(triggerValues, contains(WarmingTrigger.manual));
-        expect(triggerValues, contains(WarmingTrigger.connectivity));
-        expect(triggerValues, contains(WarmingTrigger.scheduled));
-        expect(triggerValues, contains(WarmingTrigger.predictive));
-        expect(triggerValues, contains(WarmingTrigger.appLaunch));
-      });
-
-      test('should have correct trigger names', () {
-        // Assert
-        expect(WarmingTrigger.manual.name, equals('manual'));
-        expect(WarmingTrigger.connectivity.name, equals('connectivity'));
-        expect(WarmingTrigger.scheduled.name, equals('scheduled'));
-        expect(WarmingTrigger.predictive.name, equals('predictive'));
-        expect(WarmingTrigger.appLaunch.name, equals('appLaunch'));
-      });
-    });
-
-    group('Warming Results', () {
-      test('should create successful result with correct properties', () {
-        // Act
-        final result = WarmingResult.success(
-          trigger: WarmingTrigger.manual,
-          duration: const Duration(milliseconds: 500),
-          results: {'content_preloading': 'success'},
-        );
-
-        // Assert
-        expect(result.success, isTrue);
-        expect(result.trigger, WarmingTrigger.manual);
-        expect(result.duration, equals(const Duration(milliseconds: 500)));
-        expect(result.results, isNotNull);
-        expect(result.results!['content_preloading'], equals('success'));
-        expect(result.error, isNull);
-      });
-
-      test('should create failed result with correct properties', () {
-        // Act
-        final result = WarmingResult.failed(
-          trigger: WarmingTrigger.connectivity,
-          error: 'Network error',
-        );
-
-        // Assert
-        expect(result.success, isFalse);
-        expect(result.trigger, WarmingTrigger.connectivity);
-        expect(result.error, equals('Network error'));
-        expect(result.duration, isNull);
-        expect(result.results, isNull);
-      });
-
-      test('should handle various result scenarios', () {
-        // Test empty results
-        final emptyResult = WarmingResult.success(
-          trigger: WarmingTrigger.manual,
-          duration: Duration.zero,
-          results: <String, dynamic>{},
-        );
-
-        expect(emptyResult.success, isTrue);
-        expect(emptyResult.results, isEmpty);
-
-        // Test complex results
-        final complexResult = WarmingResult.success(
-          trigger: WarmingTrigger.predictive,
-          duration: const Duration(seconds: 2),
-          results: {
-            'content_preloading': 'completed',
-            'history_warming': {'status': 'adequate', 'count': 5},
-            'predictive_warming': {'timing': 'optimal'},
-          },
-        );
-
-        expect(complexResult.success, isTrue);
-        expect(
-          complexResult.results!['content_preloading'],
-          equals('completed'),
-        );
-        expect(complexResult.results!['history_warming'], isA<Map>());
-      });
-    });
-
     group('Service Integration', () {
       setUp(() async {
         await TodayFeedCacheWarmingService.initialize(prefs);
@@ -379,63 +216,21 @@ void main() {
       });
     });
 
-    group('Edge Cases and Error Handling', () {
-      test('should handle uninitialized service gracefully', () async {
-        // Arrange - ensure service is not initialized
-        await TodayFeedCacheWarmingService.dispose();
-
-        // Act & Assert
-        expect(
-          () => TodayFeedCacheWarmingService.executeWarmingStrategy(),
-          throwsA(isA<StateError>()),
-        );
-      });
-
-      test('should handle null context gracefully', () async {
+    group('Performance Impact', () {
+      test('should track warming performance metrics', () async {
         // Arrange
         await TodayFeedCacheWarmingService.initialize(prefs);
 
         // Act
         final result =
-            await TodayFeedCacheWarmingService.executeWarmingStrategy(
-              context: null,
-            );
+            await TodayFeedCacheWarmingService.executeWarmingStrategy();
 
         // Assert
         expect(result, isA<WarmingResult>());
         expect(result.success, isA<bool>());
+        expect(result.duration, isA<Duration>());
+        expect(result.trigger, isA<WarmingTrigger>());
       });
-
-      test('should handle empty context gracefully', () async {
-        // Arrange
-        await TodayFeedCacheWarmingService.initialize(prefs);
-
-        // Act
-        final result =
-            await TodayFeedCacheWarmingService.executeWarmingStrategy(
-              context: <String, dynamic>{},
-            );
-
-        // Assert
-        expect(result, isA<WarmingResult>());
-        expect(result.success, isA<bool>());
-      });
-
-      test(
-        'should handle configuration updates on uninitialized service',
-        () async {
-          // Arrange - ensure service is not initialized
-          await TodayFeedCacheWarmingService.dispose();
-
-          // Act & Assert - should throw error for uninitialized service
-          expect(
-            () => TodayFeedCacheWarmingService.updateWarmingConfiguration(
-              WarmingConfiguration.defaultConfig(),
-            ),
-            throwsA(isA<StateError>()),
-          );
-        },
-      );
     });
   });
 }

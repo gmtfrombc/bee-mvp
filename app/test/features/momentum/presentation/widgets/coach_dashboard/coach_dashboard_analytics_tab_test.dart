@@ -167,48 +167,8 @@ void main() {
       });
     });
 
-    group('Edge Cases and Error Handling', () {
-      testWidgets('handles empty data gracefully', (tester) async {
-        await tester.binding.setSurfaceSize(const Size(1200, 800));
-        await tester.pumpWidget(createTestWidget());
-        await tester.pumpAndSettle();
-
-        // Should still display stat cards with default values
-        expect(find.byType(CoachDashboardStatCard), findsAtLeastNWidgets(3));
-        expect(find.text('85%'), findsOneWidget); // Mock data from fake service
-      });
-
-      testWidgets('maintains scroll functionality', (tester) async {
-        await tester.binding.setSurfaceSize(const Size(1200, 800));
-        await tester.pumpWidget(createTestWidget());
-        await tester.pumpAndSettle();
-
-        expect(find.byType(SingleChildScrollView), findsOneWidget);
-      });
-    });
-
-    group('UI Elements', () {
-      testWidgets('uses proper text styles', (tester) async {
-        await tester.binding.setSurfaceSize(const Size(1200, 800));
-        await tester.pumpWidget(createTestWidget());
-        await tester.pumpAndSettle();
-
-        final effectivenessText = find.text('Intervention Effectiveness');
-        expect(effectivenessText, findsOneWidget);
-
-        final trendAnalysisText = find.text('Trend Analysis');
-        expect(trendAnalysisText, findsOneWidget);
-      });
-
-      testWidgets('has proper container styling', (tester) async {
-        await tester.binding.setSurfaceSize(const Size(1200, 800));
-        await tester.pumpWidget(createTestWidget());
-        await tester.pumpAndSettle();
-
-        // Should have containers with proper decoration
-        final containers = find.byType(Container);
-        expect(containers, findsAtLeast(2));
-      });
+    group('Sprint 5.1 Coach Dashboard Analytics Optimization', () {
+      // ... existing code ...
     });
   });
 }

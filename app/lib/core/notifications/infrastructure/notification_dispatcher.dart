@@ -29,7 +29,7 @@ class NotificationDispatcher {
     _isInitialized = true;
 
     if (kDebugMode) {
-      print('📋 NotificationDispatcher initialized');
+      debugPrint('📋 NotificationDispatcher initialized');
     }
 
     // Process pending actions and updates asynchronously without blocking initialization
@@ -52,7 +52,7 @@ class NotificationDispatcher {
       await _applyCachedMomentumUpdates();
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Error in background operations: $e');
+        debugPrint('❌ Error in background operations: $e');
       }
     }
   }
@@ -68,7 +68,7 @@ class NotificationDispatcher {
   Future<void> handleForegroundNotification(RemoteMessage message) async {
     try {
       if (kDebugMode) {
-        print(
+        debugPrint(
           '📱 Handling foreground notification: ${message.notification?.title}',
         );
       }
@@ -84,7 +84,7 @@ class NotificationDispatcher {
       await _updateMomentumFromNotification(notificationData);
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Error handling foreground notification: $e');
+        debugPrint('❌ Error handling foreground notification: $e');
       }
     }
   }
@@ -93,7 +93,7 @@ class NotificationDispatcher {
   Future<void> handleNotificationTap(RemoteMessage message) async {
     try {
       if (kDebugMode) {
-        print('👆 Handling notification tap: ${message.notification?.title}');
+        debugPrint('👆 Handling notification tap: ${message.notification?.title}');
       }
 
       // Extract notification data
@@ -113,7 +113,7 @@ class NotificationDispatcher {
       await _updateMomentumFromNotification(notificationData);
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Error handling notification tap: $e');
+        debugPrint('❌ Error handling notification tap: $e');
       }
     }
   }
@@ -121,7 +121,7 @@ class NotificationDispatcher {
   /// Handle app lifecycle state changes
   Future<void> onAppStateChanged(AppLifecycleState state) async {
     if (kDebugMode) {
-      print('📱 App state changed: $state');
+      debugPrint('📱 App state changed: $state');
     }
 
     switch (state) {
@@ -154,7 +154,7 @@ class NotificationDispatcher {
       );
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Error processing pending background actions: $e');
+        debugPrint('❌ Error processing pending background actions: $e');
       }
     }
   }
@@ -170,7 +170,7 @@ class NotificationDispatcher {
       await NotificationDeepLinkService.applyCachedMomentumUpdates(ref);
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Error applying cached momentum updates: $e');
+        debugPrint('❌ Error applying cached momentum updates: $e');
       }
     }
   }
@@ -199,7 +199,7 @@ class NotificationDispatcher {
       );
     } catch (e) {
       if (kDebugMode) {
-        print('Error extracting notification data: $e');
+        debugPrint('Error extracting notification data: $e');
       }
       return null;
     }
@@ -374,7 +374,7 @@ class NotificationDispatcher {
       );
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Error handling notification action: $e');
+        debugPrint('❌ Error handling notification action: $e');
       }
     }
   }
@@ -396,11 +396,11 @@ class NotificationDispatcher {
       await momentumController.refresh();
 
       if (kDebugMode) {
-        print('📊 Momentum data refreshed from notification');
+        debugPrint('📊 Momentum data refreshed from notification');
       }
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Error updating momentum from notification: $e');
+        debugPrint('❌ Error updating momentum from notification: $e');
       }
     }
   }
@@ -410,11 +410,11 @@ class NotificationDispatcher {
     try {
       await NotificationCoreService.instance.clearCachedData();
       if (kDebugMode) {
-        print('🧹 Notification cache cleared');
+        debugPrint('🧹 Notification cache cleared');
       }
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Error clearing notification cache: $e');
+        debugPrint('❌ Error clearing notification cache: $e');
       }
     }
   }
@@ -436,7 +436,7 @@ class NotificationDispatcher {
       };
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Error getting notification stats: $e');
+        debugPrint('❌ Error getting notification stats: $e');
       }
       return {'error': e.toString()};
     }

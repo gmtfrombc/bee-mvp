@@ -19,7 +19,7 @@ class NotificationDeepLinkService {
   }) async {
     try {
       if (kDebugMode) {
-        print('🔗 Processing deep link: $actionType with data: $actionData');
+        debugPrint('🔗 Processing deep link: $actionType with data: $actionData');
       }
 
       switch (actionType) {
@@ -38,7 +38,7 @@ class NotificationDeepLinkService {
           break;
         default:
           if (kDebugMode) {
-            print('⚠️ Unknown action type: $actionType');
+            debugPrint('⚠️ Unknown action type: $actionType');
           }
           // Default to opening momentum meter
           await _handleMomentumDeepLink(actionData, context, ref);
@@ -48,7 +48,7 @@ class NotificationDeepLinkService {
       await _trackNotificationInteraction(notificationId, actionType);
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Error processing deep link: $e');
+        debugPrint('❌ Error processing deep link: $e');
       }
     }
   }
@@ -60,7 +60,7 @@ class NotificationDeepLinkService {
     WidgetRef? ref,
   ) async {
     if (kDebugMode) {
-      print('📊 Opening momentum meter');
+      debugPrint('📊 Opening momentum meter');
     }
 
     // Check if this is a celebration notification
@@ -92,7 +92,7 @@ class NotificationDeepLinkService {
     WidgetRef? ref,
   ) async {
     if (kDebugMode) {
-      print('📞 Opening schedule call flow');
+      debugPrint('📞 Opening schedule call flow');
     }
 
     final priority = actionData['priority'] as String?;
@@ -115,7 +115,7 @@ class NotificationDeepLinkService {
     WidgetRef? ref,
   ) async {
     if (kDebugMode) {
-      print('📚 Opening lesson completion flow');
+      debugPrint('📚 Opening lesson completion flow');
     }
 
     final suggestedLesson = actionData['suggested_lesson'] as String?;
@@ -136,7 +136,7 @@ class NotificationDeepLinkService {
     WidgetRef? ref,
   ) async {
     if (kDebugMode) {
-      print('📱 Opening app with focus');
+      debugPrint('📱 Opening app with focus');
     }
 
     final focus = actionData['focus'] as String?;
@@ -337,7 +337,7 @@ class NotificationDeepLinkService {
   /// Launch schedule call (placeholder for future implementation)
   static void _launchScheduleCall() {
     if (kDebugMode) {
-      print('🚀 Launching schedule call flow');
+      debugPrint('🚀 Launching schedule call flow');
     }
 
     // Schedule a coach intervention
@@ -350,7 +350,7 @@ class NotificationDeepLinkService {
       final userId = Supabase.instance.client.auth.currentUser?.id;
       if (userId == null) {
         if (kDebugMode) {
-          print('❌ No user ID available for scheduling intervention');
+          debugPrint('❌ No user ID available for scheduling intervention');
         }
         return;
       }
@@ -365,16 +365,16 @@ class NotificationDeepLinkService {
 
       if (result.success) {
         if (kDebugMode) {
-          print('✅ Coach intervention scheduled: ${result.interventionId}');
+          debugPrint('✅ Coach intervention scheduled: ${result.interventionId}');
         }
       } else {
         if (kDebugMode) {
-          print('❌ Failed to schedule intervention: ${result.error}');
+          debugPrint('❌ Failed to schedule intervention: ${result.error}');
         }
       }
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Error scheduling coach intervention: $e');
+        debugPrint('❌ Error scheduling coach intervention: $e');
       }
     }
   }
@@ -382,7 +382,7 @@ class NotificationDeepLinkService {
   /// Launch lesson flow (placeholder for future implementation)
   static void _launchLessonFlow(String? suggestedLesson) {
     if (kDebugMode) {
-      print('🚀 Launching lesson flow: ${suggestedLesson ?? 'general'}');
+      debugPrint('🚀 Launching lesson flow: ${suggestedLesson ?? 'general'}');
     }
     // TODO: Implement actual lesson navigation
     // This could navigate to a lessons screen or external learning platform
@@ -395,7 +395,7 @@ class NotificationDeepLinkService {
   ) async {
     try {
       if (kDebugMode) {
-        print(
+        debugPrint(
           '📊 Tracking notification interaction: $notificationId -> $actionType',
         );
       }
@@ -404,7 +404,7 @@ class NotificationDeepLinkService {
       // This could send events to analytics services like Firebase Analytics
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Error tracking notification interaction: $e');
+        debugPrint('❌ Error tracking notification interaction: $e');
       }
     }
   }
@@ -421,7 +421,7 @@ class NotificationDeepLinkService {
       if (pendingActions.isEmpty) return;
 
       if (kDebugMode) {
-        print(
+        debugPrint(
           '🔄 Processing ${pendingActions.length} pending notification actions',
         );
       }
@@ -446,7 +446,7 @@ class NotificationDeepLinkService {
       }
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Error processing pending actions: $e');
+        debugPrint('❌ Error processing pending actions: $e');
       }
     }
   }
@@ -484,7 +484,7 @@ class NotificationDeepLinkService {
 
       if (cachedUpdate != null) {
         if (kDebugMode) {
-          print('📊 Applying cached momentum update: $cachedUpdate');
+          debugPrint('📊 Applying cached momentum update: $cachedUpdate');
         }
 
         // Trigger a refresh to get the latest data
@@ -493,7 +493,7 @@ class NotificationDeepLinkService {
       }
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Error applying cached momentum updates: $e');
+        debugPrint('❌ Error applying cached momentum updates: $e');
       }
     }
   }

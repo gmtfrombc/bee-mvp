@@ -127,7 +127,7 @@ class FCMTokenService {
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Failed to get user FCM tokens: $e');
+        debugPrint('❌ Failed to get user FCM tokens: $e');
       }
       return [];
     }
@@ -145,11 +145,11 @@ class FCMTokenService {
           .lt('updated_at', thirtyDaysAgo.toIso8601String());
 
       if (kDebugMode) {
-        print('🧹 Expired FCM tokens cleaned up');
+        debugPrint('🧹 Expired FCM tokens cleaned up');
       }
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Failed to cleanup expired FCM tokens: $e');
+        debugPrint('❌ Failed to cleanup expired FCM tokens: $e');
       }
     }
   }
