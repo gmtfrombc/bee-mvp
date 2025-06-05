@@ -41,3 +41,4 @@ env/
 
 # Archived functions (cleanup safety)
 archive/
+app/backup/
