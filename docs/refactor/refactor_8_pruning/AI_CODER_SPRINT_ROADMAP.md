@@ -1,6 +1,15 @@
 # AI Coder Sprint Roadmap: Epic 1.3 Preparation
 > **Comprehensive guide for AI-driven codebase optimization and service consolidation**
 
+**IMPORTANT INSTRUCTIONS** PLEASE ADHERE TO THE FOLLOWING
+
+1. Do not hardcode--use @responsive_service.dart 
+2. We are on Flutter 3.32.1 don't use depreciated methods or widgets
+3. Our directory is app/. do not create new directories outside of app/
+4. Any tests that are created must be necessary for functional testing--no overengineered or redundant testing.
+5. Minimize feedback, responses, and text to minimize prompt bloat
+6. Peform frequent, targeted unit testing to prevent code breakage
+
 ## 🎯 **Objective & Context**
 
 **Primary Goal**: Prepare codebase for Epic 1.3 (Adaptive AI Coach) by reducing complexity and eliminating redundancy
