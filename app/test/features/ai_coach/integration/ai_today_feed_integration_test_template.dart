@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:app/features/today_feed/domain/models/today_feed_content.dart';
 
 import '../../../helpers/test_helpers.dart';
-import '../../../helpers/ai_coaching_test_helpers.dart';
+import '../../../helpers/ai_coaching/ai_coaching_test_helpers.dart';
 
 /// AI Coach Today Feed Integration Test Template for Epic 1.3
 ///

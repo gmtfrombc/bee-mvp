@@ -6,7 +6,6 @@ import 'notification_deep_link_service.dart';
 import '../notifications/domain/models/notification_models.dart';
 import '../../features/momentum/presentation/providers/momentum_api_provider.dart';
 import '../notifications/domain/services/notification_core_service.dart';
-
 /// Service for dispatching notification actions and coordinating app state
 class NotificationActionDispatcher {
   static NotificationActionDispatcher? _instance;
