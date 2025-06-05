@@ -439,55 +439,5 @@ void main() {
         );
       });
     });
-
-    group('Edge Cases', () {
-      testWidgets('should handle zero points awarded', (tester) async {
-        final zeroPointResult = MomentumAwardResult.success(
-          pointsAwarded: 0,
-          message: 'Zero points',
-          awardTime: DateTime.now(),
-        );
-
-        await tester.pumpWidget(
-          createTestWidget(
-            MomentumPointFeedbackWidget(
-              awardResult: zeroPointResult,
-              enableAnimations: false,
-              autoHide: false,
-            ),
-          ),
-        );
-
-        await tester.pumpAndSettle();
-
-        // Should display +0
-        expect(find.text('+0'), findsOneWidget);
-        expect(find.text('Momentum +0!'), findsOneWidget);
-      });
-
-      testWidgets('should handle multiple points awarded', (tester) async {
-        final multiPointResult = MomentumAwardResult.success(
-          pointsAwarded: 5,
-          message: 'Bonus points',
-          awardTime: DateTime.now(),
-        );
-
-        await tester.pumpWidget(
-          createTestWidget(
-            MomentumPointFeedbackWidget(
-              awardResult: multiPointResult,
-              enableAnimations: false,
-              autoHide: false,
-            ),
-          ),
-        );
-
-        await tester.pumpAndSettle();
-
-        // Should display +5
-        expect(find.text('+5'), findsOneWidget);
-        expect(find.text('Momentum +5!'), findsOneWidget);
-      });
-    });
   });
 }

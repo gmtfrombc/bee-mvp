@@ -36,6 +36,7 @@ import 'today_feed_cache_maintenance_service.dart';
 import 'today_feed_cache_health_service.dart';
 import 'today_feed_cache_statistics_service.dart';
 import 'today_feed_content_service.dart';
+import 'managers/today_feed_cache_lifecycle_manager.dart';
 
 /// **Compatibility layer for legacy Today Feed cache methods**
 ///
@@ -53,11 +54,11 @@ class TodayFeedCacheCompatibilityLayer {
   /// **Modern Alternative**: Use TodayFeedCacheService.resetForTesting() directly
   ///
   /// This method maintains the legacy testing interface while delegating
-  /// to the main service's reset functionality.
+  /// to the lifecycle manager's reset functionality.
   static void resetForTesting() {
-    // Delegate to the main service's reset method
-    // This maintains the exact same behavior as before
-    TodayFeedCacheService.resetForTesting();
+    // Direct call to lifecycle manager to avoid circular reference
+    // This maintains the exact same behavior as the main service method
+    TodayFeedCacheLifecycleManager.resetForTesting();
   }
 
   // ═══════════════════════════════════════════════════════════════════════════

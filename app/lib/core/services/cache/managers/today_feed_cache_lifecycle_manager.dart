@@ -45,11 +45,13 @@ import '../today_feed_cache_sync_service.dart';
 import '../today_feed_cache_warming_service.dart';
 import '../today_feed_content_service.dart';
 import '../today_feed_timezone_service.dart';
+import '../strategies/today_feed_cache_initialization_strategy.dart';
 
 /// **Today Feed Cache Lifecycle Manager**
 ///
 /// Orchestrates the complete lifecycle of the Today Feed cache system
-/// with proper service coordination and resource management.
+/// with proper service coordination, resource management, and strategy-based
+/// initialization following ResponsiveService patterns.
 class TodayFeedCacheLifecycleManager {
   // ═══════════════════════════════════════════════════════════════════════════
   // LIFECYCLE STATE MANAGEMENT
@@ -82,6 +84,12 @@ class TodayFeedCacheLifecycleManager {
   /// Initialization start time for performance tracking
   static DateTime? _initializationStartTime;
 
+  /// Last initialization strategy used
+  static TodayFeedCacheInitializationStrategy? _lastInitializationStrategy;
+
+  /// Last initialization result
+  static InitializationResult? _lastInitializationResult;
+
   // ═══════════════════════════════════════════════════════════════════════════
   // PUBLIC LIFECYCLE API
   // ═══════════════════════════════════════════════════════════════════════════
@@ -102,6 +110,14 @@ class TodayFeedCacheLifecycleManager {
   /// Get last initialization error
   static String? get lastInitializationError => _lastInitializationError;
 
+  /// Get last initialization strategy used
+  static TodayFeedCacheInitializationStrategy? get lastInitializationStrategy =>
+      _lastInitializationStrategy;
+
+  /// Get last initialization result
+  static InitializationResult? get lastInitializationResult =>
+      _lastInitializationResult;
+
   /// Set test environment mode to disable timers and subscriptions
   static void setTestEnvironment(bool isTest) {
     _isTestEnvironment = isTest;
@@ -114,12 +130,12 @@ class TodayFeedCacheLifecycleManager {
     debugPrint('🧪 Test environment set to: $isTest');
   }
 
-  /// Initialize the Today Feed cache service system
+  /// Initialize the Today Feed cache service system using strategy pattern
   ///
-  /// Sets up all specialized services in proper dependency order and configures
-  /// timezone handling, cache validation, and refresh scheduling. Optimized for
-  /// test environments to skip expensive operations.
-  static Future<void> initialize() async {
+  /// Automatically selects the best initialization strategy based on context
+  /// and executes it. Sets up all specialized services in proper dependency order
+  /// and configures timezone handling, cache validation, and refresh scheduling.
+  static Future<void> initialize([InitializationContext? context]) async {
     if (_isInitialized) {
       debugPrint('✅ TodayFeedCacheLifecycleManager already initialized');
       return;
@@ -130,26 +146,149 @@ class TodayFeedCacheLifecycleManager {
     _lastInitializationError = null;
 
     try {
+      // Always perform essential initialization first
       await _initializePreferences();
       await _validateConfiguration();
 
-      // Handle test environment early exit
-      if (_shouldSkipFullInitialization()) {
-        await _completeTestInitialization();
-        return;
+      // Create initialization context if not provided
+      context ??= _createInitializationContext();
+
+      // Select and execute initialization strategy
+      _lastInitializationStrategy =
+          TodayFeedCacheInitializationStrategy.selectStrategy(context);
+      debugPrint(
+        '📋 Selected initialization strategy: ${_lastInitializationStrategy!.strategyType.name}',
+      );
+
+      // Delegate to strategy for the actual initialization work
+      _lastInitializationResult = await _executeInitializationStrategy(context);
+
+      if (_lastInitializationResult!.success) {
+        _isInitialized = true;
+        _logSuccessfulInitialization();
+      } else {
+        throw Exception(
+          'Strategy initialization failed: ${_lastInitializationResult!.error}',
+        );
       }
-
-      await _initializeServices();
-      await _validateCacheVersion();
-      await _setupTimezoneHandling();
-      await _scheduleBackgroundTasks();
-
-      _isInitialized = true;
-      _logSuccessfulInitialization();
     } catch (e) {
       _lastInitializationError = e.toString();
       debugPrint('❌ Failed to initialize TodayFeedCacheLifecycleManager: $e');
       rethrow;
+    }
+  }
+
+  /// Execute the selected initialization strategy with fallback handling
+  static Future<InitializationResult> _executeInitializationStrategy(
+    InitializationContext context,
+  ) async {
+    try {
+      // For test environment, perform minimal additional initialization
+      if (context.isTestEnvironment || _isTestEnvironment) {
+        return await _executeTestEnvironmentStrategy(context);
+      }
+
+      // Use strategy pattern with automatic fallback for other contexts
+      return await TodayFeedCacheInitializationStrategy.executeWithAutoSelection(
+        context,
+      );
+    } catch (e) {
+      debugPrint(
+        '❌ Strategy execution failed, performing manual initialization: $e',
+      );
+
+      // Fallback to manual initialization if strategy fails
+      await _performManualInitialization();
+
+      final duration = DateTime.now().difference(_initializationStartTime!);
+      return InitializationResult.createSuccess(
+        strategyType: InitializationStrategyType.recovery,
+        duration: duration,
+        stepsCompleted: _initializationSteps,
+        metrics: {'fallback_mode': true, 'manual_initialization': true},
+      );
+    }
+  }
+
+  /// Execute test environment strategy with essential setup
+  static Future<InitializationResult> _executeTestEnvironmentStrategy(
+    InitializationContext context,
+  ) async {
+    final startTime = DateTime.now();
+    final steps = <String>[];
+
+    try {
+      debugPrint('🧪 Executing test environment strategy with essential setup');
+      steps.add('test_strategy_with_essentials');
+
+      // Complete test environment initialization (skip full services but mark as complete)
+      _initializationSteps.add('test_mode_completed');
+      steps.add('test_mode_completed');
+
+      final duration = DateTime.now().difference(startTime);
+
+      return InitializationResult.createSuccess(
+        strategyType: InitializationStrategyType.testEnvironment,
+        duration: duration,
+        stepsCompleted: steps,
+        metrics: {
+          'test_mode': true,
+          'essential_setup_completed': true,
+          'skipped_expensive_operations': true,
+        },
+        isFullInitialization: false,
+      );
+    } catch (e) {
+      final duration = DateTime.now().difference(startTime);
+      return InitializationResult.createFailure(
+        strategyType: InitializationStrategyType.testEnvironment,
+        duration: duration,
+        error: e.toString(),
+        stepsCompleted: steps,
+      );
+    }
+  }
+
+  /// Create initialization context based on current state
+  static InitializationContext _createInitializationContext() {
+    // Check if this is test environment
+    if (_isTestEnvironment || TodayFeedCacheConfiguration.isTestEnvironment) {
+      return InitializationContext.testEnvironment();
+    }
+
+    // Check if we have a previous error
+    if (_lastInitializationError != null) {
+      return InitializationContext.recovery(
+        previousError: _lastInitializationError!,
+      );
+    }
+
+    // Check if this is a warm restart (if we've been initialized recently)
+    if (_lastInitializationResult != null && _initializationStartTime != null) {
+      final timeSinceLastInit = DateTime.now().difference(
+        _initializationStartTime!,
+      );
+      if (timeSinceLastInit <
+          TodayFeedCacheConfiguration.warmRestartThreshold) {
+        return InitializationContext.warmRestart(
+          timeSinceLastInit: timeSinceLastInit,
+        );
+      }
+    }
+
+    // Default to cold start
+    return InitializationContext.coldStart(isFirstLaunch: _prefs == null);
+  }
+
+  /// Perform manual initialization as fallback
+  static Future<void> _performManualInitialization() async {
+    // Preferences and configuration are already initialized
+
+    if (!_shouldSkipFullInitialization()) {
+      await _initializeServices();
+      await _validateCacheVersion();
+      await _setupTimezoneHandling();
+      await _scheduleBackgroundTasks();
     }
   }
 
@@ -191,6 +330,10 @@ class TodayFeedCacheLifecycleManager {
     _lastInitializationError = null;
     _initializationStartTime = null;
     _initializationSteps.clear();
+
+    // Clear strategy-related state
+    _lastInitializationStrategy = null;
+    _lastInitializationResult = null;
 
     // Cancel and clear all timers
     _refreshTimer?.cancel();
@@ -297,20 +440,6 @@ class TodayFeedCacheLifecycleManager {
   /// Check if full initialization should be skipped
   static bool _shouldSkipFullInitialization() {
     return _isTestEnvironment || TodayFeedCacheConfiguration.isTestEnvironment;
-  }
-
-  /// Complete test environment initialization
-  static Future<void> _completeTestInitialization() async {
-    _isInitialized = true;
-    _initializationSteps.add('test_mode_completed');
-    debugPrint(
-      '✅ TodayFeedCacheLifecycleManager test mode - skipping full initialization',
-    );
-
-    final duration = DateTime.now().difference(_initializationStartTime!);
-    debugPrint(
-      '⏱️ Test initialization completed in ${duration.inMilliseconds}ms',
-    );
   }
 
   /// Initialize all services in proper dependency order
@@ -425,18 +554,30 @@ class TodayFeedCacheLifecycleManager {
 
   /// Log successful initialization
   static void _logSuccessfulInitialization() {
-    final duration = DateTime.now().difference(_initializationStartTime!);
+    final duration =
+        _initializationStartTime != null
+            ? DateTime.now().difference(_initializationStartTime!)
+            : Duration.zero;
     final env = TodayFeedCacheConfiguration.environment;
 
     debugPrint('✅ TodayFeedCacheLifecycleManager initialized successfully');
     debugPrint('📊 Environment: ${env.name}');
+    debugPrint(
+      '🎯 Strategy: ${_lastInitializationStrategy?.strategyType.name ?? 'manual'}',
+    );
     debugPrint('⏱️ Initialization time: ${duration.inMilliseconds}ms');
-    debugPrint('📋 Steps completed: ${_initializationSteps.length}');
 
-    if (kDebugMode) {
+    if (_lastInitializationResult != null) {
       debugPrint(
-        '🔍 Initialization steps: ${_initializationSteps.join(' → ')}',
+        '📋 Strategy steps: ${_lastInitializationResult!.stepsCompleted.length}',
       );
+      debugPrint(
+        '🔧 Full initialization: ${_lastInitializationResult!.isFullInitialization}',
+      );
+    }
+
+    if (kDebugMode && _initializationSteps.isNotEmpty) {
+      debugPrint('🔍 Manual steps: ${_initializationSteps.join(' → ')}');
     }
   }
 
@@ -510,10 +651,14 @@ class TodayFeedCacheLifecycleManager {
     _initializationSteps.clear();
     _lastInitializationError = null;
     _initializationStartTime = null;
+
+    // Clear strategy-related state
+    _lastInitializationStrategy = null;
+    _lastInitializationResult = null;
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // DIAGNOSTIC AND MONITORING
+  // DIAGNOSTIC AND MONITORING (ENHANCED WITH STRATEGY INFORMATION)
   // ═══════════════════════════════════════════════════════════════════════════
 
   /// Get comprehensive lifecycle status for debugging
@@ -527,10 +672,21 @@ class TodayFeedCacheLifecycleManager {
       'last_error': _lastInitializationError,
       'timer_status': getTimerStatus(),
       'initialization_time': _initializationStartTime?.toIso8601String(),
+      'strategy_info': {
+        'last_strategy_type': _lastInitializationStrategy?.strategyType.name,
+        'last_strategy_priority': _lastInitializationStrategy?.priority,
+        'last_result_success': _lastInitializationResult?.success,
+        'last_result_duration_ms':
+            _lastInitializationResult?.duration.inMilliseconds,
+        'last_result_full_init':
+            _lastInitializationResult?.isFullInitialization,
+        'strategy_steps_completed':
+            _lastInitializationResult?.stepsCompleted.length,
+      },
     };
   }
 
-  /// Get initialization performance metrics
+  /// Get initialization performance metrics with strategy details
   static Map<String, dynamic> getInitializationMetrics() {
     final duration =
         _initializationStartTime != null
@@ -543,6 +699,40 @@ class TodayFeedCacheLifecycleManager {
       'has_error': _lastInitializationError != null,
       'environment': TodayFeedCacheConfiguration.environment.name,
       'test_mode': _isTestEnvironment,
+      'strategy_metrics': {
+        'strategy_type': _lastInitializationStrategy?.strategyType.name,
+        'strategy_estimated_time_ms':
+            _lastInitializationStrategy?.estimatedTime.inMilliseconds,
+        'strategy_actual_duration_ms':
+            _lastInitializationResult?.duration.inMilliseconds,
+        'strategy_performance_ratio': _calculateStrategyPerformanceRatio(),
+        'strategy_memory_requirement_mb':
+            _lastInitializationStrategy?.memoryRequirementMB,
+        'strategy_requires_full_setup':
+            _lastInitializationStrategy?.requiresFullSetup,
+        'strategy_priority': _lastInitializationStrategy?.priority,
+      },
     };
+  }
+
+  /// Calculate strategy performance ratio (actual vs estimated)
+  static double? _calculateStrategyPerformanceRatio() {
+    if (_lastInitializationStrategy == null ||
+        _lastInitializationResult == null) {
+      return null;
+    }
+
+    final estimated = _lastInitializationStrategy!.estimatedTime.inMilliseconds;
+    final actual = _lastInitializationResult!.duration.inMilliseconds;
+
+    if (estimated <= 0) return null;
+
+    return actual / estimated;
+  }
+
+  /// Get strategy performance benchmarks for comparison
+  static Map<String, dynamic> getStrategyBenchmarks() {
+    final benchmarks = TodayFeedCacheInitializationStrategy.getBenchmarks();
+    return benchmarks.map((key, value) => MapEntry(key.name, value));
   }
 }

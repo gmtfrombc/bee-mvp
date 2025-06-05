@@ -80,3 +80,50 @@ linter:
 # For violations, see refactoring guidelines:
 # docs/refactor/component_size_audit_refactor_plan.md
 # ==============================================================
+
+# ==============================================================
+# TODAY FEED CACHE SERVICE MIGRATION GUIDANCE
+# ==============================================================
+# The Today Feed Cache Service has been refactored from a monolithic
+# service to a modular architecture. Legacy methods are still supported
+# for backward compatibility but will be deprecated in future releases.
+#
+# **MIGRATION DEADLINES:**
+# - v1.9 (6 months): Deprecation warnings added
+# - v2.0 (12 months): Legacy methods removed
+#
+# **AUTOMATED MIGRATION TOOLS:**
+# Use the migration helper to scan for legacy usage:
+# ```bash
+# dart scripts/migration_helper.dart
+# ```
+#
+# **LEGACY METHODS TO AVOID IN NEW CODE:**
+# - TodayFeedCacheService.clearAllCache() → invalidateCache()
+# - TodayFeedCacheService.getCacheStats() → getCacheMetadata()
+# - TodayFeedCacheService.queueInteraction() → TodayFeedCacheSyncService.cachePendingInteraction()
+# - TodayFeedCacheService.syncWhenOnline() → TodayFeedCacheSyncService.syncWhenOnline()
+# - TodayFeedCacheService.selectiveCleanup() → TodayFeedCacheMaintenanceService.selectiveCleanup()
+# - TodayFeedCacheService.getDiagnosticInfo() → TodayFeedCacheHealthService.getDiagnosticInfo()
+# - TodayFeedCacheService.getCacheStatistics() → TodayFeedCacheStatisticsService.getCacheStatistics()
+# - TodayFeedCacheService.getCacheHealthStatus() → TodayFeedCacheHealthService.getCacheHealthStatus()
+# - TodayFeedCacheService.getContentHistory() → TodayFeedContentService.getContentHistory()
+# - TodayFeedCacheService.invalidateContent() → TodayFeedCacheMaintenanceService.invalidateContent()
+# - TodayFeedCacheService.setBackgroundSyncEnabled() → TodayFeedCacheSyncService.setBackgroundSyncEnabled()
+# - TodayFeedCacheService.isBackgroundSyncEnabled() → TodayFeedCacheSyncService.isBackgroundSyncEnabled()
+# - TodayFeedCacheService.markContentAsViewed() → TodayFeedCacheSyncService.markContentAsViewed()
+# - TodayFeedCacheService.cachePendingInteraction() → TodayFeedCacheSyncService.cachePendingInteraction()
+# - TodayFeedCacheService.getPendingInteractions() → TodayFeedCacheSyncService.getPendingInteractions()
+# - TodayFeedCacheService.clearPendingInteractions() → TodayFeedCacheSyncService.clearPendingInteractions()
+# - TodayFeedCacheService.getCacheInvalidationStats() → TodayFeedCacheMaintenanceService.getCacheInvalidationStats()
+# - TodayFeedCacheService.exportMetricsForMonitoring() → TodayFeedCacheStatisticsService.exportMetricsForMonitoring()
+# - TodayFeedCacheService.performCacheIntegrityCheck() → TodayFeedCacheHealthService.performCacheIntegrityCheck()
+#
+# **MIGRATION GUIDE:**
+# See: docs/refactor/today_feed_cache_migration_guide.md
+#
+# **RECOMMENDED APPROACH FOR NEW CODE:**
+# - Import specialized services directly
+# - Use modern method signatures with enhanced parameters
+# - Follow modular architecture patterns
+# ==============================================================

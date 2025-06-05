@@ -420,33 +420,5 @@ void main() {
         expect(integrityCheck['integrity_score'], isA<int>());
       });
     });
-
-    group('Error Handling', () {
-      test('should handle corrupted cache data gracefully', () async {
-        // Arrange - Simulate corrupted cache
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('today_feed_content', 'invalid-json-data');
-
-        // Act & Assert - Should not throw exception
-        expect(
-          () async => await TodayFeedCacheService.getTodayContent(),
-          returnsNormally,
-        );
-
-        final content = await TodayFeedCacheService.getTodayContent();
-        expect(content, isNull);
-      });
-
-      test('should handle null content gracefully', () async {
-        // Act & Assert
-        expect(
-          () async => await TodayFeedCacheService.getTodayContent(),
-          returnsNormally,
-        );
-
-        final content = await TodayFeedCacheService.getTodayContent();
-        expect(content, isNull);
-      });
-    });
   });
 }

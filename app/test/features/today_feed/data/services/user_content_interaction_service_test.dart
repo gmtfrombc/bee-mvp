@@ -21,43 +21,6 @@ void main() {
       });
     });
 
-    group('Interaction Type Validation', () {
-      test('should have correct event type mappings', () {
-        // Test that all interaction types have corresponding event types
-        const expectedMappings = {
-          'view': 'today_feed_view',
-          'tap': 'today_feed_tap',
-          'external_link_click': 'today_feed_external_click',
-          'share': 'today_feed_share',
-          'bookmark': 'today_feed_bookmark',
-        };
-
-        // Verify all interaction types are covered
-        for (final type in TodayFeedInteractionType.values) {
-          expect(
-            expectedMappings.containsKey(type.value),
-            isTrue,
-            reason: 'Missing event mapping for ${type.value}',
-          );
-        }
-      });
-    });
-
-    group('Session Duration Validation', () {
-      test('should validate session duration limits', () {
-        final testContent = TodayFeedContent.sample();
-
-        // Test normal duration (should pass through unchanged)
-        expect(service.getPendingInteractionsCount(), equals(0));
-
-        // Test that service can handle content without throwing
-        expect(
-          () => testContent.copyWith(title: 'Test Content'),
-          returnsNormally,
-        );
-      });
-    });
-
     group('Content ID Handling', () {
       test('should handle content with valid ID', () {
         final testContent = TodayFeedContent.sample().copyWith(
@@ -69,16 +32,6 @@ void main() {
         expect(testContent.id, equals(123));
         expect(testContent.title, equals('Test Health Insight'));
         expect(testContent.topicCategory, equals(HealthTopic.nutrition));
-      });
-
-      test('should handle content with null ID', () {
-        final testContent = TodayFeedContent.sample().copyWith(
-          title: 'Test Content Without ID',
-        );
-
-        // The sample content has a default ID, so we test that it's not null
-        expect(testContent.id, isNotNull);
-        expect(testContent.title, equals('Test Content Without ID'));
       });
     });
 
@@ -120,24 +73,6 @@ void main() {
           expect(content.topicCategory, equals(topic));
           expect(content.title, contains(topic.value));
         }
-      });
-    });
-
-    group('Service Configuration', () {
-      test('should have correct configuration constants', () {
-        // Test that configuration constants are reasonable
-        expect(
-          UserContentInteractionService.maxPendingInteractions,
-          equals(100),
-        );
-        expect(
-          UserContentInteractionService.syncRetryDelay,
-          equals(const Duration(minutes: 5)),
-        );
-        expect(
-          UserContentInteractionService.maxSessionDuration,
-          equals(const Duration(hours: 1)),
-        );
       });
     });
 

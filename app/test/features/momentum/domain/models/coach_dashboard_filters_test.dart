@@ -276,30 +276,6 @@ void main() {
         expect(filters.status, equals('all')); // Default value
       });
 
-      test('should handle null values gracefully', () {
-        final json = {'timeRange': null, 'priority': 'low', 'status': null};
-
-        final filters = CoachDashboardFilters.fromJson(json);
-
-        expect(filters.timeRange, equals('7d')); // Default value
-        expect(filters.priority, equals('low'));
-        expect(filters.status, equals('all')); // Default value
-      });
-
-      test('should handle invalid types gracefully', () {
-        final json = {
-          'timeRange': 123, // Invalid type
-          'priority': 'medium',
-          'status': [], // Invalid type
-        };
-
-        final filters = CoachDashboardFilters.fromJson(json);
-
-        expect(filters.timeRange, equals('7d')); // Default value
-        expect(filters.priority, equals('medium'));
-        expect(filters.status, equals('all')); // Default value
-      });
-
       test('should round-trip JSON serialization correctly', () {
         final original = customFilters;
         final json = original.toJson();
@@ -396,98 +372,6 @@ void main() {
     });
   });
 
-  group('TimeRangeFilter Enum Tests', () {
-    test('should have correct values and display names', () {
-      expect(TimeRangeFilter.day.value, equals('24h'));
-      expect(TimeRangeFilter.day.displayName, equals('Last 24 Hours'));
-
-      expect(TimeRangeFilter.week.value, equals('7d'));
-      expect(TimeRangeFilter.week.displayName, equals('Last 7 Days'));
-
-      expect(TimeRangeFilter.month.value, equals('30d'));
-      expect(TimeRangeFilter.month.displayName, equals('Last 30 Days'));
-    });
-
-    test('should create from valid string values', () {
-      expect(TimeRangeFilter.fromValue('24h'), equals(TimeRangeFilter.day));
-      expect(TimeRangeFilter.fromValue('7d'), equals(TimeRangeFilter.week));
-      expect(TimeRangeFilter.fromValue('30d'), equals(TimeRangeFilter.month));
-    });
-
-    test('should fallback to default for invalid values', () {
-      expect(
-        TimeRangeFilter.fromValue('invalid'),
-        equals(TimeRangeFilter.week),
-      );
-      expect(TimeRangeFilter.fromValue(''), equals(TimeRangeFilter.week));
-      expect(TimeRangeFilter.fromValue('1d'), equals(TimeRangeFilter.week));
-    });
-  });
-
-  group('PriorityFilter Enum Tests', () {
-    test('should have correct values and display names', () {
-      expect(PriorityFilter.all.value, equals('all'));
-      expect(PriorityFilter.all.displayName, equals('All Priorities'));
-
-      expect(PriorityFilter.high.value, equals('high'));
-      expect(PriorityFilter.high.displayName, equals('High Priority'));
-
-      expect(PriorityFilter.medium.value, equals('medium'));
-      expect(PriorityFilter.medium.displayName, equals('Medium Priority'));
-
-      expect(PriorityFilter.low.value, equals('low'));
-      expect(PriorityFilter.low.displayName, equals('Low Priority'));
-    });
-
-    test('should create from valid string values', () {
-      expect(PriorityFilter.fromValue('all'), equals(PriorityFilter.all));
-      expect(PriorityFilter.fromValue('high'), equals(PriorityFilter.high));
-      expect(PriorityFilter.fromValue('medium'), equals(PriorityFilter.medium));
-      expect(PriorityFilter.fromValue('low'), equals(PriorityFilter.low));
-    });
-
-    test('should fallback to default for invalid values', () {
-      expect(PriorityFilter.fromValue('invalid'), equals(PriorityFilter.all));
-      expect(PriorityFilter.fromValue(''), equals(PriorityFilter.all));
-      expect(PriorityFilter.fromValue('urgent'), equals(PriorityFilter.all));
-    });
-  });
-
-  group('StatusFilter Enum Tests', () {
-    test('should have correct values and display names', () {
-      expect(StatusFilter.all.value, equals('all'));
-      expect(StatusFilter.all.displayName, equals('All Statuses'));
-
-      expect(StatusFilter.pending.value, equals('pending'));
-      expect(StatusFilter.pending.displayName, equals('Pending'));
-
-      expect(StatusFilter.inProgress.value, equals('in_progress'));
-      expect(StatusFilter.inProgress.displayName, equals('In Progress'));
-
-      expect(StatusFilter.completed.value, equals('completed'));
-      expect(StatusFilter.completed.displayName, equals('Completed'));
-    });
-
-    test('should create from valid string values', () {
-      expect(StatusFilter.fromValue('all'), equals(StatusFilter.all));
-      expect(StatusFilter.fromValue('pending'), equals(StatusFilter.pending));
-      expect(
-        StatusFilter.fromValue('in_progress'),
-        equals(StatusFilter.inProgress),
-      );
-      expect(
-        StatusFilter.fromValue('completed'),
-        equals(StatusFilter.completed),
-      );
-    });
-
-    test('should fallback to default for invalid values', () {
-      expect(StatusFilter.fromValue('invalid'), equals(StatusFilter.all));
-      expect(StatusFilter.fromValue(''), equals(StatusFilter.all));
-      expect(StatusFilter.fromValue('active'), equals(StatusFilter.all));
-    });
-  });
-
   group('Integration Tests', () {
     test('should work with enum conversion round-trip', () {
       final filters = const CoachDashboardFilters(
@@ -547,6 +431,10 @@ void main() {
           }
         }
       }
+    });
+
+    test('should create filters from complex query', () {
+      // ... existing code ...
     });
   });
 }

@@ -1,4 +1,4 @@
-/// **TodayFeedCacheConfiguration**
+// **TodayFeedCacheConfiguration**
 ///
 /// Centralized configuration for Today Feed cache service operations.
 /// Following ResponsiveService pattern of extracting constants to avoid
@@ -124,6 +124,88 @@ class TestConfiguration {
 
   static const Duration testResponseTimeThreshold = Duration(milliseconds: 100);
   static const double testHealthThreshold = 0.75;
+}
+
+/// **Initialization Strategy Configuration**
+///
+/// Performance and timing configuration for different initialization strategies
+class InitializationStrategyConfiguration {
+  // Strategy timing thresholds
+  static const Duration warmRestartThreshold = Duration(minutes: 5);
+
+  // Cold Start Strategy Configuration
+  static const Duration coldStartInitializationTime = Duration(
+    milliseconds: 200,
+  );
+  static const Duration coldStartMaxTime = Duration(seconds: 10);
+  static const int coldStartMemoryRequirementMB = 5;
+
+  // Warm Restart Strategy Configuration
+  static const Duration warmRestartTime = Duration(milliseconds: 50);
+  static const Duration warmRestartMaxTime = Duration(seconds: 2);
+  static const int warmRestartMemoryRequirementMB = 2;
+
+  // Test Environment Strategy Configuration
+  static const Duration testInitializationTime = Duration(milliseconds: 10);
+  static const Duration testMaxTime = Duration(milliseconds: 500);
+  static const int testMemoryRequirementMB = 1;
+
+  // Background Strategy Configuration
+  static const Duration backgroundInitializationTime = Duration(
+    milliseconds: 100,
+  );
+  static const Duration backgroundMaxTime = Duration(seconds: 5);
+  static const int backgroundMemoryRequirementMB = 3;
+
+  // Recovery Strategy Configuration
+  static const Duration recoveryInitializationTime = Duration(
+    milliseconds: 150,
+  );
+  static const Duration recoveryMaxTime = Duration(seconds: 8);
+  static const int recoveryMemoryRequirementMB = 4;
+}
+
+/// **Optimization Strategy Configuration**
+///
+/// Performance and timing configuration for different cache optimization strategies
+class OptimizationStrategyConfiguration {
+  // Aggressive Optimization Strategy Configuration
+  static const Duration aggressiveOptimizationTime = Duration(
+    milliseconds: 500,
+  );
+  static const Duration aggressiveMaxTime = Duration(seconds: 30);
+  static const int aggressiveMemoryUsageMB = 20; // Additional memory usage
+
+  // Conservative Optimization Strategy Configuration
+  static const Duration conservativeOptimizationTime = Duration(
+    milliseconds: 100,
+  );
+  static const Duration conservativeMaxTime = Duration(seconds: 5);
+  static const int conservativeMemoryFreedMB = 5;
+
+  // Memory Optimized Strategy Configuration
+  static const Duration memoryOptimizationTime = Duration(milliseconds: 300);
+  static const Duration memoryOptimizationMaxTime = Duration(seconds: 15);
+  static const int memoryOptimizationTargetMB = 50; // Target memory to free
+
+  // Performance Optimized Strategy Configuration
+  static const Duration performanceOptimizationTime = Duration(
+    milliseconds: 400,
+  );
+  static const Duration performanceOptimizationMaxTime = Duration(seconds: 20);
+  static const int performanceOptimizationMemoryUsageMB =
+      10; // Additional memory usage
+
+  // Balanced Optimization Strategy Configuration
+  static const Duration balancedOptimizationTime = Duration(milliseconds: 250);
+  static const Duration balancedOptimizationMaxTime = Duration(seconds: 10);
+  static const int balancedMemoryTargetMB = 10; // Target memory to free
+
+  // Optimization thresholds
+  static const Duration optimizationInterval = Duration(minutes: 30);
+  static const Duration memoryPressureThreshold = Duration(minutes: 5);
+  static const int lowMemoryThresholdMB = 256;
+  static const int performanceThresholdMs = 500;
 }
 
 /// **Environment Type**
@@ -300,6 +382,131 @@ class TodayFeedCacheConfiguration {
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
+  // INITIALIZATION STRATEGY CONFIGURATION
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Warm restart threshold for strategy selection
+  static Duration get warmRestartThreshold =>
+      InitializationStrategyConfiguration.warmRestartThreshold;
+
+  // Cold Start Strategy Configuration
+  static Duration get coldStartInitializationTime =>
+      InitializationStrategyConfiguration.coldStartInitializationTime;
+
+  static Duration get coldStartMaxTime =>
+      InitializationStrategyConfiguration.coldStartMaxTime;
+
+  static int get coldStartMemoryRequirementMB =>
+      InitializationStrategyConfiguration.coldStartMemoryRequirementMB;
+
+  // Warm Restart Strategy Configuration
+  static Duration get warmRestartTime =>
+      InitializationStrategyConfiguration.warmRestartTime;
+
+  static Duration get warmRestartMaxTime =>
+      InitializationStrategyConfiguration.warmRestartMaxTime;
+
+  static int get warmRestartMemoryRequirementMB =>
+      InitializationStrategyConfiguration.warmRestartMemoryRequirementMB;
+
+  // Test Environment Strategy Configuration
+  static Duration get testInitializationTime =>
+      InitializationStrategyConfiguration.testInitializationTime;
+
+  static Duration get testMaxTime =>
+      InitializationStrategyConfiguration.testMaxTime;
+
+  static int get testMemoryRequirementMB =>
+      InitializationStrategyConfiguration.testMemoryRequirementMB;
+
+  // Background Strategy Configuration
+  static Duration get backgroundInitializationTime =>
+      InitializationStrategyConfiguration.backgroundInitializationTime;
+
+  static Duration get backgroundMaxTime =>
+      InitializationStrategyConfiguration.backgroundMaxTime;
+
+  static int get backgroundMemoryRequirementMB =>
+      InitializationStrategyConfiguration.backgroundMemoryRequirementMB;
+
+  // Recovery Strategy Configuration
+  static Duration get recoveryInitializationTime =>
+      InitializationStrategyConfiguration.recoveryInitializationTime;
+
+  static Duration get recoveryMaxTime =>
+      InitializationStrategyConfiguration.recoveryMaxTime;
+
+  static int get recoveryMemoryRequirementMB =>
+      InitializationStrategyConfiguration.recoveryMemoryRequirementMB;
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // OPTIMIZATION STRATEGY CONFIGURATION
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // Aggressive Optimization Strategy Configuration
+  static Duration get aggressiveOptimizationTime =>
+      OptimizationStrategyConfiguration.aggressiveOptimizationTime;
+
+  static Duration get aggressiveMaxTime =>
+      OptimizationStrategyConfiguration.aggressiveMaxTime;
+
+  static int get aggressiveMemoryUsageMB =>
+      OptimizationStrategyConfiguration.aggressiveMemoryUsageMB;
+
+  // Conservative Optimization Strategy Configuration
+  static Duration get conservativeOptimizationTime =>
+      OptimizationStrategyConfiguration.conservativeOptimizationTime;
+
+  static Duration get conservativeMaxTime =>
+      OptimizationStrategyConfiguration.conservativeMaxTime;
+
+  static int get conservativeMemoryFreedMB =>
+      OptimizationStrategyConfiguration.conservativeMemoryFreedMB;
+
+  // Memory Optimized Strategy Configuration
+  static Duration get memoryOptimizationTime =>
+      OptimizationStrategyConfiguration.memoryOptimizationTime;
+
+  static Duration get memoryOptimizationMaxTime =>
+      OptimizationStrategyConfiguration.memoryOptimizationMaxTime;
+
+  static int get memoryOptimizationTargetMB =>
+      OptimizationStrategyConfiguration.memoryOptimizationTargetMB;
+
+  // Performance Optimized Strategy Configuration
+  static Duration get performanceOptimizationTime =>
+      OptimizationStrategyConfiguration.performanceOptimizationTime;
+
+  static Duration get performanceOptimizationMaxTime =>
+      OptimizationStrategyConfiguration.performanceOptimizationMaxTime;
+
+  static int get performanceOptimizationMemoryUsageMB =>
+      OptimizationStrategyConfiguration.performanceOptimizationMemoryUsageMB;
+
+  // Balanced Optimization Strategy Configuration
+  static Duration get balancedOptimizationTime =>
+      OptimizationStrategyConfiguration.balancedOptimizationTime;
+
+  static Duration get balancedOptimizationMaxTime =>
+      OptimizationStrategyConfiguration.balancedOptimizationMaxTime;
+
+  static int get balancedMemoryTargetMB =>
+      OptimizationStrategyConfiguration.balancedMemoryTargetMB;
+
+  // Optimization thresholds
+  static Duration get optimizationInterval =>
+      OptimizationStrategyConfiguration.optimizationInterval;
+
+  static Duration get memoryPressureThreshold =>
+      OptimizationStrategyConfiguration.memoryPressureThreshold;
+
+  static int get lowMemoryThresholdMB =>
+      OptimizationStrategyConfiguration.lowMemoryThresholdMB;
+
+  static int get performanceThresholdMs =>
+      OptimizationStrategyConfiguration.performanceThresholdMs;
+
+  // ═══════════════════════════════════════════════════════════════════════════
   // VALIDATION METHODS
   // ═══════════════════════════════════════════════════════════════════════════
 
@@ -376,12 +583,62 @@ class TodayFeedCacheConfiguration {
     }
   }
 
+  /// Validate optimization strategy configuration
+  static bool validateOptimizationConfiguration() {
+    try {
+      // Validate optimization timing
+      if (aggressiveOptimizationTime.isNegative ||
+          conservativeOptimizationTime.isNegative ||
+          memoryOptimizationTime.isNegative ||
+          performanceOptimizationTime.isNegative ||
+          balancedOptimizationTime.isNegative) {
+        debugPrint('❌ Invalid optimization timing configuration');
+        return false;
+      }
+
+      // Validate max time constraints
+      if (aggressiveMaxTime.isNegative ||
+          conservativeMaxTime.isNegative ||
+          memoryOptimizationMaxTime.isNegative ||
+          performanceOptimizationMaxTime.isNegative ||
+          balancedOptimizationMaxTime.isNegative) {
+        debugPrint('❌ Invalid optimization max time configuration');
+        return false;
+      }
+
+      // Validate thresholds
+      if (optimizationInterval.isNegative ||
+          memoryPressureThreshold.isNegative ||
+          lowMemoryThresholdMB <= 0 ||
+          performanceThresholdMs <= 0) {
+        debugPrint('❌ Invalid optimization threshold configuration');
+        return false;
+      }
+
+      // Validate memory targets and usage values
+      if (aggressiveMemoryUsageMB < 0 ||
+          conservativeMemoryFreedMB < 0 ||
+          memoryOptimizationTargetMB <= 0 ||
+          performanceOptimizationMemoryUsageMB < 0 ||
+          balancedMemoryTargetMB <= 0) {
+        debugPrint('❌ Invalid optimization memory configuration');
+        return false;
+      }
+
+      return true;
+    } catch (e) {
+      debugPrint('❌ Optimization configuration validation failed: $e');
+      return false;
+    }
+  }
+
   /// Validate all configuration
   static bool validateConfiguration() {
     final timingValid = validateTimingConfiguration();
     final performanceValid = validatePerformanceConfiguration();
+    final optimizationValid = validateOptimizationConfiguration();
 
-    final isValid = timingValid && performanceValid;
+    final isValid = timingValid && performanceValid && optimizationValid;
 
     if (isValid) {
       debugPrint('✅ TodayFeedCache configuration validation passed');
@@ -441,9 +698,22 @@ class TodayFeedCacheConfiguration {
         'max_history_entries': maxHistoryEntries,
         'max_pending_interactions': maxPendingInteractions,
       },
+      'optimization': {
+        'aggressive_time_ms': aggressiveOptimizationTime.inMilliseconds,
+        'conservative_time_ms': conservativeOptimizationTime.inMilliseconds,
+        'memory_optimization_time_ms': memoryOptimizationTime.inMilliseconds,
+        'performance_optimization_time_ms':
+            performanceOptimizationTime.inMilliseconds,
+        'balanced_time_ms': balancedOptimizationTime.inMilliseconds,
+        'optimization_interval': optimizationInterval.toString(),
+        'memory_pressure_threshold': memoryPressureThreshold.toString(),
+        'low_memory_threshold_mb': lowMemoryThresholdMB,
+        'performance_threshold_ms': performanceThresholdMs,
+      },
       'validation': {
         'timing_valid': validateTimingConfiguration(),
         'performance_valid': validatePerformanceConfiguration(),
+        'optimization_valid': validateOptimizationConfiguration(),
         'overall_valid': validateConfiguration(),
       },
     };

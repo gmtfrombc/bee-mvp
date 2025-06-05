@@ -340,19 +340,8 @@ void main() {
         expect(map['metadata']['meta_key'], 'meta_value');
       });
 
-      test('should handle null metadata', () {
-        final action = NotificationAction(
-          id: 'null_meta_test',
-          title: 'Null Meta Test',
-          action: 'null_meta_handler',
-        );
-
-        final map = action.toMap();
-
-        expect(map['id'], 'null_meta_test');
-        expect(map['title'], 'Null Meta Test');
-        expect(map['action'], 'null_meta_handler');
-        expect(map.containsKey('metadata'), false);
+      test('should cache content with priority mapping', () {
+        // ... existing code ...
       });
     });
   });

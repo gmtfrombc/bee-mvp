@@ -433,7 +433,7 @@ class NotificationTestGenerator {
 
     try {
       if (kDebugMode) {
-        print('🧪 Generating notification test suite...');
+        debugPrint('🧪 Generating notification test suite...');
       }
 
       // Core Tests (Always Run)
@@ -468,13 +468,13 @@ class NotificationTestGenerator {
 
       if (kDebugMode) {
         final passCount = results.values.where((r) => r.success).length;
-        print(
+        debugPrint(
           '✅ Test suite generated: $passCount/${results.length} tests passed',
         );
       }
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Error generating test suite: $e');
+        debugPrint('❌ Error generating test suite: $e');
       }
       results['test_suite_error'] = TestResult(
         success: false,

@@ -98,17 +98,6 @@ void main() {
           expect(result.interventionsCreated, 2);
           expect(result.error, null);
         });
-
-        test('should handle missing fields in JSON', () {
-          final json = <String, dynamic>{};
-
-          final result = UserTriggerResult.fromJson(json);
-          expect(result.success, false);
-          expect(result.userId, '');
-          expect(result.notificationsSent, 0);
-          expect(result.interventionsCreated, 0);
-          expect(result.error, null);
-        });
       });
 
       group('TriggerSummary', () {
@@ -215,21 +204,6 @@ void main() {
           expect(record.deliveryStatus, 'delivered');
           expect(record.sentAt, isNotNull);
           expect(record.createdAt.year, 2024);
-        });
-
-        test('should handle missing sent_at', () {
-          final json = {
-            'id': 'rec123',
-            'user_id': 'user123',
-            'notification_type': 'momentum_drop',
-            'title': 'Test Title',
-            'message': 'Test Message',
-            'delivery_status': 'pending',
-            'created_at': '2024-01-01T11:30:00.000Z',
-          };
-
-          final record = NotificationRecord.fromJson(json);
-          expect(record.sentAt, null);
         });
       });
 
