@@ -1,0 +1,52 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+---
+description: Core coding & architecture guidelines for the BEE‑MVP mobile app
+globs:
+  # Apply to all Flutter code and Supabase Edge Functions
+  - lib/**
+  - functions/**
+  - docs/ai_coach/**
+alwaysApply: false        # Use “@ bee_mvp” in chat or let Cursor auto‑attach
+---
+
+# 🐝 Behavioral Engagement Engine (BEE) – Project Rules
+
+## 1. Architecture Snapshot
+- Follow the layered stack in *docs/bee_mvp_architecture.md* mvp_architecture.md](file-service://file-Ra6TfA4BVuecxGgx68euF1)  
+  - Client → Supabase Edge Function `ai‑coaching-engine` → Claude/OpenAI → Postgres  
+  - Future migration path: Hasura + Cloud Run once BAA signed.
+- Keep **p95 API latency < 1 s**; target 30 req/min/user burst.
+## 2. Folder & Naming Conventions
+| Layer | Path | Notes |
+|-------|------|-------|
+| Features | `lib/features/{feature}/` | One folder per **Feature** (Momentum Meter, Today Feed, etc.) |
+| Shared | `lib/core/` | Reusable widgets, services, utilities |
+| Edge Functions | `functions/{function‑name}/` | Deno + Supabase CLI |
+| Docs | `docs/` | All markdown specs; one README per epic |
+
+> **Rule:** If a file grows beyond ~300 LOC or mixes UI, data and business logic, *split it*.
+
+## 3. Coding Standards
+- **SDK:** Flutter 3.3.2a  
+- **State:** Riverpod v2  
+- **Sizing & Colors:** import `responsive_services.dart` & `theme.dart` – *no magic numbers*  
+- **Null safety** everywhere (`--fatal-warnings` in CI).  
+- **SemVer tags** for Edge Functions.
+
+## 4. Testing Policy
+- Aim for **≥ 85 % coverage** on core logic, **≤ 5 %** golden/generic snapshot files.  
+- Use `flutter_test` + `mocktail`; integration tests in `test_driver/`.  
+- For each new public service method create *one* happy‑path test and critical edge‑case tests only.
+
+## 5. AI Coach Guard‑Rails
+*(Auto‑attach when working in `lib/features/ai_coach/**` or `functions/ai-coaching-engine/**`)*
+
+```yaml
+globs:
+  - lib/features/ai_coach/**
+  - functions/ai-coaching-engine/**
+alwaysApply: true

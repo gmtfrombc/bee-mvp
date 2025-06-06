@@ -1,213 +1,91 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:app/core/services/fcm_token_service.dart';
 import 'package:app/core/services/notification_action_dispatcher.dart';
 import 'core/config/environment.dart';
 import 'core/theme/app_theme.dart';
 import 'core/services/connectivity_service.dart';
 import 'core/services/offline_cache_service.dart';
 import 'core/services/firebase_service.dart';
-import 'core/notifications/domain/services/notification_core_service.dart';
-import 'core/notifications/infrastructure/notification_dispatcher.dart';
 import 'core/services/version_service.dart';
 import 'core/providers/supabase_provider.dart';
 import 'features/momentum/presentation/screens/momentum_screen.dart';
+import 'features/ai_coach/ui/coach_chat_screen.dart';
+import 'features/momentum/presentation/screens/profile_settings_screen.dart';
 import 'core/notifications/domain/services/notification_preferences_service.dart';
 import 'core/providers/theme_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize environment configuration
-  await Environment.initialize();
-
-  // Print environment configuration for debugging
-  Environment.printConfig();
-
-  // Validate environment configuration
-  if (!Environment.hasValidConfiguration) {
-    debugPrint('❌ Environment configuration is incomplete!');
-    debugPrint(
-      '   Please set SUPABASE_URL and SUPABASE_ANON_KEY environment variables',
-    );
-    debugPrint('   or create a .env file with proper configuration.');
-  }
-
-  // Initialize Firebase with enhanced error handling
   try {
-    await FirebaseService.initializeWithFallback();
-    if (FirebaseService.isAvailable) {
-      debugPrint('✅ Firebase initialized successfully');
-    } else {
-      debugPrint(
-        '⚠️ Firebase not available: ${FirebaseService.initializationError}',
-      );
-      debugPrint('💡 App will continue with limited functionality');
-    }
-  } catch (e) {
-    debugPrint('❌ Firebase initialization error: $e');
-    // Continue without Firebase for development
-  }
+    // Initialize environment configuration
+    await Environment.initialize();
+    debugPrint('✅ Environment initialized');
 
-  // Central notification system coordination
-  await _initializeNotificationSystem();
+    // Initialize core services
+    await _initializeCoreServices();
 
-  // Initialize other core services
-  await _initializeCoreServices();
-
-  runApp(const ProviderScope(child: BEEApp()));
-}
-
-/// Central notification system initialization with health checking
-Future<void> _initializeNotificationSystem() async {
-  final stopwatch = Stopwatch()..start();
-  final serviceStatus = <String, bool>{};
-
-  try {
-    debugPrint('🔄 Initializing notification system...');
-
-    // 1. Initialize notification preferences (domain layer)
-    try {
-      await NotificationPreferencesService.instance.initialize();
-      serviceStatus['preferences'] = true;
-      debugPrint('✅ Notification preferences service initialized');
-    } catch (e) {
-      serviceStatus['preferences'] = false;
-      debugPrint('❌ Failed to initialize notification preferences: $e');
-    }
-
-    // 2. Initialize core notification service
-    try {
-      await NotificationCoreService.instance.initialize(
-        onMessageReceived: _handleForegroundMessage,
-        onMessageOpenedApp: _handleNotificationTap,
-        onTokenRefresh: _handleTokenRefresh,
-      );
-      serviceStatus['core'] = true;
-      debugPrint('✅ Notification service initialized');
-
-      // 3. Initialize FCM token handling
-      await _initializeFCMToken();
-      serviceStatus['fcm'] = true;
-    } catch (e) {
-      serviceStatus['core'] = false;
-      serviceStatus['fcm'] = false;
-      debugPrint('❌ Failed to initialize notification service: $e');
-    }
-
-    stopwatch.stop();
-
-    // Service health summary
-    final successCount = serviceStatus.values.where((status) => status).length;
-    final totalCount = serviceStatus.length;
-
-    debugPrint(
-      '📊 Notification system health: $successCount/$totalCount services',
+    runApp(ProviderScope(child: const BEEApp()));
+  } catch (e, stackTrace) {
+    debugPrint('❌ App initialization failed: $e');
+    debugPrint('Stack trace: $stackTrace');
+    // Run app anyway with minimal functionality
+    runApp(
+      MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error, size: 64, color: Colors.red),
+                const SizedBox(height: 16),
+                const Text(
+                  'Failed to initialize app',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                Text('Error: $e'),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
-    debugPrint('⏱️ Initialization time: ${stopwatch.elapsedMilliseconds}ms');
-
-    if (successCount == totalCount) {
-      debugPrint('✅ Notification system fully operational');
-    } else {
-      debugPrint('⚠️ Notification system partially functional:');
-      serviceStatus.forEach((service, status) {
-        final icon = status ? '✅' : '❌';
-        debugPrint('   $icon $service');
-      });
-    }
-  } catch (e) {
-    debugPrint('❌ Critical notification system initialization error: $e');
   }
 }
 
-/// Initialize other core services with error isolation
+/// Initialize core services required for app functionality
 Future<void> _initializeCoreServices() async {
-  // Initialize version service
   try {
-    await VersionService.initialize();
-    debugPrint('✅ Version service initialized: ${VersionService.fullVersion}');
-  } catch (e) {
-    debugPrint('❌ Failed to initialize version service: $e');
-  }
+    // Initialize Firebase services
+    await FirebaseService.initializeWithFallback();
+    debugPrint('✅ Firebase initialized');
 
-  // Initialize connectivity monitoring
-  try {
+    // Initialize offline cache service
+    await OfflineCacheService.initialize();
+    debugPrint('✅ Offline cache initialized');
+
+    // Initialize connectivity monitoring
     await ConnectivityService.initialize();
     debugPrint('✅ Connectivity service initialized');
-  } catch (e) {
-    debugPrint('❌ Failed to initialize connectivity service: $e');
-  }
 
-  // Initialize offline cache
-  try {
-    await OfflineCacheService.initialize();
-    debugPrint('✅ Offline cache service initialized');
-  } catch (e) {
-    debugPrint('❌ Failed to initialize offline cache: $e');
-  }
-}
+    // Initialize version checking
+    await VersionService.initialize();
+    debugPrint('✅ Version service initialized');
 
-/// Handle foreground notifications with enhanced dispatcher
-void _handleForegroundMessage(RemoteMessage message) {
-  debugPrint('📱 Foreground notification: ${message.notification?.title}');
+    // Initialize notification preferences
+    await NotificationPreferencesService.instance.initialize();
+    debugPrint('✅ Notification preferences initialized');
 
-  // Use the notification dispatcher for comprehensive handling
-  final dispatcher = NotificationDispatcher.instance;
-  if (dispatcher.isReady) {
-    dispatcher.handleForegroundNotification(message);
-  } else {
-    // Fallback for when dispatcher isn't ready yet
-    debugPrint('⚠️ Notification dispatcher not ready, message queued');
+    debugPrint('🚀 Core services initialization complete');
+  } catch (e, stackTrace) {
+    debugPrint('❌ Core services initialization failed: $e');
+    debugPrint('Stack trace: $stackTrace');
+    rethrow;
   }
 }
 
-/// Handle notification taps with deep linking
-void _handleNotificationTap(RemoteMessage message) {
-  debugPrint('👆 Notification tapped: ${message.notification?.title}');
-  debugPrint('📱 Notification data: ${message.data}');
-
-  // Use the action dispatcher for comprehensive handling
-  final dispatcher = NotificationActionDispatcher.instance;
-  if (dispatcher.isReady) {
-    dispatcher.handleNotificationTap(message);
-  } else {
-    // Store for later processing when dispatcher is ready
-    debugPrint('⚠️ Notification dispatcher not ready, tap action queued');
-  }
-}
-
-/// Handle FCM token refresh
-void _handleTokenRefresh(String token) {
-  debugPrint('🔄 FCM Token refreshed: $token');
-  // Store token in Supabase user profile using FCM token service
-  FCMTokenService.instance.storeToken(token);
-}
-
-/// Initialize FCM token on app startup
-Future<void> _initializeFCMToken() async {
-  try {
-    // Check if FCM is available before attempting to get token
-    if (!FCMTokenService.instance.isAvailable) {
-      debugPrint('⚠️ FCM not available, skipping token initialization');
-      return;
-    }
-
-    final currentToken = await FCMTokenService.instance.getCurrentToken();
-    if (currentToken != null) {
-      debugPrint(
-        '📱 FCM Token initialized: ${currentToken.substring(0, 20)}...',
-      );
-    } else {
-      debugPrint('⚠️ Failed to get FCM token - may be in development mode');
-    }
-  } catch (e) {
-    debugPrint('❌ Failed to initialize FCM token: $e');
-    // Continue without FCM token - app should work offline
-  }
-}
-
-/// App wrapper to handle authentication and notification setup
+/// Main app wrapper that handles initialization and global providers
 class AppWrapper extends ConsumerStatefulWidget {
   const AppWrapper({super.key});
 
@@ -215,60 +93,44 @@ class AppWrapper extends ConsumerStatefulWidget {
   ConsumerState<AppWrapper> createState() => _AppWrapperState();
 }
 
-class _AppWrapperState extends ConsumerState<AppWrapper>
-    with WidgetsBindingObserver {
+class _AppWrapperState extends ConsumerState<AppWrapper> {
+  int _currentIndex = 0;
+
+  final List<Widget> _screens = [
+    const MomentumScreen(),
+    const CoachChatScreen(),
+    const ProfileSettingsScreen(),
+  ];
+
   @override
   void initState() {
     super.initState();
+    _initializeApp();
+  }
 
-    // Add lifecycle observer for app state changes
-    WidgetsBinding.instance.addObserver(this);
-
-    // Trigger authentication and notification setup on app start
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _ensureAuthenticated();
+  Future<void> _initializeApp() async {
+    try {
+      // Initialize notification dispatcher
       _initializeNotificationDispatcher();
-    });
-  }
 
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    // Dispose notification dispatcher
-    NotificationActionDispatcher.instance.dispose();
-    super.dispose();
-  }
+      // Initialize Supabase connection
+      await _initializeSupabase();
 
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    super.didChangeAppLifecycleState(state);
-
-    // Notify the dispatcher about app state changes
-    final dispatcher = NotificationActionDispatcher.instance;
-    if (dispatcher.isReady) {
-      dispatcher.onAppStateChanged(state);
+      debugPrint('🎉 App initialization complete');
+    } catch (e, stackTrace) {
+      debugPrint('❌ App wrapper initialization failed: $e');
+      debugPrint('Stack trace: $stackTrace');
     }
   }
 
-  void _ensureAuthenticated() async {
+  Future<void> _initializeSupabase() async {
     try {
-      // Wait for Supabase to be initialized
-      final supabaseClient = await ref.read(supabaseProvider.future);
-
-      final currentUser = supabaseClient.auth.currentUser;
-      debugPrint('🔐 Current user: ${currentUser?.id ?? 'null'}');
-
-      if (currentUser == null) {
-        // Try anonymous sign-in first
-        debugPrint('🔐 Attempting anonymous sign-in...');
-        await supabaseClient.auth.signInAnonymously();
-        debugPrint('✅ Successfully signed in anonymously');
-      } else {
-        debugPrint('✅ User already authenticated: ${currentUser.id}');
-      }
+      // Initialize Supabase provider
+      await ref.read(supabaseProvider.future);
+      debugPrint('✅ Supabase connection established');
     } catch (e) {
-      // Authentication failed - continue anyway for offline functionality
-      debugPrint('❌ Authentication setup failed: $e');
+      debugPrint('❌ Supabase initialization failed: $e');
+      // App can still function with offline features
     }
   }
 
@@ -285,8 +147,38 @@ class _AppWrapperState extends ConsumerState<AppWrapper>
 
   @override
   Widget build(BuildContext context) {
-    // Show the main screen - the momentum provider will handle auth fallbacks
-    return const MomentumScreen();
+    return Scaffold(
+      body: IndexedStack(index: _currentIndex, children: _screens),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: AppTheme.getSurfacePrimary(context),
+        selectedItemColor: AppTheme.getMomentumColor(MomentumState.rising),
+        unselectedItemColor: AppTheme.getTextTertiary(context),
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined),
+            activeIcon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.psychology_outlined),
+            activeIcon: Icon(Icons.psychology),
+            label: 'Coach',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            activeIcon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
+      ),
+    );
   }
 }
 

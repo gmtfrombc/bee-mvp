@@ -148,7 +148,8 @@ class FirebaseService {
 
   /// Log Firebase service usage attempt
   static void logServiceAttempt(String serviceName, String operation) {
-    if (kDebugMode) {
+    // Suppress logging during tests to reduce noise
+    if (kDebugMode && !_isInTestEnvironment) {
       if (_available) {
         debugPrint('🔥 Firebase $serviceName: $operation');
       } else {
@@ -158,5 +159,13 @@ class FirebaseService {
         debugPrint('💡 Reason: ${_initializationError ?? 'Unknown'}');
       }
     }
+  }
+
+  /// Check if we're running in a test environment
+  static bool get _isInTestEnvironment {
+    // Flutter test framework sets this environment variable
+    return const bool.fromEnvironment('flutter.flutter_test') ||
+        // Alternative check for test environment
+        StackTrace.current.toString().contains('flutter_test');
   }
 }
