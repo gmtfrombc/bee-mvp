@@ -78,4 +78,34 @@ class TodayFeedNotifier extends StateNotifier<TodayFeedState> {
   Future<void> handleBookmark() async {
     await recordInteraction(TodayFeedInteractionType.bookmark);
   }
+
+  /// Add a coaching card to the top of the Today Feed
+  /// Used for momentum-triggered proactive coaching interventions
+  void addCoachingCard({
+    required String title,
+    required String message,
+    required String momentumState,
+    String? previousState,
+  }) {
+    final currentContent = state.content;
+    if (currentContent == null) return;
+
+    // Create a coaching-specific content item
+    final coachingContent = currentContent.copyWith(
+      title: title,
+      summary: message,
+      topicCategory: HealthTopic.lifestyle, // Default to lifestyle for coaching
+      contentUrl: null, // No external URL for coaching cards
+      externalLink: null,
+      imageUrl: null,
+      estimatedReadingMinutes: 1, // Quick read for coaching messages
+      hasUserEngaged: false,
+      isCached: true,
+    );
+
+    // Update state with the coaching content
+    state = TodayFeedState.loaded(coachingContent);
+
+    debugPrint('🎯 Coaching card added to Today Feed: $title');
+  }
 }
