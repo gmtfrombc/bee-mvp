@@ -7,7 +7,9 @@ echo "🚀 Starting BEE Momentum Meter in development mode..."
 # Check if secrets are provided via environment variables or .env file
 if [ -f "app/.env" ]; then
     echo "🔑 Loading environment variables from app/.env"
-    export $(grep -v '^#' app/.env | xargs)
+    set -a  # automatically export all variables
+    source app/.env
+    set +a  # turn off automatic export
 fi
 
 # Validate required environment variables
