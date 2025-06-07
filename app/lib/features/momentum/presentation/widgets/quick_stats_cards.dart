@@ -12,6 +12,7 @@ class QuickStatsCards extends StatefulWidget {
   final VoidCallback? onLessonsTap;
   final VoidCallback? onStreakTap;
   final VoidCallback? onTodayTap;
+  final VoidCallback? onAchievementsTap;
 
   const QuickStatsCards({
     super.key,
@@ -20,6 +21,7 @@ class QuickStatsCards extends StatefulWidget {
     this.onLessonsTap,
     this.onStreakTap,
     this.onTodayTap,
+    this.onAchievementsTap,
   });
 
   @override
@@ -79,6 +81,7 @@ class _QuickStatsCardsState extends State<QuickStatsCards>
         onLessonsTap: widget.onLessonsTap,
         onStreakTap: widget.onStreakTap,
         onTodayTap: widget.onTodayTap,
+        onAchievementsTap: widget.onAchievementsTap,
         cardWrapper: _wrapCardWithAnimation,
       ),
     );

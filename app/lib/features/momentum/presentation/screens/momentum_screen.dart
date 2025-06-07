@@ -25,6 +25,9 @@ import 'profile_settings_screen.dart';
 import '../../../today_feed/presentation/widgets/today_feed_tile.dart';
 import '../providers/today_feed_provider.dart';
 
+// Gamification imports
+import '../../../gamification/ui/achievements_screen.dart';
+
 /// Main momentum meter screen
 /// Displays the user's current momentum state and provides quick actions
 class MomentumScreen extends ConsumerWidget {
@@ -207,6 +210,15 @@ class _MomentumContent extends ConsumerWidget {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text('Today\'s activity coming soon!'),
+                  ),
+                );
+              },
+              onAchievementsTap: () {
+                // Navigate to achievements screen
+                context.announceToScreenReader('Navigating to achievements');
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const AchievementsScreen(),
                   ),
                 );
               },

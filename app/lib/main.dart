@@ -11,6 +11,7 @@ import 'core/providers/supabase_provider.dart';
 import 'features/momentum/presentation/screens/momentum_screen.dart';
 import 'features/ai_coach/ui/coach_chat_screen.dart';
 import 'features/momentum/presentation/screens/profile_settings_screen.dart';
+import 'features/gamification/ui/rewards_navigator.dart';
 import 'core/notifications/domain/services/notification_preferences_service.dart';
 import 'core/providers/theme_provider.dart';
 
@@ -99,6 +100,7 @@ class _AppWrapperState extends ConsumerState<AppWrapper> {
   final List<Widget> _screens = [
     const MomentumScreen(),
     const CoachChatScreen(),
+    const RewardsNavigator(),
     const ProfileSettingsScreen(),
   ];
 
@@ -170,6 +172,10 @@ class _AppWrapperState extends ConsumerState<AppWrapper> {
             icon: Icon(Icons.psychology_outlined),
             activeIcon: Icon(Icons.psychology),
             label: 'Coach',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.emoji_events),
+            label: 'Rewards',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person_outline),

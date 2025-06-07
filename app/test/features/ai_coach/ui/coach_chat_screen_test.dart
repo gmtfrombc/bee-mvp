@@ -103,20 +103,29 @@ void main() {
       // Pump once to trigger the setState
       await tester.pump();
 
-      // Check if typing indicator appears (it should be in the ListView)
-      final hasTypingIndicator = find.byType(TypingIndicatorBubble);
+      // Add a small duration pump to allow animations to start
+      await tester.pump(const Duration(milliseconds: 50));
 
-      // If typing indicator is not found, let's check what's actually in the widget tree
-      if (hasTypingIndicator.evaluate().isEmpty) {
-        // Print debug info - this test might need to be adjusted based on timing
-        print('No typing indicator found immediately after send');
-      } else {
-        expect(hasTypingIndicator, findsOneWidget);
-        expect(find.text('Coach is typing...'), findsOneWidget);
-      }
+      // Try scrolling to the bottom manually
+      await tester.drag(find.byType(ListView), const Offset(0, -500));
+      await tester.pump();
 
-      // Clean up pending timers
+      // First check for the text content which should be easier to find
+      expect(find.text('Coach is typing...'), findsOneWidget);
+
+      // Then check for the widget type
+      expect(find.byType(TypingIndicatorBubble), findsOneWidget);
+
+      // Verify we have the expected messages at this point
+      // Should be: welcome message + user message = 2 messages
+      expect(find.byType(MessageBubble), findsNWidgets(2));
+
+      // Clean up pending timers (this will complete the AI response)
       await tester.pumpAndSettle();
+
+      // After the response completes, typing indicator should be gone and we should have 3 messages
+      expect(find.byType(TypingIndicatorBubble), findsNothing);
+      expect(find.byType(MessageBubble), findsNWidgets(3));
     });
 
     testWidgets('handles coaching card tap', (tester) async {

@@ -1,0 +1,75 @@
+#!/bin/bash
+
+# 🐝 BEE-MVP Supabase Startup Script
+# Starts Docker (if needed) and Supabase functions server
+
+set -e  # Exit on any error
+
+echo "🐝 Starting BEE-MVP Supabase Environment..."
+
+# Function to check if Docker is running
+check_docker() {
+    docker info >/dev/null 2>&1
+}
+
+# Function to start Docker Desktop
+start_docker() {
+    echo "🐳 Starting Docker Desktop..."
+    
+    # Try to start Docker Desktop (macOS)
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        open -a Docker
+    else
+        # For Linux, try systemctl
+        sudo systemctl start docker 2>/dev/null || echo "⚠️  Please start Docker manually"
+    fi
+    
+    echo "⏳ Waiting for Docker to be ready..."
+    
+    # Wait up to 60 seconds for Docker to start
+    local timeout=60
+    local elapsed=0
+    
+    while ! check_docker && [ $elapsed -lt $timeout ]; do
+        sleep 2
+        elapsed=$((elapsed + 2))
+        printf "."
+    done
+    
+    echo ""
+    
+    if ! check_docker; then
+        echo "❌ Docker failed to start within $timeout seconds"
+        echo "Please start Docker manually and try again"
+        exit 1
+    fi
+    
+    echo "✅ Docker is ready!"
+}
+
+# Check if Docker is running
+if ! check_docker; then
+    echo "🔍 Docker not running, starting it..."
+    start_docker
+else
+    echo "✅ Docker is already running"
+fi
+
+# Kill any existing Supabase functions server
+echo "🧹 Cleaning up any existing Supabase processes..."
+pkill -f "supabase functions serve" 2>/dev/null || true
+
+# Start Supabase functions server
+echo "🚀 Starting Supabase functions server..."
+echo "📁 Using environment file: ./app/.env"
+echo "🌐 Server will be available at: http://127.0.0.1:54321"
+echo ""
+echo "💡 Press Ctrl+C to stop the server"
+echo "📋 Logs will appear below:"
+echo "----------------------------------------"
+
+# Start the server
+supabase functions serve --env-file ./app/.env
+
+echo ""
+echo "🛑 Supabase server stopped" 

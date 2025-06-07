@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/widgets/momentum_scaffold.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/services/responsive_service.dart';
+import '../../../core/services/ai_coaching_service.dart';
 import '../../achievements/streak_badge.dart';
 import 'message_bubble.dart';
 import 'coaching_card.dart';
@@ -60,8 +61,8 @@ class _CoachChatScreenState extends ConsumerState<CoachChatScreen> {
       _isRateLimited = false;
     }
 
-    // Check if user exceeded 5 messages per minute
-    if (_messageCount >= 5) {
+    // Check if user exceeded 10 messages per minute (relaxed for testing)
+    if (_messageCount >= 10) {
       _isRateLimited = true;
       _showRateLimitSnackBar();
     }
@@ -79,12 +80,19 @@ class _CoachChatScreenState extends ConsumerState<CoachChatScreen> {
     );
   }
 
-  void _sendMessage() {
+  void _sendMessage() async {
     final text = _textController.text.trim();
     if (text.isEmpty || _isRateLimited) return;
 
+    // Check both local and AI service rate limits
     _checkRateLimit();
     if (_isRateLimited) return;
+
+    final canSend = await AICoachingService.instance.canSendMessage();
+    if (!canSend) {
+      _showRateLimitSnackBar();
+      return;
+    }
 
     // Add user message
     setState(() {
@@ -95,38 +103,55 @@ class _CoachChatScreenState extends ConsumerState<CoachChatScreen> {
       _isTyping = true;
     });
 
+    final userMessageText = text; // Store message for AI call
     _textController.clear();
     _scrollToBottom();
 
-    // Simulate coach response (replace with actual API call)
-    _simulateCoachResponse();
+    // Generate real AI coach response
+    _generateCoachResponse(userMessageText);
   }
 
-  void _simulateCoachResponse() {
-    // Simulate API delay
-    Future.delayed(const Duration(seconds: 2), () {
+  void _generateCoachResponse(String userMessage) async {
+    try {
+      // Get current momentum state (you can enhance this with real momentum data)
+      const momentumState = 'Steady'; // TODO: Get from momentum provider
+
+      // Call real AI coaching service
+      final response = await AICoachingService.instance.generateResponse(
+        message: userMessage,
+        momentumState: momentumState,
+      );
+
       if (!mounted) return;
 
-      try {
+      setState(() {
+        _isTyping = false;
+        _messages.add(
+          ChatMessage(
+            text: response.message,
+            isUser: false,
+            timestamp: DateTime.now(),
+          ),
+        );
+      });
+      _scrollToBottom();
+    } catch (error, stackTrace) {
+      _handleGlobalError(error, stackTrace);
+      if (mounted) {
         setState(() {
           _isTyping = false;
           _messages.add(
             ChatMessage(
               text:
-                  "That's a great question! Based on your momentum patterns, I'd suggest focusing on small, consistent actions. Remember, progress isn't always linear - what matters is maintaining forward momentum. What specific area would you like to work on?",
+                  "I'm having trouble connecting right now. Please try again in a moment.",
               isUser: false,
               timestamp: DateTime.now(),
             ),
           );
         });
         _scrollToBottom();
-      } catch (error, stackTrace) {
-        _handleGlobalError(error, stackTrace);
-        setState(() {
-          _isTyping = false;
-        });
       }
-    });
+    }
   }
 
   void _scrollToBottom() {
@@ -147,8 +172,6 @@ class _CoachChatScreenState extends ConsumerState<CoachChatScreen> {
   }
 
   void _handleGlobalError(Object error, StackTrace stackTrace) {
-    debugPrint('❌ Coach Error: $error');
-    // Log to Supabase error_logs (placeholder for actual implementation)
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

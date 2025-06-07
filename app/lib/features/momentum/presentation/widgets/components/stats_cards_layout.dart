@@ -11,6 +11,7 @@ class StatsCardsLayout extends StatelessWidget {
   final VoidCallback? onLessonsTap;
   final VoidCallback? onStreakTap;
   final VoidCallback? onTodayTap;
+  final VoidCallback? onAchievementsTap;
   final Widget Function(IndividualStatCard card) cardWrapper;
 
   const StatsCardsLayout({
@@ -20,6 +21,7 @@ class StatsCardsLayout extends StatelessWidget {
     this.onLessonsTap,
     this.onStreakTap,
     this.onTodayTap,
+    this.onAchievementsTap,
   });
 
   @override
@@ -35,13 +37,23 @@ class StatsCardsLayout extends StatelessWidget {
   }
 
   Widget _buildStandardLayout(double spacing) {
-    return Row(
+    return Column(
       children: [
-        Expanded(child: cardWrapper(_buildLessonsCard())),
-        SizedBox(width: spacing),
-        Expanded(child: cardWrapper(_buildStreakCard())),
-        SizedBox(width: spacing),
-        Expanded(child: cardWrapper(_buildTodayCard())),
+        Row(
+          children: [
+            Expanded(child: cardWrapper(_buildLessonsCard())),
+            SizedBox(width: spacing),
+            Expanded(child: cardWrapper(_buildStreakCard())),
+          ],
+        ),
+        SizedBox(height: spacing),
+        Row(
+          children: [
+            Expanded(child: cardWrapper(_buildTodayCard())),
+            SizedBox(width: spacing),
+            Expanded(child: cardWrapper(_buildAchievementsCard())),
+          ],
+        ),
       ],
     );
   }
@@ -57,7 +69,13 @@ class StatsCardsLayout extends StatelessWidget {
           ],
         ),
         SizedBox(height: spacing),
-        SizedBox(width: double.infinity, child: cardWrapper(_buildTodayCard())),
+        Row(
+          children: [
+            Expanded(child: cardWrapper(_buildTodayCard())),
+            SizedBox(width: spacing),
+            Expanded(child: cardWrapper(_buildAchievementsCard())),
+          ],
+        ),
       ],
     );
   }
@@ -89,6 +107,16 @@ class StatsCardsLayout extends StatelessWidget {
       label: 'Today',
       color: AppTheme.momentumSteady,
       onTap: onTodayTap,
+    );
+  }
+
+  IndividualStatCard _buildAchievementsCard() {
+    return IndividualStatCard(
+      icon: Icons.emoji_events_rounded,
+      value: '3', // Mock value - in practice this would come from stats
+      label: 'Badges',
+      color: AppTheme.momentumRising,
+      onTap: onAchievementsTap,
     );
   }
 }
