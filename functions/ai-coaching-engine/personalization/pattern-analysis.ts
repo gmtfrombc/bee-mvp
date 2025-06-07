@@ -84,9 +84,9 @@ function createRollingWindows(events: Array<EngagementEvent & { parsedTimestamp:
 function analyzeEngagementPeaks(events: Array<EngagementEvent & { parsedTimestamp: Date }>): string[] {
     const hourlyEngagement = Array(24).fill(0);
 
-    // Count events by hour of day
+    // Count events by hour of day (use UTC to avoid timezone issues)
     events.forEach(event => {
-        const hour = event.parsedTimestamp.getHours();
+        const hour = event.parsedTimestamp.getUTCHours();
         hourlyEngagement[hour]++;
     });
 

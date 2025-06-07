@@ -1,2 +1,4 @@
-// Edge Function entry point – just execute mod.ts side-effects
-import './mod.ts'; 
+// Edge Function entry point for Supabase deployment
+import handler from './mod.ts';
+
+Deno.serve(handler); 

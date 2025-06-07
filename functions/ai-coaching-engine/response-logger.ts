@@ -16,6 +16,7 @@ export interface ConversationLog {
 /**
  * Logs a conversation entry to the conversation_logs table
  * RLS policies ensure users can only access their own conversation data
+ * Returns the conversation log ID for linking to effectiveness tracking
  */
 export async function logConversation(
     userId: string,
@@ -23,7 +24,7 @@ export async function logConversation(
     content: string,
     persona?: string,
     authToken?: string
-): Promise<void> {
+): Promise<string | null> {
     const supabase = createClient(supabaseUrl, supabaseKey, {
         global: {
             headers: authToken ? { Authorization: `Bearer ${authToken}` } : {}
@@ -38,14 +39,18 @@ export async function logConversation(
         timestamp: new Date().toISOString()
     }
 
-    const { error } = await supabase
+    const { data, error } = await supabase
         .from('conversation_logs')
         .insert(logEntry)
+        .select('id')
+        .single()
 
     if (error) {
         console.error('Failed to log conversation:', error)
         throw new Error(`Failed to log conversation: ${error.message}`)
     }
+
+    return data?.id || null
 }
 
 /**
