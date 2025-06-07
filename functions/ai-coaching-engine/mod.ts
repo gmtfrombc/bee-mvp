@@ -7,11 +7,18 @@ import { getCachedResponse, setCachedResponse, generateCacheKey } from './middle
 import { enforceRateLimit, RateLimitError } from './middleware/rate-limit.ts'
 import { detectRedFlags } from './middleware/safety/red-flag-detector.ts'
 import { analyzeSentiment, type SentimentResult } from './sentiment/sentiment-analyzer.ts'
+import { engagementDataService } from './services/engagement-data.ts'
+import { EffectivenessTracker } from './personalization/effectiveness-tracker.ts'
+import { StrategyOptimizer } from './personalization/strategy-optimizer.ts'
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!
 const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!
 const aiApiKey = Deno.env.get('AI_API_KEY')!
 const aiModel = Deno.env.get('AI_MODEL') || 'claude-3-haiku-20240307'
+
+// Initialize effectiveness tracking system
+const effectivenessTracker = new EffectivenessTracker(supabaseUrl, supabaseKey)
+const strategyOptimizer = new StrategyOptimizer(effectivenessTracker)
 
 // TODO: Move model-ID lookup into prompt-builder.ts once we firm up tiered pricing
 // This will allow for dynamic model selection based on user tier, conversation complexity, etc.
@@ -152,11 +159,9 @@ export default async function handler(req: Request): Promise<Response> {
         // Fetch recent conversation history
         const conversationHistory = await getRecentMessages(user_id, 20, authToken)
 
-        // Analyze user engagement patterns (mock data for now)
-        const mockEngagementEvents = [
-            { event_type: 'app_session' as const, timestamp: new Date().toISOString(), metadata: {} }
-        ]
-        const patternSummary = analyzeEngagement(mockEngagementEvents)
+        // Analyze user engagement patterns using real data
+        const engagementEvents = await engagementDataService.getUserEngagementEvents(user_id, authToken)
+        const patternSummary = analyzeEngagement(engagementEvents)
 
         // Analyze sentiment of user message (skip for system events)
         let sentimentResult: SentimentResult | null = null
@@ -165,8 +170,39 @@ export default async function handler(req: Request): Promise<Response> {
             console.log(`Sentiment analyzed for user ${user_id}: ${sentimentResult.label} (${sentimentResult.score.toFixed(2)})`)
         }
 
-        // Derive coaching persona
-        const persona = derivePersona(patternSummary, momentum_state)
+        // Determine time of day for strategy optimization
+        const currentHour = new Date().getHours()
+        let timeOfDay: 'morning' | 'afternoon' | 'evening' = 'afternoon'
+        if (currentHour < 12) timeOfDay = 'morning'
+        else if (currentHour >= 18) timeOfDay = 'evening'
+
+        // Derive user engagement level from pattern summary
+        const userEngagementLevel = patternSummary.engagementFrequency === 'high' ? 'high' :
+            patternSummary.engagementFrequency === 'low' ? 'low' : 'medium'
+
+        // Get optimized coaching strategy using effectiveness data
+        let persona: string
+        let adaptationReasons: string[] = []
+
+        try {
+            const strategy = await strategyOptimizer.optimizeStrategyForUser(user_id, {
+                momentumState: momentum_state as 'Rising' | 'Steady' | 'NeedsCare',
+                userEngagementLevel,
+                timeOfDay,
+                daysSinceLastInteraction: 0 // TODO: Calculate based on conversation history
+            })
+
+            persona = strategy.preferredPersona
+            adaptationReasons = strategy.adaptationReasons
+
+            console.log(`Strategy optimized for user ${user_id}: ${persona} persona selected`)
+            console.log(`Adaptation reasons: ${adaptationReasons.join(', ')}`)
+
+        } catch (error) {
+            console.error('Error optimizing strategy, falling back to default persona selection:', error)
+            // Fallback to original persona derivation
+            persona = derivePersona(patternSummary, momentum_state)
+        }
 
         // Check cache first - include sentiment in cache key for better personalization
         const cacheKey = await generateCacheKey(user_id, message, persona, sentimentResult?.label)
@@ -208,7 +244,26 @@ export default async function handler(req: Request): Promise<Response> {
         }
 
         // Log assistant response
-        await logConversation(user_id, 'assistant', assistantMessage, persona, authToken)
+        const conversationLogId = await logConversation(user_id, 'assistant', assistantMessage, persona, authToken)
+
+        // Record effectiveness metrics for this interaction (skip for system events)
+        if (system_event !== 'momentum_change' && conversationLogId) {
+            try {
+                await effectivenessTracker.recordInteractionEffectiveness({
+                    userId: user_id,
+                    conversationLogId,
+                    personaUsed: persona as 'supportive' | 'challenging' | 'educational',
+                    interventionTrigger: system_event || 'user_message',
+                    momentumState: momentum_state as 'Rising' | 'Steady' | 'NeedsCare',
+                    responseTimeSeconds: Math.round((Date.now() - startTime) / 1000)
+                })
+
+                console.log(`Effectiveness metrics recorded for conversation ${conversationLogId}`)
+            } catch (error) {
+                console.error('Error recording effectiveness metrics:', error)
+                // Don't fail the response if effectiveness tracking fails
+            }
+        }
 
         const responseTime = Date.now() - startTime
 
