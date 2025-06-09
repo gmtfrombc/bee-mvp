@@ -271,7 +271,12 @@ class TodayFeedContent {
     this.hasUserEngaged = false,
     this.isCached = false,
     this.fullContent,
-  });
+  }) : assert(title.length <= 60, 'Title must be 60 characters or less'),
+       assert(summary.length <= 200, 'Summary must be 200 characters or less'),
+       assert(
+         aiConfidenceScore >= 0.0 && aiConfidenceScore <= 1.0,
+         'AI confidence score must be between 0.0 and 1.0',
+       );
 
   /// Factory constructor for sample/demo data
   factory TodayFeedContent.sample() {

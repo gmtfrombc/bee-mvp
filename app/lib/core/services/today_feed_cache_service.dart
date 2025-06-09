@@ -360,16 +360,24 @@ class TodayFeedCacheService {
       final timezoneRequiresRefresh =
           await TodayFeedTimezoneService.checkTimezoneRefreshRequirement();
 
-      final shouldRefresh =
-          (isNewDay && isPastRefreshTime) || timezoneRequiresRefresh;
+      // IMPROVED LOGIC: Refresh if it's a new day (user-initiated)
+      // OR if both new day and past refresh time (automatic scheduled)
+      // OR if timezone changed
+      final shouldRefresh = isNewDay || timezoneRequiresRefresh;
 
       if (shouldRefresh) {
         if (timezoneRequiresRefresh) {
           debugPrint(
             '🔄 Content refresh needed - timezone/DST change detected',
           );
-        } else {
-          debugPrint('🔄 Content refresh needed - new day detected');
+        } else if (isNewDay && isPastRefreshTime) {
+          debugPrint(
+            '🔄 Content refresh needed - new day detected (scheduled)',
+          );
+        } else if (isNewDay) {
+          debugPrint(
+            '🔄 Content refresh needed - new day detected (user-initiated)',
+          );
         }
         debugPrint('  Last refresh: $lastRefresh');
         debugPrint('  Current time: $now');

@@ -8,173 +8,179 @@ import type { ConversationLog } from './response-logger.ts'
 const originalReadTextFile = Deno.readTextFile
 
 describe('Prompt Builder', () => {
-    beforeEach(() => {
-        // Mock template file loading
-        Deno.readTextFile = async (path: string): Promise<string> => {
-            if (path.includes('safety.md')) {
-                return '# Safety Guidelines\nYou are a responsible AI coach...'
-            }
-            if (path.includes('system.md')) {
-                return `# System Prompt
+  beforeEach(() => {
+    // Mock template file loading
+    Deno.readTextFile = (path: string | URL): Promise<string> => {
+      const pathStr = typeof path === 'string' ? path : path.toString()
+      if (pathStr.includes('safety.md')) {
+        return Promise.resolve('# Safety Guidelines\nYou are a responsible AI coach...')
+      }
+      if (pathStr.includes('system.md')) {
+        return Promise.resolve(`# System Prompt
 Momentum State: {{momentum_state}}
 Persona: {{persona}}
-Engagement: {{engagement_summary}}`
-            }
-            throw new Error(`Template not found: ${path}`)
-        }
-    })
+Engagement: {{engagement_summary}}`)
+      }
+      return Promise.reject(new Error(`Template not found: ${pathStr}`))
+    }
+  })
 
-    afterEach(() => {
-        Deno.readTextFile = originalReadTextFile
-    })
+  afterEach(() => {
+    Deno.readTextFile = originalReadTextFile
+  })
 
-    it('should inject persona tokens correctly', async () => {
-        const mockSummary: PatternSummary = {
-            engagementPeaks: ['morning', 'evening'],
-            volatilityScore: 0.3
-        }
+  it('should inject persona tokens correctly', async () => {
+    const mockSummary: PatternSummary = {
+      engagementPeaks: ['morning', 'evening'],
+      volatilityScore: 0.3,
+      engagementFrequency: 'medium',
+    }
 
-        const prompt = await buildPrompt(
-            'I need help with my goals',
-            'supportive',
-            mockSummary,
-            'NeedsCare'
-        )
+    const prompt = await buildPrompt(
+      'I need help with my goals',
+      'supportive',
+      mockSummary,
+      'NeedsCare',
+    )
 
-        // Should have system message with injected context
-        const systemMessage = prompt.find(msg => msg.role === 'system')
-        assertExists(systemMessage)
+    // Should have system message with injected context
+    const systemMessage = prompt.find((msg) => msg.role === 'system')
+    assertExists(systemMessage)
 
-        // Check that template variables were replaced
-        assertEquals(systemMessage.content.includes('{{momentum_state}}'), false)
-        assertEquals(systemMessage.content.includes('{{persona}}'), false)
-        assertEquals(systemMessage.content.includes('{{engagement_summary}}'), false)
+    // Check that template variables were replaced
+    assertEquals(systemMessage.content.includes('{{momentum_state}}'), false)
+    assertEquals(systemMessage.content.includes('{{persona}}'), false)
+    assertEquals(systemMessage.content.includes('{{engagement_summary}}'), false)
 
-        // Check that actual values were injected
-        assertEquals(systemMessage.content.includes('NeedsCare'), true)
-        assertEquals(systemMessage.content.includes('supportive'), true)
-        assertEquals(systemMessage.content.includes('morning, evening'), true)
-    })
+    // Check that actual values were injected
+    assertEquals(systemMessage.content.includes('NeedsCare'), true)
+    assertEquals(systemMessage.content.includes('supportive'), true)
+    assertEquals(systemMessage.content.includes('morning, evening'), true)
+  })
 
-    it('should include conversation history correctly', async () => {
-        const mockSummary: PatternSummary = {
-            engagementPeaks: [],
-            volatilityScore: 0.5
-        }
+  it('should include conversation history correctly', async () => {
+    const mockSummary: PatternSummary = {
+      engagementPeaks: [],
+      volatilityScore: 0.5,
+      engagementFrequency: 'medium',
+    }
 
-        const conversationHistory: ConversationLog[] = [
-            {
-                user_id: 'test-user',
-                role: 'user',
-                content: 'Hello coach',
-                timestamp: '2025-01-01T10:00:00Z'
-            },
-            {
-                user_id: 'test-user',
-                role: 'assistant',
-                content: 'Hello! How can I help you today?',
-                persona: 'supportive',
-                timestamp: '2025-01-01T10:00:30Z'
-            }
-        ]
+    const conversationHistory: ConversationLog[] = [
+      {
+        user_id: 'test-user',
+        role: 'user',
+        content: 'Hello coach',
+        timestamp: '2025-01-01T10:00:00Z',
+      },
+      {
+        user_id: 'test-user',
+        role: 'assistant',
+        content: 'Hello! How can I help you today?',
+        persona: 'supportive',
+        timestamp: '2025-01-01T10:00:30Z',
+      },
+    ]
 
-        const prompt = await buildPrompt(
-            'I need more help',
-            'educational',
-            mockSummary,
-            'Steady',
-            conversationHistory
-        )
+    const prompt = await buildPrompt(
+      'I need more help',
+      'educational',
+      mockSummary,
+      'Steady',
+      conversationHistory,
+    )
 
-        // Should have system, previous user, previous assistant, and current user messages
-        assertEquals(prompt.length, 4)
-        assertEquals(prompt[0].role, 'system')
-        assertEquals(prompt[1].role, 'user')
-        assertEquals(prompt[1].content, 'Hello coach')
-        assertEquals(prompt[2].role, 'assistant')
-        assertEquals(prompt[2].content, 'Hello! How can I help you today?')
-        assertEquals(prompt[3].role, 'user')
-        assertEquals(prompt[3].content, 'I need more help')
-    })
+    // Should have system, previous user, previous assistant, and current user messages
+    assertEquals(prompt.length, 4)
+    assertEquals(prompt[0].role, 'system')
+    assertEquals(prompt[1].role, 'user')
+    assertEquals(prompt[1].content, 'Hello coach')
+    assertEquals(prompt[2].role, 'assistant')
+    assertEquals(prompt[2].content, 'Hello! How can I help you today?')
+    assertEquals(prompt[3].role, 'user')
+    assertEquals(prompt[3].content, 'I need more help')
+  })
 
-    it('should filter out system messages from conversation history', async () => {
-        const mockSummary: PatternSummary = {
-            engagementPeaks: ['afternoon'],
-            volatilityScore: 0.2
-        }
+  it('should filter out system messages from conversation history', async () => {
+    const mockSummary: PatternSummary = {
+      engagementPeaks: ['afternoon'],
+      volatilityScore: 0.2,
+      engagementFrequency: 'low',
+    }
 
-        const conversationHistory: ConversationLog[] = [
-            {
-                user_id: 'test-user',
-                role: 'system',
-                content: 'System message should be filtered',
-                timestamp: '2025-01-01T09:00:00Z'
-            },
-            {
-                user_id: 'test-user',
-                role: 'user',
-                content: 'User message should remain',
-                timestamp: '2025-01-01T10:00:00Z'
-            }
-        ]
+    const conversationHistory: ConversationLog[] = [
+      {
+        user_id: 'test-user',
+        role: 'system',
+        content: 'System message should be filtered',
+        timestamp: '2025-01-01T09:00:00Z',
+      },
+      {
+        user_id: 'test-user',
+        role: 'user',
+        content: 'User message should remain',
+        timestamp: '2025-01-01T10:00:00Z',
+      },
+    ]
 
-        const prompt = await buildPrompt(
-            'Current message',
-            'challenging',
-            mockSummary,
-            'Rising',
-            conversationHistory
-        )
+    const prompt = await buildPrompt(
+      'Current message',
+      'challenging',
+      mockSummary,
+      'Rising',
+      conversationHistory,
+    )
 
-        // Should have system (from template), user (from history), and current user message
-        assertEquals(prompt.length, 3)
-        assertEquals(prompt[0].role, 'system')
-        assertEquals(prompt[1].role, 'user')
-        assertEquals(prompt[1].content, 'User message should remain')
-        assertEquals(prompt[2].role, 'user')
-        assertEquals(prompt[2].content, 'Current message')
-    })
+    // Should have system (from template), user (from history), and current user message
+    assertEquals(prompt.length, 3)
+    assertEquals(prompt[0].role, 'system')
+    assertEquals(prompt[1].role, 'user')
+    assertEquals(prompt[1].content, 'User message should remain')
+    assertEquals(prompt[2].role, 'user')
+    assertEquals(prompt[2].content, 'Current message')
+  })
 
-    it('should format engagement summary with no peaks', async () => {
-        const mockSummary: PatternSummary = {
-            engagementPeaks: [],
-            volatilityScore: 0.8
-        }
+  it('should format engagement summary with no peaks', async () => {
+    const mockSummary: PatternSummary = {
+      engagementPeaks: [],
+      volatilityScore: 0.8,
+      engagementFrequency: 'low',
+    }
 
-        const prompt = await buildPrompt(
-            'Test message',
-            'supportive',
-            mockSummary,
-            'Steady'
-        )
+    const prompt = await buildPrompt(
+      'Test message',
+      'supportive',
+      mockSummary,
+      'Steady',
+    )
 
-        const systemMessage = prompt.find(msg => msg.role === 'system')
-        assertExists(systemMessage)
+    const systemMessage = prompt.find((msg) => msg.role === 'system')
+    assertExists(systemMessage)
 
-        // Should include "No clear engagement patterns" message
-        assertEquals(systemMessage.content.includes('No clear engagement patterns'), true)
-        assertEquals(systemMessage.content.includes('80%'), true) // Volatility percentage
-    })
+    // Should include "No clear engagement patterns" message
+    assertEquals(systemMessage.content.includes('No clear engagement patterns'), true)
+    assertEquals(systemMessage.content.includes('80%'), true) // Volatility percentage
+  })
 
-    it('should format engagement summary with multiple peaks', async () => {
-        const mockSummary: PatternSummary = {
-            engagementPeaks: ['morning', 'afternoon', 'evening'],
-            volatilityScore: 0.6
-        }
+  it('should format engagement summary with multiple peaks', async () => {
+    const mockSummary: PatternSummary = {
+      engagementPeaks: ['morning', 'afternoon', 'evening'],
+      volatilityScore: 0.6,
+      engagementFrequency: 'high',
+    }
 
-        const prompt = await buildPrompt(
-            'Test message',
-            'educational',
-            mockSummary,
-            'Rising'
-        )
+    const prompt = await buildPrompt(
+      'Test message',
+      'educational',
+      mockSummary,
+      'Rising',
+    )
 
-        const systemMessage = prompt.find(msg => msg.role === 'system')
-        assertExists(systemMessage)
+    const systemMessage = prompt.find((msg) => msg.role === 'system')
+    assertExists(systemMessage)
 
-        // Should include formatted peaks and volatility level
-        assertEquals(systemMessage.content.includes('morning, afternoon, evening'), true)
-        assertEquals(systemMessage.content.includes('Moderate'), true) // Volatility level
-        assertEquals(systemMessage.content.includes('60%'), true) // Volatility percentage
-    })
-}) 
+    // Should include formatted peaks and volatility level
+    assertEquals(systemMessage.content.includes('morning, afternoon, evening'), true)
+    assertEquals(systemMessage.content.includes('Moderate'), true) // Volatility level
+    assertEquals(systemMessage.content.includes('60%'), true) // Volatility percentage
+  })
+})

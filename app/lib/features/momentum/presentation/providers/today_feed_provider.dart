@@ -50,6 +50,25 @@ class TodayFeedNotifier extends StateNotifier<TodayFeedState> {
     }
   }
 
+  /// Force refresh with cache clear (for debugging/testing)
+  Future<void> forceRefresh() async {
+    try {
+      state = const TodayFeedState.loading();
+
+      final content = await TodayFeedDataService.forceRefreshAndClearCache();
+
+      if (content != null) {
+        state = TodayFeedState.loaded(content);
+        debugPrint('✅ Today Feed force refreshed successfully');
+      } else {
+        state = const TodayFeedState.error('Failed to force refresh content');
+      }
+    } catch (e) {
+      debugPrint('❌ Failed to force refresh today content: $e');
+      state = TodayFeedState.error('Failed to force refresh content: $e');
+    }
+  }
+
   /// Record user interaction
   Future<void> recordInteraction(TodayFeedInteractionType type) async {
     final currentContent = state.content;

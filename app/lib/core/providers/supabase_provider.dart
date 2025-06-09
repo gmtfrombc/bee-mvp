@@ -22,6 +22,15 @@ final supabaseProvider = FutureProvider<SupabaseClient>((ref) async {
       anonKey: Environment.supabaseAnonKey,
     );
 
+    // Ensure we always have an authenticated session (anonymous if needed)
+    final client = Supabase.instance.client;
+    if (client.auth.currentSession == null) {
+      final anonRes = await client.auth.signInAnonymously();
+      if (kDebugMode) {
+        debugPrint('🆔 Anonymous session established: ${anonRes.user?.id}');
+      }
+    }
+
     debugPrint('✅ Supabase initialized successfully');
     return Supabase.instance.client;
   }

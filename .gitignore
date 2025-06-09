@@ -16,6 +16,13 @@ firebase-debug.log
 **/secrets.yaml
 **/secrets.yml
 
+# Production Deployment Scripts (SECURITY: Contains production secrets)
+bee-prod
+test-deploy
+supa
+*-prod
+test-deploy-*
+
 # Python virtual environments
 venv/
 .venv/
