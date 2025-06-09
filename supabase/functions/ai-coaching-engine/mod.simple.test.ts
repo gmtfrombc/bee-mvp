@@ -1,9 +1,16 @@
 import { assertEquals, assertExists } from 'https://deno.land/std@0.168.0/testing/asserts.ts'
 import { describe, it } from 'https://deno.land/std@0.168.0/testing/bdd.ts'
 
+// Set up environment before importing anything to prevent module initialization errors
+Deno.env.set('SUPABASE_URL', 'https://test.supabase.co')
+Deno.env.set('SUPABASE_ANON_KEY', 'test-key')
+Deno.env.set('AI_API_KEY', 'test-ai-key')
+
+// Import once at module level to avoid repeated imports causing leaks
+const { default: handler } = await import('./mod.ts')
+
 describe('AI Coaching Engine Basic Tests', () => {
     it('should handle CORS OPTIONS request', async () => {
-        const { default: handler } = await import('./mod.ts')
 
         const request = new Request('https://test.com/generate-response', {
             method: 'OPTIONS'
@@ -17,8 +24,6 @@ describe('AI Coaching Engine Basic Tests', () => {
     })
 
     it('should reject non-POST requests', async () => {
-        const { default: handler } = await import('./mod.ts')
-
         const request = new Request('https://test.com/generate-response', {
             method: 'GET'
         })
@@ -29,8 +34,6 @@ describe('AI Coaching Engine Basic Tests', () => {
     })
 
     it('should return 400 for missing request body', async () => {
-        const { default: handler } = await import('./mod.ts')
-
         const request = new Request('https://test.com/generate-response', {
             method: 'POST',
             headers: {
@@ -49,8 +52,6 @@ describe('AI Coaching Engine Basic Tests', () => {
     })
 
     it('should return 401 for missing authorization', async () => {
-        const { default: handler } = await import('./mod.ts')
-
         const request = new Request('https://test.com/generate-response', {
             method: 'POST',
             headers: {

@@ -15,6 +15,10 @@ class OfflineCacheContentService {
 
   static SharedPreferences? _prefs;
 
+  // Track when we last showed the stale data warning to avoid spam
+  static DateTime? _lastStaleWarningTime;
+  static const Duration _staleWarningCooldown = Duration(minutes: 1);
+
   /// Initialize the content service with SharedPreferences
   static Future<void> initialize(SharedPreferences prefs) async {
     _prefs = prefs;
@@ -123,7 +127,16 @@ class OfflineCacheContentService {
       final cachedData = MomentumData.fromJson(jsonData);
 
       if (!isValid && allowStaleData) {
-        debugPrint('⚠️ Returning stale cached data (offline mode)');
+        // Only show stale data warning once per cooldown period to avoid spam
+        final now = DateTime.now();
+        final shouldShowWarning =
+            _lastStaleWarningTime == null ||
+            now.difference(_lastStaleWarningTime!) > _staleWarningCooldown;
+
+        if (shouldShowWarning) {
+          debugPrint('⚠️ Returning stale cached data (offline mode)');
+          _lastStaleWarningTime = now;
+        }
       }
 
       return cachedData;

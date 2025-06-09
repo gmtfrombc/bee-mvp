@@ -7,6 +7,8 @@ void main() {
   group('TodayFeedContentQualityService Tests', () {
     setUp(() async {
       SharedPreferences.setMockInitialValues({});
+      // Set test environment to skip database-dependent initialization
+      TodayFeedContentQualityService.setTestEnvironment(true);
       await TodayFeedContentQualityService.initialize();
     });
 

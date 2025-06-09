@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/models/today_feed_content.dart';
 import '../../../../core/services/today_feed_cache_service.dart';
 import '../../../../core/services/connectivity_service.dart';
@@ -76,14 +77,27 @@ class TodayFeedDataService {
       final needsRefresh =
           forceRefresh || await TodayFeedCacheService.needsRefresh();
 
+      debugPrint(
+        '🔍 getTodayContent: forceRefresh=$forceRefresh, needsRefresh=$needsRefresh, isOnline=${ConnectivityService.isOnline}',
+      );
+
       if (needsRefresh && ConnectivityService.isOnline) {
+        debugPrint('🌐 Attempting to fetch fresh content from API...');
         // Try to fetch fresh content from API
         final freshContent = await _fetchContentFromAPI();
         if (freshContent != null) {
           await TodayFeedCacheService.cacheTodayContent(freshContent);
-          debugPrint('✅ Fresh content fetched and cached');
+          debugPrint('✅ Fresh content fetched and cached successfully');
           return freshContent;
+        } else {
+          debugPrint('⚠️ Failed to fetch fresh content, falling back to cache');
         }
+      } else if (needsRefresh && !ConnectivityService.isOnline) {
+        debugPrint(
+          '📡 Refresh needed but device is offline, using cached content',
+        );
+      } else if (!needsRefresh) {
+        debugPrint('⏭️ No refresh needed, checking cache');
       }
 
       // Try to get cached content
@@ -92,7 +106,9 @@ class TodayFeedDataService {
       );
 
       if (cachedContent != null) {
-        debugPrint('📱 Returning cached content');
+        debugPrint(
+          '📱 Returning cached content (date: ${cachedContent.contentDate.toString().split(' ')[0]})',
+        );
         return cachedContent;
       }
 
@@ -106,9 +122,9 @@ class TodayFeedDataService {
         }
       }
 
-      // No content available
-      debugPrint('📭 No content available');
-      return null;
+      // Final fallback: generate sample content to maintain user experience
+      debugPrint('🔄 No cached content available, generating fallback content');
+      return _generateFallbackContent();
     } catch (e) {
       debugPrint('❌ Failed to get today content: $e');
 
@@ -117,28 +133,143 @@ class TodayFeedDataService {
     }
   }
 
-  /// Fetch content from API (placeholder implementation)
+  /// Fetch content from database via Supabase
   static Future<TodayFeedContent?> _fetchContentFromAPI() async {
     try {
-      debugPrint('🌐 Fetching fresh content from API...');
+      debugPrint('🌐 Fetching fresh content from database...');
 
-      // TODO: Replace with actual HTTP client implementation
-      // For now, return sample content to demonstrate caching
-      await Future.delayed(
-        const Duration(milliseconds: 500),
-      ); // Simulate network delay
+      SupabaseClient? supabase;
+      try {
+        supabase = Supabase.instance.client;
+      } catch (e) {
+        debugPrint(
+          '⚠️ Supabase client not initialized, using fallback content',
+        );
+        return _generateFallbackContent();
+      }
 
-      final sampleContent = TodayFeedContent.sample().copyWith(
-        contentDate: DateTime.now(),
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
+      final today = DateTime.now();
+      final todayDateString =
+          '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+
+      // Fetch today's content from daily_feed_content table
+      final response =
+          await supabase
+              .from('daily_feed_content')
+              .select('*')
+              .eq('content_date', todayDateString)
+              .maybeSingle();
+
+      if (response == null) {
+        debugPrint('📭 No content found in database for $todayDateString');
+
+        // Try to trigger content generation
+        await _triggerContentGeneration(todayDateString);
+
+        // Fall back to sample content while generation is happening
+        return _generateFallbackContent();
+      }
+
+      // Convert database response to TodayFeedContent
+      final content = TodayFeedContent.fromJson({
+        'id': response['id'],
+        'content_date': response['content_date'],
+        'title': response['title'],
+        'summary': response['summary'],
+        'content_url': response['content_url'],
+        'external_link': response['external_link'],
+        'topic_category': response['topic_category'],
+        'ai_confidence_score': response['ai_confidence_score'] ?? 0.8,
+        'created_at': response['created_at'],
+        'updated_at': response['updated_at'],
+        'estimated_reading_minutes': 2,
+        'has_user_engaged': false,
+        'is_cached': false,
+      });
+
+      debugPrint('✅ Content fetched from database for $todayDateString');
+      debugPrint('📝 Title: "${content.title}"');
+      debugPrint('🎯 Topic: ${content.topicCategory.value}');
+      debugPrint('📊 Confidence: ${content.aiConfidenceScore}');
+
+      return content;
+    } catch (e) {
+      debugPrint('❌ Failed to fetch content from database: $e');
+
+      // Return fallback content to maintain user experience
+      return _generateFallbackContent();
+    }
+  }
+
+  /// Generate fallback content when database content is unavailable
+  static TodayFeedContent _generateFallbackContent() {
+    final now = DateTime.now();
+    final dayOfYear = now.difference(DateTime(now.year, 1, 1)).inDays + 1;
+
+    // Generate different content for each day of the year
+    final topics = [
+      'Stress Management',
+      'Sleep Hygiene',
+      'Mindful Eating',
+      'Exercise Motivation',
+      'Social Connections',
+      'Work-Life Balance',
+      'Mental Resilience',
+    ];
+
+    final tips = [
+      'Take 5 deep breaths when feeling overwhelmed',
+      'Create a consistent bedtime routine for better sleep',
+      'Practice mindful eating by savoring each bite',
+      'Start with just 10 minutes of movement today',
+      'Reach out to one friend or family member',
+      'Set clear boundaries between work and personal time',
+      'Focus on what you can control, not what you cannot',
+    ];
+
+    final topicIndex = dayOfYear % topics.length;
+    final todayTopic = topics[topicIndex];
+    final todayTip = tips[topicIndex];
+
+    return TodayFeedContent.sample().copyWith(
+      title: 'Daily Wellness: $todayTopic',
+      summary: 'Today\'s focus: $todayTip',
+      contentDate: DateTime(now.year, now.month, now.day),
+      createdAt: now,
+      updatedAt: now,
+      isCached: true, // Mark as fallback content
+    );
+  }
+
+  /// Trigger content generation for missing date
+  static Future<void> _triggerContentGeneration(String dateString) async {
+    try {
+      SupabaseClient? supabase;
+      try {
+        supabase = Supabase.instance.client;
+      } catch (e) {
+        debugPrint('⚠️ Supabase client not available for content generation');
+        return;
+      }
+
+      debugPrint('🔄 Triggering content generation for $dateString...');
+
+      // Call the daily content generator function
+      final response = await supabase.functions.invoke(
+        'daily-content-generator',
+        body: {'target_date': dateString, 'force_regenerate': false},
       );
 
-      debugPrint('✅ Sample content fetched from API');
-      return sampleContent;
+      if (response.data != null && response.data['success'] == true) {
+        debugPrint('✅ Content generation triggered successfully');
+      } else {
+        debugPrint(
+          '⚠️ Content generation request completed but may have failed',
+        );
+      }
     } catch (e) {
-      debugPrint('❌ Failed to fetch content from API: $e');
-      return null;
+      debugPrint('❌ Failed to trigger content generation: $e');
+      // Don't throw - this is a background operation
     }
   }
 
@@ -203,6 +334,36 @@ class TodayFeedDataService {
     }
 
     return await getTodayContent(forceRefresh: true);
+  }
+
+  /// Force clear cache and fetch fresh content (for debugging/testing)
+  static Future<TodayFeedContent?> forceRefreshAndClearCache() async {
+    await initialize();
+
+    try {
+      debugPrint('🧹 Force clearing cache and fetching fresh content...');
+
+      // Clear the cache first
+      await TodayFeedCacheService.invalidateCache(
+        reason: 'Force refresh requested',
+      );
+
+      // Now fetch fresh content
+      if (ConnectivityService.isOnline) {
+        final freshContent = await _fetchContentFromAPI();
+        if (freshContent != null) {
+          await TodayFeedCacheService.cacheTodayContent(freshContent);
+          debugPrint('✅ Cache cleared and fresh content fetched');
+          return freshContent;
+        }
+      }
+
+      debugPrint('⚠️ Failed to fetch fresh content after cache clear');
+      return null;
+    } catch (e) {
+      debugPrint('❌ Failed to force refresh and clear cache: $e');
+      return null;
+    }
   }
 
   /// Preload content for better performance

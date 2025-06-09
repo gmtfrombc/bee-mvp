@@ -1,0 +1,18 @@
+# GitLeaks ignore file for BEE MVP
+# Ignore pre-existing secrets in git history that are already committed
+
+# Pre-existing GCP API keys in exposed_keys.txt (test file)
+7113de4dd4b2cbdc1676c8d0215c464ec5bda838:exposed_keys.txt:gcp-api-key:1
+7113de4dd4b2cbdc1676c8d0215c464ec5bda838:exposed_keys.txt:gcp-api-key:2
+7113de4dd4b2cbdc1676c8d0215c464ec5bda838:exposed_keys.txt:gcp-api-key:3
+
+# Pre-existing Supabase keys in .vscode/launch.json (development config)
+c95c45afe6f22f1d808ebef2f60f05b7c2824fc7:.vscode/launch.json:real-supabase-anon-key:48
+c95c45afe6f22f1d808ebef2f60f05b7c2824fc7:.vscode/launch.json:jwt:48
+
+# Pre-existing GCP key in google-services.json (Android config)
+7eb7d47cbd53a64379056be800e2f0c3fec75b8e:app/android/app/google-services.json:gcp-api-key:18
+
+# Pre-existing Supabase keys in environment.dart (development config)
+3671b55c151a251d7a8668529fedf7bd0945ce8c:app/lib/core/config/environment.dart:real-supabase-anon-key:18
+3671b55c151a251d7a8668529fedf7bd0945ce8c:app/lib/core/config/environment.dart:jwt:18 

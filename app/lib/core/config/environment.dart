@@ -20,12 +20,15 @@ class Environment {
       // First, try to load from --dart-define compile-time variables
       const String supaUrlDefine = String.fromEnvironment('SUPABASE_URL');
       const String supaAnonDefine = String.fromEnvironment('SUPABASE_ANON_KEY');
+      const String environmentDefine = String.fromEnvironment('ENVIRONMENT');
 
       if (supaUrlDefine.isNotEmpty && supaAnonDefine.isNotEmpty) {
         dotenv.testLoad();
         dotenv.env.addAll({
           'SUPABASE_URL': supaUrlDefine,
           'SUPABASE_ANON_KEY': supaAnonDefine,
+          'ENVIRONMENT':
+              environmentDefine.isNotEmpty ? environmentDefine : 'development',
         });
         debugPrint('✅ Loaded Supabase creds from --dart-define');
       } else {
@@ -107,6 +110,7 @@ class Environment {
   static bool get isDevelopment => environment == 'development';
   static bool get isProduction => environment == 'production';
   static bool get isTest => environment == 'test';
+  static bool get isTestProduction => environment == 'test-production';
 
   // Validation method to check if required environment variables are set
   static bool get hasValidConfiguration {

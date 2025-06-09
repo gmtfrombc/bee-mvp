@@ -22,6 +22,10 @@ class TodayFeedContentService {
   static SharedPreferences? _prefs;
   static bool _isInitialized = false;
 
+  // Track when we last showed the stale content warning to avoid spam
+  static DateTime? _lastStaleWarningTime;
+  static const Duration _staleWarningCooldown = Duration(minutes: 1);
+
   /// Initialize the content service
   static Future<void> initialize(SharedPreferences prefs) async {
     if (_isInitialized) return;
@@ -127,7 +131,16 @@ class TodayFeedContentService {
       // Check if content is for today
       if (_isContentForToday(content) || allowStale) {
         if (!_isContentForToday(content) && allowStale) {
-          debugPrint('⚠️ Returning stale content (offline mode)');
+          // Only show stale content warning once per cooldown period to avoid spam
+          final now = DateTime.now();
+          final shouldShowWarning =
+              _lastStaleWarningTime == null ||
+              now.difference(_lastStaleWarningTime!) > _staleWarningCooldown;
+
+          if (shouldShowWarning) {
+            debugPrint('⚠️ Returning stale content (offline mode)');
+            _lastStaleWarningTime = now;
+          }
         }
         return content;
       } else {

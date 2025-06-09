@@ -6,6 +6,7 @@ import 'today_feed_content_validator.dart';
 import 'today_feed_safety_monitor.dart';
 import 'today_feed_quality_alert_manager.dart';
 import 'today_feed_quality_metrics_calculator.dart';
+import 'today_feed_human_review_service.dart';
 
 /// Main content quality validation and safety monitoring service for Today Feed
 /// Implements Epic 1.3 Task T1.3.5.9 requirements by orchestrating modular components
@@ -21,6 +22,12 @@ class TodayFeedContentQualityService {
   static const double _minOverallQualityScore = 0.7;
 
   static bool _isInitialized = false;
+  static bool _isTestEnvironment = false;
+
+  /// Set test environment mode to disable database-dependent features
+  static void setTestEnvironment(bool isTest) {
+    _isTestEnvironment = isTest;
+  }
 
   /// Initialize the content quality service and all components
   static Future<void> initialize() async {
@@ -30,6 +37,11 @@ class TodayFeedContentQualityService {
       // Initialize all modular components
       await TodayFeedQualityAlertManager.initialize();
       await TodayFeedQualityMetricsCalculator.initialize();
+
+      // Only initialize human review service in production
+      if (!_isTestEnvironment) {
+        await TodayFeedHumanReviewService.initialize();
+      }
 
       _isInitialized = true;
       debugPrint('✅ TodayFeedContentQualityService initialized');
@@ -107,6 +119,30 @@ class TodayFeedContentQualityService {
 
       // Step 7: Generate alerts if necessary
       await TodayFeedQualityAlertManager.generateQualityAlerts(result, content);
+
+      // Step 8: Queue for human review if necessary (production only)
+      if (requiresReview && !_isTestEnvironment) {
+        final safetyMonitoringResult =
+            TodayFeedSafetyMonitor.monitorContentSafety(content);
+        final shouldHumanReview =
+            TodayFeedHumanReviewService.requiresHumanReview(
+              safetyResult: safetyMonitoringResult,
+              qualityResult: result,
+            );
+
+        if (shouldHumanReview) {
+          await TodayFeedHumanReviewService.queueContentForReview(
+            content: content,
+            safetyResult: safetyMonitoringResult,
+            escalationReason: 'Quality validation identified safety concerns',
+          );
+          debugPrint('📋 Content queued for human review: ${content.id}');
+        }
+      } else if (requiresReview && _isTestEnvironment) {
+        debugPrint(
+          '📋 Test environment: Would queue content for human review: ${content.id}',
+        );
+      }
 
       return result;
     } catch (e) {

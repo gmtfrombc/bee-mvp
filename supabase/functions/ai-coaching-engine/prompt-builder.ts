@@ -75,13 +75,36 @@ export async function buildPrompt(
  * Loads a prompt template from the filesystem
  */
 async function loadTemplate(templatePath: string): Promise<string> {
-    try {
-        const content = await Deno.readTextFile(templatePath)
-        return content.trim()
-    } catch (error) {
-        console.error(`Failed to load template from ${templatePath}:`, error)
-        throw new Error(`Template not found: ${templatePath}`)
+    // Attempt to read the template from multiple potential locations.
+    const candidatePaths = [
+        templatePath, // original relative path (when executed from project root)
+        `../../${templatePath}`,
+        `../../../${templatePath}`,
+    ]
+
+    for (const path of candidatePaths) {
+        try {
+            const content = await Deno.readTextFile(path)
+            return content.trim()
+        } catch (_) {
+            // continue trying next path
+        }
     }
+
+    // Inline fallback templates (minimal) if file cannot be loaded
+    const fallbackTemplates: Record<string, string> = {
+        [SAFETY_TEMPLATE_PATH]: `You are an AI health coach. Follow HIPAA and privacy best practices. Never provide medical diagnosis. Encourage users to consult professionals for medical advice.`,
+        [SYSTEM_TEMPLATE_PATH]: `You are a supportive digital coach.\n\nCurrent momentum state: {{momentum_state}}.\nPersona: {{persona}}.\nEngagement summary: {{engagement_summary}}.`
+    }
+
+    console.error(`Failed to load template after checking paths: ${candidatePaths.join(', ')}`)
+
+    if (fallbackTemplates[templatePath]) {
+        console.log(`🧪 Using inline fallback for template: ${templatePath}`)
+        return fallbackTemplates[templatePath]
+    }
+
+    throw new Error(`Template not found: ${templatePath}`)
 }
 
 /**

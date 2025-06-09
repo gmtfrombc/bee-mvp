@@ -101,16 +101,26 @@ Stream<MomentumData> _createRealtimeStream(
   );
 
   // Listen to the channel and yield updates
+  MomentumData? lastYieldedData;
+
   await for (final _ in Stream.periodic(const Duration(seconds: 30))) {
     try {
       final momentumData = await apiService.getCurrentMomentum();
-      yield momentumData;
+      // Only yield if data has actually changed
+      if (lastYieldedData == null ||
+          momentumData.lastUpdated != lastYieldedData.lastUpdated) {
+        lastYieldedData = momentumData;
+        yield momentumData;
+      }
     } catch (e) {
-      // If network fails, try cached data
+      // If network fails, try cached data (but only if we haven't yielded it recently)
       final cachedData = await OfflineCacheService.getCachedMomentumData(
         allowStaleData: true,
       );
-      if (cachedData != null) {
+      if (cachedData != null &&
+          (lastYieldedData == null ||
+              cachedData.lastUpdated != lastYieldedData.lastUpdated)) {
+        lastYieldedData = cachedData;
         yield cachedData;
       }
     }
@@ -122,13 +132,28 @@ Stream<MomentumData> _createOfflineStream(
   MomentumApiService apiService,
   Ref ref,
 ) async* {
-  // In offline mode, check cached data every minute
-  await for (final _ in Stream.periodic(const Duration(minutes: 1))) {
+  // Get initial cached data
+  final initialCachedData = await OfflineCacheService.getCachedMomentumData(
+    allowStaleData: true,
+  );
+
+  if (initialCachedData != null) {
+    yield initialCachedData;
+  }
+
+  // In offline mode, check cached data every 5 minutes (less frequent to reduce noise)
+  // Only yield if data has changed from last yield
+  MomentumData? lastYieldedData = initialCachedData;
+
+  await for (final _ in Stream.periodic(const Duration(minutes: 5))) {
     final cachedData = await OfflineCacheService.getCachedMomentumData(
       allowStaleData: true,
     );
 
-    if (cachedData != null) {
+    if (cachedData != null &&
+        (lastYieldedData == null ||
+            cachedData.lastUpdated != lastYieldedData.lastUpdated)) {
+      lastYieldedData = cachedData;
       yield cachedData;
     }
   }

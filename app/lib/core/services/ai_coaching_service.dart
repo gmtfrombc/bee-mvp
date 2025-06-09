@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:async';
+import '../config/environment.dart';
 
 /// Service for AI coaching conversations and interactions
 class AICoachingService {
@@ -22,6 +23,14 @@ class AICoachingService {
         );
       }
       return null;
+    }
+  }
+
+  // Ensure we have a valid Supabase session (anonymous if needed)
+  Future<void> _ensureSession() async {
+    if (_supabase == null) return;
+    if (_supabase!.auth.currentSession == null) {
+      await _supabase!.auth.signInAnonymously();
     }
   }
 
@@ -49,15 +58,9 @@ class AICoachingService {
         );
       }
 
-      String? userId = _supabase!.auth.currentUser?.id;
-
-      // 🧪 Use test user ID for development when no authenticated user
-      if (userId == null) {
-        userId = "00000000-0000-0000-0000-000000000001"; // Valid UUID format
-        if (kDebugMode) {
-          debugPrint('🧪 Using test user ID for development');
-        }
-      }
+      await _ensureSession();
+      final userId = _supabase!.auth.currentUser!.id;
+      final accessToken = _supabase!.auth.currentSession!.accessToken;
 
       if (kDebugMode) {
         debugPrint('🤖 Calling AI coaching engine: "$message"');
@@ -71,6 +74,10 @@ class AICoachingService {
               'message': message,
               'momentum_state': momentumState ?? 'Steady',
               if (context != null) ...context,
+            },
+            headers: {
+              'Authorization': 'Bearer $accessToken',
+              'apikey': Environment.supabaseAnonKey,
             },
           )
           .timeout(const Duration(seconds: 15));
@@ -231,15 +238,8 @@ class AICoachingService {
         return [];
       }
 
-      String? userId = _supabase!.auth.currentUser?.id;
-
-      // 🧪 Use test user ID for development when no authenticated user
-      if (userId == null) {
-        userId = "00000000-0000-0000-0000-000000000001"; // Valid UUID format
-        if (kDebugMode) {
-          debugPrint('🧪 Using test user ID for conversation history');
-        }
-      }
+      await _ensureSession();
+      final userId = _supabase!.auth.currentUser!.id;
 
       final response = await _supabase!
           .from('conversation_logs')
@@ -272,15 +272,8 @@ class AICoachingService {
         return true;
       }
 
-      String? userId = _supabase!.auth.currentUser?.id;
-
-      // 🧪 Use test user ID for development when no authenticated user
-      if (userId == null) {
-        userId = "00000000-0000-0000-0000-000000000001"; // Valid UUID format
-        if (kDebugMode) {
-          debugPrint('🧪 Using test user ID for rate limiting check');
-        }
-      }
+      await _ensureSession();
+      final userId = _supabase!.auth.currentUser!.id;
 
       // Check messages in last minute
       final oneMinuteAgo = DateTime.now().subtract(const Duration(minutes: 1));

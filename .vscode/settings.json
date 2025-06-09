@@ -17,5 +17,16 @@
     "search.exclude": {
         "**/.dart_tool": true,
         "**/build": true
-    }
+    },
+    "deno.enable": true,
+    "deno.enablePaths": [
+        "./supabase/functions"
+    ],
+    "deno.lint": true,
+    "deno.unstable": true,
+    "[typescript]": {
+        "editor.defaultFormatter": "denoland.vscode-deno"
+    },
+    "typescript.preferences.includePackageJsonAutoImports": "off",
+    "typescript.suggest.autoImports": false
 }
