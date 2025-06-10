@@ -1,0 +1,46 @@
+{
+  "scriptId": "378",
+  "url": "file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/personalization/cross-patient-patterns.ts",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 0, "endOffset": 10890, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "<instance_members_initializer>",
+      "ranges": [{ "startOffset": 309, "endOffset": 317, "count": 0 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "CrossPatientPatternsService",
+      "ranges": [{ "startOffset": 321, "endOffset": 377, "count": 0 }],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "aggregateEffectivenessPatterns",
+      "ranges": [{ "startOffset": 516, "endOffset": 3824, "count": 0 }],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "aggregateEngagementPatterns",
+      "ranges": [{ "startOffset": 3892, "endOffset": 5931, "count": 0 }],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "storePatternAggregate",
+      "ranges": [{ "startOffset": 5996, "endOffset": 6861, "count": 0 }],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "generateInsights",
+      "ranges": [{ "startOffset": 6935, "endOffset": 8885, "count": 0 }],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "processWeeklyAggregation",
+      "ranges": [{ "startOffset": 9022, "endOffset": 10887, "count": 0 }],
+      "isBlockCoverage": false
+    }
+  ]
+}

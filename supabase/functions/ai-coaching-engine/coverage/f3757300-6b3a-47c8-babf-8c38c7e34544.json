@@ -1,0 +1,16 @@
+{
+  "scriptId": "382",
+  "url": "file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/routes/conversation.controller.ts",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 0, "endOffset": 322, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "conversationController",
+      "ranges": [{ "startOffset": 176, "endOffset": 321, "count": 4 }],
+      "isBlockCoverage": true
+    }
+  ]
+}

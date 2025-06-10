@@ -1,0 +1,44 @@
+{
+  "scriptId": "373",
+  "url": "file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/services/ai-client.ts",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [
+        { "startOffset": 0, "endOffset": 2296, "count": 1 },
+        { "startOffset": 189, "endOffset": 194, "count": 0 },
+        { "startOffset": 237, "endOffset": 248, "count": 0 }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "callAIAPI",
+      "ranges": [
+        { "startOffset": 257, "endOffset": 2295, "count": 1 },
+        { "startOffset": 335, "endOffset": 381, "count": 0 },
+        { "startOffset": 534, "endOffset": 704, "count": 0 },
+        { "startOffset": 867, "endOffset": 872, "count": 0 },
+        { "startOffset": 1181, "endOffset": 1440, "count": 0 },
+        { "startOffset": 1562, "endOffset": 1924, "count": 0 },
+        { "startOffset": 1991, "endOffset": 2152, "count": 0 },
+        { "startOffset": 2243, "endOffset": 2292, "count": 0 }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 832, "endOffset": 856, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 939, "endOffset": 963, "count": 2 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 1246, "endOffset": 1268, "count": 0 }],
+      "isBlockCoverage": false
+    }
+  ]
+}

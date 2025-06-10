@@ -1,0 +1,110 @@
+{
+  "scriptId": "335",
+  "url": "file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/personalization/frequency-optimizer.test.ts",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 0, "endOffset": 7131, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "calculateOptimalFrequency",
+      "ranges": [
+        { "startOffset": 390, "endOffset": 1315, "count": 5 },
+        { "startOffset": 659, "endOffset": 685, "count": 3 },
+        { "startOffset": 686, "endOffset": 709, "count": 2 },
+        { "startOffset": 711, "endOffset": 852, "count": 1 },
+        { "startOffset": 852, "endOffset": 1250, "count": 4 },
+        { "startOffset": 881, "endOffset": 907, "count": 2 },
+        { "startOffset": 909, "endOffset": 1250, "count": 2 },
+        { "startOffset": 1104, "endOffset": 1250, "count": 1 }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "ensureReasonableSpacing",
+      "ranges": [
+        { "startOffset": 1316, "endOffset": 1760, "count": 1 },
+        { "startOffset": 1382, "endOffset": 1395, "count": 0 },
+        { "startOffset": 1551, "endOffset": 1736, "count": 5 },
+        { "startOffset": 1688, "endOffset": 1732, "count": 2 }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 1442, "endOffset": 1455, "count": 5 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 1893, "endOffset": 2139, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 2273, "endOffset": 2515, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 2655, "endOffset": 2906, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 3014, "endOffset": 3387, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 3506, "endOffset": 3877, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 4029, "endOffset": 4808, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "<instance_members_initializer>",
+      "ranges": [{ "startOffset": 4251, "endOffset": 4302, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "MockFrequencyOptimizer",
+      "ranges": [{ "startOffset": 4308, "endOffset": 4384, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "getDefaultConfig",
+      "ranges": [{ "startOffset": 4389, "endOffset": 4548, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "isInitialized",
+      "ranges": [{ "startOffset": 4553, "endOffset": 4662, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 4971, "endOffset": 6317, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "calculateOptimalFrequencyAdvanced",
+      "ranges": [
+        { "startOffset": 5075, "endOffset": 6055, "count": 1 },
+        { "startOffset": 5402, "endOffset": 5425, "count": 0 },
+        { "startOffset": 5427, "endOffset": 5574, "count": 0 },
+        { "startOffset": 5631, "endOffset": 5775, "count": 0 }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 6431, "endOffset": 7065, "count": 1 }],
+      "isBlockCoverage": true
+    }
+  ]
+}

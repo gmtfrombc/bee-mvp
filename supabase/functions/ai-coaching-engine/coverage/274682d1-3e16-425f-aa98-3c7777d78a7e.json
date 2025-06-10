@@ -1,0 +1,50 @@
+{
+  "scriptId": "335",
+  "url": "file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/personalization/strategy-optimizer.test.ts",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 0, "endOffset": 2916, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 236, "endOffset": 1200, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "selectOptimalPersona",
+      "ranges": [{ "startOffset": 777, "endOffset": 1093, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 1287, "endOffset": 2141, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "optimizeInterventionFrequency",
+      "ranges": [
+        { "startOffset": 1569, "endOffset": 2018, "count": 1 },
+        { "startOffset": 1792, "endOffset": 1912, "count": 0 },
+        { "startOffset": 1960, "endOffset": 1992, "count": 0 }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 2217, "endOffset": 2913, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "optimizeTonality",
+      "ranges": [
+        { "startOffset": 2397, "endOffset": 2814, "count": 1 },
+        { "startOffset": 2521, "endOffset": 2556, "count": 0 },
+        { "startOffset": 2592, "endOffset": 2707, "count": 0 },
+        { "startOffset": 2755, "endOffset": 2789, "count": 0 }
+      ],
+      "isBlockCoverage": true
+    }
+  ]
+}

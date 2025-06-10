@@ -1,0 +1,41 @@
+{
+  "scriptId": "373",
+  "url": "file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/sentiment/sentiment-analyzer.ts",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 0, "endOffset": 4479, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "analyzeSentiment",
+      "ranges": [
+        { "startOffset": 151, "endOffset": 387, "count": 1 },
+        { "startOffset": 295, "endOffset": 347, "count": 0 }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "analyzeLocalSentiment",
+      "ranges": [
+        { "startOffset": 501, "endOffset": 2978, "count": 1 },
+        { "startOffset": 1776, "endOffset": 2295, "count": 6 },
+        { "startOffset": 1832, "endOffset": 1846, "count": 5 },
+        { "startOffset": 1847, "endOffset": 1851, "count": 1 },
+        { "startOffset": 2056, "endOffset": 2061, "count": 0 },
+        { "startOffset": 2107, "endOffset": 2179, "count": 0 },
+        { "startOffset": 2219, "endOffset": 2291, "count": 0 },
+        { "startOffset": 2518, "endOffset": 2574, "count": 0 },
+        { "startOffset": 2662, "endOffset": 2685, "count": 0 },
+        { "startOffset": 2822, "endOffset": 2851, "count": 0 },
+        { "startOffset": 2876, "endOffset": 2905, "count": 0 }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "analyzeRemoteSentiment",
+      "ranges": [{ "startOffset": 3094, "endOffset": 4478, "count": 0 }],
+      "isBlockCoverage": false
+    }
+  ]
+}

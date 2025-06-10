@@ -1,0 +1,46 @@
+{
+  "scriptId": "353",
+  "url": "file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/personalization/effectiveness-tracker.ts",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 0, "endOffset": 9347, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "<instance_members_initializer>",
+      "ranges": [{ "startOffset": 231, "endOffset": 239, "count": 3 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "EffectivenessTracker",
+      "ranges": [{ "startOffset": 243, "endOffset": 345, "count": 3 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "recordInteractionEffectiveness",
+      "ranges": [{ "startOffset": 423, "endOffset": 1265, "count": 0 }],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "analyzeUserEffectiveness",
+      "ranges": [{ "startOffset": 1350, "endOffset": 5639, "count": 0 }],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "recordUserFeedback",
+      "ranges": [{ "startOffset": 5731, "endOffset": 6752, "count": 0 }],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "recordUserRating",
+      "ranges": [{ "startOffset": 6832, "endOffset": 7934, "count": 0 }],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "getEffectivenessSummary",
+      "ranges": [{ "startOffset": 8007, "endOffset": 9344, "count": 0 }],
+      "isBlockCoverage": false
+    }
+  ]
+}

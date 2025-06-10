@@ -1,0 +1,94 @@
+{
+  "scriptId": "337",
+  "url": "file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/personalization/coaching-personas.ts",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 0, "endOffset": 2982, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "derivePersona",
+      "ranges": [
+        { "startOffset": 158, "endOffset": 1977, "count": 3 },
+        { "startOffset": 1880, "endOffset": 1976, "count": 0 }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "condition",
+      "ranges": [{ "startOffset": 403, "endOffset": 434, "count": 3 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "condition",
+      "ranges": [{ "startOffset": 564, "endOffset": 589, "count": 3 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "condition",
+      "ranges": [
+        { "startOffset": 738, "endOffset": 787, "count": 3 },
+        { "startOffset": 761, "endOffset": 787, "count": 2 }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "condition",
+      "ranges": [
+        { "startOffset": 936, "endOffset": 985, "count": 3 },
+        { "startOffset": 959, "endOffset": 985, "count": 0 }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "condition",
+      "ranges": [
+        { "startOffset": 1131, "endOffset": 1195, "count": 3 },
+        { "startOffset": 1169, "endOffset": 1195, "count": 0 }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "condition",
+      "ranges": [
+        { "startOffset": 1344, "endOffset": 1394, "count": 3 },
+        { "startOffset": 1367, "endOffset": 1394, "count": 2 }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "condition",
+      "ranges": [
+        { "startOffset": 1542, "endOffset": 1592, "count": 3 },
+        { "startOffset": 1565, "endOffset": 1592, "count": 0 }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 1724, "endOffset": 1765, "count": 21 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 1772, "endOffset": 1803, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "getDefaultPersonaForMomentum",
+      "ranges": [{ "startOffset": 2062, "endOffset": 2336, "count": 0 }],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "getPersonaDescription",
+      "ranges": [{ "startOffset": 2427, "endOffset": 2816, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "isValidMomentumState",
+      "ranges": [{ "startOffset": 2865, "endOffset": 2981, "count": 2 }],
+      "isBlockCoverage": true
+    }
+  ]
+}

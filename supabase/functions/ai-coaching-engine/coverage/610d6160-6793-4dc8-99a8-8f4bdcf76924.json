@@ -1,0 +1,46 @@
+{
+  "scriptId": "347",
+  "url": "file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/middleware/rate-limit.ts",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 0, "endOffset": 5274, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "<instance_members_initializer>",
+      "ranges": [{ "startOffset": 46, "endOffset": 56, "count": 0 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "RateLimitError",
+      "ranges": [{ "startOffset": 60, "endOffset": 181, "count": 0 }],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "enforceRateLimit",
+      "ranges": [{ "startOffset": 377, "endOffset": 1019, "count": 0 }],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "enforceRateLimitKV",
+      "ranges": [{ "startOffset": 1074, "endOffset": 2209, "count": 0 }],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "enforceRateLimitMemory",
+      "ranges": [{ "startOffset": 2259, "endOffset": 3306, "count": 0 }],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "getRateLimitStatus",
+      "ranges": [{ "startOffset": 3366, "endOffset": 4827, "count": 0 }],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "clearRateLimits",
+      "ranges": [{ "startOffset": 4880, "endOffset": 5273, "count": 0 }],
+      "isBlockCoverage": false
+    }
+  ]
+}

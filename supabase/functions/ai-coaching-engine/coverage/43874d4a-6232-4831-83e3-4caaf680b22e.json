@@ -1,0 +1,51 @@
+{
+  "scriptId": "335",
+  "url": "file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/services/engagement-data.test.ts",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 0, "endOffset": 1784, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "globalThis.setInterval",
+      "ranges": [{ "startOffset": 66, "endOffset": 71, "count": 4 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "globalThis.setTimeout",
+      "ranges": [{ "startOffset": 97, "endOffset": 102, "count": 4 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "globalThis.clearInterval",
+      "ranges": [{ "startOffset": 131, "endOffset": 137, "count": 0 }],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "globalThis.clearTimeout",
+      "ranges": [{ "startOffset": 165, "endOffset": 171, "count": 0 }],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 390, "endOffset": 736, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 803, "endOffset": 1142, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 1223, "endOffset": 1393, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 1465, "endOffset": 1781, "count": 1 }],
+      "isBlockCoverage": true
+    }
+  ]
+}

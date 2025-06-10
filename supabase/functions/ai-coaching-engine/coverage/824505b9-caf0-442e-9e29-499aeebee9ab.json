@@ -1,0 +1,36 @@
+{
+  "scriptId": "346",
+  "url": "file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/middleware/cache.ts",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 0, "endOffset": 3267, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "CacheError",
+      "ranges": [{ "startOffset": 42, "endOffset": 117, "count": 0 }],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "getCachedResponse",
+      "ranges": [{ "startOffset": 277, "endOffset": 1165, "count": 0 }],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "setCachedResponse",
+      "ranges": [{ "startOffset": 1266, "endOffset": 2194, "count": 0 }],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "generateCacheKey",
+      "ranges": [{ "startOffset": 2303, "endOffset": 2706, "count": 0 }],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "clearCache",
+      "ranges": [{ "startOffset": 2764, "endOffset": 3266, "count": 0 }],
+      "isBlockCoverage": false
+    }
+  ]
+}

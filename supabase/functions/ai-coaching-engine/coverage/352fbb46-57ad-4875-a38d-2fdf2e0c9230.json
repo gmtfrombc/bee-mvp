@@ -1,0 +1,26 @@
+{
+  "scriptId": "351",
+  "url": "file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/sentiment/sentiment-analyzer.ts",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 0, "endOffset": 4479, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "analyzeSentiment",
+      "ranges": [{ "startOffset": 151, "endOffset": 387, "count": 0 }],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "analyzeLocalSentiment",
+      "ranges": [{ "startOffset": 501, "endOffset": 2978, "count": 0 }],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "analyzeRemoteSentiment",
+      "ranges": [{ "startOffset": 3094, "endOffset": 4478, "count": 0 }],
+      "isBlockCoverage": false
+    }
+  ]
+}
