@@ -1,0 +1,58 @@
+{
+  "scriptId": "371",
+  "url": "file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/services/conversation.service.ts",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [
+        { "startOffset": 0, "endOffset": 8133, "count": 1 },
+        { "startOffset": 1286, "endOffset": 1291, "count": 0 },
+        { "startOffset": 1349, "endOffset": 1354, "count": 0 },
+        { "startOffset": 1536, "endOffset": 1580, "count": 0 }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "processConversation",
+      "ranges": [
+        { "startOffset": 1588, "endOffset": 7941, "count": 2 },
+        { "startOffset": 1909, "endOffset": 1915, "count": 0 },
+        { "startOffset": 1989, "endOffset": 1995, "count": 0 },
+        { "startOffset": 2186, "endOffset": 2197, "count": 1 },
+        { "startOffset": 2199, "endOffset": 2395, "count": 1 },
+        { "startOffset": 2395, "endOffset": 2496, "count": 0 },
+        { "startOffset": 2496, "endOffset": 2580, "count": 1 },
+        { "startOffset": 2580, "endOffset": 2589, "count": 0 },
+        { "startOffset": 2659, "endOffset": 2696, "count": 1 },
+        { "startOffset": 2697, "endOffset": 2745, "count": 1 },
+        { "startOffset": 2916, "endOffset": 2941, "count": 1 },
+        { "startOffset": 2927, "endOffset": 2940, "count": 0 },
+        { "startOffset": 2943, "endOffset": 3036, "count": 1 },
+        { "startOffset": 3036, "endOffset": 3249, "count": 0 },
+        { "startOffset": 3251, "endOffset": 4779, "count": 0 },
+        { "startOffset": 4781, "endOffset": 4894, "count": 0 },
+        { "startOffset": 4896, "endOffset": 5361, "count": 0 },
+        { "startOffset": 5362, "endOffset": 5427, "count": 0 },
+        { "startOffset": 5482, "endOffset": 5851, "count": 0 },
+        { "startOffset": 5858, "endOffset": 6041, "count": 0 },
+        { "startOffset": 6043, "endOffset": 6998, "count": 0 },
+        { "startOffset": 7000, "endOffset": 7028, "count": 0 },
+        { "startOffset": 7029, "endOffset": 7066, "count": 0 },
+        { "startOffset": 7068, "endOffset": 7771, "count": 0 },
+        { "startOffset": 7772, "endOffset": 7780, "count": 0 },
+        { "startOffset": 7793, "endOffset": 7939, "count": 0 }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 5155, "endOffset": 5274, "count": 0 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "json",
+      "ranges": [{ "startOffset": 7942, "endOffset": 8132, "count": 2 }],
+      "isBlockCoverage": true
+    }
+  ]
+}

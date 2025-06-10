@@ -1,0 +1,49 @@
+{
+  "scriptId": "359",
+  "url": "file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/services/daily-content.service.ts",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 0, "endOffset": 6166, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "chooseTopicForDate",
+      "ranges": [{ "startOffset": 287, "endOffset": 542, "count": 4 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "buildDailyContentPrompt",
+      "ranges": [{ "startOffset": 607, "endOffset": 2149, "count": 6 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "parseAIContentResponse",
+      "ranges": [
+        { "startOffset": 2218, "endOffset": 3368, "count": 8 },
+        { "startOffset": 2360, "endOffset": 2415, "count": 2 },
+        { "startOffset": 2523, "endOffset": 2541, "count": 4 },
+        { "startOffset": 2543, "endOffset": 2885, "count": 3 },
+        { "startOffset": 2885, "endOffset": 3366, "count": 5 },
+        { "startOffset": 3055, "endOffset": 3066, "count": 4 },
+        { "startOffset": 3074, "endOffset": 3105, "count": 1 }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 3013, "endOffset": 3026, "count": 5 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "calculateContentConfidence",
+      "ranges": [{ "startOffset": 3449, "endOffset": 4788, "count": 0 }],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "generateDailyHealthContent",
+      "ranges": [{ "startOffset": 4883, "endOffset": 6165, "count": 0 }],
+      "isBlockCoverage": false
+    }
+  ]
+}

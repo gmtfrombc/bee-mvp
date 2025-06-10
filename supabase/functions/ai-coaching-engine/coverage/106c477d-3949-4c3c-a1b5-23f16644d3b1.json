@@ -1,0 +1,86 @@
+{
+  "scriptId": "337",
+  "url": "file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/services/engagement-data.ts",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 0, "endOffset": 5346, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "<instance_members_initializer>",
+      "ranges": [{ "startOffset": 237, "endOffset": 245, "count": 5 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "EngagementDataService",
+      "ranges": [
+        { "startOffset": 249, "endOffset": 789, "count": 5 },
+        { "startOffset": 368, "endOffset": 525, "count": 1 },
+        { "startOffset": 525, "endOffset": 703, "count": 4 },
+        { "startOffset": 705, "endOffset": 785, "count": 4 }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "getUserEngagementEvents",
+      "ranges": [
+        { "startOffset": 1051, "endOffset": 3365, "count": 1 },
+        { "startOffset": 1335, "endOffset": 2170, "count": 0 },
+        { "startOffset": 2171, "endOffset": 2186, "count": 0 },
+        { "startOffset": 2579, "endOffset": 2755, "count": 0 },
+        { "startOffset": 2757, "endOffset": 3361, "count": 0 }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 3002, "endOffset": 3043, "count": 0 }],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 3052, "endOffset": 3100, "count": 0 }],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "transformEventFormat",
+      "ranges": [{ "startOffset": 3447, "endOffset": 3631, "count": 0 }],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "mapEventType",
+      "ranges": [
+        { "startOffset": 3799, "endOffset": 4285, "count": 4 },
+        { "startOffset": 3858, "endOffset": 3874, "count": 1 },
+        { "startOffset": 3881, "endOffset": 3900, "count": 1 },
+        { "startOffset": 3907, "endOffset": 3923, "count": 1 },
+        { "startOffset": 3930, "endOffset": 3947, "count": 1 },
+        { "startOffset": 3954, "endOffset": 4004, "count": 1 },
+        { "startOffset": 4011, "endOffset": 4032, "count": 1 },
+        { "startOffset": 4039, "endOffset": 4096, "count": 1 },
+        { "startOffset": 4103, "endOffset": 4160, "count": 1 },
+        { "startOffset": 4167, "endOffset": 4275, "count": 1 }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "isValidEventType",
+      "ranges": [{ "startOffset": 4370, "endOffset": 4513, "count": 4 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "getFallbackEvents",
+      "ranges": [{ "startOffset": 4661, "endOffset": 4926, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "healthCheck",
+      "ranges": [
+        { "startOffset": 5000, "endOffset": 5248, "count": 1 },
+        { "startOffset": 5089, "endOffset": 5244, "count": 0 }
+      ],
+      "isBlockCoverage": true
+    }
+  ]
+}

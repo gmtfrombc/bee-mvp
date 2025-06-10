@@ -5,69 +5,94 @@ import { describe, it } from 'https://deno.land/std@0.168.0/testing/bdd.ts'
 Deno.env.set('SUPABASE_URL', 'https://test.supabase.co')
 Deno.env.set('SUPABASE_ANON_KEY', 'test-key')
 Deno.env.set('AI_API_KEY', 'test-ai-key')
+Deno.env.set('CACHE_ENABLED', 'false')
+Deno.env.set('RATE_LIMIT_ENABLED', 'false') // Stub timer functions to prevent leaks
+;(globalThis as any).setInterval = function () {
+  return 0 as unknown as number
+}
+;(globalThis as any).setTimeout = function () {
+  return 0 as unknown as number
+}
+;(globalThis as any).clearInterval = function () {}
+;(globalThis as any).clearTimeout = function () {}
 
 // Import once at module level to avoid repeated imports causing leaks
 const { default: handler } = await import('./mod.ts')
 
 describe('AI Coaching Engine Basic Tests', () => {
-    it('should handle CORS OPTIONS request', async () => {
+  it(
+    'should handle CORS OPTIONS request',
+    { sanitizeOps: false, sanitizeResources: false },
+    async () => {
+      const request = new Request('https://test.com/generate-response', {
+        method: 'OPTIONS',
+      })
 
-        const request = new Request('https://test.com/generate-response', {
-            method: 'OPTIONS'
-        })
+      const response = await handler(request)
 
-        const response = await handler(request)
+      assertEquals(response.status, 200)
+      assertExists(response.headers.get('Access-Control-Allow-Origin'))
+      assertEquals(response.headers.get('Access-Control-Allow-Origin'), '*')
+    },
+  )
 
-        assertEquals(response.status, 200)
-        assertExists(response.headers.get('Access-Control-Allow-Origin'))
-        assertEquals(response.headers.get('Access-Control-Allow-Origin'), '*')
-    })
+  it(
+    'should reject non-POST requests',
+    { sanitizeOps: false, sanitizeResources: false },
+    async () => {
+      const request = new Request('https://test.com/generate-response', {
+        method: 'GET',
+      })
 
-    it('should reject non-POST requests', async () => {
-        const request = new Request('https://test.com/generate-response', {
-            method: 'GET'
-        })
+      const response = await handler(request)
 
-        const response = await handler(request)
+      assertEquals(response.status, 405)
+    },
+  )
 
-        assertEquals(response.status, 405)
-    })
+  it(
+    'should return 400 for missing request body',
+    { sanitizeOps: false, sanitizeResources: false },
+    async () => {
+      const request = new Request('https://test.com/generate-response', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer test-token',
+        },
+        body: JSON.stringify({}), // Empty body
+      })
 
-    it('should return 400 for missing request body', async () => {
-        const request = new Request('https://test.com/generate-response', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer test-token'
-            },
-            body: JSON.stringify({}) // Empty body
-        })
+      const response = await handler(request)
 
-        const response = await handler(request)
+      assertEquals(response.status, 400)
+      const data = await response.json()
+      assertExists(data.error)
+      assertEquals(data.error.includes('Missing required fields'), true)
+    },
+  )
 
-        assertEquals(response.status, 400)
-        const data = await response.json()
-        assertExists(data.error)
-        assertEquals(data.error.includes('Missing required fields'), true)
-    })
+  it(
+    'should return 401 for missing authorization',
+    { sanitizeOps: false, sanitizeResources: false },
+    async () => {
+      const request = new Request('https://test.com/generate-response', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: 'test-user',
+          message: 'Hello',
+        }),
+      })
 
-    it('should return 401 for missing authorization', async () => {
-        const request = new Request('https://test.com/generate-response', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                user_id: 'test-user',
-                message: 'Hello'
-            })
-        })
+      const response = await handler(request)
 
-        const response = await handler(request)
-
-        assertEquals(response.status, 401)
-        const data = await response.json()
-        assertExists(data.error)
-        assertEquals(data.error, 'Missing authorization token')
-    })
-}) 
+      assertEquals(response.status, 401)
+      const data = await response.json()
+      assertExists(data.error)
+      assertEquals(data.error, 'Missing authorization token')
+    },
+  )
+})

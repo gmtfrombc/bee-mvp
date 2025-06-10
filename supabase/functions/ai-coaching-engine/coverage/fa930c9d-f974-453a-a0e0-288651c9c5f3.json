@@ -1,0 +1,130 @@
+{
+  "scriptId": "337",
+  "url": "file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/personalization/effectiveness-tracker.ts",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 0, "endOffset": 9347, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "<instance_members_initializer>",
+      "ranges": [{ "startOffset": 231, "endOffset": 239, "count": 0 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "EffectivenessTracker",
+      "ranges": [{ "startOffset": 243, "endOffset": 345, "count": 0 }],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "recordInteractionEffectiveness",
+      "ranges": [{ "startOffset": 423, "endOffset": 1265, "count": 0 }],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "analyzeUserEffectiveness",
+      "ranges": [
+        { "startOffset": 1350, "endOffset": 5639, "count": 2 },
+        { "startOffset": 1814, "endOffset": 1912, "count": 0 },
+        { "startOffset": 1977, "endOffset": 3057, "count": 1 },
+        { "startOffset": 3058, "endOffset": 3063, "count": 0 },
+        { "startOffset": 3113, "endOffset": 3161, "count": 1 },
+        { "startOffset": 3162, "endOffset": 3165, "count": 0 },
+        { "startOffset": 3216, "endOffset": 3266, "count": 1 },
+        { "startOffset": 3267, "endOffset": 3270, "count": 0 },
+        { "startOffset": 4644, "endOffset": 4740, "count": 0 },
+        { "startOffset": 4740, "endOffset": 4771, "count": 1 },
+        { "startOffset": 4771, "endOffset": 4861, "count": 0 },
+        { "startOffset": 4861, "endOffset": 4893, "count": 1 },
+        { "startOffset": 4893, "endOffset": 4981, "count": 0 },
+        { "startOffset": 4981, "endOffset": 5196, "count": 1 },
+        { "startOffset": 5196, "endOffset": 5338, "count": 0 },
+        { "startOffset": 5338, "endOffset": 5528, "count": 1 },
+        { "startOffset": 5528, "endOffset": 5635, "count": 0 }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 2605, "endOffset": 2632, "count": 3 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 2694, "endOffset": 2728, "count": 3 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 2792, "endOffset": 2826, "count": 3 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [
+        { "startOffset": 2990, "endOffset": 3026, "count": 3 },
+        { "startOffset": 3021, "endOffset": 3025, "count": 0 }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [
+        { "startOffset": 3557, "endOffset": 4316, "count": 3 },
+        { "startOffset": 3693, "endOffset": 4213, "count": 2 },
+        { "startOffset": 4009, "endOffset": 4014, "count": 0 },
+        { "startOffset": 4114, "endOffset": 4117, "count": 0 },
+        { "startOffset": 4213, "endOffset": 4308, "count": 1 }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 3623, "endOffset": 3654, "count": 9 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 3747, "endOffset": 3774, "count": 3 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 3829, "endOffset": 3863, "count": 3 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [
+        { "startOffset": 3944, "endOffset": 3980, "count": 3 },
+        { "startOffset": 3975, "endOffset": 3979, "count": 0 }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [
+        { "startOffset": 4439, "endOffset": 4516, "count": 3 },
+        { "startOffset": 4500, "endOffset": 4509, "count": 1 },
+        { "startOffset": 4510, "endOffset": 4516, "count": 2 }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "recordUserFeedback",
+      "ranges": [{ "startOffset": 5731, "endOffset": 6752, "count": 0 }],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "recordUserRating",
+      "ranges": [{ "startOffset": 6832, "endOffset": 7934, "count": 0 }],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "getEffectivenessSummary",
+      "ranges": [{ "startOffset": 8007, "endOffset": 9344, "count": 0 }],
+      "isBlockCoverage": false
+    }
+  ]
+}

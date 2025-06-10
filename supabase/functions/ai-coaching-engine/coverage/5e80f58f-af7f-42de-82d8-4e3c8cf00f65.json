@@ -1,0 +1,21 @@
+{
+  "scriptId": "345",
+  "url": "file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/response-logger.ts",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 0, "endOffset": 4146, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "logConversation",
+      "ranges": [{ "startOffset": 397, "endOffset": 2360, "count": 0 }],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "getRecentMessages",
+      "ranges": [{ "startOffset": 2485, "endOffset": 4145, "count": 0 }],
+      "isBlockCoverage": false
+    }
+  ]
+}

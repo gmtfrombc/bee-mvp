@@ -1,0 +1,42 @@
+{
+  "scriptId": "335",
+  "url": "file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/daily-content.test.ts",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 0, "endOffset": 4456, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 556, "endOffset": 1215, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [
+        { "startOffset": 1345, "endOffset": 2203, "count": 1 },
+        { "startOffset": 1531, "endOffset": 2201, "count": 6 }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 2334, "endOffset": 2821, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [
+        { "startOffset": 2960, "endOffset": 3636, "count": 1 },
+        { "startOffset": 3158, "endOffset": 3634, "count": 5 }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 3760, "endOffset": 4453, "count": 1 }],
+      "isBlockCoverage": true
+    }
+  ]
+}

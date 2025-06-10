@@ -1,0 +1,67 @@
+{
+  "scriptId": "337",
+  "url": "file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/safety/content-safety-validator.ts",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 0, "endOffset": 6954, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "<static_initializer>",
+      "ranges": [{ "startOffset": 221, "endOffset": 1648, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "validateContent",
+      "ranges": [
+        { "startOffset": 1733, "endOffset": 3795, "count": 3 },
+        { "startOffset": 2110, "endOffset": 2289, "count": 1 },
+        { "startOffset": 2486, "endOffset": 2667, "count": 1 },
+        { "startOffset": 2879, "endOffset": 2972, "count": 1 },
+        { "startOffset": 3124, "endOffset": 3232, "count": 1 },
+        { "startOffset": 3407, "endOffset": 3437, "count": 1 },
+        { "startOffset": 3439, "endOffset": 3479, "count": 1 },
+        { "startOffset": 3479, "endOffset": 3627, "count": 2 },
+        { "startOffset": 3509, "endOffset": 3538, "count": 0 },
+        { "startOffset": 3540, "endOffset": 3582, "count": 0 },
+        { "startOffset": 3676, "endOffset": 3695, "count": 1 }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 2026, "endOffset": 2070, "count": 93 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 2391, "endOffset": 2445, "count": 27 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 2785, "endOffset": 2839, "count": 36 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "validateTopicSpecificContent",
+      "ranges": [
+        { "startOffset": 3854, "endOffset": 5373, "count": 3 },
+        { "startOffset": 3949, "endOffset": 4328, "count": 1 },
+        { "startOffset": 4056, "endOffset": 4136, "count": 0 },
+        { "startOffset": 4335, "endOffset": 4707, "count": 0 },
+        { "startOffset": 4714, "endOffset": 4923, "count": 0 },
+        { "startOffset": 4930, "endOffset": 5131, "count": 1 },
+        { "startOffset": 5035, "endOffset": 5116, "count": 0 },
+        { "startOffset": 5138, "endOffset": 5344, "count": 0 }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "generateSafeFallback",
+      "ranges": [{ "startOffset": 5449, "endOffset": 6951, "count": 0 }],
+      "isBlockCoverage": false
+    }
+  ]
+}

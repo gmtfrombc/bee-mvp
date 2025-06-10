@@ -1,0 +1,31 @@
+{
+  "scriptId": "346",
+  "url": "file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/prompt-builder.ts",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 0, "endOffset": 5401, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "buildPrompt",
+      "ranges": [{ "startOffset": 466, "endOffset": 1495, "count": 0 }],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "loadTemplate",
+      "ranges": [{ "startOffset": 1551, "endOffset": 2759, "count": 0 }],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "injectPersonalizationContext",
+      "ranges": [{ "startOffset": 2881, "endOffset": 4810, "count": 0 }],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "formatEngagementSummary",
+      "ranges": [{ "startOffset": 4886, "endOffset": 5400, "count": 0 }],
+      "isBlockCoverage": false
+    }
+  ]
+}

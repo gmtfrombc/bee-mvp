@@ -1,0 +1,101 @@
+{
+  "scriptId": "344",
+  "url": "file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/personalization/pattern-analysis.ts",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 0, "endOffset": 4703, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "analyzeEngagement",
+      "ranges": [
+        { "startOffset": 138, "endOffset": 1114, "count": 1 },
+        { "startOffset": 213, "endOffset": 324, "count": 0 }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 389, "endOffset": 472, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 479, "endOffset": 544, "count": 0 }],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "createRollingWindows",
+      "ranges": [
+        { "startOffset": 1115, "endOffset": 1999, "count": 1 },
+        { "startOffset": 1194, "endOffset": 1204, "count": 0 }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 1738, "endOffset": 1820, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "analyzeEngagementPeaks",
+      "ranges": [{ "startOffset": 2000, "endOffset": 3164, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 2173, "endOffset": 2271, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 2459, "endOffset": 2516, "count": 24 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [
+        { "startOffset": 2690, "endOffset": 3144, "count": 24 },
+        { "startOffset": 2734, "endOffset": 3140, "count": 1 },
+        { "startOffset": 2770, "endOffset": 2842, "count": 0 },
+        { "startOffset": 2877, "endOffset": 2953, "count": 0 },
+        { "startOffset": 3060, "endOffset": 3134, "count": 0 }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "calculateVolatilityScore",
+      "ranges": [
+        { "startOffset": 3165, "endOffset": 4087, "count": 1 },
+        { "startOffset": 3245, "endOffset": 4086, "count": 0 }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 3348, "endOffset": 3512, "count": 0 }],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 3610, "endOffset": 3633, "count": 0 }],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 3734, "endOffset": 3777, "count": 0 }],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "calculateEngagementFrequency",
+      "ranges": [
+        { "startOffset": 4088, "endOffset": 4702, "count": 1 },
+        { "startOffset": 4163, "endOffset": 4176, "count": 0 },
+        { "startOffset": 4628, "endOffset": 4642, "count": 0 },
+        { "startOffset": 4668, "endOffset": 4684, "count": 0 }
+      ],
+      "isBlockCoverage": true
+    }
+  ]
+}

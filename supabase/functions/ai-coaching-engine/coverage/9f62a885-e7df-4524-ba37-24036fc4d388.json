@@ -1,0 +1,19 @@
+{
+  "scriptId": "371",
+  "url": "file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/services/ai-client.ts",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [
+        { "startOffset": 0, "endOffset": 2296, "count": 1 },
+        { "startOffset": 189, "endOffset": 194, "count": 0 }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "callAIAPI",
+      "ranges": [{ "startOffset": 257, "endOffset": 2295, "count": 0 }],
+      "isBlockCoverage": false
+    }
+  ]
+}

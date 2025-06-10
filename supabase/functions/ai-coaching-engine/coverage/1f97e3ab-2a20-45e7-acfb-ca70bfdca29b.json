@@ -1,0 +1,21 @@
+{
+  "scriptId": "355",
+  "url": "file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/routes/daily-content.controller.ts",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 0, "endOffset": 2969, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "dailyContentController",
+      "ranges": [{ "startOffset": 322, "endOffset": 2777, "count": 0 }],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "json",
+      "ranges": [{ "startOffset": 2778, "endOffset": 2968, "count": 0 }],
+      "isBlockCoverage": false
+    }
+  ]
+}

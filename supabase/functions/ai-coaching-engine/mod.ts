@@ -11,8 +11,11 @@ import { engagementDataService } from './services/engagement-data.ts'
 import { EffectivenessTracker } from './personalization/effectiveness-tracker.ts'
 import { StrategyOptimizer } from './personalization/strategy-optimizer.ts'
 import { FrequencyOptimizer } from './personalization/frequency-optimizer.ts'
-import { ContentSafetyValidator } from './safety/content-safety-validator.ts'
 import { CrossPatientPatternsService } from './personalization/cross-patient-patterns.ts'
+import { dailyContentController } from './routes/daily-content.controller.ts'
+import { frequencyOptController } from './routes/frequency-opt.controller.ts'
+import { patternAggregateController } from './routes/pattern-aggregate.controller.ts'
+import { conversationController } from './routes/conversation.controller.ts'
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')
 const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')
@@ -22,6 +25,12 @@ console.log(`🤖 AI model selected: ${aiModel}`)
 
 // Initialize effectiveness tracking system (with null checks for tests and testing environment)
 const isTestingEnvironment = Deno.env.get('DENO_TESTING') === 'true'
+
+// Prevent DENO_TESTING leakage across subsequent test files
+if (isTestingEnvironment) {
+  Deno.env.set('DENO_TESTING', 'false')
+}
+
 const effectivenessTracker = (supabaseUrl && supabaseKey && !isTestingEnvironment)
   ? new EffectivenessTracker(supabaseUrl, supabaseKey)
   : null
@@ -92,235 +101,6 @@ interface AnthropicRequestBody {
 }
 
 /**
- * Generate daily health content using AI
- */
-async function generateDailyHealthContent(
-  contentDate: string,
-  requestedTopic?: string,
-): Promise<GeneratedContent | null> {
-  try {
-    // Define health topic categories and prompts
-    const healthTopics = [
-      'nutrition',
-      'exercise',
-      'sleep',
-      'stress',
-      'prevention',
-      'lifestyle',
-    ]
-
-    // Choose topic (either requested or rotate through topics)
-    const topicCategory = requestedTopic || chooseTopicForDate(contentDate, healthTopics)
-
-    // Generate content prompt based on topic
-    const prompt = buildDailyContentPrompt(topicCategory, contentDate)
-
-    // Call AI API to generate content
-    const aiResponse = await callAIAPI(prompt)
-
-    if (!aiResponse) {
-      throw new Error('No response from AI API')
-    }
-
-    // Parse AI response and extract structured content
-    const parsedContent = parseAIContentResponse(aiResponse, topicCategory)
-
-    if (!parsedContent) {
-      throw new Error('Failed to parse AI response')
-    }
-
-    // Validate content safety
-    const safetyResult = ContentSafetyValidator.validateContent(
-      parsedContent.title,
-      parsedContent.summary,
-      topicCategory,
-    )
-
-    console.log(`🛡️ Safety validation for ${topicCategory} content:`, safetyResult)
-
-    // If content is unsafe, use safe fallback
-    if (!safetyResult.is_safe || safetyResult.requires_review) {
-      console.log(
-        `⚠️ Content flagged as unsafe, using safe fallback. Issues: ${
-          safetyResult.flagged_issues.join(', ')
-        }`,
-      )
-      const safeFallback = ContentSafetyValidator.generateSafeFallback(
-        topicCategory,
-      )
-
-      return {
-        title: safeFallback.title,
-        summary: safeFallback.summary,
-        topic_category: topicCategory,
-        confidence_score: 0.7, // Lower confidence for fallback content
-        content_url: undefined,
-        external_link: undefined,
-      }
-    }
-
-    return {
-      ...parsedContent,
-      confidence_score: Math.min(
-        calculateContentConfidence(parsedContent, topicCategory),
-        safetyResult.safety_score, // Cap confidence by safety score
-      ),
-    }
-  } catch (error) {
-    console.error('Error generating daily health content:', error)
-    return null
-  }
-}
-
-/**
- * Choose topic for a given date (deterministic rotation)
- */
-function chooseTopicForDate(contentDate: string, topics: string[]): string {
-  const date = new Date(contentDate)
-  const dayOfYear = Math.floor(
-    (date.getTime() - new Date(date.getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24),
-  )
-  return topics[dayOfYear % topics.length]
-}
-
-/**
- * Build AI prompt for daily content generation
- */
-function buildDailyContentPrompt(topicCategory: string, contentDate: string): AIMessage[] {
-  const date = new Date(contentDate)
-  const dayName = date.toLocaleDateString('en-US', { weekday: 'long' })
-  const monthName = date.toLocaleDateString('en-US', { month: 'long' })
-
-  const systemPrompt =
-    `You are a health and wellness content writer creating daily tips for a mobile health app. 
-
-IMPORTANT SAFETY GUIDELINES:
-- Never provide medical advice or diagnose conditions
-- Always recommend consulting healthcare professionals for medical concerns
-- Focus on general wellness and lifestyle tips
-- Avoid claims about curing or treating diseases
-- Use evidence-based information when possible
-
-Your task is to create engaging, actionable health content for the topic: ${topicCategory}
-
-Today is ${dayName}, ${monthName} ${date.getDate()}.
-
-Please respond with a JSON object in this exact format:
-{
-  "title": "Engaging headline (max 60 characters)",
-  "summary": "Brief, actionable summary (max 200 characters)",
-  "key_points": ["Point 1", "Point 2", "Point 3"]
-}
-
-The content should be:
-- Practical and actionable
-- Appropriate for general audiences
-- Evidence-based but accessible
-- Motivational and positive
-- Safe and not prescriptive`
-
-  const userPrompt =
-    `Generate daily health content for ${topicCategory} that users can apply today. Make it relevant for a ${dayName} and include specific, actionable advice.`
-
-  return [
-    { role: 'system', content: systemPrompt },
-    { role: 'user', content: userPrompt },
-  ]
-}
-
-/**
- * Parse AI response and extract structured content
- */
-function parseAIContentResponse(
-  aiResponse: string,
-  topicCategory: string,
-): Omit<GeneratedContent, 'confidence_score'> | null {
-  try {
-    // Try to extract JSON from the response
-    let jsonMatch = aiResponse.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) {
-      // If no JSON found, try to parse the entire response
-      jsonMatch = [aiResponse]
-    }
-
-    const parsed = JSON.parse(jsonMatch[0])
-
-    // Validate required fields
-    if (!parsed.title || !parsed.summary) {
-      throw new Error('Missing required fields in AI response')
-    }
-
-    // Ensure title and summary are within limits
-    const title = parsed.title.substring(0, 60)
-    const summary = parsed.summary.substring(0, 200)
-
-    return {
-      title,
-      summary,
-      topic_category: topicCategory,
-      content_url: undefined,
-      external_link: undefined,
-    }
-  } catch (error) {
-    console.error('Error parsing AI content response:', error)
-
-    // Fallback: create content from raw AI response
-    const lines = aiResponse.split('\n').filter((line) => line.trim())
-    const title = lines[0]?.substring(0, 60) || `Daily ${topicCategory} Tip`
-    const summary = lines.slice(1, 3).join(' ').substring(0, 200) ||
-      'Focus on improving your health today.'
-
-    return {
-      title,
-      summary,
-      topic_category: topicCategory,
-      content_url: undefined,
-      external_link: undefined,
-    }
-  }
-}
-
-/**
- * Calculate confidence score for generated content
- */
-function calculateContentConfidence(
-  content: Omit<GeneratedContent, 'confidence_score'>,
-  topicCategory: string,
-): number {
-  let confidence = 0.7 // Base confidence
-
-  // Check title quality
-  if (content.title.length >= 20 && content.title.length <= 60) {
-    confidence += 0.1
-  }
-
-  // Check summary quality
-  if (content.summary.length >= 50 && content.summary.length <= 200) {
-    confidence += 0.1
-  }
-
-  // Check for topic relevance (simple keyword check)
-  const topicKeywords: Record<string, string[]> = {
-    'nutrition': ['food', 'eat', 'diet', 'nutrition', 'meal', 'vitamin', 'nutrient'],
-    'exercise': ['exercise', 'workout', 'fitness', 'movement', 'activity', 'strength', 'cardio'],
-    'sleep': ['sleep', 'rest', 'bedtime', 'morning', 'dream', 'tired', 'energy'],
-    'stress': ['stress', 'anxiety', 'calm', 'relax', 'mindful', 'peace', 'tension'],
-    'prevention': ['prevent', 'avoid', 'protect', 'health', 'immune', 'wellness', 'safety'],
-    'lifestyle': ['lifestyle', 'habit', 'routine', 'balance', 'wellness', 'daily', 'healthy'],
-  }
-
-  const keywords = topicKeywords[topicCategory] || []
-  const text = `${content.title} ${content.summary}`.toLowerCase()
-  const keywordMatches = keywords.filter((keyword: string) => text.includes(keyword)).length
-
-  if (keywordMatches >= 2) {
-    confidence += 0.1
-  }
-
-  return Math.min(confidence, 1.0)
-}
-
-/**
  * Main HTTP handler for the AI coaching engine
  */
 export default async function handler(req: Request): Promise<Response> {
@@ -348,137 +128,29 @@ export default async function handler(req: Request): Promise<Response> {
 
   // Route to daily content generation endpoint
   if (pathname.endsWith('/generate-daily-content')) {
-    return await handleGenerateDailyContent(req, corsHeaders)
+    return await dailyContentController(req, {
+      cors: corsHeaders,
+      isTestingEnv: isTestingEnvironment,
+      supabaseUrl,
+      serviceRoleKey,
+    })
   }
 
   // Route to frequency optimization endpoint
   if (pathname.endsWith('/optimize-frequency')) {
-    return await handleFrequencyOptimization(req, corsHeaders)
+    return await frequencyOptController(req, { cors: corsHeaders })
   }
 
   // Route to cross-patient pattern aggregation endpoint (Epic 3.1 preparation)
   if (pathname.endsWith('/aggregate-patterns')) {
-    return await handlePatternAggregation(req, corsHeaders)
+    return await patternAggregateController(req, { cors: corsHeaders })
   }
 
   // Default to conversation handling
-  return await handleConversation(req, corsHeaders)
-}
-
-/**
- * Handle daily content generation requests
- */
-async function handleGenerateDailyContent(
-  req: Request,
-  corsHeaders: Record<string, string>,
-): Promise<Response> {
-  const startTime = Date.now()
-
-  try {
-    // Parse request - simpler structure for daily content generation
-    const body = await req.json()
-    const { content_date, topic_category, force_regenerate = false } = body
-
-    if (!content_date) {
-      return new Response(
-        JSON.stringify({ error: 'Missing required field: content_date' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-      )
-    }
-
-    // Validate service role authentication for system operations
-    const authToken = req.headers.get('Authorization')?.replace('Bearer ', '')
-    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
-
-    if (authToken !== serviceRoleKey) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized: Service role key required for content generation' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-      )
-    }
-
-    // Initialize Supabase client with service role (skip in test environment)
-    if (isTestingEnvironment) {
-      throw new Error('Daily content generation not supported in test environment')
-    }
-    if (!supabaseUrl || !serviceRoleKey) {
-      throw new Error('Missing Supabase configuration')
-    }
-    const supabase = createClient(supabaseUrl, serviceRoleKey)
-
-    // Check if content already exists for this date (unless force regenerate)
-    if (!force_regenerate) {
-      const { data: existingContent } = await supabase
-        .from('daily_feed_content')
-        .select('*')
-        .eq('content_date', content_date)
-        .single()
-
-      if (existingContent) {
-        return new Response(
-          JSON.stringify({
-            success: true,
-            message: 'Content already exists for this date',
-            content: existingContent,
-            generated: false,
-            response_time_ms: Date.now() - startTime,
-          }),
-          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-        )
-      }
-    }
-
-    // Generate new content using AI
-    const generatedContent = await generateDailyHealthContent(content_date, topic_category)
-
-    if (!generatedContent) {
-      throw new Error('Failed to generate content')
-    }
-
-    // Store content in database
-    const { data: savedContent, error: saveError } = await supabase
-      .from('daily_feed_content')
-      .upsert({
-        content_date,
-        title: generatedContent.title,
-        summary: generatedContent.summary,
-        topic_category: generatedContent.topic_category,
-        ai_confidence_score: generatedContent.confidence_score,
-        content_url: generatedContent.content_url,
-        external_link: generatedContent.external_link,
-      }, {
-        onConflict: 'content_date',
-      })
-      .select()
-      .single()
-
-    if (saveError) {
-      throw new Error(`Failed to save content: ${saveError.message}`)
-    }
-
-    console.log(`✅ Daily content generated and saved for ${content_date}`)
-
-    return new Response(
-      JSON.stringify({
-        success: true,
-        message: 'Daily content generated successfully',
-        content: savedContent,
-        generated: true,
-        response_time_ms: Date.now() - startTime,
-      }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-    )
-  } catch (error) {
-    console.error('Error generating daily content:', error)
-    return new Response(
-      JSON.stringify({
-        error: 'Failed to generate daily content',
-        message: error instanceof Error ? error.message : 'Unknown error',
-        response_time_ms: Date.now() - startTime,
-      }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-    )
-  }
+  return await conversationController(req, {
+    cors: corsHeaders,
+    isTestingEnv: isTestingEnvironment,
+  })
 }
 
 /**
@@ -1057,6 +729,5 @@ async function callAIAPI(prompt: AIMessage[]): Promise<string> {
 export {
   buildDailyContentPrompt,
   chooseTopicForDate,
-  generateDailyHealthContent,
   parseAIContentResponse,
-}
+} from './services/daily-content.service.ts'

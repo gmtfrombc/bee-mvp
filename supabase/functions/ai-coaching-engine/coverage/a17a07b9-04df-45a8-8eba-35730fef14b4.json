@@ -1,0 +1,23 @@
+{
+  "scriptId": "350",
+  "url": "file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/middleware/safety/red-flag-detector.ts",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 0, "endOffset": 2579, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "detectRedFlags",
+      "ranges": [
+        { "startOffset": 2084, "endOffset": 2578, "count": 1 },
+        { "startOffset": 2214, "endOffset": 2561, "count": 4 },
+        { "startOffset": 2291, "endOffset": 2375, "count": 14 },
+        { "startOffset": 2323, "endOffset": 2369, "count": 0 },
+        { "startOffset": 2445, "endOffset": 2557, "count": 21 },
+        { "startOffset": 2505, "endOffset": 2551, "count": 0 }
+      ],
+      "isBlockCoverage": true
+    }
+  ]
+}

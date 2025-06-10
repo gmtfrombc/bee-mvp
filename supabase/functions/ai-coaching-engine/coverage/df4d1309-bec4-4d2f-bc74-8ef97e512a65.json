@@ -1,0 +1,44 @@
+{
+  "scriptId": "340",
+  "url": "file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/mod.ts",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [
+        { "startOffset": 0, "endOffset": 24191, "count": 1 },
+        { "startOffset": 1895, "endOffset": 1939, "count": 0 },
+        { "startOffset": 2074, "endOffset": 2080, "count": 0 },
+        { "startOffset": 2175, "endOffset": 2181, "count": 0 },
+        { "startOffset": 2313, "endOffset": 2319, "count": 0 },
+        { "startOffset": 2530, "endOffset": 2554, "count": 0 },
+        { "startOffset": 2555, "endOffset": 2631, "count": 0 }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "handler",
+      "ranges": [{ "startOffset": 2711, "endOffset": 4129, "count": 0 }],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "handleFrequencyOptimization",
+      "ranges": [{ "startOffset": 4180, "endOffset": 6869, "count": 0 }],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "handlePatternAggregation",
+      "ranges": [{ "startOffset": 6954, "endOffset": 10638, "count": 0 }],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "handleConversation",
+      "ranges": [{ "startOffset": 10704, "endOffset": 21588, "count": 0 }],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "callAIAPI",
+      "ranges": [{ "startOffset": 21731, "endOffset": 24035, "count": 0 }],
+      "isBlockCoverage": false
+    }
+  ]
+}

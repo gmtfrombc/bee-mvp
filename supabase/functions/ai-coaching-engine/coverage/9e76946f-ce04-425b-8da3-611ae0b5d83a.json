@@ -1,0 +1,68 @@
+{
+  "scriptId": "335",
+  "url": "file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/middleware/cache.test.ts",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 0, "endOffset": 5434, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 326, "endOffset": 847, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 910, "endOffset": 1036, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 1096, "endOffset": 1470, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 1525, "endOffset": 2020, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 1860, "endOffset": 1896, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [
+        { "startOffset": 2078, "endOffset": 2624, "count": 1 },
+        { "startOffset": 2508, "endOffset": 2565, "count": 0 }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [
+        { "startOffset": 2684, "endOffset": 3563, "count": 1 },
+        { "startOffset": 2891, "endOffset": 2985, "count": 50 },
+        { "startOffset": 3174, "endOffset": 3238, "count": 50 }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "i",
+      "ranges": [{ "startOffset": 3062, "endOffset": 3096, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 3637, "endOffset": 4546, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 4607, "endOffset": 5431, "count": 1 }],
+      "isBlockCoverage": true
+    }
+  ]
+}

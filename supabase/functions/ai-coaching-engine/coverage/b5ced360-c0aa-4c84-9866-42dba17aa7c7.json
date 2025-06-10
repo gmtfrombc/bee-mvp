@@ -1,0 +1,21 @@
+{
+  "scriptId": "380",
+  "url": "file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/routes/frequency-opt.controller.ts",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 0, "endOffset": 1912, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "frequencyOptController",
+      "ranges": [{ "startOffset": 178, "endOffset": 1720, "count": 0 }],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "json",
+      "ranges": [{ "startOffset": 1721, "endOffset": 1911, "count": 0 }],
+      "isBlockCoverage": false
+    }
+  ]
+}
