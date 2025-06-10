@@ -538,7 +538,7 @@ class TodayFeedCachePerformanceService {
       // 1. Measure initialization time (cold start simulation)
       stopwatch.start();
       // Simulate service initialization work
-      await Future.delayed(Duration(milliseconds: 10)); // Minimal test delay
+      await Future.delayed(const Duration(milliseconds: 10)); // Minimal test delay
       stopwatch.stop();
       baseline['initialization_time_ms'] = stopwatch.elapsedMilliseconds;
 

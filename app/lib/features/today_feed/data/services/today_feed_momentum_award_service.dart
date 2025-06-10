@@ -198,14 +198,14 @@ class TodayFeedMomentumAwardService {
         );
       }
 
-      return AwardEligibilityResult(
+      return const AwardEligibilityResult(
         isEligible: true,
         reason: 'Eligible for first daily momentum award',
       );
     } catch (e) {
       debugPrint('❌ Error checking award eligibility: $e');
       // Conservative approach: assume eligible to avoid blocking legitimate awards
-      return AwardEligibilityResult(
+      return const AwardEligibilityResult(
         isEligible: true,
         reason: 'Eligibility check failed, proceeding with award attempt',
       );

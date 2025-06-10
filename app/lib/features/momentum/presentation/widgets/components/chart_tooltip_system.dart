@@ -70,7 +70,7 @@ class ChartTooltipSystem {
     return touchedSpots.map((spot) {
       final index = spot.x.toInt();
       if (index >= weeklyTrend.length) {
-        return LineTooltipItem('', const TextStyle());
+        return const LineTooltipItem('', TextStyle());
       }
 
       final daily = weeklyTrend[index];

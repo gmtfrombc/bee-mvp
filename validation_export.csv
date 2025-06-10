@@ -1,0 +1,8 @@
+date,user_id,steps_total,heart_rate_avg_bpm,sleep_duration_hours,active_energy_kcal,sample_count,data_sources
+2024-01-15,test-user-123,9039,82,7.73,459,44,"Garmin;HealthKit"
+2024-01-16,test-user-123,5653,82,7.31,277,41,"Garmin;HealthKit"
+2024-01-17,test-user-123,8693,71,7.55,374,30,"Garmin;HealthKit"
+2024-01-18,test-user-123,7371,61,8.09,302,57,"Garmin;HealthKit"
+2024-01-19,test-user-123,9050,86,7.95,413,53,"Garmin;HealthKit"
+2024-01-20,test-user-123,9518,77,8.37,452,30,"Garmin;HealthKit"
+2024-01-21,test-user-123,8440,81,8.67,279,59,"Garmin;HealthKit"

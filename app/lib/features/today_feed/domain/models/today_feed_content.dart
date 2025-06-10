@@ -190,19 +190,19 @@ class TodayFeedRichContent {
 
   /// Create sample rich content for demo purposes
   factory TodayFeedRichContent.sample() {
-    return TodayFeedRichContent(
+    return const TodayFeedRichContent(
       elements: [
-        const RichContentElement(
+        RichContentElement(
           type: RichContentType.paragraph,
           text:
               "Sleep is more than just rest—it's when your immune system gets to work. During deep sleep phases, your body produces infection-fighting cells and antibodies that keep you healthy.",
         ),
-        const RichContentElement(
+        RichContentElement(
           type: RichContentType.heading,
           text: "Why Sleep Matters for Immunity",
           isBold: true,
         ),
-        const RichContentElement(
+        RichContentElement(
           type: RichContentType.bulletList,
           text: "Key immune benefits of quality sleep:",
           listItems: [
@@ -212,12 +212,12 @@ class TodayFeedRichContent {
             "Helps vaccines work more effectively",
           ],
         ),
-        const RichContentElement(
+        RichContentElement(
           type: RichContentType.tip,
           text:
               "Aim for 7-9 hours of sleep nightly. Keep your bedroom cool (60-67°F) and dark for optimal immune recovery.",
         ),
-        const RichContentElement(
+        RichContentElement(
           type: RichContentType.externalLink,
           text: "Learn more about sleep and immunity research",
           linkUrl: "https://example.com/sleep-research-study",

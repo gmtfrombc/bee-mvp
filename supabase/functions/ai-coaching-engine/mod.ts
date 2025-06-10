@@ -10,7 +10,9 @@ import { analyzeSentiment, type SentimentResult } from './sentiment/sentiment-an
 import { engagementDataService } from './services/engagement-data.ts'
 import { EffectivenessTracker } from './personalization/effectiveness-tracker.ts'
 import { StrategyOptimizer } from './personalization/strategy-optimizer.ts'
+import { FrequencyOptimizer } from './personalization/frequency-optimizer.ts'
 import { ContentSafetyValidator } from './safety/content-safety-validator.ts'
+import { CrossPatientPatternsService } from './personalization/cross-patient-patterns.ts'
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')
 const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')
@@ -24,6 +26,17 @@ const effectivenessTracker = (supabaseUrl && supabaseKey && !isTestingEnvironmen
   ? new EffectivenessTracker(supabaseUrl, supabaseKey)
   : null
 const strategyOptimizer = effectivenessTracker ? new StrategyOptimizer(effectivenessTracker) : null
+const frequencyOptimizer = (supabaseUrl && supabaseKey && !isTestingEnvironment)
+  ? new FrequencyOptimizer(supabaseUrl, supabaseKey)
+  : null
+
+// Initialize cross-patient patterns service for Epic 3.1 preparation
+const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+const crossPatientService = (supabaseUrl && supabaseKey && serviceRoleKey && !isTestingEnvironment)
+  ? new CrossPatientPatternsService(
+    createClient(supabaseUrl, serviceRoleKey),
+  )
+  : null
 
 // TODO: Move model-ID lookup into prompt-builder.ts once we firm up tiered pricing
 // This will allow for dynamic model selection based on user tier, conversation complexity, etc.
@@ -338,6 +351,16 @@ export default async function handler(req: Request): Promise<Response> {
     return await handleGenerateDailyContent(req, corsHeaders)
   }
 
+  // Route to frequency optimization endpoint
+  if (pathname.endsWith('/optimize-frequency')) {
+    return await handleFrequencyOptimization(req, corsHeaders)
+  }
+
+  // Route to cross-patient pattern aggregation endpoint (Epic 3.1 preparation)
+  if (pathname.endsWith('/aggregate-patterns')) {
+    return await handlePatternAggregation(req, corsHeaders)
+  }
+
   // Default to conversation handling
   return await handleConversation(req, corsHeaders)
 }
@@ -450,6 +473,187 @@ async function handleGenerateDailyContent(
     return new Response(
       JSON.stringify({
         error: 'Failed to generate daily content',
+        message: error instanceof Error ? error.message : 'Unknown error',
+        response_time_ms: Date.now() - startTime,
+      }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+    )
+  }
+}
+
+/**
+ * Handle frequency optimization requests
+ */
+async function handleFrequencyOptimization(
+  req: Request,
+  corsHeaders: Record<string, string>,
+): Promise<Response> {
+  const startTime = Date.now()
+
+  try {
+    // Parse request
+    const body = await req.json()
+    const { user_id, force_update = false } = body
+
+    if (!user_id) {
+      return new Response(
+        JSON.stringify({ error: 'Missing required field: user_id' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      )
+    }
+
+    // Validate service role authentication for system operations
+    const authToken = req.headers.get('Authorization')?.replace('Bearer ', '')
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+
+    if (authToken !== serviceRoleKey) {
+      return new Response(
+        JSON.stringify({
+          error: 'Unauthorized: Service role key required for frequency optimization',
+        }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      )
+    }
+
+    // Check if frequency optimizer is available
+    if (!frequencyOptimizer) {
+      return new Response(
+        JSON.stringify({ error: 'Frequency optimizer not available' }),
+        { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      )
+    }
+
+    // Run frequency optimization for the user
+    const optimization = await frequencyOptimizer.optimizeFrequency(user_id)
+
+    // Apply the optimization if settings changed or forced
+    if (optimization.recommendedFrequency !== optimization.currentFrequency || force_update) {
+      await frequencyOptimizer.updateUserPreferences(user_id, optimization, force_update)
+      console.log(
+        `✅ Frequency optimization applied for user ${user_id}: ${optimization.adjustmentReason}`,
+      )
+    } else {
+      console.log(`ℹ️ No frequency changes needed for user ${user_id}`)
+    }
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        user_id,
+        optimization,
+        applied: optimization.recommendedFrequency !== optimization.currentFrequency ||
+          force_update,
+        response_time_ms: Date.now() - startTime,
+      }),
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+    )
+  } catch (error) {
+    console.error('Error optimizing frequency:', error)
+    return new Response(
+      JSON.stringify({
+        error: 'Failed to optimize frequency',
+        message: error instanceof Error ? error.message : 'Unknown error',
+        response_time_ms: Date.now() - startTime,
+      }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+    )
+  }
+}
+
+/**
+ * Handle cross-patient pattern aggregation requests (Epic 3.1 preparation)
+ */
+async function handlePatternAggregation(
+  req: Request,
+  corsHeaders: Record<string, string>,
+): Promise<Response> {
+  const startTime = Date.now()
+
+  try {
+    // Parse request
+    const body = await req.json()
+    const { week_start, force_regenerate = false, operation = 'weekly_aggregation' } = body
+
+    // Validate service role authentication for system operations
+    const authToken = req.headers.get('Authorization')?.replace('Bearer ', '')
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+
+    if (authToken !== serviceRoleKey) {
+      return new Response(
+        JSON.stringify({
+          error: 'Unauthorized: Service role key required for pattern aggregation',
+        }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      )
+    }
+
+    // Check if cross-patient service is available
+    if (!crossPatientService) {
+      return new Response(
+        JSON.stringify({ error: 'Cross-patient patterns service not available' }),
+        { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      )
+    }
+
+    // Handle different operation types
+    switch (operation) {
+      case 'weekly_aggregation': {
+        const weekStart = week_start ? new Date(week_start) : undefined
+        const result = await crossPatientService.processWeeklyAggregation(weekStart)
+
+        return new Response(
+          JSON.stringify({
+            success: result.success,
+            message: result.success
+              ? 'Pattern aggregation completed successfully'
+              : 'Pattern aggregation failed',
+            patterns_created: result.patternsCreated,
+            insights_generated: result.insightsGenerated,
+            week_processed: weekStart?.toISOString().split('T')[0] ||
+              new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            response_time_ms: Date.now() - startTime,
+          }),
+          {
+            status: result.success ? 200 : 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          },
+        )
+      }
+
+      case 'generate_insights': {
+        const weekStart = week_start
+          ? new Date(week_start)
+          : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+        const insights = await crossPatientService.generateInsights(weekStart)
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            message: 'Insights generated successfully',
+            insights,
+            insights_count: insights.length,
+            week_processed: weekStart.toISOString().split('T')[0],
+            response_time_ms: Date.now() - startTime,
+          }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        )
+      }
+
+      default: {
+        return new Response(
+          JSON.stringify({
+            error: 'Invalid operation type',
+            supported_operations: ['weekly_aggregation', 'generate_insights'],
+          }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        )
+      }
+    }
+  } catch (error) {
+    console.error('Error in pattern aggregation:', error)
+    return new Response(
+      JSON.stringify({
+        error: 'Failed to process pattern aggregation',
         message: error instanceof Error ? error.message : 'Unknown error',
         response_time_ms: Date.now() - startTime,
       }),

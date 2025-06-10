@@ -162,7 +162,7 @@ void main() {
 
       test('should calculate momentum score for specific date', () async {
         // Arrange
-        final targetDate = '2024-01-15';
+        const targetDate = '2024-01-15';
 
         // Act
         final result = await apiService.calculateMomentumScore(

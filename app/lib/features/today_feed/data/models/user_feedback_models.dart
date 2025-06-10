@@ -198,9 +198,9 @@ class UserContentFeedback {
 
   /// Calculate feedback effectiveness score (0.0 to 1.0)
   double get effectivenessScore {
-    final overallWeight = 0.4;
-    final categoryWeight = 0.4;
-    final recommendationWeight = 0.2;
+    const overallWeight = 0.4;
+    const categoryWeight = 0.4;
+    const recommendationWeight = 0.2;
 
     final overallScore = (overallRating.value - 1) / 4.0;
 

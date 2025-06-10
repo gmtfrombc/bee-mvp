@@ -96,7 +96,7 @@ class LoadingOverlay extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 loadingIndicator ??
-                    CompactLoadingIndicator(size: 48.0, showDots: false),
+                    const CompactLoadingIndicator(size: 48.0, showDots: false),
                 if (message != null) ...[
                   SizedBox(
                     height: ResponsiveService.getResponsiveSpacing(context),

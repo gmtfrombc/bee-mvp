@@ -51,7 +51,7 @@ class ErrorTypeHandler extends StatelessWidget {
 
   ErrorInfo _getErrorInfo() {
     if (isOffline) {
-      return ErrorInfo(
+      return const ErrorInfo(
         icon: Icons.wifi_off,
         iconColor: AppTheme.momentumCare,
         title: 'You\'re Offline',
@@ -60,25 +60,25 @@ class ErrorTypeHandler extends StatelessWidget {
 
     switch (error?.type) {
       case ErrorType.network:
-        return ErrorInfo(
+        return const ErrorInfo(
           icon: Icons.signal_wifi_connected_no_internet_4,
           iconColor: AppTheme.momentumCare,
           title: 'Connection Problem',
         );
       case ErrorType.server:
-        return ErrorInfo(
+        return const ErrorInfo(
           icon: Icons.cloud_off,
           iconColor: AppTheme.momentumCare,
           title: 'Server Issue',
         );
       case ErrorType.authentication:
-        return ErrorInfo(
+        return const ErrorInfo(
           icon: Icons.lock_outline,
           iconColor: Colors.orange,
           title: 'Authentication Required',
         );
       default:
-        return ErrorInfo(
+        return const ErrorInfo(
           icon: Icons.error_outline,
           iconColor: AppTheme.momentumCare,
           title: 'Something Went Wrong',

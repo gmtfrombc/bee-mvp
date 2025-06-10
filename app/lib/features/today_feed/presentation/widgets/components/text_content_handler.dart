@@ -106,7 +106,7 @@ class TextContentHandler extends StatelessWidget {
                       ),
                       width: 4,
                       height: 4,
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         color: AppTheme.momentumRising,
                         shape: BoxShape.circle,
                       ),

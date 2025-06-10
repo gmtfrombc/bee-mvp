@@ -4,7 +4,8 @@
 
 ## Project Overview
 
-BEE is a behavioral engagement platform focused on health and wellness tracking. This repository contains the complete MVP implementation including:
+BEE is a behavioral engagement platform focused on health and wellness tracking.
+This repository contains the complete MVP implementation including:
 
 - **Flutter Mobile App** (`app/`) - Cross-platform mobile application
 - **Supabase Backend** (`supabase/`) - Database, authentication, and APIs
@@ -15,6 +16,7 @@ BEE is a behavioral engagement platform focused on health and wellness tracking.
 ## Quick Start
 
 ### Prerequisites
+
 - Flutter SDK (latest stable)
 - Node.js 18+
 - PostgreSQL 14+
@@ -52,11 +54,13 @@ pytest tests/db/test_rls.py
 ```
 
 **Prerequisites for RLS tests:**
+
 - PostgreSQL running locally (host=localhost, user=postgres, db=test)
 - `psycopg2-binary` and `pytest` packages installed
 - `engagement_events` table with RLS policies enabled
 
 **Install test dependencies:**
+
 ```bash
 # Recommended: Use virtual environment (especially on macOS)
 python3 -m venv venv
@@ -97,14 +101,19 @@ bee-mvp/
 
 ## Documentation
 
-🎯 **[Project Structure](docs/0_Initial_docs/bee_project_structure.md)** - **START HERE** for unified development plan
+🎯 **[Project Structure](docs/0_Initial_docs/bee_project_structure.md)** -
+**START HERE** for unified development plan
 
 📖 **[Complete Documentation Hub](docs/README.md)** - Full navigation
 
 **Quick Links:**
-- **[Architecture](docs/0_Initial_docs/bee_mvp_architecture.md)** - Technical architecture
-- **[API Usage Guide](docs/2_epic_2_1/implementation/api-usage-guide.md)** - Flutter integration examples
-- **[Operational Runbook](docs/2_epic_2_1/docs/operational-runbook.md)** - Production operations
+
+- **[Architecture](docs/0_Initial_docs/bee_mvp_architecture.md)** - Technical
+  architecture
+- **[API Usage Guide](docs/2_epic_2_1/implementation/api-usage-guide.md)** -
+  Flutter integration examples
+- **[Operational Runbook](docs/2_epic_2_1/docs/operational-runbook.md)** -
+  Production operations
 
 ## Development Workflow
 
@@ -113,7 +122,7 @@ bee-mvp/
 The CI pipeline runs automatically on push and pull requests:
 
 1. **Flutter Tests** - Unit and widget tests
-2. **Terraform Validation** - Infrastructure code validation  
+2. **Terraform Validation** - Infrastructure code validation
 3. **Database RLS Tests** - Row-Level Security verification
 
 ### Database Migrations
@@ -153,12 +162,15 @@ cd supabase && npx supabase db push
 
 ---
 
-**For detailed documentation, start with [Project Overview](docs/0_Initial_docs/project_overview.md)**
+**For detailed documentation, start with
+[Project Overview](docs/0_Initial_docs/project_overview.md)**
 
 # Momentum App
 
 A Flutter application for tracking personal momentum and progress.
 
 ## Build Status
-✅ Asset bundle .env issue resolved
-✅ Lint issues (print & unused element) resolved - CI build test in progress 
+
+✅ Asset bundle .env issue resolved ✅ Lint issues (print & unused element)
+resolved 🔄 Epic 1.3 CI fixes - import structure and dependency resolution
+improvements in progress

@@ -29,7 +29,7 @@ void main() {
       });
 
       test('should create instance with partial custom values', () {
-        final partial = const CoachDashboardFilters(timeRange: '24h');
+        const partial = CoachDashboardFilters(timeRange: '24h');
 
         expect(partial.timeRange, equals('24h'));
         expect(partial.priority, equals('all'));
@@ -91,7 +91,7 @@ void main() {
       });
 
       test('should create new instance (not mutate original)', () {
-        final original = const CoachDashboardFilters(timeRange: '7d');
+        const original = CoachDashboardFilters(timeRange: '7d');
         final copied = original.copyWith(timeRange: '30d');
 
         expect(original.timeRange, equals('7d'));
@@ -111,7 +111,7 @@ void main() {
 
       test('should return new instance equivalent to default constructor', () {
         final reset = customFilters.reset();
-        final defaultInstance = const CoachDashboardFilters();
+        const defaultInstance = CoachDashboardFilters();
 
         expect(reset, equals(defaultInstance));
       });
@@ -135,7 +135,7 @@ void main() {
         expect(defaultFilters.hasActiveFilters, isFalse);
         expect(customFilters.hasActiveFilters, isTrue);
 
-        final partialFilters = const CoachDashboardFilters(timeRange: '24h');
+        const partialFilters = CoachDashboardFilters(timeRange: '24h');
         expect(partialFilters.hasActiveFilters, isTrue);
       });
 
@@ -150,7 +150,7 @@ void main() {
       });
 
       test('should detect mixed default and custom values', () {
-        final mixed = const CoachDashboardFilters(
+        const mixed = CoachDashboardFilters(
           timeRange: '7d', // Default
           priority: 'high', // Custom
           status: 'all', // Default
@@ -165,10 +165,10 @@ void main() {
 
     group('Display Name Methods', () {
       test('should return correct time range display names', () {
-        final filter24h = const CoachDashboardFilters(timeRange: '24h');
-        final filter7d = const CoachDashboardFilters(timeRange: '7d');
-        final filter30d = const CoachDashboardFilters(timeRange: '30d');
-        final filterInvalid = const CoachDashboardFilters(timeRange: 'invalid');
+        const filter24h = CoachDashboardFilters(timeRange: '24h');
+        const filter7d = CoachDashboardFilters(timeRange: '7d');
+        const filter30d = CoachDashboardFilters(timeRange: '30d');
+        const filterInvalid = CoachDashboardFilters(timeRange: 'invalid');
 
         expect(filter24h.timeRangeDisplayName, equals('Last 24 Hours'));
         expect(filter7d.timeRangeDisplayName, equals('Last 7 Days'));
@@ -177,11 +177,11 @@ void main() {
       });
 
       test('should return correct priority display names', () {
-        final filterAll = const CoachDashboardFilters(priority: 'all');
-        final filterHigh = const CoachDashboardFilters(priority: 'high');
-        final filterMedium = const CoachDashboardFilters(priority: 'medium');
-        final filterLow = const CoachDashboardFilters(priority: 'low');
-        final filterInvalid = const CoachDashboardFilters(priority: 'invalid');
+        const filterAll = CoachDashboardFilters(priority: 'all');
+        const filterHigh = CoachDashboardFilters(priority: 'high');
+        const filterMedium = CoachDashboardFilters(priority: 'medium');
+        const filterLow = CoachDashboardFilters(priority: 'low');
+        const filterInvalid = CoachDashboardFilters(priority: 'invalid');
 
         expect(filterAll.priorityDisplayName, equals('All Priorities'));
         expect(filterHigh.priorityDisplayName, equals('High Priority'));
@@ -191,15 +191,15 @@ void main() {
       });
 
       test('should return correct status display names', () {
-        final filterAll = const CoachDashboardFilters(status: 'all');
-        final filterPending = const CoachDashboardFilters(status: 'pending');
-        final filterInProgress = const CoachDashboardFilters(
+        const filterAll = CoachDashboardFilters(status: 'all');
+        const filterPending = CoachDashboardFilters(status: 'pending');
+        const filterInProgress = CoachDashboardFilters(
           status: 'in_progress',
         );
-        final filterCompleted = const CoachDashboardFilters(
+        const filterCompleted = CoachDashboardFilters(
           status: 'completed',
         );
-        final filterInvalid = const CoachDashboardFilters(status: 'invalid');
+        const filterInvalid = CoachDashboardFilters(status: 'invalid');
 
         expect(filterAll.statusDisplayName, equals('All Statuses'));
         expect(filterPending.statusDisplayName, equals('Pending'));
@@ -290,12 +290,12 @@ void main() {
 
     group('Equality and HashCode', () {
       test('should be equal for instances with same values', () {
-        final filters1 = const CoachDashboardFilters(
+        const filters1 = CoachDashboardFilters(
           timeRange: '30d',
           priority: 'high',
           status: 'pending',
         );
-        final filters2 = const CoachDashboardFilters(
+        const filters2 = CoachDashboardFilters(
           timeRange: '30d',
           priority: 'high',
           status: 'pending',
@@ -306,16 +306,16 @@ void main() {
       });
 
       test('should not be equal for instances with different values', () {
-        final filters1 = const CoachDashboardFilters(timeRange: '7d');
-        final filters2 = const CoachDashboardFilters(timeRange: '30d');
+        const filters1 = CoachDashboardFilters(timeRange: '7d');
+        const filters2 = CoachDashboardFilters(timeRange: '30d');
 
         expect(filters1, isNot(equals(filters2)));
         expect(filters1.hashCode, isNot(equals(filters2.hashCode)));
       });
 
       test('should be equal for default instances', () {
-        final filters1 = const CoachDashboardFilters();
-        final filters2 = const CoachDashboardFilters();
+        const filters1 = CoachDashboardFilters();
+        const filters2 = CoachDashboardFilters();
 
         expect(filters1, equals(filters2));
         expect(filters1.hashCode, equals(filters2.hashCode));
@@ -332,7 +332,7 @@ void main() {
         expect(defaultFilters, isNotNull);
 
         // Test that different instances with different values are not equal
-        final differentFilters = const CoachDashboardFilters(timeRange: '24h');
+        const differentFilters = CoachDashboardFilters(timeRange: '24h');
         expect(defaultFilters, isNot(equals(differentFilters)));
 
         // Test hashCode inequality for different instances
@@ -374,7 +374,7 @@ void main() {
 
   group('Integration Tests', () {
     test('should work with enum conversion round-trip', () {
-      final filters = const CoachDashboardFilters(
+      const filters = CoachDashboardFilters(
         timeRange: '24h',
         priority: 'high',
         status: 'pending',
@@ -390,7 +390,7 @@ void main() {
     });
 
     test('should maintain data integrity through serialization', () {
-      final original = const CoachDashboardFilters(
+      const original = CoachDashboardFilters(
         timeRange: '30d',
         priority: 'medium',
         status: 'in_progress',

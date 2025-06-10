@@ -38,7 +38,8 @@ alwaysApply: false        # Use “@ bee_mvp” in chat or let Cursor auto‑att
 - **SemVer tags** for Edge Functions.
 
 ## 4. Testing Policy
-- Aim for **≥ 85 % coverage** on core logic, **≤ 5 %** golden/generic snapshot files.  
+- Aim for **≥ 85 % coverage** on core logic, **≤ 5 %** golden/generic snapshot files. 
+- Keep tests as simple as is reasonable focusing on core business logic
 - Use `flutter_test` + `mocktail`; integration tests in `test_driver/`.  
 - For each new public service method create *one* happy‑path test and critical edge‑case tests only.
 

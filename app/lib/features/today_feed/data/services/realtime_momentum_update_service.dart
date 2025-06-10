@@ -357,7 +357,7 @@ class RealtimeMomentumUpdateService {
   /// Get real-time update statistics for monitoring
   Future<RealtimeUpdateStatistics> getUpdateStatistics() async {
     if (!_isInitialized) {
-      return RealtimeUpdateStatistics(
+      return const RealtimeUpdateStatistics(
         pendingUpdatesCount: 0,
         offlineQueueSize: 0,
         isConnected: false,

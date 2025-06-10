@@ -195,7 +195,7 @@ class TodayFeedCacheMigrationManager {
     _internalUserIds.clear();
 
     // Give any pending operations time to complete
-    await Future.delayed(Duration(milliseconds: 5));
+    await Future.delayed(const Duration(milliseconds: 5));
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -663,6 +663,6 @@ class TodayFeedCacheMigrationManager {
     _prefs = null;
 
     // Wait for any pending operations to complete
-    await Future.delayed(Duration(milliseconds: 10));
+    await Future.delayed(const Duration(milliseconds: 10));
   }
 }

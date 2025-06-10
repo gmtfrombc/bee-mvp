@@ -529,14 +529,14 @@ class NotificationCoreService {
   Future<void> _ensureFirebaseInitialized() async {
     try {
       // Skip Firebase initialization in test environment
-      final isTestEnvironment =
+      const isTestEnvironment =
           kDebugMode &&
-          (const String.fromEnvironment(
+          (String.fromEnvironment(
                     'ENVIRONMENT',
                     defaultValue: 'development',
                   ) ==
                   'test' ||
-              const String.fromEnvironment(
+              String.fromEnvironment(
                     'flutter.test',
                     defaultValue: 'false',
                   ) ==

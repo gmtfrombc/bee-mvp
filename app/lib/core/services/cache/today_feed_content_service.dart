@@ -61,7 +61,7 @@ class TodayFeedContentService {
       final contentSize = contentJson.length * 2 + 32; // UTF-16 + overhead
       final currentCacheSize =
           await TodayFeedCacheMaintenanceService.calculateCacheSize();
-      final maxSizeBytes = _maxCacheSizeMB * 1024 * 1024;
+      const maxSizeBytes = _maxCacheSizeMB * 1024 * 1024;
 
       // If adding this content would exceed the limit, cleanup first
       if (currentCacheSize + contentSize > maxSizeBytes) {

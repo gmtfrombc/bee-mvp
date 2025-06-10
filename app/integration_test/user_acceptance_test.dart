@@ -310,7 +310,7 @@ void main() {
 
         await tester.pumpWidget(
           TestHelpers.createTestApp(
-            child: ProviderScope(child: const MomentumScreen()),
+            child: const ProviderScope(child: MomentumScreen()),
           ),
         );
 

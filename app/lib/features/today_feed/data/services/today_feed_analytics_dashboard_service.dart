@@ -277,7 +277,7 @@ class TodayFeedAnalyticsDashboardService {
 
   Future<AlertsAndInsights> _getAlertsAndInsights(int periodDays) async {
     try {
-      return AlertsAndInsights(
+      return const AlertsAndInsights(
         activeAlerts: [],
         recommendations: [
           'Consider increasing content variety to improve engagement',

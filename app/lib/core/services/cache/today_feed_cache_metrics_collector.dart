@@ -147,7 +147,7 @@ class TodayFeedCacheMetricsCollector {
       // Calculate cache utilization metrics
       const maxCacheSizeMB = 10;
       final sizeBytes = basicStats['cache_size_bytes'] as int? ?? 0;
-      final maxSizeBytes = maxCacheSizeMB * 1024 * 1024;
+      const maxSizeBytes = maxCacheSizeMB * 1024 * 1024;
       final utilizationPercentage = (sizeBytes / maxSizeBytes * 100).clamp(
         0.0,
         100.0,

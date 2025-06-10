@@ -77,9 +77,9 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           theme: AppTheme.lightTheme,
-          home: Scaffold(
-            appBar: const MomentumAppBar(title: testTitle),
-            body: const Text('Body'),
+          home: const Scaffold(
+            appBar: MomentumAppBar(title: testTitle),
+            body: Text('Body'),
           ),
         ),
       );

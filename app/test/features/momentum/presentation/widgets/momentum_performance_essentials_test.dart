@@ -161,11 +161,11 @@ void main() {
         await tester.pumpWidget(
           MaterialApp(
             theme: AppTheme.lightTheme,
-            home: Scaffold(
+            home: const Scaffold(
               body: MomentumGauge(
                 state: MomentumState.steady,
                 percentage: 50.0,
-                key: const Key('ai_gauge'),
+                key: Key('ai_gauge'),
               ),
             ),
           ),
@@ -179,11 +179,11 @@ void main() {
         await tester.pumpWidget(
           MaterialApp(
             theme: AppTheme.lightTheme,
-            home: Scaffold(
+            home: const Scaffold(
               body: MomentumGauge(
                 state: MomentumState.rising,
                 percentage: 85.0,
-                key: const Key('ai_gauge'),
+                key: Key('ai_gauge'),
               ),
             ),
           ),

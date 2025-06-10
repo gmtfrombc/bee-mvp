@@ -507,13 +507,13 @@ class QualityAnalytics {
   factory QualityAnalytics.error(String errorMessage) {
     return QualityAnalytics(
       timestamp: DateTime.now(),
-      dailyValidations: {},
-      hourlyValidations: {},
-      qualityScoreDistribution: {},
-      safetyScoreDistribution: {},
-      performanceMetrics: {},
-      issueAnalysis: {},
-      trends: {},
+      dailyValidations: const {},
+      hourlyValidations: const {},
+      qualityScoreDistribution: const {},
+      safetyScoreDistribution: const {},
+      performanceMetrics: const {},
+      issueAnalysis: const {},
+      trends: const {},
       errorMessage: errorMessage,
     );
   }

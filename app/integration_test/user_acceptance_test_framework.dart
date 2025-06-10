@@ -479,7 +479,7 @@ class UserAcceptanceTestFramework {
 
     await tester.pumpWidget(
       TestHelpers.createTestApp(
-        child: ProviderScope(child: const MomentumScreen()),
+        child: const ProviderScope(child: MomentumScreen()),
       ),
     );
 
@@ -517,7 +517,7 @@ class UserAcceptanceTestFramework {
 
     await tester.pumpWidget(
       TestHelpers.createTestApp(
-        child: ProviderScope(child: const MomentumScreen()),
+        child: const ProviderScope(child: MomentumScreen()),
       ),
     );
 
@@ -576,7 +576,7 @@ class UserAcceptanceTestFramework {
     for (int i = 0; i < 5; i++) {
       await tester.pumpWidget(
         TestHelpers.createTestApp(
-          child: ProviderScope(child: const MomentumScreen()),
+          child: const ProviderScope(child: MomentumScreen()),
         ),
       );
       await tester.pumpAndSettle();
@@ -635,7 +635,7 @@ class UserAcceptanceTestFramework {
 
     await tester.pumpWidget(
       TestHelpers.createTestApp(
-        child: ProviderScope(child: const MomentumScreen()),
+        child: const ProviderScope(child: MomentumScreen()),
       ),
     );
 
@@ -696,7 +696,7 @@ class UserAcceptanceTestFramework {
       debugPrint('Testing with text scale: $scale');
       await tester.pumpWidget(
         TestHelpers.createTestApp(
-          child: ProviderScope(child: const MomentumScreen()),
+          child: const ProviderScope(child: MomentumScreen()),
         ),
       );
 
@@ -719,7 +719,7 @@ class UserAcceptanceTestFramework {
     // Test with reduced motion preferences
     await tester.pumpWidget(
       TestHelpers.createTestApp(
-        child: ProviderScope(child: const MomentumScreen()),
+        child: const ProviderScope(child: MomentumScreen()),
       ),
     );
 
@@ -813,7 +813,7 @@ class UserAcceptanceTestFramework {
 
     await tester.pumpWidget(
       TestHelpers.createTestApp(
-        child: ProviderScope(child: const MomentumScreen()),
+        child: const ProviderScope(child: MomentumScreen()),
       ),
     );
 

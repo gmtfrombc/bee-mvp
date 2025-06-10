@@ -356,8 +356,8 @@ GRANT ALL ON public.content_generation_jobs TO service_role;
 GRANT ALL ON public.content_generation_monitoring TO service_role;
 GRANT ALL ON public.content_generation_metrics TO service_role;
 
--- Grant sequence permissions
-GRANT USAGE, SELECT ON SEQUENCE public.content_generation_jobs_id_seq TO authenticated, service_role;
+-- Note: No sequence permissions needed for UUID primary key with gen_random_uuid()
+-- GRANT USAGE, SELECT ON SEQUENCE public.content_generation_jobs_id_seq TO authenticated, service_role;
 
 -- Grant function execution permissions
 GRANT EXECUTE ON FUNCTION trigger_daily_content_generation(DATE, BOOLEAN, TEXT) TO service_role;

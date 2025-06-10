@@ -21,7 +21,7 @@ void main() {
       await TodayFeedCacheMigrationManager.resetForTesting();
 
       // Additional safety delay to prevent hanging
-      await Future.delayed(Duration(milliseconds: 5));
+      await Future.delayed(const Duration(milliseconds: 5));
     });
 
     group('Initialization', () {

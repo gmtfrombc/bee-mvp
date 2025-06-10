@@ -43,9 +43,9 @@ void main() {
 
     group('Content Element Rendering', () {
       testWidgets('renders paragraph elements correctly', (tester) async {
-        final paragraphContent = TodayFeedRichContent(
+        const paragraphContent = TodayFeedRichContent(
           elements: [
-            const RichContentElement(
+            RichContentElement(
               type: RichContentType.paragraph,
               text: "Test paragraph content",
             ),
@@ -53,16 +53,18 @@ void main() {
         );
 
         await tester.pumpWidget(
-          createTestWidget(RichContentRenderer(content: paragraphContent)),
+          createTestWidget(
+            const RichContentRenderer(content: paragraphContent),
+          ),
         );
 
         expect(find.text('Test paragraph content'), findsOneWidget);
       });
 
       testWidgets('renders heading elements correctly', (tester) async {
-        final headingContent = TodayFeedRichContent(
+        const headingContent = TodayFeedRichContent(
           elements: [
-            const RichContentElement(
+            RichContentElement(
               type: RichContentType.heading,
               text: "Test Heading",
               isBold: true,
@@ -71,16 +73,16 @@ void main() {
         );
 
         await tester.pumpWidget(
-          createTestWidget(RichContentRenderer(content: headingContent)),
+          createTestWidget(const RichContentRenderer(content: headingContent)),
         );
 
         expect(find.text('Test Heading'), findsOneWidget);
       });
 
       testWidgets('renders bullet list elements correctly', (tester) async {
-        final bulletListContent = TodayFeedRichContent(
+        const bulletListContent = TodayFeedRichContent(
           elements: [
-            const RichContentElement(
+            RichContentElement(
               type: RichContentType.bulletList,
               text: "Benefits include:",
               listItems: [
@@ -93,7 +95,9 @@ void main() {
         );
 
         await tester.pumpWidget(
-          createTestWidget(RichContentRenderer(content: bulletListContent)),
+          createTestWidget(
+            const RichContentRenderer(content: bulletListContent),
+          ),
         );
 
         expect(find.text('Benefits include:'), findsOneWidget);
@@ -103,9 +107,9 @@ void main() {
       });
 
       testWidgets('renders numbered list elements correctly', (tester) async {
-        final numberedListContent = TodayFeedRichContent(
+        const numberedListContent = TodayFeedRichContent(
           elements: [
-            const RichContentElement(
+            RichContentElement(
               type: RichContentType.numberedList,
               text: "Steps to follow:",
               listItems: ["First step", "Second step", "Third step"],
@@ -114,7 +118,9 @@ void main() {
         );
 
         await tester.pumpWidget(
-          createTestWidget(RichContentRenderer(content: numberedListContent)),
+          createTestWidget(
+            const RichContentRenderer(content: numberedListContent),
+          ),
         );
 
         expect(find.text('Steps to follow:'), findsOneWidget);
@@ -127,9 +133,9 @@ void main() {
       });
 
       testWidgets('renders tip elements correctly', (tester) async {
-        final tipContent = TodayFeedRichContent(
+        const tipContent = TodayFeedRichContent(
           elements: [
-            const RichContentElement(
+            RichContentElement(
               type: RichContentType.tip,
               text: "Pro tip: Drink water before meals",
             ),
@@ -137,7 +143,7 @@ void main() {
         );
 
         await tester.pumpWidget(
-          createTestWidget(RichContentRenderer(content: tipContent)),
+          createTestWidget(const RichContentRenderer(content: tipContent)),
         );
 
         expect(find.text('Pro tip: Drink water before meals'), findsOneWidget);
@@ -145,9 +151,9 @@ void main() {
       });
 
       testWidgets('renders warning elements correctly', (tester) async {
-        final warningContent = TodayFeedRichContent(
+        const warningContent = TodayFeedRichContent(
           elements: [
-            const RichContentElement(
+            RichContentElement(
               type: RichContentType.warning,
               text: "Consult your doctor before changing medications",
             ),
@@ -155,7 +161,7 @@ void main() {
         );
 
         await tester.pumpWidget(
-          createTestWidget(RichContentRenderer(content: warningContent)),
+          createTestWidget(const RichContentRenderer(content: warningContent)),
         );
 
         expect(
@@ -166,9 +172,9 @@ void main() {
       });
 
       testWidgets('renders highlight elements correctly', (tester) async {
-        final highlightContent = TodayFeedRichContent(
+        const highlightContent = TodayFeedRichContent(
           elements: [
-            const RichContentElement(
+            RichContentElement(
               type: RichContentType.highlight,
               text: "Key insight: Sleep affects immunity directly",
             ),
@@ -176,7 +182,9 @@ void main() {
         );
 
         await tester.pumpWidget(
-          createTestWidget(RichContentRenderer(content: highlightContent)),
+          createTestWidget(
+            const RichContentRenderer(content: highlightContent),
+          ),
         );
 
         expect(
@@ -187,9 +195,9 @@ void main() {
       });
 
       testWidgets('renders external link elements correctly', (tester) async {
-        final linkContent = TodayFeedRichContent(
+        const linkContent = TodayFeedRichContent(
           elements: [
-            const RichContentElement(
+            RichContentElement(
               type: RichContentType.externalLink,
               text: "Learn more about sleep research",
               linkUrl: "https://example.com/sleep-study",
@@ -199,7 +207,7 @@ void main() {
         );
 
         await tester.pumpWidget(
-          createTestWidget(RichContentRenderer(content: linkContent)),
+          createTestWidget(const RichContentRenderer(content: linkContent)),
         );
 
         expect(find.text('Learn more about sleep research'), findsOneWidget);
@@ -210,9 +218,9 @@ void main() {
 
     group('Additional Sections', () {
       testWidgets('renders key takeaways when provided', (tester) async {
-        final contentWithTakeaways = TodayFeedRichContent(
+        const contentWithTakeaways = TodayFeedRichContent(
           elements: [
-            const RichContentElement(
+            RichContentElement(
               type: RichContentType.paragraph,
               text: "Sample content",
             ),
@@ -225,7 +233,9 @@ void main() {
         );
 
         await tester.pumpWidget(
-          createTestWidget(RichContentRenderer(content: contentWithTakeaways)),
+          createTestWidget(
+            const RichContentRenderer(content: contentWithTakeaways),
+          ),
         );
 
         expect(find.text('Key Takeaways'), findsOneWidget);
@@ -236,9 +246,9 @@ void main() {
       });
 
       testWidgets('renders actionable advice when provided', (tester) async {
-        final contentWithAdvice = TodayFeedRichContent(
+        const contentWithAdvice = TodayFeedRichContent(
           elements: [
-            const RichContentElement(
+            RichContentElement(
               type: RichContentType.paragraph,
               text: "Sample content",
             ),
@@ -247,7 +257,9 @@ void main() {
         );
 
         await tester.pumpWidget(
-          createTestWidget(RichContentRenderer(content: contentWithAdvice)),
+          createTestWidget(
+            const RichContentRenderer(content: contentWithAdvice),
+          ),
         );
 
         expect(find.text('Take Action'), findsOneWidget);
@@ -259,9 +271,9 @@ void main() {
       });
 
       testWidgets('renders source reference when provided', (tester) async {
-        final contentWithSource = TodayFeedRichContent(
+        const contentWithSource = TodayFeedRichContent(
           elements: [
-            const RichContentElement(
+            RichContentElement(
               type: RichContentType.paragraph,
               text: "Sample content",
             ),
@@ -270,7 +282,9 @@ void main() {
         );
 
         await tester.pumpWidget(
-          createTestWidget(RichContentRenderer(content: contentWithSource)),
+          createTestWidget(
+            const RichContentRenderer(content: contentWithSource),
+          ),
         );
 
         expect(
@@ -280,9 +294,9 @@ void main() {
       });
 
       testWidgets('hides sections when not provided', (tester) async {
-        final minimalContent = TodayFeedRichContent(
+        const minimalContent = TodayFeedRichContent(
           elements: [
-            const RichContentElement(
+            RichContentElement(
               type: RichContentType.paragraph,
               text: "Just basic content",
             ),
@@ -290,7 +304,7 @@ void main() {
         );
 
         await tester.pumpWidget(
-          createTestWidget(RichContentRenderer(content: minimalContent)),
+          createTestWidget(const RichContentRenderer(content: minimalContent)),
         );
 
         expect(find.text('Key Takeaways'), findsNothing);
@@ -305,9 +319,9 @@ void main() {
         String? tappedUrl;
         String? tappedLinkText;
 
-        final linkContent = TodayFeedRichContent(
+        const linkContent = TodayFeedRichContent(
           elements: [
-            const RichContentElement(
+            RichContentElement(
               type: RichContentType.externalLink,
               text: "Learn more",
               linkUrl: "https://example.com",
@@ -341,9 +355,9 @@ void main() {
       ) async {
         bool linkTapped = false;
 
-        final linkContent = TodayFeedRichContent(
+        const linkContent = TodayFeedRichContent(
           elements: [
-            const RichContentElement(
+            RichContentElement(
               type: RichContentType.externalLink,
               text: "Learn more",
               linkUrl: "https://example.com",
@@ -396,9 +410,9 @@ void main() {
       testWidgets('provides semantic hints for interactive elements', (
         tester,
       ) async {
-        final linkContent = TodayFeedRichContent(
+        const linkContent = TodayFeedRichContent(
           elements: [
-            const RichContentElement(
+            RichContentElement(
               type: RichContentType.externalLink,
               text: "Learn more",
               linkUrl: "https://example.com",
@@ -408,7 +422,7 @@ void main() {
         );
 
         await tester.pumpWidget(
-          createTestWidget(RichContentRenderer(content: linkContent)),
+          createTestWidget(const RichContentRenderer(content: linkContent)),
         );
 
         // Check that external link has proper semantics structure

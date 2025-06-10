@@ -96,7 +96,7 @@ class TodayFeedCacheMaintenanceService {
 
       // Keep only entries from last _maxHistoryDays
       final cutoffDate = DateTime.now().subtract(
-        Duration(days: _maxHistoryDays),
+        const Duration(days: _maxHistoryDays),
       );
 
       final filteredHistory =
@@ -257,7 +257,7 @@ class TodayFeedCacheMaintenanceService {
 
     try {
       final currentSize = await calculateCacheSize();
-      final maxSizeBytes = _maxCacheSizeMB * 1024 * 1024;
+      const maxSizeBytes = _maxCacheSizeMB * 1024 * 1024;
       return currentSize > maxSizeBytes;
     } catch (e) {
       debugPrint('❌ Failed to check size limit: $e');

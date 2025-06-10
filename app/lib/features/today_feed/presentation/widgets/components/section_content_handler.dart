@@ -109,7 +109,7 @@ class SectionContentHandler extends StatelessWidget {
                         ),
                         width: 6,
                         height: 6,
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           color: AppTheme.momentumRising,
                           shape: BoxShape.circle,
                         ),
