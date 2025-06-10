@@ -18,6 +18,8 @@ migrate_working_dir/
 .env.dev
 .env.production
 .env.staging
+.env.backup
+.env.*
 # Allow .env.example to be committed as template
 !.env.example
 config.json
