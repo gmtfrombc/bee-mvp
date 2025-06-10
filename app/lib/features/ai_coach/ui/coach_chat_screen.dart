@@ -175,7 +175,7 @@ class _CoachChatScreenState extends ConsumerState<CoachChatScreen> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Something went wrong. Please try again.'),
+          content: const Text('Something went wrong. Please try again.'),
           backgroundColor: AppTheme.getMomentumColor(MomentumState.needsCare),
         ),
       );

@@ -188,14 +188,14 @@ void main() {
     testWidgets('Widgets respect reduced motion preferences', (tester) async {
       // Mock reduced motion by setting accessibility to true
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: MediaQuery(
-            data: const MediaQueryData(disableAnimations: true),
+            data: MediaQueryData(disableAnimations: true),
             child: Scaffold(
               body: MomentumGauge(
                 state: MomentumState.rising,
                 percentage: 85.0,
-                animationDuration: const Duration(milliseconds: 1000),
+                animationDuration: Duration(milliseconds: 1000),
               ),
             ),
           ),

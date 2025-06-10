@@ -151,10 +151,10 @@ class _RiverpodQuickStatsCardsState
           (index) => Expanded(
             child: Container(
               margin: EdgeInsets.only(right: index < 2 ? 8 : 0),
-              child: Card(
+              child: const Card(
                 child: SizedBox(
                   height: 84,
-                  child: const Center(child: CircularProgressIndicator()),
+                  child: Center(child: CircularProgressIndicator()),
                 ),
               ),
             ),

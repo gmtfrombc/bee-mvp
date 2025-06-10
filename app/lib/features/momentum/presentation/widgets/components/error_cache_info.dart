@@ -44,7 +44,7 @@ class ErrorCacheInfo extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(Icons.info_outline, color: Colors.orange, size: 20),
+          const Icon(Icons.info_outline, color: Colors.orange, size: 20),
           SizedBox(width: ResponsiveService.getSmallSpacing(context)),
           Expanded(
             child: Text(
@@ -75,7 +75,7 @@ class ErrorCacheInfo extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(Icons.cached, color: AppTheme.momentumSteady, size: 20),
+          const Icon(Icons.cached, color: AppTheme.momentumSteady, size: 20),
           SizedBox(width: ResponsiveService.getSmallSpacing(context)),
           Expanded(
             child: Text(

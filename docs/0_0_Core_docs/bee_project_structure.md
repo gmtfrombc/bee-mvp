@@ -1,6 +1,7 @@
 # BEE Project Structure - Unified Development Plan
 
-> **Definitive source of truth** for BEE project organization, terminology, and development sequence.
+> **Definitive source of truth** for BEE project organization, terminology, and
+> development sequence.
 
 ---
 
@@ -20,12 +21,13 @@
 ```
 
 ### **Terminology Mapping**
-| Old Terms | New Standard | Definition |
-|-----------|--------------|------------|
-| ~~Phases~~ | **MODULES** | Functional areas of the product |
-| ~~Milestones~~ | **EPICS** | Major development efforts spanning weeks |
-| ~~Tasks~~ | **MILESTONES** | Specific deliverable checkpoints |
-| ~~Subtasks~~ | **TASKS** | Implementation work items |
+
+| Old Terms      | New Standard   | Definition                               |
+| -------------- | -------------- | ---------------------------------------- |
+| ~~Phases~~     | **MODULES**    | Functional areas of the product          |
+| ~~Milestones~~ | **EPICS**      | Major development efforts spanning weeks |
+| ~~Tasks~~      | **MILESTONES** | Specific deliverable checkpoints         |
+| ~~Subtasks~~   | **TASKS**      | Implementation work items                |
 
 ---
 ___________________________________________________________________________
@@ -33,7 +35,7 @@ ___________________________________________________________________________
 ## 🏗️ **Module Structure**
 ___________________________________________________________________________
 
-### **Module 1: Core Mobile Experience** 
+### **Module 1: Core Mobile Experience**
 *User-facing mobile features that drive daily behavioral connection*
 
 | Feature | PRD | Epic | Status |
@@ -62,7 +64,7 @@ ___________________________________________________________________________
 
 | Feature | PRD | Epic | Status |
 |---------|-----|------|--------|
-| **Personalized Motivation Profile** | `prd-personalized-motivation-profile.md` | Epic 3.1 | ⚪ Planned 🔄 *Enhanced with cross-patient pattern learning and predictive models* |
+| **Personalized Motivation Profile** | `prd-personalized-motivation-profile.md` | Epic 3.1 | ⚪ Planned 🔄 *Enhanced with cross-patient pattern learning, predictive models, and Health Connect background data analysis* |
 | **AI Nudge Optimizer** | `prd-ai-nudge-optimizer.md` | Epic 3.2 | ⚪ Planned |
 | **Context-Aware Recommendations** | `prd-context-aware-recommendations.md` | Epic 3.3 | ⚪ Planned |
 
@@ -82,32 +84,32 @@ ___________________________________________________________________________
 | Feature | PRD | Epic | Status |
 |---------|-----|------|--------|
 | **User Segmentation & Cohort Analysis** | `prd-user-segmentation-and-cohort-analysis.md` | Epic 5.1 | ⚪ Planned |
-| **Analytics Dashboard** | `prd-analytics-dashboard.md` | Epic 5.2 | ⚪ Planned |
+| **Analytics Dashboard** | `prd-analytics-dashboard.md` | Epic 5.2 | ⚪ Planned 🔄 *Enhanced with historical Health Connect data access (>30 days)* |
 | **Feature Flag & Content Config** | `prd-feature-flag-and-content-config.md` | Epic 5.3 | ⚪ Planned 📝 *May be pruned - operationally important but not core to motivation transition promise* |
 
 _____________________________________________________________________________________
 
-### **ROADMAP: SEQUENTIAL BUILDOUT OF MODULES** 
+### **ROADMAP: SEQUENTIAL BUILDOUT OF MODULES**
 ___________________________________________________________________________
 
-### **Module 1: Core Mobile Experience** 
+### **Module 1: Core Mobile Experience**
 
 ### **Epic 0.1: Function Unit Testing & Production Readiness** ✅ **COMPLETE**
 *Comprehensive testing of Edge Functions for full automation (COMPLETE - Real user feedback enabled)*
 
 | Milestone | Deliverable | Status | Priority |
 |-----------|-------------|--------|----------|
-| **M0.1.1: Function Audit Completion** | Complete audit of all 6 Edge Functions | ✅ **COMPLETE** (All 4 legacy functions archived, 2 essential functions operational) | 
-| **M0.1.2: Docker Environment Setup** | Install Docker Desktop for Edge Function deployment | ✅ **COMPLETE** (Docker Desktop operational, Supabase CLI integrated) | 
-| **M0.1.3: Edge Function Deployment** | Deploy momentum-score-calculator and push-notification-triggers | ✅ **COMPLETE** (Functions operational with real database connections) | 
-| **M0.1.4: Today Feed UI Integration** | Integrate Today Feed into momentum screen | ✅ **COMPLETE** (TodayFeedTile successfully integrated with real interactions) 
+| **M0.1.1: Function Audit Completion** | Complete audit of all 6 Edge Functions | ✅ **COMPLETE** (All 4 legacy functions archived, 2 essential functions operational) |
+| **M0.1.2: Docker Environment Setup** | Install Docker Desktop for Edge Function deployment | ✅ **COMPLETE** (Docker Desktop operational, Supabase CLI integrated) |
+| **M0.1.3: Edge Function Deployment** | Deploy momentum-score-calculator and push-notification-triggers | ✅ **COMPLETE** (Functions operational with real database connections) |
+| **M0.1.4: Today Feed UI Integration** | Integrate Today Feed into momentum screen | ✅ **COMPLETE** (TodayFeedTile successfully integrated with real interactions)
 | **M0.1.5: Function Unit Testing** | TypeScript/Deno unit tests for essential functions | ⚪ Planned | 🟡 Enhancement |
 | **M0.1.6: Integration Testing** | Real database + Firebase integration tests | ⚪ Planned | 🟡 Enhancement |
 | **M0.1.7: Production Validation** | End-to-end testing with production-like data | ⚪ Planned | 🟡 Enhancement |
 
 **🎉 EPIC 0.1 SUCCESSFULLY COMPLETED**:
 
-**Delivered Achievements**: 
+**Delivered Achievements**:
 - ✅ **Real Backend Infrastructure** - Edge Functions operational with complete database schema
 - ✅ **Database migrations** - All 16 migrations working perfectly
 - ✅ **Today Feed Integration** - Full UI integration with user interaction tracking
@@ -135,7 +137,7 @@ cd app && flutter run                       # ✅ Today Feed integration complet
 supabase status                             # ✅ All 16 migrations applied successfully
 ```
 
-**Timeline**: ✅ **COMPLETE** (2 days - Successfully delivered)  
+**Timeline**: ✅ **COMPLETE** (2 days - Successfully delivered)
 **Priority**: ✅ **DELIVERED** - Real user feedback capability operational
 
 
@@ -169,10 +171,10 @@ supabase status                             # ✅ All 16 migrations applied succ
 | **M1.2.4: Momentum Integration** | +1 momentum on first daily open | ✅ **COMPLETE** (Momentum award service) |
 | **M1.2.5: UI Integration** | Add Today Feed to main momentum screen | ✅ **COMPLETE** (Successfully integrated and operational) |
 
-**Implementation Status**: 
+**Implementation Status**:
 - ✅ **Backend Complete**: TodayFeedDataService with offline caching
 - ✅ **Widget Complete**: TodayFeedTile with animations and rich content
-- ✅ **Services Complete**: Sharing, bookmarking, analytics, momentum rewards  
+- ✅ **Services Complete**: Sharing, bookmarking, analytics, momentum rewards
 - ✅ **Sample Data**: Realistic content for immediate deployment
 - ✅ **UI Integration Complete**: TodayFeedTile successfully integrated into momentum_screen.dart
 
@@ -189,7 +191,7 @@ TodayFeedTile(
   enableAnimations: true,
 ),
 ```
-### **Epic 1.3: Adaptive AI Coach Foundation** 
+### **Epic 1.3: Adaptive AI Coach Foundation**
 *Intelligent coaching system with personalized behavior change interventions*
 
 #### **🚀 Strategic Implementation Plan**
@@ -202,7 +204,7 @@ TodayFeedTile(
 - Epic 2.2: Wearable Integration Layer (required for physiological data)
 - Epic 2.3: Coaching Interaction Log (required for advanced analytics)
 
-**PHASE 3: Advanced Features** (Weeks 12-16)  
+**PHASE 3: Advanced Features** (Weeks 12-16)
 - Complete advanced functionality with full backend support
 - JITAI system, rapid feedback, and comprehensive testing
 
@@ -211,7 +213,7 @@ Build foundational AI coaching system that provides personalized behavior change
 
 #### **Enhanced User Value Proposition**
 - **Intelligent Coaching**: AI coach understands user patterns and provides timely interventions
-- **Personalized Motivation**: Coaching adapts to individual user behavior and preferences  
+- **Personalized Motivation**: Coaching adapts to individual user behavior and preferences
 - **Seamless Integration**: Coach leverages Today Feed content and momentum data for context
 - **Emotional Intelligence**: AI detects and responds appropriately to user emotional states
 - **Just-in-Time Interventions**: Real-time coaching based on physiological and behavioral data
@@ -255,7 +257,7 @@ Build foundational AI coaching system that provides personalized behavior change
 - **Edge Function**: `ai-coaching-engine` for secure AI processing
 - **Definition of Done**: AI can generate contextual coaching messages based on user data
 
-**M1.3.2: Personalization Engine** 
+**M1.3.2: Personalization Engine**
 - **User Pattern Analysis**: Identify engagement patterns, momentum trends, preferred content types
 - **Coaching Persona Assignment**: Determine optimal coaching style (supportive, challenging, educational)
 - **Intervention Triggers**: Define when AI coach should proactively reach out
@@ -351,7 +353,7 @@ Build foundational AI coaching system that provides personalized behavior change
 ai-coaching-engine/
 ├── personalization/
 │   ├── pattern-analysis.ts      // User behavior pattern detection
-│   ├── coaching-personas.ts     // Coaching style determination  
+│   ├── coaching-personas.ts     // Coaching style determination
 │   ├── intervention-triggers.ts // When to provide coaching
 │   └── emotional-intelligence.ts // Advanced NLP emotional recognition
 ├── conversation/
@@ -375,14 +377,14 @@ ai-coaching-engine/
 └── main.ts                      // Primary AI coaching endpoint
 ```
 
-**Enhanced Implementation Status**: 
+**Enhanced Implementation Status**:
 - 🟡 **Phase 1 Infrastructure Complete**: Core AI coaching foundation (8/8 milestones complete, M1.3.8 UI pending)
 - 🛑 **Phase 2 Dependency**: Epic 2.2 & 2.3 completion required
 - ⚪ **Phase 3 Planned**: Advanced features (5 weeks, 25 tasks, 192 hours)
 - **Total Epic**: 90 tasks, 698 hours (~17.5 weeks) - 69/90 complete (77%)
 - **Current Gap**: Gamification UI components for full user experience
 
-### **Epic 1.4: In-App Messaging** 🟡 
+### **Epic 1.4: In-App Messaging** 🟡
 *Simple messaging system for patient-coach communication*
 
 | Milestone | Deliverable | Status |
@@ -462,7 +464,7 @@ ________________________________________________________________________________
 
 | Milestone | Deliverable | Status | Priority |
 |-----------|-------------|--------|----------|
-| **M2.2.1: Device Integration Architecture** | Multi-platform wearable SDK integration | ⚪ Planned | 🔴 Critical |
+| **M2.2.1: Device Integration Architecture** | Multi-platform wearable SDK integration | ✅ **CORE COMPLETE** | 🔴 Critical |
 | **M2.2.2: Real-time Data Streaming** | Continuous physiological data pipeline | ⚪ Planned | 🔴 Critical |
 | **M2.2.3: Data Processing & Storage** | Heart rate, sleep, activity data processing | ⚪ Planned | 🔴 Critical |
 | **M2.2.4: API Endpoints** | Wearable data access for AI coaching | ⚪ Planned | 🟡 High |
@@ -470,6 +472,11 @@ ________________________________________________________________________________
 | **M2.2.6: Testing & Validation** | Device compatibility and data accuracy | ⚪ Planned | 🟠 Medium |
 
 **Enhancement Rationale**: The narrative specifically mentions medication adherence as a tracked factor affecting motivation and engagement patterns.
+
+**🔄 Task Reorganization**:
+- **T2.2.1.5‑8** (Health Connect background access) → **Epic 3.1 Enhanced** (historical pattern analysis)
+- **T2.2.1.5‑10** (>30 day historical data) → **Epic 5.2** (analytics dashboard)
+- **T2.2.1.5‑9** (data source identification) → **REMOVED** (unnecessary complexity)
 
 ### **Epic 2.3: Coaching Interaction Log** ⚪ **DEPENDENCY FOR EPIC 1.3 PHASE 3**
 *Advanced analytics and interaction tracking for AI coaching optimization*
@@ -489,7 +496,7 @@ ________________________________________________________________________________
 
 ### **PHASE 1: Core Foundation (Weeks 1-11)**
 - **Epic 1.3 Phase 1**: Core AI coaching foundation without backend dependencies
-- **Epic 1.4**: In-app messaging system  
+- **Epic 1.4**: In-app messaging system
 - **Epic 1.5**: Enhanced habit architect with progress-to-goal tracking
 
 ### **🛑 STRATEGIC PAUSE & BACKEND INFRASTRUCTURE (Weeks 12-13)**
@@ -506,7 +513,7 @@ ________________________________________________________________________________
 
 ### **Definition of Done (MVP) - UPDATED**
 - ✅ Users can view momentum meter with real-time updates **(COMPLETE)**
-- ✅ Users receive daily AI-generated health content **(COMPLETE - Today Feed)**  
+- ✅ Users receive daily AI-generated health content **(COMPLETE - Today Feed)**
 - ✅ Users can track real engagement events and see momentum changes **(COMPLETE)**
 - 🟡 **AI coach provides intelligent, emotionally-aware behavior change interventions** **(Epic 1.3 Phase 1)**
 - 🟡 **AI coach delivers just-in-time adaptive interventions based on physiological data** **(Epic 1.3 Phase 3)**
@@ -520,7 +527,7 @@ ________________________________________________________________________________
 
 ### **Post-MVP Features (Weeks 21+)**
 - **Epic 1.7:** On-Demand Lesson Library (if Today Feed + AI coach insufficient)
-- **Epic 1.8:** Advanced Social Features  
+- **Epic 1.8:** Advanced Social Features
 - **Epic 4.4 Phase 2:** Video analysis for provider visits
 - **Epic 5.3:** Feature flags and content config (if operational complexity requires)
 
@@ -553,12 +560,12 @@ Advanced early warning system:
 - Proactive intervention before motivation loss becomes critical
 - Integration of physiological, behavioral, and linguistic indicators
 - Personalized risk thresholds and intervention strategies
-
 ---
 
 ## 📁 **File Organization**
 
 ### **Current Structure**
+
 ```
 docs/
 ├── 0_Core_docs/
@@ -582,6 +589,7 @@ docs/
 ```
 
 ### **Naming Conventions**
+
 - **Epic Directories**: `{epic_number}_{module}_{epic}/` (e.g., `2_epic_1_1/`)
 - **PRD Files**: `prd-{feature-name}.md`
 - **Task Files**: `tasks-prd-{feature-name}.md`
@@ -592,43 +600,55 @@ docs/
 ## 🔄 **Status Tracking**
 
 ### **Epic Status Definitions**
+
 - ✅ **COMPLETE**: All milestones delivered and deployed
 - 🟡 **IN PROGRESS**: Active development underway
 - 🟠 **NEXT**: Ready to start, dependencies met
 - ⚪ **PLANNED**: Defined but not yet started
 - 🔴 **BLOCKED**: Cannot proceed due to dependencies
 - 🔄 **ENHANCED**: Original epic expanded with new requirements
-- 📝 **PRUNING CANDIDATE**: May be deferred based on user feedback and priority assessment
+- 📝 **PRUNING CANDIDATE**: May be deferred based on user feedback and priority
+  assessment
 
 ### **Current Status Summary**
+
 - **Epic 0.1 (Function Testing)**: ✅ **COMPLETE**
 - **Epic 1.1 (Momentum Meter)**: ✅ **COMPLETE**
 - **Epic 1.2 (Today Feed)**: ✅ **COMPLETE**
 - **Epic 1.3 (Adaptive AI Coach)**: ⚪ **PLANNED** - Strategic 3-Phase Approach
-- **Epic 1.5 (Habit Architect)**: ⚪ **PLANNED** 🔄 **ENHANCED** with progress-to-goal tracking
+- **Epic 1.5 (Habit Architect)**: ⚪ **PLANNED** 🔄 **ENHANCED** with
+  progress-to-goal tracking
 - **Epic 2.1 (Engagement Events)**: ✅ **COMPLETE**
-- **Epic 2.2 (Wearable Integration)**: ⚪ **CRITICAL DEPENDENCY** 🔄 **ENHANCED** with medication adherence
+- **Epic 2.2 (Wearable Integration)**: ⚪ **CRITICAL DEPENDENCY** 🔄
+  **ENHANCED** with medication adherence
 - **Epic 2.3 (Coaching Interaction Log)**: ⚪ **CRITICAL DEPENDENCY**
-- **Epic 3.1 (Personalized Motivation Profile)**: ⚪ **PLANNED** 🔄 **ENHANCED** with cross-patient learning
-- **Epic 4.4 (Provider Visit Analysis)**: ⚪ **NEW** 🎯 **CRITICAL** for promise delivery
+- **Epic 3.1 (Personalized Motivation Profile)**: ⚪ **PLANNED** 🔄 **ENHANCED**
+  with cross-patient learning
+- **Epic 4.4 (Provider Visit Analysis)**: ⚪ **NEW** 🎯 **CRITICAL** for promise
+  delivery
 
 ### **Promise Delivery Assessment**
+
 **Overall Alignment with Original Narrative: 90%** ⭐⭐⭐⭐⭐
 
 **Core Promise Elements Status:**
+
 - ✅ **Monitor engagement as motivation surrogate**: Complete (Momentum Meter)
 - ✅ **AI prediction of motivation changes**: Complete (Intervention triggers)
 - ✅ **Real-time data monitoring**: Complete (Real-time momentum updates)
-- ✅ **Early intervention before critical loss**: Complete (Push notifications + coach interventions)
-- 🟡 **Personalized understanding of user patterns**: In Progress (Epic 1.3 + Enhanced Epic 3.1)
+- ✅ **Early intervention before critical loss**: Complete (Push notifications +
+  coach interventions)
+- 🟡 **Personalized understanding of user patterns**: In Progress (Epic 1.3 +
+  Enhanced Epic 3.1)
 - 🟡 **Learning across patient patterns**: Planned (Enhanced Epic 3.1)
 - 🟡 **Health coach visit analysis**: Planned (Epic 4.4)
 - 🟡 **Progress-to-goal tracking**: Planned (Enhanced Epic 1.5)
 - ⚪ **Medication adherence integration**: Planned (Enhanced Epic 2.2)
 - ⚪ **Video analysis capability**: Future (Epic 4.4 Phase 2)
 
-**Overall Progress**: 5/26 epics complete (19%), **🚀 PRODUCTION-READY MVP WITH CLEAR PATH TO FULL PROMISE DELIVERY**
+**Overall Progress**: 5/26 epics complete (19%), **🚀 PRODUCTION-READY MVP WITH
+CLEAR PATH TO FULL PROMISE DELIVERY**
 
 ---
 
-**Last Updated**: January 2025  
+**Last Updated**: January 2025

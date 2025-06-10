@@ -129,11 +129,11 @@ class StreakInfoDialog extends ConsumerWidget {
     final metadataAsync = ref.watch(streakMetadataProvider);
 
     return AlertDialog(
-      title: Row(
+      title: const Row(
         children: [
-          const Icon(Icons.local_fire_department, color: Colors.orange),
-          const SizedBox(width: 8),
-          const Text('Chat Streak'),
+          Icon(Icons.local_fire_department, color: Colors.orange),
+          SizedBox(width: 8),
+          Text('Chat Streak'),
         ],
       ),
       content: Column(

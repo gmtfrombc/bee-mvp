@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart' hide Badge;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:app/features/gamification/ui/achievements_screen.dart';
 import 'package:app/features/momentum/presentation/screens/profile_settings_screen.dart';
@@ -9,6 +10,11 @@ import 'package:app/features/gamification/models/badge.dart';
 
 void main() {
   group('Gamification Navigation Integration', () {
+    setUp(() {
+      // Mock SharedPreferences to avoid async issues
+      SharedPreferences.setMockInitialValues({});
+    });
+
     testWidgets('Achievements menu item removed from ProfileSettingsScreen', (
       WidgetTester tester,
     ) async {
@@ -25,20 +31,25 @@ void main() {
             currentStreakProvider.overrideWith((ref) async => 0),
             totalPointsProvider.overrideWith((ref) async => 0),
           ],
-          child: MaterialApp(home: const ProfileSettingsScreen()),
+          child: const MaterialApp(home: ProfileSettingsScreen()),
         ),
       );
+
+      // Use pump() to build the widget tree without waiting for all async operations
+      await tester.pump();
 
       // Verify the screen loads
       expect(find.text('Profile & Settings'), findsOneWidget);
 
-      // Verify achievements menu item is NOT present (moved to Rewards tab)
+      // Core test logic: Verify achievements menu item is NOT present (moved to Rewards tab)
       expect(find.text('Achievements'), findsNothing);
       expect(find.text('View badges and progress'), findsNothing);
 
-      // Verify other menu items are still present
-      expect(find.text('Language'), findsOneWidget);
-      expect(find.text('Help & Support'), findsOneWidget);
+      // Verify the screen has essential sections
+      expect(find.text('Personalize Your Experience'), findsOneWidget);
+      expect(find.text('Appearance'), findsOneWidget);
+      expect(find.text('App Preferences'), findsOneWidget);
+      expect(find.text('About'), findsOneWidget);
     });
 
     testWidgets('AchievementsScreen renders correctly', (
@@ -57,7 +68,7 @@ void main() {
             currentStreakProvider.overrideWith((ref) async => 0),
             totalPointsProvider.overrideWith((ref) async => 0),
           ],
-          child: MaterialApp(home: const AchievementsScreen()),
+          child: const MaterialApp(home: AchievementsScreen()),
         ),
       );
 
@@ -89,7 +100,7 @@ void main() {
             currentStreakProvider.overrideWith((ref) async => 0),
             totalPointsProvider.overrideWith((ref) async => 0),
           ],
-          child: MaterialApp(home: const AchievementsScreen()),
+          child: const MaterialApp(home: AchievementsScreen()),
         ),
       );
 

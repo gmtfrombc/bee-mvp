@@ -57,5 +57,11 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	
+	<!-- HealthKit Usage Descriptions for Wearable Integration -->
+	<key>NSHealthShareUsageDescription</key>
+	<string>BEE Momentum Coach needs access to your health data to provide personalized coaching and track your fitness progress. This includes steps, heart rate, sleep patterns, and activity data to help optimize your motivation and behavioral change journey.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>BEE Momentum Coach may write health data to Apple Health to help you track your wellness goals and share progress with your care team when appropriate.</string>
 </dict>
 </plist>

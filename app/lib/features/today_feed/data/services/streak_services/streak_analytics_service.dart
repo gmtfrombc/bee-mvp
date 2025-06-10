@@ -457,7 +457,7 @@ class StreakAnalyticsService {
     // Consistency recommendations
     if (analytics.consistencyRate < 0.6) {
       recommendations.add(
-        StreakRecommendation(
+        const StreakRecommendation(
           type: 'consistency',
           priority: 'high',
           title: 'Improve Daily Consistency',
@@ -475,7 +475,7 @@ class StreakAnalyticsService {
     // Streak building recommendations
     if (analytics.currentStreak < 7) {
       recommendations.add(
-        StreakRecommendation(
+        const StreakRecommendation(
           type: 'streak_building',
           priority: 'medium',
           title: 'Build Your First Week',
@@ -493,7 +493,7 @@ class StreakAnalyticsService {
     // Milestone recommendations
     if (analytics.totalMilestones == 0) {
       recommendations.add(
-        StreakRecommendation(
+        const StreakRecommendation(
           type: 'milestone',
           priority: 'low',
           title: 'Earn Your First Milestone',

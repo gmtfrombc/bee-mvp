@@ -24,7 +24,7 @@ final achievementsProvider = FutureProvider<List<Badge>>((ref) async {
         requiredPoints: 7,
         currentProgress: 7,
       ),
-      Badge(
+      const Badge(
         id: 'momentum_100',
         title: 'Momentum Master',
         description: 'Earn 100 momentum points',
@@ -34,7 +34,7 @@ final achievementsProvider = FutureProvider<List<Badge>>((ref) async {
         requiredPoints: 100,
         currentProgress: 75,
       ),
-      Badge(
+      const Badge(
         id: 'coach_chat_10',
         title: 'Chat Champion',
         description: 'Have 10 conversations with your coach',

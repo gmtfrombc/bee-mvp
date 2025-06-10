@@ -160,7 +160,7 @@ class TodayFeedCacheHealthService {
   static double _calculateCacheUtilization(Map<String, dynamic> cacheStats) {
     try {
       final sizeBytes = cacheStats['cache_size_bytes'] as int? ?? 0;
-      final maxSizeBytes = _maxCacheSizeMB * 1024 * 1024;
+      const maxSizeBytes = _maxCacheSizeMB * 1024 * 1024;
       return (sizeBytes / maxSizeBytes * 100).clamp(0.0, 100.0);
     } catch (e) {
       return 0.0;
@@ -207,7 +207,7 @@ class TodayFeedCacheHealthService {
 
       // Check cache size violations
       final cacheSize = await _calculateCacheSize();
-      final maxSizeBytes = _maxCacheSizeMB * 1024 * 1024;
+      const maxSizeBytes = _maxCacheSizeMB * 1024 * 1024;
       if (cacheSize > maxSizeBytes) {
         issues.add(
           'Cache size (${(cacheSize / 1024 / 1024).toStringAsFixed(2)}MB) exceeds limit (${_maxCacheSizeMB}MB)',

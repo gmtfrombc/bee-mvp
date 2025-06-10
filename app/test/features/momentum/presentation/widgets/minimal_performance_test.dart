@@ -8,7 +8,7 @@ void main() {
       debugPrint('DEBUG: Starting basic widget test');
 
       await tester.pumpWidget(
-        MaterialApp(home: Scaffold(body: Text('Hello World'))),
+        const MaterialApp(home: Scaffold(body: Text('Hello World'))),
       );
 
       debugPrint('DEBUG: Widget pumped, calling pump()');

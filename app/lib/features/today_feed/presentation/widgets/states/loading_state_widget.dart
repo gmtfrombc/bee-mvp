@@ -201,7 +201,7 @@ class TodayFeedLoadingStateWidget extends StatelessWidget {
   // Helper methods for responsive measurements
 
   double _getTitleHeight(BuildContext context) {
-    final baseSize = 20.0;
+    const baseSize = 20.0;
     final responsiveMultiplier = ResponsiveService.getFontSizeMultiplier(
       context,
     );
@@ -209,7 +209,7 @@ class TodayFeedLoadingStateWidget extends StatelessWidget {
   }
 
   double _getBodyHeight(BuildContext context) {
-    final baseSize = 16.0;
+    const baseSize = 16.0;
     final responsiveMultiplier = ResponsiveService.getFontSizeMultiplier(
       context,
     );
@@ -217,7 +217,7 @@ class TodayFeedLoadingStateWidget extends StatelessWidget {
   }
 
   double _getBadgeHeight(BuildContext context) {
-    final baseSize = 12.0;
+    const baseSize = 12.0;
     final responsiveMultiplier = ResponsiveService.getFontSizeMultiplier(
       context,
     );

@@ -2,14 +2,13 @@
 ///
 /// Handles Health Connect background data sync permissions and 30-day limitations.
 /// Part of Epic 2.2 Task T2.2.2.13
-library;
+library android_background_sync_service;
 
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:health/health.dart';
-
-import 'wearable_data_models.dart';
+import 'package:app/core/services/wearable_data_models.dart';
 
 /// Background sync status for Health Connect
 enum BackgroundSyncStatus { available, limited, denied, unsupported }

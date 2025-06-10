@@ -26,7 +26,7 @@ void main() async {
     // Initialize core services
     await _initializeCoreServices();
 
-    runApp(ProviderScope(child: const BEEApp()));
+    runApp(const ProviderScope(child: BEEApp()));
   } catch (e, stackTrace) {
     debugPrint('❌ App initialization failed: $e');
     debugPrint('Stack trace: $stackTrace');

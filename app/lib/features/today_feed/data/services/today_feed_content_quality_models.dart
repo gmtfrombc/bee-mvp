@@ -161,10 +161,10 @@ class QualityValidationResult {
       engagementScore: 0.0,
       confidenceScore: 0.0,
       issues: ['Validation failed: $errorMessage'],
-      warnings: [],
+      warnings: const [],
       requiresReview: true,
       validatedAt: DateTime.now(),
-      recommendations: ['Review validation error and retry'],
+      recommendations: const ['Review validation error and retry'],
       errorMessage: errorMessage,
     );
   }
@@ -234,9 +234,9 @@ class SafetyMonitoringResult {
     return SafetyMonitoringResult(
       contentId: contentId,
       safetyScore: 0.0,
-      safetyChecks: {},
+      safetyChecks: const {},
       riskFactors: ['Safety monitoring failed: $errorMessage'],
-      recommendations: ['Review safety monitoring error and retry'],
+      recommendations: const ['Review safety monitoring error and retry'],
       isPassed: false,
       monitoredAt: DateTime.now(),
       errorMessage: errorMessage,

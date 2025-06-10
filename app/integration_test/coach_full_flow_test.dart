@@ -91,7 +91,7 @@ Future<void> _testInitialChatFlow(WidgetTester tester) async {
 
   final sendButton = find.byIcon(Icons.send_rounded);
   await tester.tap(sendButton);
-  await tester.pumpAndSettle(Duration(seconds: 3));
+  await tester.pumpAndSettle(const Duration(seconds: 3));
 
   // Verify message appears in chat
   expect(find.text('What should I focus on today?'), findsOneWidget);
@@ -108,7 +108,7 @@ Future<void> _testMomentumDipFlow(WidgetTester tester) async {
 
   final sendButton = find.byIcon(Icons.send_rounded);
   await tester.tap(sendButton);
-  await tester.pumpAndSettle(Duration(seconds: 3));
+  await tester.pumpAndSettle(const Duration(seconds: 3));
 
   // Verify supportive response appears
   // Look for supportive emoji or tone indicators
@@ -131,7 +131,7 @@ Future<void> _testRecoveryFlow(WidgetTester tester) async {
 
   final sendButton = find.byIcon(Icons.send_rounded);
   await tester.tap(sendButton);
-  await tester.pumpAndSettle(Duration(seconds: 3));
+  await tester.pumpAndSettle(const Duration(seconds: 3));
 
   // Look for celebratory response
   expect(
@@ -196,7 +196,7 @@ Future<void> _testErrorHandling(WidgetTester tester) async {
   for (int i = 0; i < 6; i++) {
     await tester.enterText(textField, 'Test message $i');
     await tester.tap(sendButton);
-    await tester.pump(Duration(milliseconds: 100));
+    await tester.pump(const Duration(milliseconds: 100));
   }
 
   await tester.pumpAndSettle();

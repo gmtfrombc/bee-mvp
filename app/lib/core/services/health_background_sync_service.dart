@@ -3,17 +3,17 @@
 /// Provides platform-specific background monitoring of health data changes
 /// using HKObserverQuery (iOS) and AndroidCallbackFlowService (Android)
 /// to push deltas to the app even when closed.
-library;
+library health_background_sync_service;
 
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:health/health.dart';
 
-import 'wearable_data_models.dart';
-import 'android_callback_flow_service.dart';
-import 'wearable_live_models.dart';
-import 'android_background_sync_service.dart';
+import 'package:app/core/services/wearable_data_models.dart';
+import 'package:app/core/services/android_callback_flow_service.dart';
+import 'package:app/core/services/wearable_live_models.dart';
+import 'package:app/core/services/android_background_sync_service.dart';
 
 /// Service for managing background health data synchronization
 class HealthBackgroundSyncService {

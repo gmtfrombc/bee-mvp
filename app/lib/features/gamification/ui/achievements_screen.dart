@@ -326,7 +326,7 @@ class AchievementsScreen extends ConsumerWidget {
     // Challenge accept logic would be implemented here
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Challenge accepted!'),
+        content: const Text('Challenge accepted!'),
         backgroundColor: AppTheme.getMomentumColor(MomentumState.rising),
       ),
     );

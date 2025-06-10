@@ -390,16 +390,16 @@ class TodayFeedInteractionHandler {
     TodayFeedContent content,
   ) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
+      const SnackBar(
         content: Row(
           children: [
-            const Icon(Icons.schedule, color: Colors.white, size: 20),
-            const SizedBox(width: 8),
-            const Expanded(child: Text('Share queued for when back online')),
+            Icon(Icons.schedule, color: Colors.white, size: 20),
+            SizedBox(width: 8),
+            Expanded(child: Text('Share queued for when back online')),
           ],
         ),
         backgroundColor: Colors.orange,
-        duration: const Duration(seconds: 3),
+        duration: Duration(seconds: 3),
         behavior: SnackBarBehavior.floating,
       ),
     );
@@ -438,11 +438,11 @@ class TodayFeedInteractionHandler {
   ) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Row(
+        content: const Row(
           children: [
-            const Icon(Icons.bookmark_remove, color: Colors.white, size: 20),
-            const SizedBox(width: 8),
-            const Expanded(child: Text('Bookmark removed')),
+            Icon(Icons.bookmark_remove, color: Colors.white, size: 20),
+            SizedBox(width: 8),
+            Expanded(child: Text('Bookmark removed')),
           ],
         ),
         backgroundColor: Colors.grey,

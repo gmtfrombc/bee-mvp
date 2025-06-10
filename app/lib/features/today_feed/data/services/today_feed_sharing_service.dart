@@ -486,7 +486,7 @@ class TodayFeedSharingService {
     } catch (e) {
       debugPrint('❌ Failed to check action limits: $e');
       // Conservative approach: allow action but log error
-      return ActionLimitResult(
+      return const ActionLimitResult(
         canProceed: true,
         reason: 'Limit check failed, proceeding with action',
         currentCount: 0,

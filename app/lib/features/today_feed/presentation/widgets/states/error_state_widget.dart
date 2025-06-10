@@ -475,8 +475,8 @@ class _TodayFeedErrorStateWidgetState extends State<TodayFeedErrorStateWidget> {
 
     // TODO: Open network settings - implementation depends on platform
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Row(
+      const SnackBar(
+        content: Row(
           children: [
             Icon(Icons.info_outline, color: Colors.white, size: 20),
             SizedBox(width: 8),
@@ -486,7 +486,7 @@ class _TodayFeedErrorStateWidgetState extends State<TodayFeedErrorStateWidget> {
           ],
         ),
         backgroundColor: Colors.blue,
-        duration: const Duration(seconds: 3),
+        duration: Duration(seconds: 3),
         behavior: SnackBarBehavior.floating,
       ),
     );

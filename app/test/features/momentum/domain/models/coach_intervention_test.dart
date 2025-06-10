@@ -51,7 +51,7 @@ void main() {
       test(
         'should create valid intervention instance with minimal required fields',
         () {
-          final minimal = CoachIntervention(
+          const minimal = CoachIntervention(
             id: 'minimal-123',
             patientName: 'John Doe',
             type: InterventionType.checkIn,
@@ -166,7 +166,7 @@ void main() {
       });
 
       test('should serialize to JSON correctly with minimal fields', () {
-        final minimal = CoachIntervention(
+        const minimal = CoachIntervention(
           id: 'minimal-123',
           patientName: 'John Doe',
           type: InterventionType.checkIn,
@@ -453,7 +453,7 @@ void main() {
         );
 
         // Create intervention with explicit null scheduledAt
-        final interventionWithoutSchedule = CoachIntervention(
+        const interventionWithoutSchedule = CoachIntervention(
           id: 'test-id',
           patientName: 'Test Patient',
           type: InterventionType.checkIn,
@@ -488,7 +488,7 @@ void main() {
         );
 
         // Create intervention with explicit null createdAt
-        final interventionWithoutCreated = CoachIntervention(
+        const interventionWithoutCreated = CoachIntervention(
           id: 'test-id',
           patientName: 'Test Patient',
           type: InterventionType.checkIn,

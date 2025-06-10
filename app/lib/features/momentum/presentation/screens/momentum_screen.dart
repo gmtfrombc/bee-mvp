@@ -294,7 +294,7 @@ class _DemoSection extends ConsumerWidget {
               ),
             ),
             SizedBox(height: ResponsiveService.getLargeSpacing(context)),
-            Row(
+            const Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 _DemoButton(

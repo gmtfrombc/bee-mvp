@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/providers/theme_provider.dart';
+import '../widgets/adaptive_polling_toggle.dart';
 
 /// Screen for managing user profile and app settings
 class ProfileSettingsScreen extends ConsumerWidget {
@@ -101,7 +102,7 @@ class ProfileSettingsScreen extends ConsumerWidget {
                   backgroundColor: AppTheme.momentumRising.withValues(
                     alpha: 0.1,
                   ),
-                  child: Icon(
+                  child: const Icon(
                     Icons.person,
                     size: 32,
                     color: AppTheme.momentumRising,
@@ -242,7 +243,7 @@ class ProfileSettingsScreen extends ConsumerWidget {
           children: [
             Row(
               children: [
-                Icon(Icons.settings, color: AppTheme.momentumRising),
+                const Icon(Icons.settings, color: AppTheme.momentumRising),
                 const SizedBox(width: 12),
                 Text(
                   'App Preferences',
@@ -253,41 +254,9 @@ class ProfileSettingsScreen extends ConsumerWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-
-            _buildPreferenceItem(
-              context,
-              icon: Icons.notifications,
-              title: 'Notifications',
-              subtitle: 'Manage notification settings',
-              onTap: () {
-                // Navigate to notification settings
-              },
-            ),
-
-            const Divider(height: 24),
-
-            _buildPreferenceItem(
-              context,
-              icon: Icons.accessibility,
-              title: 'Accessibility',
-              subtitle: 'Configure accessibility options',
-              onTap: () {
-                // Navigate to accessibility settings
-              },
-            ),
-
-            const Divider(height: 24),
-
-            _buildPreferenceItem(
-              context,
-              icon: Icons.language,
-              title: 'Language',
-              subtitle: 'English (US)',
-              onTap: () {
-                // Navigate to language settings
-              },
-            ),
+            const SizedBox(height: 8),
+            const Divider(),
+            const AdaptivePollingToggle(),
           ],
         ),
       ),
@@ -305,7 +274,7 @@ class ProfileSettingsScreen extends ConsumerWidget {
           children: [
             Row(
               children: [
-                Icon(Icons.info, color: AppTheme.momentumRising),
+                const Icon(Icons.info, color: AppTheme.momentumRising),
                 const SizedBox(width: 12),
                 Text(
                   'About',
