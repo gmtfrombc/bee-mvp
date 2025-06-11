@@ -1,9 +1,24 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const aiCoachingEngineUrl = Deno.env.get("AI_COACHING_ENGINE_URL") ||
-    "http://localhost:54321/functions/v1/ai-coaching-engine";
+
+// Determine AI coaching engine URL.
+// Priority: env override > same Supabase project Edge Function route.
+let aiCoachingEngineUrl = Deno.env.get("AI_COACHING_ENGINE_URL");
+if (!aiCoachingEngineUrl || aiCoachingEngineUrl.trim().length === 0) {
+    // Derive from project Supabase URL – replace path and append function route
+    // e.g. https://abcd.supabase.co -> https://abcd.supabase.co/functions/v1/ai-coaching-engine
+    try {
+        const supaUri = new URL(supabaseUrl);
+        aiCoachingEngineUrl =
+            `${supaUri.origin}/functions/v1/ai-coaching-engine`;
+    } catch (_) {
+        // Fallback to localhost (local dev)
+        aiCoachingEngineUrl =
+            "http://localhost:54321/functions/v1/ai-coaching-engine";
+    }
+}
 
 /**
  * Daily Content Generator - Edge Function
@@ -22,6 +37,14 @@ export default async function handler(req: Request): Promise<Response> {
             "authorization, x-client-info, apikey, content-type",
         "Access-Control-Allow-Methods": "POST, OPTIONS",
     };
+
+    // Detect development environment (local CLI) – ENVIRONMENT is set via .env or config.toml
+    const isDevEnv =
+        (Deno.env.get("ENVIRONMENT") || "development") === "development";
+    const isLocalProject = supabaseUrl.startsWith("http://") &&
+        (supabaseUrl.includes("127.0.0.1") ||
+            supabaseUrl.includes("localhost"));
+    const isDev = isDevEnv || isLocalProject;
 
     let job_id: string | undefined;
 
@@ -73,21 +96,78 @@ export default async function handler(req: Request): Promise<Response> {
             }
         }
 
-        // Call AI coaching engine to generate content
-        const generateResponse = await fetch(
-            `${aiCoachingEngineUrl}/generate-daily-content`,
-            {
+        // Prepare request payload
+        const requestPayload = {
+            content_date: contentDate,
+            force_regenerate,
+        };
+
+        if (isDev) {
+            // 🚀 Fire-and-forget in development to avoid 30s timeout in local edge-runtime
+            fetch(`${aiCoachingEngineUrl}/generate-daily-content`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${supabaseServiceKey}`,
                 },
-                body: JSON.stringify({
+                body: JSON.stringify(requestPayload),
+            }).catch((e) => console.warn("⚠️ Background generate failed:", e));
+
+            return new Response(
+                JSON.stringify({
+                    success: true,
+                    queued: true,
                     content_date: contentDate,
-                    force_regenerate,
                 }),
-            },
-        );
+                {
+                    status: 202,
+                    headers: {
+                        ...corsHeaders,
+                        "Content-Type": "application/json",
+                    },
+                },
+            );
+        }
+
+        // Timeout safeguard – return queued response if AI engine exceeds 25s
+        const MAX_WAIT_MS = 25000;
+        const generateResponse = await Promise.race([
+            fetch(`${aiCoachingEngineUrl}/generate-daily-content`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${supabaseServiceKey}`,
+                },
+                body: JSON.stringify(requestPayload),
+            }),
+            new Promise<Response>((_resolve, reject) =>
+                setTimeout(() => reject(new Error("timeout")), MAX_WAIT_MS)
+            ),
+        ]).catch((e) => {
+            console.warn(
+                `⚠️ AI engine call timed-out after ${MAX_WAIT_MS}ms`,
+                e,
+            );
+            return null;
+        });
+
+        if (generateResponse === null) {
+            // Treat as queued to avoid edge runtime 504
+            return new Response(
+                JSON.stringify({
+                    success: true,
+                    queued: true,
+                    content_date: contentDate,
+                }),
+                {
+                    status: 202,
+                    headers: {
+                        ...corsHeaders,
+                        "Content-Type": "application/json",
+                    },
+                },
+            );
+        }
 
         if (!generateResponse.ok) {
             const errorText = await generateResponse.text();

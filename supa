@@ -59,9 +59,18 @@ fi
 echo "🧹 Cleaning up any existing Supabase processes..."
 pkill -f "supabase functions serve" 2>/dev/null || true
 
+echo "🚀 Preparing dev environment variables..."
+
+# Create temp env file overriding ENVIRONMENT for local functions serve
+TEMP_ENV_FILE="./app/.env.dev.local"
+cp ./app/.env "$TEMP_ENV_FILE"
+# Remove existing ENVIRONMENT line if present and append development value
+sed -i '' '/^ENVIRONMENT=/d' "$TEMP_ENV_FILE"
+echo "ENVIRONMENT=development" >> "$TEMP_ENV_FILE"
+
 # Start Supabase functions server
 echo "🚀 Starting Supabase functions server..."
-echo "📁 Using environment file: ./app/.env"
+echo "📁 Using environment file: $TEMP_ENV_FILE"
 echo "🌐 Server will be available at: http://127.0.0.1:54321"
 echo ""
 echo "💡 Press Ctrl+C to stop the server"
@@ -69,7 +78,7 @@ echo "📋 Logs will appear below:"
 echo "----------------------------------------"
 
 # Start the server
-supabase functions serve --env-file ./app/.env
+supabase functions serve --env-file "$TEMP_ENV_FILE"
 
 echo ""
 echo "🛑 Supabase server stopped" 

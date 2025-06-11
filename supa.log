@@ -1,0 +1,5 @@
+Setting up Edge Functions runtime...
+Serving functions on http://127.0.0.1:54321/functions/v1/<function-name>
+Using supabase-edge-runtime-1.67.4 (compatible with Deno v1.45.2)
+error running container: exit 137
+Try rerunning the command with --debug to troubleshoot the error.

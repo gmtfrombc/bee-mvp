@@ -282,14 +282,14 @@ _Continuous physiological data pipeline with low-latency streaming_
 
 | Task          | Description                                                                                                                                             | Est. hrs | Owner  | Status |
 | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------ | ------ |
-| **T2.2.3.1a** | Decide on initial metrics to show to user, empty states, and three data tiles (consider Steps, Sleep, Heart Rate).                                      | 6        | UX     | ⬜     |
-| **T2.2.3.2a** | Implement **`PlatformChooserWidget`** (Flutter): shows Apple Health + Health Connect icons, detects availability, deep‑links to native permission flow. | 8        | Mobile | ⬜     |
-| **T2.2.3.3a** | Wire chooser to **`WearableDataRepository.requestSetup()`**; persist selection in Hive & trigger re‑auth if revoked.                                    | 6        | Mobile | ⬜     |
-| **T2.2.3.4a** | Build **`StepsTile`, `SleepTile`, `HeartRateTile`** widgets; subscribe to `VitalsNotifier` for real‑time updates.                                       | 10       | Mobile | ⬜     |
-| **T2.2.3.5a** | Add **empty / error / loading** states with pull‑to‑refresh; include CTA to open permissions if blocked.                                                | 4        | UX     | ⬜     |
-| **T2.2.3.6a** | Implement **accessibility & theming** (contrast, semantics labels, dark‑mode).                                                                          | 4        | QA     | ⬜     |
-| **T2.2.3.7a** | Emit **analytics events** (`platform_selected`, `tile_viewed`, `tile_error`) to Supabase Edge; update Grafana.                                          | 4        | DevOps | ⬜     |
-| **T2.2.3.8a** | **Widget tests** (golden + state) using mocked repository; coverage ≥ 80 %.                                                                             | 6        | QA     | ⬜     |
+| **T2.2.3.1a** | Decide on initial metrics to show to user, empty states, and three data tiles (consider Steps, Sleep, Heart Rate).                                      | 6        | UX     | ✅     |
+| **T2.2.3.2a** | Implement **`PlatformChooserWidget`** (Flutter): shows Apple Health + Health Connect icons, detects availability, deep‑links to native permission flow. | 8        | Mobile | ✅     |
+| **T2.2.3.3a** | Wire chooser to **`WearableDataRepository.requestSetup()`**; persist selection in Hive & trigger re-auth if revoked.                                    | 6        | Mobile | ✅     |
+| **T2.2.3.4a** | Build **`StepsTile`, `SleepTile`, `HeartRateTile`** widgets; subscribe to `VitalsNotifier` for real‑time updates.                                       | 10       | Mobile | ✅     |
+| **T2.2.3.5a** | Add **empty / error / loading** states with pull‑to‑refresh; include CTA to open permissions if blocked.                                                | 4        | UX     | ✅     |
+| **T2.2.3.6a** | Implement **accessibility & theming** (contrast, semantics labels, dark‑mode).                                                                          | 4        | QA     | ✅     |
+| **T2.2.3.7a** | Emit **analytics events** (`platform_selected`, `tile_viewed`, `tile_error`) to Supabase Edge; update Grafana.                                          | 4        | DevOps |  ✅      |
+| **T2.2.3.8a** | **Widget tests** (golden + state) using mocked repository; coverage ≥ 80 %.                                                                             | 6        | QA     |✅     |
 
 **Deliverables**
 
@@ -395,7 +395,7 @@ _Comprehensive wearable data access APIs for AI coaching system integration_
 
 ---
 
-### **M2.2.5: Medication Adherence Integration** ⚪ **FUTURE ENHANCED FEATURE--NOT FOR CURRENT EPIC**
+### **M2.2.5: Medication Adherence Integration** 🛑 **FUTURE ENHANCED FEATURE--NOT FOR CURRENT EPIC**
 
 _Medication reminder tracking and pharmacy data integration for comprehensive
 health monitoring_

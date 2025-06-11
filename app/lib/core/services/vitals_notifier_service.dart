@@ -18,6 +18,7 @@ class VitalsData {
   final double? heartRate;
   final int? steps;
   final double? heartRateVariability;
+  final double? sleepHours;
   final DateTime timestamp;
   final VitalsQuality quality;
   final Map<String, dynamic> metadata;
@@ -26,6 +27,7 @@ class VitalsData {
     this.heartRate,
     this.steps,
     this.heartRateVariability,
+    this.sleepHours,
     required this.timestamp,
     this.quality = VitalsQuality.unknown,
     this.metadata = const {},
@@ -33,12 +35,14 @@ class VitalsData {
 
   bool get hasHeartRate => heartRate != null;
   bool get hasSteps => steps != null;
-  bool get hasValidData => hasHeartRate || hasSteps;
+  bool get hasSleep => sleepHours != null;
+  bool get hasValidData => hasHeartRate || hasSteps || hasSleep;
 
   VitalsData copyWith({
     double? heartRate,
     int? steps,
     double? heartRateVariability,
+    double? sleepHours,
     DateTime? timestamp,
     VitalsQuality? quality,
     Map<String, dynamic>? metadata,
@@ -47,6 +51,7 @@ class VitalsData {
       heartRate: heartRate ?? this.heartRate,
       steps: steps ?? this.steps,
       heartRateVariability: heartRateVariability ?? this.heartRateVariability,
+      sleepHours: sleepHours ?? this.sleepHours,
       timestamp: timestamp ?? this.timestamp,
       quality: quality ?? this.quality,
       metadata: metadata ?? this.metadata,
@@ -295,6 +300,7 @@ class VitalsNotifierService {
     double? heartRate;
     int? steps;
     double? hrv;
+    double? sleepHours;
 
     // Extract data based on message type
     switch (message.type) {
@@ -307,6 +313,16 @@ class VitalsNotifierService {
       case WearableDataType.heartRateVariability:
         hrv = message.value;
         break;
+      case WearableDataType.sleepDuration:
+        // Assume incoming value is total sleep duration in minutes
+        try {
+          final minutes = (message.value as num).toDouble();
+          sleepHours = minutes / 60.0;
+        } catch (_) {
+          // Fallback: if already hours
+          sleepHours = (message.value as num?)?.toDouble();
+        }
+        break;
       default:
         return null; // Skip unsupported data types
     }
@@ -318,6 +334,7 @@ class VitalsNotifierService {
       heartRate: heartRate,
       steps: steps,
       heartRateVariability: hrv,
+      sleepHours: sleepHours,
       timestamp: timestamp,
       quality: quality,
       metadata: {'source': message.source},
@@ -484,6 +501,7 @@ class VitalsNotifierService {
     double? heartRate;
     int? steps;
     double? hrv;
+    double? sleepHours;
 
     switch (sample.type) {
       case WearableDataType.heartRate:
@@ -495,11 +513,24 @@ class VitalsNotifierService {
       case WearableDataType.heartRateVariability:
         hrv = (sample.value as num?)?.toDouble();
         break;
+      case WearableDataType.sleepDuration:
+        // Assume incoming value is total sleep duration in minutes
+        try {
+          final minutes = (sample.value as num).toDouble();
+          sleepHours = minutes / 60.0;
+        } catch (_) {
+          // Fallback: if already hours
+          sleepHours = (sample.value as num?)?.toDouble();
+        }
+        break;
       default:
         return null;
     }
 
-    if (heartRate == null && steps == null && hrv == null) {
+    if (heartRate == null &&
+        steps == null &&
+        hrv == null &&
+        sleepHours == null) {
       return null;
     }
 
@@ -509,6 +540,7 @@ class VitalsNotifierService {
       heartRate: heartRate,
       steps: steps,
       heartRateVariability: hrv,
+      sleepHours: sleepHours,
       timestamp: sample.timestamp,
       quality: quality,
       metadata: {'source': sample.source, 'polled': true},
