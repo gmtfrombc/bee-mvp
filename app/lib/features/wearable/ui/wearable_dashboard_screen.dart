@@ -10,7 +10,6 @@ import 'tiles/steps_tile.dart';
 import 'tiles/sleep_tile.dart';
 import 'tiles/heart_rate_tile.dart';
 import '../../../core/providers/supabase_provider.dart';
-import '../../../core/providers/vitals_notifier_provider.dart';
 
 /// Wearable Dashboard Screen – shows live health metric tiles with
 /// empty/error/loading states and pull-to-refresh. If permissions are
@@ -143,10 +142,18 @@ class _PermissionCta extends ConsumerWidget {
             ),
             ElevatedButton.icon(
               onPressed: () async {
+                // Capture container to allow provider operations even if this
+                // widget is disposed before the modal completes.
+                final container = ProviderScope.containerOf(
+                  context,
+                  listen: false,
+                );
+
                 await showHealthPermissionsModal(context);
-                // After the modal closes, refresh permission state so the UI
-                // reflects any changes.
-                ref.invalidate(healthPermissionsProvider);
+
+                // Invalidate outside widget lifecycle to avoid "ref disposed"
+                // exceptions when the CTA is replaced by tiles.
+                container.invalidate(healthPermissionsProvider);
               },
               icon: const Icon(Icons.lock_open),
               label: Text(isDenied ? 'Open Settings' : 'Grant Permissions'),
