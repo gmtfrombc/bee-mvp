@@ -9,6 +9,8 @@ import 'health_permissions_modal.dart';
 import 'tiles/steps_tile.dart';
 import 'tiles/sleep_tile.dart';
 import 'tiles/heart_rate_tile.dart';
+import '../../../core/providers/supabase_provider.dart';
+import '../../../core/providers/vitals_notifier_provider.dart';
 
 /// Wearable Dashboard Screen – shows live health metric tiles with
 /// empty/error/loading states and pull-to-refresh. If permissions are
@@ -72,6 +74,20 @@ class WearableDashboardScreen extends ConsumerWidget {
     // Show CTA when permissions are not yet granted or have been denied.
     if (permissionsState.status != HealthPermissionStatus.authorized) {
       return _PermissionCta(permissionsState: permissionsState);
+    }
+
+    // Permissions granted – ensure vitals subscription is active.
+    final subscriptionState = ref.watch(vitalsSubscriptionStateProvider);
+    if (!subscriptionState.isActive) {
+      final supabase = ref.read(supabaseClientProvider);
+      final userId = supabase.auth.currentUser?.id;
+      if (userId != null) {
+        Future.microtask(() {
+          ref
+              .read(vitalsSubscriptionStateProvider.notifier)
+              .startSubscription(userId);
+        });
+      }
     }
 
     // Permissions granted – render tiles.
