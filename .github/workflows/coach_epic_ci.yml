@@ -5,13 +5,13 @@ on:
     branches: [ main, develop ]
     paths:
       - 'app/lib/features/ai_coach/**'
-      - 'functions/ai-coaching-engine/**'
+      - 'supabase/functions/ai-coaching-engine/**'
       - 'app/integration_test/coach_full_flow_test.dart'
   pull_request:
     branches: [ main, develop ]
     paths:
       - 'app/lib/features/ai_coach/**'
-      - 'functions/ai-coaching-engine/**'
+      - 'supabase/functions/ai-coaching-engine/**'
       - 'app/integration_test/coach_full_flow_test.dart'
 
 jobs:
@@ -134,14 +134,14 @@ jobs:
         deno-version: v1.37.x
         
     - name: Run Edge Function tests
-      working-directory: ./functions/ai-coaching-engine
+      working-directory: ./supabase/functions/ai-coaching-engine
       run: |
         echo "🧪 Running AI Coaching Engine tests..."
         deno test --allow-env --allow-net --coverage=coverage/
         echo "✅ Edge Function tests completed"
         
     - name: Check Edge Function coverage
-      working-directory: ./functions/ai-coaching-engine
+      working-directory: ./supabase/functions/ai-coaching-engine
       run: |
         echo "📊 Checking Edge Function coverage..."
         deno coverage coverage/ --lcov > coverage.lcov
@@ -176,7 +176,7 @@ jobs:
         echo "✅ Mock environment ready"
         
     - name: Run performance benchmark
-      working-directory: ./functions/ai-coaching-engine
+      working-directory: ./supabase/functions/ai-coaching-engine
       run: |
         echo "⚡ Running performance benchmark..."
         # Run single test to verify benchmark script works

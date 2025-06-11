@@ -153,7 +153,7 @@ class TodayFeedLoadedStateWidget extends StatelessWidget {
             ),
           ),
           SizedBox(height: ResponsiveService.getSmallSpacing(context)),
-          _buildTopicBadge(context, content.topicCategory),
+          Row(children: [_buildTopicBadge(context, content.topicCategory)]),
         ],
       );
     }
@@ -189,7 +189,7 @@ class TodayFeedLoadedStateWidget extends StatelessWidget {
           ),
         ),
         SizedBox(height: ResponsiveService.getSmallSpacing(context)),
-        _buildTopicBadge(context, content.topicCategory),
+        Row(children: [_buildTopicBadge(context, content.topicCategory)]),
       ],
     );
   }
@@ -361,7 +361,6 @@ class TodayFeedLoadedStateWidget extends StatelessWidget {
   int _getMaxTitleLines(BuildContext context) {
     return ResponsiveService.shouldUseCompactLayout(context) ? 2 : 3;
   }
-
 
   TextStyle _getButtonTextStyle(BuildContext context) {
     final baseSize =
