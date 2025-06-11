@@ -14,6 +14,7 @@ import 'features/momentum/presentation/screens/profile_settings_screen.dart';
 import 'features/gamification/ui/rewards_navigator.dart';
 import 'core/notifications/domain/services/notification_preferences_service.dart';
 import 'core/providers/theme_provider.dart';
+import 'features/wearable/ui/wearable_dashboard_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -100,6 +101,7 @@ class _AppWrapperState extends ConsumerState<AppWrapper> {
   final List<Widget> _screens = [
     const MomentumScreen(),
     const CoachChatScreen(),
+    const WearableDashboardScreen(),
     const RewardsNavigator(),
     const ProfileSettingsScreen(),
   ];
@@ -172,6 +174,11 @@ class _AppWrapperState extends ConsumerState<AppWrapper> {
             icon: Icon(Icons.psychology_outlined),
             activeIcon: Icon(Icons.psychology),
             label: 'Coach',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.monitor_heart_outlined),
+            activeIcon: Icon(Icons.monitor_heart),
+            label: 'Vitals',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.emoji_events),
