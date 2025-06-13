@@ -118,6 +118,7 @@ class PlatformChooserWidget extends ConsumerWidget {
         .logEvent('platform_selected', params: {'platform': 'health_connect'});
 
     if (isAvailable) {
+      // ignore: use_build_context_synchronously
       await showHealthPermissionsModal(context, onPermissionsGranted: () {});
     } else {
       // Trigger install / setup flow via existing notifier helper.
@@ -163,10 +164,10 @@ class _PlatformCard extends StatelessWidget {
           border: Border.all(color: borderColor!),
           boxShadow: [
             if (enabled)
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+              const BoxShadow(
+                color: Color(0x0D000000),
                 blurRadius: 4,
-                offset: const Offset(0, 2),
+                offset: Offset(0, 2),
               ),
           ],
         ),
