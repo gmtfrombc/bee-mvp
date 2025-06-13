@@ -492,74 +492,111 @@ ________________________________________________________________________________
 **Strategic Importance**: Required for Epic 1.3 Phase 3 - Rapid Feedback Integration
 **Timeline**: 1 week (Must complete before Epic 1.3 Phase 3)
 
+## 🧪 **Testing Strategy & Schedule**
+
+The BEE project follows a *green-baseline, incremental-growth* approach to testing:
+
+1. **Green Baseline** – The current passing suite (~120 Flutter tests + Edge-Function unit tests) is considered the baseline.  CI fails on any PR that breaks `flutter analyze` or `flutter test`.
+2. **Incremental Additions** – Whenever a new public method, widget, service, or Edge-Function endpoint is created *or* an existing one is refactored, the same PR must add **one** happy-path unit test *plus* critical edge-case tests.  This keeps coverage climbing where the code actually evolves.
+3. **Milestone-Level Integration Tests** – For large epics we add focused integration/performance suites at the end of each milestone (see Phase-3 tasks M1.3.9-M1.3.10 for concrete test tasks).
+4. **Coverage Targets** – Core business logic ≥ 85 %, UI snapshots ≤ 5 % of total LOC.  Measured in CI with `flutter test --coverage` and surfaced in the dashboard.
+5. **Legacy Isolation** – Obsolete tests are archived under `archive/legacy_tests/` and excluded from analyzer to avoid noise while preserving historical context.
+
+With this policy we achieve a continuously improving, yet lightweight, safety net without big-bang rewrites.
+---
+
 ## 📅 **ENHANCED MVP TIMELINE (Next 20 Weeks)**
 
 ### **PHASE 1: Core Foundation (Weeks 1-11)**
+
 - **Epic 1.3 Phase 1**: Core AI coaching foundation without backend dependencies
 - **Epic 1.4**: In-app messaging system
 - **Epic 1.5**: Enhanced habit architect with progress-to-goal tracking
 
 ### **🛑 STRATEGIC PAUSE & BACKEND INFRASTRUCTURE (Weeks 12-13)**
+
 - **Epic 2.2**: Enhanced wearable integration layer with medication adherence
 - **Epic 2.3**: Coaching interaction log
 
 ### **PHASE 3: Advanced Features (Weeks 14-16)**
+
 - **Epic 1.3 Phase 3**: Advanced AI coaching (JITAIs, rapid feedback)
 - **Epic 1.6**: Active-minutes insights
 
 ### **PHASE 4: Promise Completion Features (Weeks 17-20)**
+
 - **Epic 4.4**: Provider visit analysis (speech-to-text and NLP)
-- **Epic 3.1**: Enhanced personalized motivation profile with cross-patient learning
+- **Epic 3.1**: Enhanced personalized motivation profile with cross-patient
+  learning
 
 ### **Definition of Done (MVP) - UPDATED**
+
 - ✅ Users can view momentum meter with real-time updates **(COMPLETE)**
 - ✅ Users receive daily AI-generated health content **(COMPLETE - Today Feed)**
-- ✅ Users can track real engagement events and see momentum changes **(COMPLETE)**
-- 🟡 **AI coach provides intelligent, emotionally-aware behavior change interventions** **(Epic 1.3 Phase 1)**
-- 🟡 **AI coach delivers just-in-time adaptive interventions based on physiological data** **(Epic 1.3 Phase 3)**
-- 🟡 **System tracks progress-to-goal as key motivational factor** **(Epic 1.5 Enhanced)**
-- 🟡 **AI learns from cross-patient patterns to improve interventions** **(Epic 3.1 Enhanced)**
-- 🟡 **Health coach visit transcripts analyzed for motivational language changes** **(Epic 4.4)**
-- 🟡 **Users can communicate with care team via secure messaging** **(Epic 1.4)**
+- ✅ Users can track real engagement events and see momentum changes
+  **(COMPLETE)**
+- 🟡 **AI coach provides intelligent, emotionally-aware behavior change
+  interventions** **(Epic 1.3 Phase 1)**
+- 🟡 **AI coach delivers just-in-time adaptive interventions based on
+  physiological data** **(Epic 1.3 Phase 3)**
+- 🟡 **System tracks progress-to-goal as key motivational factor** **(Epic 1.5
+  Enhanced)**
+- 🟡 **AI learns from cross-patient patterns to improve interventions** **(Epic
+  3.1 Enhanced)**
+- 🟡 **Health coach visit transcripts analyzed for motivational language
+  changes** **(Epic 4.4)**
+- 🟡 **Users can communicate with care team via secure messaging** **(Epic
+  1.4)**
 - ✅ All features integrate with engagement events logging **(COMPLETE)**
 - ✅ 80%+ test coverage on core functionality **(COMPLETE - 720+ tests)**
 - ✅ Production deployment procedures documented **(COMPLETE)**
 
 ### **Post-MVP Features (Weeks 21+)**
+
 - **Epic 1.7:** On-Demand Lesson Library (if Today Feed + AI coach insufficient)
 - **Epic 1.8:** Advanced Social Features
 - **Epic 4.4 Phase 2:** Video analysis for provider visits
-- **Epic 5.3:** Feature flags and content config (if operational complexity requires)
+- **Epic 5.3:** Feature flags and content config (if operational complexity
+  requires)
 
 ## 🔮 **Innovation Opportunities**
 
 ### **1. Motivation State Prediction Model**
+
 Enhance momentum algorithm to predict future motivation states 3-7 days ahead:
+
 - Current engagement patterns analysis
 - Historical user behavior modeling
 - Cohort patterns from similar users
 - External factors integration (seasonal, environmental)
 
 ### **2. Intervention Effectiveness Learning Loop**
+
 Create closed-loop system for continuous improvement:
+
 - Measure each intervention's effectiveness
 - AI learns optimal interventions for user types
 - Automatic intervention strategy improvement
 - A/B testing of intervention approaches
 
 ### **3. External to Internal Motivation Transition Tracking**
+
 Explicit measurement of motivation transition process:
+
 - External motivation indicators (goal completion rates, external triggers)
 - Internal motivation indicators (unprompted engagement, habit formation)
 - Transition milestone identification and patterns
 - Personalized transition timeline predictions
 
 ### **4. Predictive Motivation Crisis Detection**
+
 Advanced early warning system:
+
 - Multi-factor motivation risk assessment
 - Proactive intervention before motivation loss becomes critical
 - Integration of physiological, behavioral, and linguistic indicators
 - Personalized risk thresholds and intervention strategies
+
 ---
 
 ## 📁 **File Organization**
