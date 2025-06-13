@@ -83,7 +83,7 @@ class VitalsNotifierConfig {
   final Duration pollingInterval;
 
   const VitalsNotifierConfig({
-    this.dataRetentionWindow = const Duration(minutes: 5),
+    this.dataRetentionWindow = const Duration(hours: 24),
     this.maxHistorySize = 100,
     this.qualityEvaluationWindow = const Duration(seconds: 30),
     this.pollingInterval = const Duration(
@@ -104,8 +104,16 @@ class VitalsNotifierService {
   final WearableDataRepository _repository;
   final VitalsNotifierConfig _config;
 
-  StreamController<VitalsData>? _vitalsController;
-  StreamController<VitalsConnectionStatus>? _statusController;
+  // Controllers are created immediately so Riverpod gets a stable stream
+  // reference even before `initialize()` is called. Otherwise widgets that
+  // read the stream too early would receive an empty stream and stay in the
+  // loading state forever.
+  final StreamController<VitalsData> _vitalsController =
+      StreamController<VitalsData>.broadcast();
+
+  final StreamController<VitalsConnectionStatus> _statusController =
+      StreamController<VitalsConnectionStatus>.broadcast();
+
   StreamSubscription<List<WearableLiveMessage>>? _liveDataSubscription;
   // T2.2.2.9: Add timer for polling fallback
   Timer? _pollingTimer;
@@ -120,6 +128,16 @@ class VitalsNotifierService {
   bool _isActive = false;
   // T2.2.2.9: Track current subscription mode
   SubscriptionMode _mode = SubscriptionMode.realtime;
+  // NEW: guard so we only schedule one immediate retry for missing steps
+  bool _stepRetryScheduled = false;
+
+  // NEW: running step total for current day so we don't rely on _dataHistory
+  int _stepsToday = 0;
+  DateTime _stepsDayAnchor = DateTime(
+    DateTime.now().year,
+    DateTime.now().month,
+    DateTime.now().day,
+  );
 
   VitalsNotifierService(
     this._liveService,
@@ -128,12 +146,10 @@ class VitalsNotifierService {
   }) : _config = config;
 
   /// Stream of processed vitals data
-  Stream<VitalsData> get vitalsStream =>
-      _vitalsController?.stream ?? const Stream.empty();
+  Stream<VitalsData> get vitalsStream => _vitalsController.stream;
 
   /// Stream of connection status updates
-  Stream<VitalsConnectionStatus> get statusStream =>
-      _statusController?.stream ?? const Stream.empty();
+  Stream<VitalsConnectionStatus> get statusStream => _statusController.stream;
 
   /// Current vitals data (latest)
   VitalsData? get currentVitals => _currentVitals;
@@ -152,9 +168,6 @@ class VitalsNotifierService {
     if (_isInitialized) return true;
 
     try {
-      _vitalsController = StreamController<VitalsData>.broadcast();
-      _statusController = StreamController<VitalsConnectionStatus>.broadcast();
-
       // T2.2.2.9: Initialize repository for polling mode
       await _repository.initialize();
 
@@ -219,6 +232,10 @@ class VitalsNotifierService {
     _currentUserId = userId;
     _isActive = true;
     _updateConnectionStatus(VitalsConnectionStatus.connected);
+
+    // Fetch an initial local snapshot so the UI has data even if no live
+    // packets arrive yet (e.g., server ingestion delay).
+    await _pollForVitals();
 
     debugPrint(
       '🚀 VitalsNotifier REALTIME subscription started for user: $userId',
@@ -308,7 +325,8 @@ class VitalsNotifierService {
         heartRate = message.value;
         break;
       case WearableDataType.steps:
-        steps = message.value.toInt();
+        steps = _extractInt(message.value);
+        debugPrint('🔢 extracted steps=$steps from ${message.value}');
         break;
       case WearableDataType.heartRateVariability:
         hrv = message.value;
@@ -367,15 +385,46 @@ class VitalsNotifierService {
 
   /// Add vitals data to history and notify consumers
   void _addVitalsData(VitalsData vitalsData) {
-    // Update current vitals
-    _currentVitals = vitalsData;
-
-    // Add to history with size management
+    // Always persist to history first
     _dataHistory.add(vitalsData);
     _cleanupHistory();
 
-    // Notify subscribers
-    _vitalsController?.add(vitalsData);
+    // Skip forwarding raw step-only samples – we will emit a daily aggregate separately.
+    final isRawStepOnly =
+        vitalsData.hasSteps &&
+        !vitalsData.hasHeartRate &&
+        !vitalsData.hasSleep &&
+        (vitalsData.metadata['aggregated'] != true);
+
+    if (isRawStepOnly) return;
+
+    // Merge with previous vitals so metrics missing in latest record are kept.
+    VitalsData merged = vitalsData;
+    if (_currentVitals != null) {
+      merged = _currentVitals!.copyWith(
+        heartRate: vitalsData.heartRate ?? _currentVitals!.heartRate,
+        steps: vitalsData.steps ?? _currentVitals!.steps,
+        heartRateVariability:
+            vitalsData.heartRateVariability ??
+            _currentVitals!.heartRateVariability,
+        sleepHours: vitalsData.sleepHours ?? _currentVitals!.sleepHours,
+        timestamp: vitalsData.timestamp,
+        quality: vitalsData.quality,
+        metadata: vitalsData.metadata,
+      );
+    }
+
+    // Update current vitals for downstream consumers
+    _currentVitals = merged;
+
+    // Emit trace for debugging stream propagation to UI
+    debugPrint(
+      '🚚 emit → steps=${merged.steps} hr=${merged.heartRate} '
+      'sleep=${merged.sleepHours} meta=${merged.metadata}',
+    );
+
+    // Notify UI subscribers
+    _vitalsController.add(merged);
   }
 
   /// Clean up old data outside retention window
@@ -409,7 +458,7 @@ class VitalsNotifierService {
   void _updateConnectionStatus(VitalsConnectionStatus status) {
     if (_connectionStatus != status) {
       _connectionStatus = status;
-      _statusController?.add(status);
+      _statusController.add(status);
     }
   }
 
@@ -463,7 +512,13 @@ class VitalsNotifierService {
     if (!_isActive || _currentUserId == null) return;
 
     final now = DateTime.now();
-    final startTime = now.subtract(_config.pollingInterval);
+    // For first snapshot (no current vitals) fetch a broader window so we get
+    // at least one sample even if data hasn't changed in the last 30 s.
+    final lookback =
+        _currentVitals == null
+            ? const Duration(hours: 12)
+            : _config.pollingInterval;
+    final startTime = now.subtract(lookback);
 
     try {
       final result = await _repository.getHealthData(
@@ -474,6 +529,24 @@ class VitalsNotifierService {
       if (result.isSuccess) {
         _processHealthSamples(result.samples);
         debugPrint('🔄 Polled ${result.samples.length} vitals samples.');
+
+        // --- iOS cumulative-type quirk workaround ----------------------
+        // HealthKit may return an empty array for cumulative metrics
+        // (e.g. Steps) on the very first query after authorization. If we
+        // received *no* raw step samples, schedule a one-off quick retry so
+        // the Steps tile doesn't stay blank for 30 s.
+        final bool hasStepsRaw = result.samples.any(
+          (s) => s.type == WearableDataType.steps,
+        );
+        if (!hasStepsRaw && !_stepRetryScheduled) {
+          _stepRetryScheduled = true;
+          debugPrint('⏳ No step samples – scheduling quick retry');
+          Future.delayed(const Duration(seconds: 3), () {
+            _stepRetryScheduled = false;
+            if (_isActive) _pollForVitals();
+          });
+        }
+        // ----------------------------------------------------------------
       } else {
         debugPrint('❌ Polling for vitals failed: ${result.error}');
         _handleStreamError('Polling failed: ${result.error}');
@@ -486,6 +559,16 @@ class VitalsNotifierService {
 
   // T2.2.2.9: New method to process polled health samples
   void _processHealthSamples(List<HealthSample> samples) {
+    // Debug: surface raw samples to console for easier investigation on iOS.
+    if (kDebugMode) {
+      debugPrint('🩺 Processing ${samples.length} polled samples');
+      for (final s in samples.take(10)) {
+        debugPrint(
+          '   ↳ ${s.type.name} | value=${s.value} | unit=${s.unit} | ts=${s.timestamp}',
+        );
+      }
+    }
+
     if (samples.isEmpty) return;
 
     for (final sample in samples) {
@@ -494,6 +577,10 @@ class VitalsNotifierService {
         _addVitalsData(vitalsData);
       }
     }
+
+    // After processing raw samples, emit an aggregated daily steps event so
+    // the UI shows total steps instead of the last delta.
+    _emitAggregatedSteps();
   }
 
   // T2.2.2.9: New method to process a single HealthSample into VitalsData
@@ -505,22 +592,44 @@ class VitalsNotifierService {
 
     switch (sample.type) {
       case WearableDataType.heartRate:
-        heartRate = (sample.value as num?)?.toDouble();
+        heartRate = _extractDouble(sample.value);
         break;
       case WearableDataType.steps:
-        steps = (sample.value as num?)?.toInt();
+        steps = _extractInt(sample.value);
+        debugPrint('🔢 extracted steps=$steps from ${sample.value}');
+        // --- update per-day accumulator ---------------------------------
+        if (steps != null) {
+          final sampleDay = DateTime(
+            sample.timestamp.year,
+            sample.timestamp.month,
+            sample.timestamp.day,
+          );
+          if (sampleDay.isAfter(_stepsDayAnchor)) {
+            // crossed midnight – reset counter
+            _stepsDayAnchor = sampleDay;
+            _stepsToday = 0;
+          }
+          if (!sample.timestamp.isBefore(_stepsDayAnchor)) {
+            _stepsToday += steps;
+          }
+        }
+        // ----------------------------------------------------------------
         break;
       case WearableDataType.heartRateVariability:
-        hrv = (sample.value as num?)?.toDouble();
+        hrv = _extractDouble(sample.value);
         break;
       case WearableDataType.sleepDuration:
+      case WearableDataType.sleepInBed:
+      case WearableDataType.sleepAwake:
+      case WearableDataType.sleepDeep:
+      case WearableDataType.sleepLight:
+      case WearableDataType.sleepRem:
         // Assume incoming value is total sleep duration in minutes
         try {
-          final minutes = (sample.value as num).toDouble();
-          sleepHours = minutes / 60.0;
+          final minutes = _extractDouble(sample.value);
+          if (minutes != null) sleepHours = minutes / 60.0;
         } catch (_) {
-          // Fallback: if already hours
-          sleepHours = (sample.value as num?)?.toDouble();
+          sleepHours = _extractDouble(sample.value);
         }
         break;
       default:
@@ -550,11 +659,100 @@ class VitalsNotifierService {
   /// Dispose resources
   void dispose() {
     stopSubscription();
-    _vitalsController?.close();
-    _statusController?.close();
+    _vitalsController.close();
+    _statusController.close();
     _dataHistory.clear();
     _isInitialized = false;
 
     debugPrint('🗑️ VitalsNotifierService disposed');
+  }
+
+  // --- HealthKit numeric wrapper helpers ---------------------------------
+  // Some iOS HealthKit values come back as `NumericHealthValue` (or similar)
+  // wrapper objects introduced in health >=13.x.  These contain a `numericValue`
+  // property that holds the actual double.  These helpers safely extracted that
+  // value while still supporting plain `num` values.
+
+  double? _extractDouble(dynamic raw) {
+    if (raw == null) return null;
+    if (raw is num) return raw.toDouble();
+
+    try {
+      final dynamic candidate = (raw as dynamic).numericValue;
+      if (candidate is num) return candidate.toDouble();
+    } catch (_) {
+      // ignore – not a wrapper type
+    }
+
+    // Fallback: attempt to extract number from toString, e.g.
+    // "NumericHealthValue - numericValue: 215.0"
+    final str = raw.toString();
+    final match = RegExp(r'([0-9]+(?:\.[0-9]+)?)').firstMatch(str);
+    if (match != null) {
+      return double.tryParse(match.group(1)!);
+    }
+    return null;
+  }
+
+  int? _extractInt(dynamic raw) {
+    final v = _extractDouble(raw);
+    return v?.round();
+  }
+
+  // Calculate total steps since midnight and emit as a synthetic VitalsData.
+  void _emitAggregatedSteps() {
+    final totalSteps = _stepsToday > 0 ? _stepsToday : _calculateStepsToday();
+    if (totalSteps == null || totalSteps == 0) return; // No steps yet today
+
+    // Find most recent sleep hours within last 36h
+    double? latestSleep;
+    DateTime latestTs = DateTime.fromMillisecondsSinceEpoch(0);
+    for (final d in _dataHistory) {
+      if (d.hasSleep && d.timestamp.isAfter(latestTs)) {
+        latestSleep = d.sleepHours;
+        latestTs = d.timestamp;
+      }
+    }
+
+    final now = DateTime.now();
+
+    final aggregated = VitalsData(
+      steps: totalSteps,
+      sleepHours: latestSleep,
+      timestamp: now,
+      quality: VitalsQuality.good,
+      metadata: const {'aggregated': true},
+    );
+
+    _addVitalsData(aggregated);
+  }
+
+  int? _calculateStepsToday() {
+    final midnight = DateTime(
+      DateTime.now().year,
+      DateTime.now().month,
+      DateTime.now().day,
+    );
+    int sum = 0;
+    bool hasData = false;
+
+    // Use a set to skip duplicate raw samples that may be fetched in multiple
+    // polls. Key on timestamp + value. Also ignore previously aggregated
+    // records.
+    final Set<String> seen = {};
+
+    for (final d in _dataHistory) {
+      if (!d.hasSteps) continue;
+      if (d.timestamp.isBefore(midnight)) continue;
+      if (d.metadata['aggregated'] == true) continue;
+
+      final key = '${d.timestamp.millisecondsSinceEpoch}_${d.steps}';
+      if (seen.add(key)) {
+        sum += d.steps!;
+        hasData = true;
+      }
+    }
+
+    return hasData ? sum : null;
   }
 }
