@@ -68,17 +68,24 @@ cp ./app/.env "$TEMP_ENV_FILE"
 sed -i '' '/^ENVIRONMENT=/d' "$TEMP_ENV_FILE"
 echo "ENVIRONMENT=development" >> "$TEMP_ENV_FILE"
 
-# Start Supabase functions server
-echo "🚀 Starting Supabase functions server..."
+# ---------------------------------------------------------------------------
+# Prefer full local stack (db + auth + storage + edge runtime) for Mobile app
+# ---------------------------------------------------------------------------
+echo "🚀 Starting full Supabase local development stack..."
 echo "📁 Using environment file: $TEMP_ENV_FILE"
-echo "🌐 Server will be available at: http://127.0.0.1:54321"
-echo ""
-echo "💡 Press Ctrl+C to stop the server"
+echo "🌐 Containers will expose services at http://127.0.0.1:54321"
+echo "💡 Press Ctrl+C to stop the stack"
 echo "📋 Logs will appear below:"
 echo "----------------------------------------"
 
-# Start the server
-supabase functions serve --env-file "$TEMP_ENV_FILE"
+# If already running, skip start and just show message
+if docker ps --format '{{.Names}}' | grep -q "supabase_db"; then
+  echo "✅ Supabase containers already running (detected supabase_db)"
+else
+  supabase start --env-file "$TEMP_ENV_FILE"
+fi
 
-echo ""
-echo "🛑 Supabase server stopped" 
+# Keep log stream running (Ctrl+C to stop)
+docker logs -f supabase_db supabase_auth supabase_realtime supabase_storage supabase_rest || true
+
+echo "🛑 Supabase local stack stopped" 

@@ -4,18 +4,45 @@ import 'package:flutter/foundation.dart';
 import '../../../today_feed/domain/models/today_feed_content.dart';
 import '../../../today_feed/data/services/today_feed_simple_service.dart';
 import '../../../../core/services/today_feed_local_store.dart';
+import '../../../../core/services/connectivity_service.dart';
+import '../../../../core/services/ai_coaching_service.dart';
+
+/// Helper method to build a simple fallback result when no content is available.
+TodayFeedFallbackResult _buildOfflineFallback(String message) {
+  return TodayFeedFallbackResult(
+    content: null,
+    fallbackType: TodayFeedFallbackType.none,
+    contentAge: Duration.zero,
+    isStale: true,
+    userMessage: message,
+    shouldShowAgeWarning: false,
+    lastAttemptToRefresh: DateTime.now(),
+  );
+}
 
 /// Provider for managing Today Feed state in the momentum screen
 final todayFeedProvider =
     StateNotifierProvider<TodayFeedNotifier, TodayFeedState>((ref) {
-      return TodayFeedNotifier();
+      return TodayFeedNotifier(ref);
     });
 
 /// State notifier for managing Today Feed content and interactions
 class TodayFeedNotifier extends StateNotifier<TodayFeedState> {
-  TodayFeedNotifier() : super(const TodayFeedState.loading()) {
+  TodayFeedNotifier(this._ref) : super(const TodayFeedState.loading()) {
     _initialize();
+
+    // Listen to connectivity changes so we can auto-refresh when back online.
+    _ref.listen<ConnectivityStatus>(currentConnectivityProvider, (
+      previous,
+      next,
+    ) {
+      if (next == ConnectivityStatus.online) {
+        _silentRefresh();
+      }
+    });
   }
+
+  final Ref _ref;
 
   /// Initialize by showing cached content instantly, then refresh silently
   Future<void> _initialize() async {
@@ -30,26 +57,51 @@ class TodayFeedNotifier extends StateNotifier<TodayFeedState> {
       }
 
       // Step 2: silently attempt to refresh in background (no spinner)
-      debugPrint('🔄 [TodayFeed] Silent refresh started');
-      final fresh = await TodayFeedSimpleService.getTodayContent(
-        forceRefresh: true,
-      );
-
-      if (fresh != null && fresh != cached) {
-        debugPrint(
-          '✅ [TodayFeed] Silent refresh complete – new content retrieved',
-        );
-        state = TodayFeedState.loaded(fresh);
-      } else {
-        debugPrint('ℹ️  [TodayFeed] Silent refresh complete – no new content');
-        if (cached == null && fresh == null) {
-          state = const TodayFeedState.error('No content available');
-        }
-      }
+      await _silentRefresh();
     } catch (e) {
       debugPrint('❌ Failed to initialize Today Feed: $e');
-      state = TodayFeedState.error('Failed to load content: $e');
+      // Fallback instead of error – keep UI friendly.
+      state = TodayFeedState.fallback(
+        _buildOfflineFallback('Momentum Health will update your feed soon.'),
+      );
     }
+  }
+
+  /// Internal helper to perform a silent refresh without disturbing UI.
+  Future<void> _silentRefresh() async {
+    debugPrint('🔄 [TodayFeed] Silent refresh started');
+
+    final cached = state.content;
+
+    // If we are offline and already showing content or fallback, bail out.
+    if (ConnectivityService.isOffline) {
+      if (cached != null) return; // keep cached
+
+      // No cached content – ensure we show offline fallback.
+      state = TodayFeedState.fallback(
+        _buildOfflineFallback(
+          "Offline – we'll update your feed once you're online again!",
+        ),
+      );
+      return;
+    }
+
+    final fresh = await TodayFeedSimpleService.getTodayContent(
+      forceRefresh: true,
+    );
+
+    if (fresh != null) {
+      state = TodayFeedState.loaded(fresh);
+    } else if (cached == null) {
+      // Online but still nothing (edge function not ready) – show friendly msg.
+      state = TodayFeedState.fallback(
+        _buildOfflineFallback(
+          "We're generating today's article. Check back in a bit!",
+        ),
+      );
+    }
+
+    debugPrint('ℹ️  [TodayFeed] Silent refresh complete');
   }
 
   /// Refresh content
@@ -59,12 +111,10 @@ class TodayFeedNotifier extends StateNotifier<TodayFeedState> {
 
       if (content != null) {
         state = TodayFeedState.loaded(content);
-      } else {
-        state = const TodayFeedState.error('Failed to refresh content');
       }
     } catch (e) {
       debugPrint('❌ Failed to refresh today content: $e');
-      state = TodayFeedState.error('Failed to refresh content: $e');
+      // Keep existing state – no need to show error.
     }
   }
 
@@ -78,12 +128,10 @@ class TodayFeedNotifier extends StateNotifier<TodayFeedState> {
       if (content != null) {
         state = TodayFeedState.loaded(content);
         debugPrint('✅ Today Feed force refreshed successfully');
-      } else {
-        state = const TodayFeedState.error('Failed to force refresh content');
       }
     } catch (e) {
       debugPrint('❌ Failed to force refresh today content: $e');
-      state = TodayFeedState.error('Failed to force refresh content: $e');
+      // Keep existing state.
     }
   }
 
@@ -104,6 +152,26 @@ class TodayFeedNotifier extends StateNotifier<TodayFeedState> {
   Future<void> handleTap() async {
     await recordInteraction(TodayFeedInteractionType.tap);
     // TODO: Award momentum points for first daily interaction
+
+    // Pass article context to AI coach for personalized follow-up
+    try {
+      final content = state.content;
+      if (content != null) {
+        // Fire-and-forget; no need to await response
+        // ignore: discarded_futures
+        AICoachingService.instance.generateResponse(
+          message: 'today_feed_open',
+          momentumState: null,
+          context: {
+            'article_id': content.id,
+            'article_summary': content.summary,
+            'system_event': 'today_feed_open',
+          },
+        );
+      }
+    } catch (e) {
+      debugPrint('⚠️ Failed to notify AI coach of Today Feed open: $e');
+    }
   }
 
   /// Handle share interaction

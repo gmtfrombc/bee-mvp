@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/models/today_feed_content.dart';
 import '../../../../core/services/connectivity_service.dart';
 import '../../../../core/services/today_feed_local_store.dart';
+import 'dart:async';
 
 /// A trimmed-down replacement for TodayFeedDataService.
 /// Keeps only what is required: load cached content, decide if refresh is needed,
@@ -81,11 +82,53 @@ class TodayFeedSimpleService {
 
       if (resp == null) {
         debugPrint(
-          '📭 [TodayFeed] No row for today – edge-function will generate',
+          '📭 [TodayFeed] No row for today – attempting fallback to latest',
         );
-        // Trigger generation fire-and-forget
-        await _triggerGeneration(todayStr);
-        return null;
+
+        // Trigger generation asynchronously without blocking the UI.
+        unawaited(_triggerGeneration(todayStr));
+
+        // -----------------------------------------------------------------
+        // Fallback: fetch the most recent article (yesterday / earlier)
+        // -----------------------------------------------------------------
+        final latest =
+            await supabase
+                .from('daily_feed_content')
+                .select('*')
+                .order('content_date', ascending: false)
+                .limit(1)
+                .maybeSingle();
+
+        if (latest != null) {
+          debugPrint('📦 [TodayFeed] Using latest available article');
+
+          return TodayFeedContent.fromJson({
+            'id': latest['id'],
+            'content_date': latest['content_date'],
+            'title': latest['title'],
+            'summary': latest['summary'],
+            'content_url': latest['content_url'],
+            'external_link': latest['external_link'],
+            'topic_category': latest['topic_category'],
+            if (latest['full_content'] != null)
+              'full_content': latest['full_content'],
+            'ai_confidence_score': latest['ai_confidence_score'] ?? 0.8,
+            'created_at': latest['created_at'],
+            'updated_at': latest['updated_at'],
+            'estimated_reading_minutes': 2,
+            'has_user_engaged': false,
+            'is_cached': false,
+          });
+        }
+
+        return null; // no fallback found either
+      }
+
+      // -------------------------------------------------------------------
+      // If content exists but rich payload is missing, request regeneration
+      // -------------------------------------------------------------------
+      if (resp['full_content'] == null) {
+        unawaited(_triggerGeneration(todayStr, forceRegenerate: true));
       }
 
       final content = TodayFeedContent.fromJson({
@@ -96,6 +139,7 @@ class TodayFeedSimpleService {
         'content_url': resp['content_url'],
         'external_link': resp['external_link'],
         'topic_category': resp['topic_category'],
+        if (resp['full_content'] != null) 'full_content': resp['full_content'],
         'ai_confidence_score': resp['ai_confidence_score'] ?? 0.8,
         'created_at': resp['created_at'],
         'updated_at': resp['updated_at'],
@@ -111,12 +155,15 @@ class TodayFeedSimpleService {
     }
   }
 
-  static Future<void> _triggerGeneration(String date) async {
+  static Future<void> _triggerGeneration(
+    String date, {
+    bool forceRegenerate = false,
+  }) async {
     try {
       final supabase = Supabase.instance.client;
       await supabase.functions.invoke(
         'daily-content-generator',
-        body: {'target_date': date, 'force_regenerate': false},
+        body: {'target_date': date, 'force_regenerate': forceRegenerate},
       );
       debugPrint('🚀 [TodayFeed] Triggered content generation');
     } catch (e) {

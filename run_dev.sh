@@ -12,6 +12,29 @@ if [ -f "app/.env" ]; then
     set +a  # turn off automatic export
 fi
 
+# ------------------------------------------------------------------
+# Fallback: if required vars still not set, try supabase/.env.local
+# This is useful when the developer forgets to copy local keys into
+# app/.env. We only export SUPABASE_URL and SUPABASE_ANON_KEY from the
+# supabase env to avoid polluting the Flutter process with unrelated
+# secrets.
+# ------------------------------------------------------------------
+if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
+    if [ -f "supabase/.env.local" ]; then
+        echo "🔑 app/.env missing keys – loading fallback from supabase/.env.local"
+        # shellcheck disable=SC1091
+        SUPABASE_URL_FALLBACK=$(grep -E "^(SITE_URL|SUPABASE_URL)=" supabase/.env.local | head -n1 | cut -d '=' -f2-)
+        ANON_KEY_FALLBACK=$(grep -E "^(ANON_KEY|SUPABASE_ANON_KEY)=" supabase/.env.local | head -n1 | cut -d '=' -f2-)
+
+        if [ -n "$SUPABASE_URL_FALLBACK" ] && [ -z "$SUPABASE_URL" ]; then
+            export SUPABASE_URL=$SUPABASE_URL_FALLBACK
+        fi
+        if [ -n "$ANON_KEY_FALLBACK" ] && [ -z "$SUPABASE_ANON_KEY" ]; then
+            export SUPABASE_ANON_KEY=$ANON_KEY_FALLBACK
+        fi
+    fi
+fi
+
 # Validate required environment variables
 if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
     echo ""

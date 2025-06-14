@@ -19,7 +19,8 @@ import { conversationController } from './routes/conversation.controller.ts'
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')
 const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')
-const aiApiKey = Deno.env.get('AI_API_KEY')!
+// Allow either AI_API_KEY (preferred) or legacy OPENAI_API_KEY for backward compatibility
+const aiApiKey: string = Deno.env.get('AI_API_KEY') ?? Deno.env.get('OPENAI_API_KEY') ?? ''
 const aiModel = Deno.env.get('AI_MODEL') || 'gpt-4o'
 console.log(`🤖 AI model selected: ${aiModel}`)
 
@@ -40,7 +41,7 @@ const frequencyOptimizer = (supabaseUrl && supabaseKey && !isTestingEnvironment)
   : null
 
 // Initialize cross-patient patterns service for Epic 3.1 preparation
-const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? Deno.env.get('SERVICE_ROLE_KEY')
 const crossPatientService = (supabaseUrl && supabaseKey && serviceRoleKey && !isTestingEnvironment)
   ? new CrossPatientPatternsService(
     createClient(supabaseUrl, serviceRoleKey),
@@ -156,7 +157,7 @@ export default async function handler(req: Request): Promise<Response> {
 /**
  * Handle frequency optimization requests
  */
-async function handleFrequencyOptimization(
+async function _handleFrequencyOptimization(
   req: Request,
   corsHeaders: Record<string, string>,
 ): Promise<Response> {
@@ -176,7 +177,8 @@ async function handleFrequencyOptimization(
 
     // Validate service role authentication for system operations
     const authToken = req.headers.get('Authorization')?.replace('Bearer ', '')
-    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ??
+      Deno.env.get('SERVICE_ROLE_KEY')
 
     if (authToken !== serviceRoleKey) {
       return new Response(
@@ -235,7 +237,7 @@ async function handleFrequencyOptimization(
 /**
  * Handle cross-patient pattern aggregation requests (Epic 3.1 preparation)
  */
-async function handlePatternAggregation(
+async function _handlePatternAggregation(
   req: Request,
   corsHeaders: Record<string, string>,
 ): Promise<Response> {
@@ -244,11 +246,16 @@ async function handlePatternAggregation(
   try {
     // Parse request
     const body = await req.json()
-    const { week_start, force_regenerate = false, operation = 'weekly_aggregation' } = body
+    const {
+      week_start,
+      force_regenerate: _force_regenerate = false,
+      operation = 'weekly_aggregation',
+    } = body
 
     // Validate service role authentication for system operations
     const authToken = req.headers.get('Authorization')?.replace('Bearer ', '')
-    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ??
+      Deno.env.get('SERVICE_ROLE_KEY')
 
     if (authToken !== serviceRoleKey) {
       return new Response(
@@ -337,7 +344,7 @@ async function handlePatternAggregation(
 /**
  * Handle conversation requests (original functionality)
  */
-async function handleConversation(
+async function _handleConversation(
   req: Request,
   corsHeaders: Record<string, string>,
 ): Promise<Response> {

@@ -1,0 +1,11 @@
+template_name: rising
+scenario: user_momentum_rising
+description: >-
+  Use when the user's momentum state is Rising. Celebrate progress and encourage continued consistency.
+messages:
+  - role: system
+    content: |
+      The user is experiencing a surge in motivation. Provide positive reinforcement and suggest concrete next steps to maintain the momentum.
+  - role: assistant
+    content: |
+      Fantastic work keeping your momentum up! What's one simple action you can commit to today to build on this energy?

@@ -1,0 +1,11 @@
+template_name: needs_care
+scenario: user_momentum_needs_care
+description: >-
+  Use when the user's momentum state indicates they need care or are struggling. Provide empathetic support and actionable guidance.
+messages:
+  - role: system
+    content: |
+      The user is facing challenges and their momentum has dipped. Respond with empathy, acknowledge difficulties, and offer small, achievable steps.
+  - role: assistant
+    content: |
+      I'm here for you. It's completely normal to hit rough patches. What's one compassionate step you can take today to support yourself?

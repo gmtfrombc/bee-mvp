@@ -92,6 +92,7 @@ class PlatformChooserWidget extends ConsumerWidget {
         .read(analyticsServiceProvider)
         .logEvent('platform_selected', params: {'platform': 'apple_health'});
 
+    if (!context.mounted) return;
     await showHealthPermissionsModal(
       context,
       onPermissionsGranted: () {
@@ -118,7 +119,7 @@ class PlatformChooserWidget extends ConsumerWidget {
         .logEvent('platform_selected', params: {'platform': 'health_connect'});
 
     if (isAvailable) {
-      // ignore: use_build_context_synchronously
+      if (!context.mounted) return;
       await showHealthPermissionsModal(context, onPermissionsGranted: () {});
     } else {
       // Trigger install / setup flow via existing notifier helper.

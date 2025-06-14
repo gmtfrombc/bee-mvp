@@ -182,6 +182,8 @@ enum WearableDataType {
         return HealthDataType.SLEEP_LIGHT;
       case WearableDataType.sleepRem:
         return HealthDataType.SLEEP_REM;
+      case WearableDataType.sleepDuration:
+        return HealthDataType.SLEEP_IN_BED;
       case WearableDataType.weight:
         return HealthDataType.WEIGHT;
       case WearableDataType.bodyFat:

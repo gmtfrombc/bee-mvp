@@ -89,6 +89,25 @@ fundamental promise elements_
 
 **🛑 STRATEGIC PAUSE POINT** - Complete Backend Dependencies
 
+### 📌 Phase-1 Cleanup (February 2025)
+
+_The following high-impact gaps must be closed before starting Phase-3
+(M1.3.9-M1.3.11). Items correspond to the audit of 14 Feb 2025._
+
+| # | Milestone | Task/Area                                           | Action                                                                | Owner      | ETA  |
+| - | --------- | --------------------------------------------------- | --------------------------------------------------------------------- | ---------- | ---- |
+| 1 | M1.3.1    | T1.3.1.7 Response caching & **per-user rate-limit** | ✅ Implemented KV-store minute counter; responds with 429 on overflow | Backend    | Done |
+| 2 | M1.3.3    | Conversation templates                              | ✅ Added 3 YAML templates & integrated loading in `prompt-builder.ts` | AI Team    | Done |
+| 3 | M1.3.4    | Android notification channel                        | ✅ Created `coach_push` channel (Kotlin) & auto-registered on startup | Mobile     | Done |
+| 4 | M1.3.5    | Today-Feed context                                  | ✅ Today-Feed article ID & summary forwarded to coaching prompt       | Full-stack | Done |
+| 5 | M1.3.6    | Grafana latency panel                               | ✅ `response_time_ms` exposed as header; panel JSON added             | DevOps     | Done |
+
+**M1.3.7 Note** – advanced emotional intelligence postponed; basic sentiment
+guard considered sufficient for Phase-1.
+
+**M1.3.8 UI enhancements** and other gamification visuals will be scheduled
+**after Phase-3**.
+
 ### **Phase 2: Backend Infrastructure** (Parallel Development)
 
 _Complete required backend features before advanced functionality_
@@ -582,8 +601,8 @@ _Comprehensive testing, user experience optimization, and production readiness_
 
 - ✅ Comprehensive unit test suite for basic coaching services
 - ✅ Scenario testing covering basic user situations
-- ✅ User interaction testing for conversation quality
-- ✅ Performance optimization for AI response times
+- ✅ User interactions feel natural and helpful
+- ✅ AI response times meet performance requirements (<1 second)
 - ✅ Safety testing ensuring appropriate coaching boundaries
 - ✅ Basic effectiveness measurement and user satisfaction validation
 - ✅ Integration testing with existing momentum features

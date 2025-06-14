@@ -1,4 +1,4 @@
-// services/daily-content.service.ts
+ services/daily-content.service.ts
 // Utilities and helpers for generating daily health content.
 
 import { ContentSafetyValidator } from '../safety/content-safety-validator.ts'
@@ -25,40 +25,32 @@ export function buildDailyContentPrompt(topicCategory: string, contentDate: stri
   const monthName = date.toLocaleDateString('en-US', { month: 'long' })
 
   const systemPrompt =
-    `You are a health and wellness content writer creating daily tips for a mobile health app.
+    `You are a health and wellness content writer creating daily tips for a mobile health app. 
 
 IMPORTANT SAFETY GUIDELINES:
-- Never provide medical advice or diagnose conditions.
-- Always recommend consulting healthcare professionals for medical concerns.
-- Focus on general wellness and lifestyle tips.
-- Avoid claims about curing or treating diseases.
-- Use evidence-based information when possible.
+- Never provide medical advice or diagnose conditions
+- Always recommend consulting healthcare professionals for medical concerns
+- Focus on general wellness and lifestyle tips
+- Avoid claims about curing or treating diseases
+- Use evidence-based information when possible
 
-TASK:
-Write engaging, actionable content for the topic category "${topicCategory}" for ${dayName}, ${monthName} ${date.getDate()}.
+Your task is to create engaging, actionable health content for the topic: ${topicCategory}
 
-RESPONSE FORMAT (JSON ONLY):
+Today is ${dayName}, ${monthName} ${date.getDate()}.
+
+Please respond with a JSON object in this exact format:
 {
-  "title": "Engaging headline (<= 60 characters)",
-  "summary": "Brief, actionable summary (<= 200 characters)",
-  "key_points": ["Point 1", "Point 2", "Point 3"],
-  "full_content": {
-    "elements": [
-      { "type": "paragraph", "text": "A rich introductory paragraph that hooks the reader." },
-      { "type": "paragraph", "text": "A second paragraph that elaborates on the topic." },
-      { "type": "bullet_list", "list_items": ["Tip 1", "Tip 2", "Tip 3"], "text": "" }
-    ],
-    "actionable_advice": "One short actionable takeaway.",
-    "source_reference": "Source or reference here."
-  }
+  "title": "Engaging headline (max 60 characters)",
+  "summary": "Brief, actionable summary (max 200 characters)",
+  "key_points": ["Point 1", "Point 2", "Point 3"]
 }
 
-RULES:
-1. The 'elements' array MUST contain at least two paragraphs **followed by** one bullet_list (3+ elements total).
-2. The bullet_list 'list_items' MUST have at least three tips.
-3. Do NOT include markdown, HTML, or special formatting.
-4. Respond **ONLY** with valid JSON that EXACTLY matches the schema above—no extra keys, no commentary.
-5. If the first attempt does not meet every rule, think step-by-step, correct the JSON, and output again until it is valid.`
+The content should be:
+- Practical and actionable
+- Appropriate for general audiences
+- Evidence-based but accessible
+- Motivational and positive
+- Safe and not prescriptive`
 
   const userPrompt =
     `Generate daily health content for ${topicCategory} that users can apply today. Make it relevant for a ${dayName} and include specific, actionable advice.`
@@ -92,24 +84,12 @@ export function parseAIContentResponse(
     const title = String(parsed.title).substring(0, 60)
     const summary = String(parsed.summary).substring(0, 200)
 
-    const defaultFull = {
-      elements: [
-        { type: 'paragraph', text: summary },
-        ...(Array.isArray(parsed.key_points) && parsed.key_points.length > 0
-          ? [{ type: 'bullet_list', list_items: parsed.key_points, text: '' }]
-          : []),
-      ],
-      actionable_advice: parsed.actionable_advice ?? undefined,
-      source_reference: parsed.source_reference ?? undefined,
-    } as unknown
-
     return {
       title,
       summary,
       topic_category: topicCategory,
       content_url: undefined,
       external_link: undefined,
-      full_content: parsed.full_content ?? defaultFull,
     }
   } catch (error) {
     console.error('Error parsing AI content response:', error)
@@ -119,19 +99,12 @@ export function parseAIContentResponse(
     const summary = lines.slice(1, 3).join(' ').substring(0, 200) ||
       'Focus on improving your health today.'
 
-    const defaultFull = {
-      elements: [
-        { type: 'paragraph', text: summary },
-      ],
-    } as unknown
-
     return {
       title,
       summary,
       topic_category: topicCategory,
       content_url: undefined,
       external_link: undefined,
-      full_content: defaultFull,
     }
   }
 }
@@ -164,19 +137,6 @@ export function calculateContentConfidence(
   return Math.min(confidence, 1.0)
 }
 
-function isFullContentValid(fullContent: unknown): boolean {
-  // deno-lint-ignore no-explicit-any
-  const fc: any = fullContent
-  if (!fc || !Array.isArray(fc.elements)) return false
-  if (fc.elements.length < 3) return false
-  const [first, second, third] = fc.elements
-  const paragraphsValid = first?.type === 'paragraph' && typeof first.text === 'string' &&
-    second?.type === 'paragraph' && typeof second.text === 'string'
-  const bulletValid = third?.type === 'bullet_list' && Array.isArray(third.list_items) &&
-    third.list_items.length >= 3
-  return paragraphsValid && bulletValid
-}
-
 /**
  * High-level function to generate daily content, including safety validation.
  */
@@ -196,32 +156,12 @@ export async function generateDailyHealthContent(
 
     const topicCategory = requestedTopic || chooseTopicForDate(contentDate, healthTopics)
 
-    let messages = buildDailyContentPrompt(topicCategory, contentDate)
-    let parsedContent: Omit<GeneratedContent, 'confidence_score'> | null = null
-    let aiResponse = ''
-    const maxAttempts = 3
+    const prompt = buildDailyContentPrompt(topicCategory, contentDate)
+    const aiResponse = await callAIAPI(prompt)
+    if (!aiResponse) throw new Error('No response from AI API')
 
-    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      aiResponse = await callAIAPI(messages)
-      if (!aiResponse) throw new Error('No response from AI API')
-
-      parsedContent = parseAIContentResponse(aiResponse, topicCategory)
-      if (parsedContent && isFullContentValid(parsedContent.full_content)) {
-        break // valid content obtained
-      }
-
-      if (attempt < maxAttempts) {
-        const correctionMsg =
-          `Your previous output was invalid because it did not follow the RESPONSE FORMAT or RULES. Please output JSON ONLY that matches the schema exactly, ensuring 'full_content.elements' has at least two paragraphs followed by one bullet_list with three or more list_items.`
-        messages = [
-          ...messages,
-          { role: 'assistant', content: aiResponse },
-          { role: 'user', content: correctionMsg },
-        ]
-      }
-    }
-
-    if (!parsedContent) throw new Error('Failed to parse AI response after retries')
+    const parsedContent = parseAIContentResponse(aiResponse, topicCategory)
+    if (!parsedContent) throw new Error('Failed to parse AI response')
 
     const safety = ContentSafetyValidator.validateContent(
       parsedContent.title,
@@ -233,29 +173,8 @@ export async function generateDailyHealthContent(
       const fallback = ContentSafetyValidator.generateSafeFallback(topicCategory)
       return {
         ...fallback,
-        topic_category: topicCategory,
+        topic_category: topicCategory,Add commentMore actions
         confidence_score: 0.7,
-      }
-    }
-
-    // Ensure full_content passes validation; if not, fall back to simple safe content
-    if (!isFullContentValid(parsedContent.full_content)) {
-      // deno-lint-ignore no-explicit-any
-      const safeParagraph = { type: 'paragraph', text: parsedContent.summary }
-      parsedContent.full_content = {
-        elements: [
-          safeParagraph,
-          safeParagraph,
-          {
-            type: 'bullet_list',
-            list_items: [
-              'Stay mindful of your health today',
-              'Apply the tips provided',
-              'Consult a professional for personal advice',
-            ],
-            text: '',
-          },
-        ],
       }
     }
 

@@ -1,7 +1,8 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ??
+    Deno.env.get("SERVICE_ROLE_KEY")!;
 
 // Determine AI coaching engine URL.
 // Priority: env override > same Supabase project Edge Function route.
@@ -62,162 +63,40 @@ export default async function handler(req: Request): Promise<Response> {
             console.log(`📊 Job ID: ${job_id}`);
         }
 
-        // Initialize Supabase client
-        const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-        // Check if content already exists for this date
-        if (!force_regenerate) {
-            const { data: existingContent } = await supabase
-                .from("daily_feed_content")
-                .select("id, title, created_at")
-                .eq("content_date", contentDate)
-                .single();
-
-            if (existingContent) {
-                console.log(
-                    `📋 Content already exists for ${contentDate}: "${existingContent.title}"`,
-                );
-                return new Response(
-                    JSON.stringify({
-                        success: true,
-                        message: "Content already exists for this date",
-                        content_date: contentDate,
-                        existing_content: existingContent,
-                        generated: false,
-                    }),
-                    {
-                        status: 200,
-                        headers: {
-                            ...corsHeaders,
-                            "Content-Type": "application/json",
-                        },
-                    },
-                );
-            }
-        }
-
-        // Prepare request payload
+        /* ------------------------------------------------------------------
+         * Fast-return: immediately queue generation in background and respond
+         *  (placed BEFORE any heavyweight DB/network init to avoid edge timeouts)
+         * ------------------------------------------------------------------*/
         const requestPayload = {
             content_date: contentDate,
             force_regenerate,
         };
 
-        if (isDev) {
-            // 🚀 Fire-and-forget in development to avoid 30s timeout in local edge-runtime
-            fetch(`${aiCoachingEngineUrl}/generate-daily-content`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${supabaseServiceKey}`,
-                },
-                body: JSON.stringify(requestPayload),
-            }).catch((e) => console.warn("⚠️ Background generate failed:", e));
+        // Fire-and-forget call to AI coaching engine – detach after 5 s to avoid
+        // keeping the event-loop alive and hitting the 30 s gateway timeout.
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 5000);
+        fetch(`${aiCoachingEngineUrl}/generate-daily-content`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${supabaseServiceKey}`,
+                // Execute downstream function in the same region to minimise latency
+                "x-region": "us-west-1",
+            },
+            body: JSON.stringify(requestPayload),
+            signal: controller.signal,
+        }).catch((e) => console.warn("⚠️ Background generate failed:", e))
+            .finally(() => clearTimeout(timeout));
 
-            return new Response(
-                JSON.stringify({
-                    success: true,
-                    queued: true,
-                    content_date: contentDate,
-                }),
-                {
-                    status: 202,
-                    headers: {
-                        ...corsHeaders,
-                        "Content-Type": "application/json",
-                    },
-                },
-            );
-        }
-
-        // Timeout safeguard – return queued response if AI engine exceeds 25s
-        const MAX_WAIT_MS = 25000;
-        const generateResponse = await Promise.race([
-            fetch(`${aiCoachingEngineUrl}/generate-daily-content`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${supabaseServiceKey}`,
-                },
-                body: JSON.stringify(requestPayload),
-            }),
-            new Promise<Response>((_resolve, reject) =>
-                setTimeout(() => reject(new Error("timeout")), MAX_WAIT_MS)
-            ),
-        ]).catch((e) => {
-            console.warn(
-                `⚠️ AI engine call timed-out after ${MAX_WAIT_MS}ms`,
-                e,
-            );
-            return null;
-        });
-
-        if (generateResponse === null) {
-            // Treat as queued to avoid edge runtime 504
-            return new Response(
-                JSON.stringify({
-                    success: true,
-                    queued: true,
-                    content_date: contentDate,
-                }),
-                {
-                    status: 202,
-                    headers: {
-                        ...corsHeaders,
-                        "Content-Type": "application/json",
-                    },
-                },
-            );
-        }
-
-        if (!generateResponse.ok) {
-            const errorText = await generateResponse.text();
-            throw new Error(
-                `AI content generation failed: ${generateResponse.status} - ${errorText}`,
-            );
-        }
-
-        const result = await generateResponse.json();
-
-        if (!result.success) {
-            throw new Error(`Content generation failed: ${result.message}`);
-        }
-
-        console.log(
-            `✅ Daily content generated successfully for ${contentDate}`,
-        );
-        console.log(`📝 Title: "${result.content.title}"`);
-        console.log(`🎯 Topic: ${result.content.topic_category}`);
-        console.log(`📊 Confidence: ${result.content.ai_confidence_score}`);
-
-        // Update job status if job_id was provided
-        if (job_id && result.content) {
-            try {
-                await supabase.rpc("update_content_generation_job_status", {
-                    p_job_id: job_id,
-                    p_status: "completed",
-                    p_content_id: result.content.id,
-                    p_topic_category: result.content.topic_category,
-                    p_ai_confidence_score: result.content.ai_confidence_score,
-                    p_generation_time_ms: result.response_time_ms,
-                });
-                console.log(`📊 Job ${job_id} marked as completed`);
-            } catch (jobError) {
-                console.warn(`⚠️ Failed to update job status: ${jobError}`);
-            }
-        }
-
-        // Send success response
         return new Response(
             JSON.stringify({
                 success: true,
-                message: "Daily content generated and saved successfully",
+                queued: true,
                 content_date: contentDate,
-                content: result.content,
-                generated: true,
-                generation_time_ms: result.response_time_ms,
             }),
             {
-                status: 200,
+                status: 202,
                 headers: { ...corsHeaders, "Content-Type": "application/json" },
             },
         );

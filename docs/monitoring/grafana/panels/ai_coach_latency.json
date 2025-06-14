@@ -1,0 +1,37 @@
+{
+  "title": "AI Coach Latency (ms)",
+  "type": "timeseries",
+  "datasource": "Prometheus",
+  "fieldConfig": {
+    "defaults": {
+      "unit": "ms",
+      "decimals": 0,
+      "thresholds": {
+        "mode": "absolute",
+        "steps": [
+          { "color": "green", "value": null },
+          { "color": "red", "value": 1000 }
+        ]
+      }
+    },
+    "overrides": []
+  },
+  "targets": [
+    {
+      "expr": "histogram_quantile(0.95, sum(rate(ai_coach_response_time_ms_bucket[5m])) by (le))",
+      "legendFormat": "p95",
+      "refId": "A"
+    },
+    {
+      "expr": "sum(rate(ai_coach_response_time_ms_sum[5m])) / sum(rate(ai_coach_response_time_ms_count[5m]))",
+      "legendFormat": "avg",
+      "refId": "B"
+    }
+  ],
+  "options": {
+    "legend": {
+      "showLegend": true,
+      "placement": "bottom"
+    }
+  }
+} 
