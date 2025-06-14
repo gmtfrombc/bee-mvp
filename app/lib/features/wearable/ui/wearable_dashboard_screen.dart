@@ -15,22 +15,28 @@ import '../../../core/providers/supabase_provider.dart';
 /// empty/error/loading states and pull-to-refresh. If permissions are
 /// missing/blocked it surfaces a clear call-to-action so users can grant
 /// access.
-class WearableDashboardScreen extends ConsumerWidget {
+class WearableDashboardScreen extends ConsumerStatefulWidget {
   const WearableDashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final permissionsState = ref.watch(healthPermissionsProvider);
+  ConsumerState<WearableDashboardScreen> createState() =>
+      _WearableDashboardScreenState();
+}
 
-    // Lazy-init the permission state so we always have a fresh status when the
-    // screen is first shown. This avoids requiring callers to initialize the
-    // provider explicitly.
-    if (!permissionsState.isLoading &&
-        permissionsState.status == HealthPermissionStatus.notDetermined) {
-      Future.microtask(() {
-        ref.read(healthPermissionsProvider.notifier).initialize();
-      });
-    }
+class _WearableDashboardScreenState
+    extends ConsumerState<WearableDashboardScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Initialize permissions once when the screen is first created.
+    Future.microtask(() {
+      ref.read(healthPermissionsProvider.notifier).initialize();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final permissionsState = ref.watch(healthPermissionsProvider);
 
     // Top-level RefreshIndicator to allow manual reloads.
     return RefreshIndicator(
@@ -154,6 +160,8 @@ class _PermissionCta extends ConsumerWidget {
                 // Invalidate outside widget lifecycle to avoid "ref disposed"
                 // exceptions when the CTA is replaced by tiles.
                 container.invalidate(healthPermissionsProvider);
+                // Re-run initialization to refresh permission status.
+                container.read(healthPermissionsProvider.notifier).initialize();
               },
               icon: const Icon(Icons.lock_open),
               label: Text(isDenied ? 'Open Settings' : 'Grant Permissions'),

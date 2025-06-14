@@ -21,7 +21,8 @@ import { GenerateResponseRequest, GenerateResponseResponse } from '../types.ts'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? ''
 const SUPABASE_ANON = Deno.env.get('SUPABASE_ANON_KEY') ?? ''
-const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ??
+  Deno.env.get('SERVICE_ROLE_KEY') ?? ''
 
 // Prevent DENO_TESTING leakage across subsequent test files
 if (Deno.env.get('DENO_TESTING') === 'true') {
@@ -59,7 +60,9 @@ export async function processConversation(
       system_event,
       previous_state,
       current_score,
-    } = body
+      article_id,
+      article_summary,
+    } = body as any
 
     if (!user_id || !message) {
       return json({ error: 'Missing required fields: user_id, message' }, 400, cors)
@@ -193,6 +196,9 @@ export async function processConversation(
           ? { isSystemEvent: true, previousState: previous_state, currentScore: current_score }
           : undefined,
         sentiment,
+        article_summary
+          ? { id: article_id as string | undefined, summary: article_summary as string }
+          : undefined,
       )
 
       assistantMessage = await callAIAPI(prompt)
@@ -237,6 +243,7 @@ export async function processConversation(
     return json(payload, 200, {
       ...cors,
       'X-Cache-Status': cacheHit ? 'HIT' : 'MISS',
+      'X-Response-Time-ms': payload.response_time_ms.toString(),
     })
   } catch (err) {
     console.error('Conversation handler error:', err)

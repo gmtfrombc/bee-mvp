@@ -8,6 +8,7 @@ import 'package:app/core/services/vitals_notifier_service.dart';
 import 'package:app/core/services/wearable_data_models.dart';
 import 'package:app/core/services/wearable_data_repository.dart';
 import 'package:app/core/services/wearable_live_service.dart';
+import 'package:app/core/services/wearable_live_models.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -27,10 +28,15 @@ void main() {
     mockLiveService = MockWearableLiveService();
     mockRepository = MockWearableDataRepository();
 
-    // Mock WearableLiveService
+    // Mock WearableLiveService – use an open StreamController so the
+    // stream does not complete immediately (which would trigger an
+    // unexpected disconnection status inside the service).
+    final controller = StreamController<List<WearableLiveMessage>>.broadcast();
+    addTearDown(controller.close);
+
     when(
       () => mockLiveService.messageStream,
-    ).thenAnswer((_) => const Stream.empty());
+    ).thenAnswer((_) => controller.stream);
     when(
       () => mockLiveService.startStreaming(any()),
     ).thenAnswer((_) async => true);

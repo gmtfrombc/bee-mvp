@@ -47,7 +47,8 @@ export async function dailyContentController(
         .select('*')
         .eq('content_date', content_date)
         .single()
-      if (existing) {
+
+      if (existing && existing.full_content !== null && existing.full_content !== undefined) {
         return json(
           {
             success: true,
@@ -65,6 +66,11 @@ export async function dailyContentController(
     const generated = await generateDailyHealthContent(content_date, topic_category)
     if (!generated) throw new Error('Failed to generate content')
 
+    // ------------------------------------------------------------------
+    // Guarantee rich full_content structure for client consumption
+    // ------------------------------------------------------------------
+    generated.full_content = ensureRichFullContent(generated)
+
     const { data: saved, error: saveErr } = await supabase
       .from('daily_feed_content')
       .upsert({
@@ -75,6 +81,7 @@ export async function dailyContentController(
         ai_confidence_score: generated.confidence_score,
         content_url: generated.content_url,
         external_link: generated.external_link,
+        full_content: generated.full_content,
       }, { onConflict: 'content_date' })
       .select()
       .single()
@@ -111,4 +118,52 @@ function json(payload: unknown, status: number, headers: Record<string, string>)
     status,
     headers: { ...headers, 'Content-Type': 'application/json' },
   })
+}
+
+function ensureRichFullContent(content: {
+  summary: string
+  topic_category?: string
+  full_content?: unknown
+}): unknown {
+  // deno-lint-ignore no-explicit-any
+  const fc: any = content.full_content
+  if (fc && Array.isArray(fc.elements) && fc.elements.length >= 3) {
+    // quick sanity—ensure first two paragraphs + bullet_list
+    const [a, b, c] = fc.elements
+    if (
+      a?.type === 'paragraph' &&
+      b?.type === 'paragraph' &&
+      c?.type === 'bullet_list' &&
+      Array.isArray(c.list_items) && c.list_items.length >= 3
+    ) {
+      return fc
+    }
+  }
+  // Fallback: construct minimal rich structure from summary
+  const para = { type: 'paragraph', text: content.summary }
+  const topicSecond: Record<string, string> = {
+    nutrition: 'Consistently choosing balanced meals lays the foundation for long-term health.',
+    exercise: 'Consistent, moderate movement adds up and supports strength, mobility, and mood.',
+    sleep: 'Aim for a calm wind-down routine to help your body recognise it is time to rest.',
+    stress: 'Small mindful pauses throughout the day can lower stress and build resilience.',
+    prevention: 'Every positive choice today is an investment in your future wellbeing.',
+    lifestyle: 'Small daily habits compound, creating sustainable lifestyle change over time.',
+  }
+  const finalSecondParagraph = topicSecond[content.topic_category ?? 'lifestyle'] ??
+    'Small healthy actions completed regularly can make a big difference over time.'
+  return {
+    elements: [
+      para,
+      { type: 'paragraph', text: finalSecondParagraph },
+      {
+        type: 'bullet_list',
+        list_items: [
+          "Apply today's insight in a small way",
+          'Share it with a friend for accountability',
+          'Consult a professional for personalised advice',
+        ],
+        text: '',
+      },
+    ],
+  }
 }

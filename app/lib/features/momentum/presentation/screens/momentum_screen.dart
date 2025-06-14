@@ -160,6 +160,9 @@ class _MomentumContent extends ConsumerWidget {
             onTap: () {
               ref.read(todayFeedProvider.notifier).handleTap();
             },
+            onRetry: () {
+              ref.read(todayFeedProvider.notifier).forceRefresh();
+            },
             onShare: () {
               ref.read(todayFeedProvider.notifier).handleShare();
             },

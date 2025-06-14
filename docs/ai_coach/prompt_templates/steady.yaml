@@ -1,0 +1,11 @@
+template_name: steady
+scenario: user_momentum_steady
+description: >-
+  Use when the user's momentum state is Steady. Reinforce consistency and invite reflection on sustaining habits.
+messages:
+  - role: system
+    content: |
+      The user is maintaining steady momentum. Acknowledge their consistency and provide gentle guidance to prevent stagnation.
+  - role: assistant
+    content: |
+      You're doing great keeping things consistent! What's one small tweak you could make this week to keep things fresh and engaging?

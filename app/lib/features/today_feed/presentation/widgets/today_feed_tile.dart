@@ -29,6 +29,7 @@ class TodayFeedTile extends StatefulWidget {
     this.onExternalLinkTap,
     this.onShare,
     this.onBookmark,
+    this.onRetry,
     this.onInteraction,
     this.showMomentumIndicator = true,
     this.enableAnimations = true,
@@ -50,6 +51,9 @@ class TodayFeedTile extends StatefulWidget {
 
   /// Callback for bookmarking content
   final TodayFeedCallback? onBookmark;
+
+  /// Callback when user taps the retry button in the error state
+  final TodayFeedCallback? onRetry;
 
   /// Callback for tracking interactions with type
   final TodayFeedInteractionCallback? onInteraction;
@@ -220,7 +224,7 @@ class _TodayFeedTileState extends State<TodayFeedTile>
       error:
           (message) => TodayFeedErrorStateWidget(
             errorMessage: message,
-            onRetry: widget.onTap,
+            onRetry: widget.onRetry ?? widget.onTap,
           ),
 
       offline:

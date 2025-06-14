@@ -303,44 +303,44 @@ class WearableDataRepository {
       final permissions =
           healthDataTypes.map((type) => HealthDataAccess.READ).toList();
 
-      final hasPermissions = await _health.hasPermissions(
-        healthDataTypes,
-        permissions: permissions,
-      );
-
-      if (hasPermissions == true) {
-        _permissionDenialCount = 0; // Reset denial count on success
-        return HealthPermissionStatus.authorized;
-      }
-
-      // Request permissions if not already granted
       final success = await _health.requestAuthorization(
         healthDataTypes,
         permissions: permissions,
       );
 
-      if (success) {
-        _permissionDenialCount = 0; // Reset denial count on success
+      debugPrint('[Permissions] requestAuthorization success: $success');
+
+      final finalHasBool = await _health.hasPermissions(
+        healthDataTypes,
+        permissions: permissions,
+      );
+
+      debugPrint('[Permissions] hasPermissions raw result: $finalHasBool');
+      // Treat an indeterminate (null) response as not yet authorized.
+      final finalHas =
+          finalHasBool == true || (finalHasBool == null && Platform.isIOS);
+      debugPrint('[Permissions] hasPermissions finalHas: $finalHas');
+
+      if (success || finalHas) {
+        _permissionDenialCount = 0;
         return HealthPermissionStatus.authorized;
-      } else {
-        _permissionDenialCount++;
-        if (Platform.isAndroid && _permissionDenialCount >= 2) {
-          _hasBeenDeniedTwice = true;
-          debugPrint(
-            'Android permissions denied twice - marking as permanently denied',
-          );
-        }
-        // T2.2.1.5-5: Log permission revocation
-        await _edgeCaseLogger.checkPermissionRevocation();
-        return HealthPermissionStatus.denied;
       }
+
+      _permissionDenialCount++;
+      if (Platform.isAndroid && _permissionDenialCount >= 2) {
+        _hasBeenDeniedTwice = true;
+        debugPrint(
+          'Android permissions denied twice - marking as permanently denied',
+        );
+      }
+      await _edgeCaseLogger.checkPermissionRevocation();
+      return HealthPermissionStatus.denied;
     } catch (e) {
       debugPrint('Error requesting health permissions: $e');
       _permissionDenialCount++;
       if (Platform.isAndroid && _permissionDenialCount >= 2) {
         _hasBeenDeniedTwice = true;
       }
-      // T2.2.1.5-5: Log permission revocation on error
       await _edgeCaseLogger.checkPermissionRevocation();
       return HealthPermissionStatus.denied;
     }
@@ -377,12 +377,18 @@ class WearableDataRepository {
       final permissions =
           healthDataTypes.map((type) => HealthDataAccess.READ).toList();
 
-      final hasPermissions = await _health.hasPermissions(
+      final hasPermissionsResult = await _health.hasPermissions(
         healthDataTypes,
         permissions: permissions,
       );
 
-      return hasPermissions == true
+      // Do **not** treat a null result as authorized – it simply means the
+      // underlying HealthKit API couldn't determine status (iOS 17 beta bug).
+      final hasPermissions =
+          hasPermissionsResult == true ||
+          (hasPermissionsResult == null && Platform.isIOS);
+
+      return hasPermissions
           ? HealthPermissionStatus.authorized
           : HealthPermissionStatus.notDetermined;
     } catch (e) {

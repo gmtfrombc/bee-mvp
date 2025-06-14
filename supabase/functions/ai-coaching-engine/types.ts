@@ -17,6 +17,8 @@ export interface GeneratedContent {
   confidence_score: number
   content_url?: string
   external_link?: string
+  /** Optional rich JSON payload shown in Flutter app */
+  full_content?: unknown
 }
 
 export interface GenerateResponseRequest {
