@@ -22,10 +22,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: List workspace
+        working-directory: ${{ github.workspace }}/bee-mvp
         run: |
           echo "Workspace contents:" && ls -R | head
       - name: Train model & enforce ROC-AUC gate
-        working-directory: ${{ github.workspace }}
+        working-directory: ${{ github.workspace }}/bee-mvp
         env:
           NDJSON_PATH: scripts/jitai_training_sample.ndjson
         run: |
