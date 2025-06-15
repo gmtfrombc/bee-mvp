@@ -21,6 +21,9 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+      - name: List workspace
+        run: |
+          echo "Workspace contents:" && ls -R | head
       - name: Train model & enforce ROC-AUC gate
         env:
           NDJSON_PATH: scripts/jitai_training_sample.ndjson
