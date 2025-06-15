@@ -29,11 +29,13 @@ jobs:
           echo "Workspace root: $PWD" && ls -a
           echo "Nested listing:" && ls bee-mvp || true
       - name: Train model & enforce ROC-AUC gate
-        working-directory: ${{ github.workspace }}/bee-mvp
+        run: |
+          PY_SCRIPT="${{ github.workspace }}/scripts/train_jitai_model.py"
+          DATA_PATH="${{ github.workspace }}/scripts/jitai_training_sample.ndjson"
+          echo "Running $PY_SCRIPT with data $DATA_PATH"
+          python "$PY_SCRIPT" "$DATA_PATH" --output jitai_model.json
         env:
           NDJSON_PATH: scripts/jitai_training_sample.ndjson
-        run: |
-          python scripts/train_jitai_model.py $NDJSON_PATH --output jitai_model.json
       - name: Upload artefact
         uses: actions/upload-artifact@v4
         with:
