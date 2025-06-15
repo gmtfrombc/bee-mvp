@@ -24,7 +24,12 @@ jobs:
       - name: List workspace
         run: |
           echo "Workspace contents:" && ls -R | head
+      - name: Show path structure
+        run: |
+          echo "Workspace root: $PWD" && ls -a
+          echo "Nested listing:" && ls bee-mvp || true
       - name: Train model & enforce ROC-AUC gate
+        working-directory: ${{ github.workspace }}/bee-mvp
         env:
           NDJSON_PATH: scripts/jitai_training_sample.ndjson
         run: |
@@ -33,7 +38,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: jitai_model_json
-          path: jitai_model.json
+          path: bee-mvp/jitai_model.json
       - name: Upload to GCS & update Supabase secret
         if: github.ref == 'refs/heads/main'
         env:
@@ -45,6 +50,7 @@ jobs:
           echo "$GCP_SA_KEY" | base64 -d > /tmp/sa.json
           echo "::add-mask::$GCP_SA_KEY"
           gcloud auth activate-service-account --key-file=/tmp/sa.json
+          cd bee-mvp
           export MODEL_PATH="jitai_model_$(date +%Y%m%d%H%M%S).json"
           gsutil cp jitai_model.json gs://$GCS_BUCKET/$MODEL_PATH
           MODEL_URL="https://storage.googleapis.com/$GCS_BUCKET/$MODEL_PATH"
