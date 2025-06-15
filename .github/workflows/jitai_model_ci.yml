@@ -25,6 +25,7 @@ jobs:
         run: |
           echo "Workspace contents:" && ls -R | head
       - name: Train model & enforce ROC-AUC gate
+        working-directory: ${{ github.workspace }}
         env:
           NDJSON_PATH: scripts/jitai_training_sample.ndjson
         run: |
