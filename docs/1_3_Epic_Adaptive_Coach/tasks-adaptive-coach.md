@@ -481,24 +481,25 @@ _Motivational elements including badges, streaks, and progress visualization_
 
 ### **PHASE 3: ADVANCED FEATURES** (After Epic 2.2 & 2.3 Complete)
 
-### **M1.3.9: Just-in-Time Adaptive Interventions (JITAIs)** ⚪ Blocked
+### **M1.3.9: Just-in-Time Adaptive Interventions (JITAIs)** 🟡 In-Progress
 
 _⚠️ Requires Epic 2.2 (Enhanced Wearable Integration) completion_
 
-| Task          | Description                                                             | Estimated Hours | Status     |
-| ------------- | ----------------------------------------------------------------------- | --------------- | ---------- |
-| **T1.3.9.1**  | Develop dynamic contextual intervention rules engine                    | 12h             | ⚪ Planned |
-| **T1.3.9.2**  | Implement predictive modeling for proactive coaching triggers           | 14h             | ⚪ Planned |
-| **T1.3.9.3**  | Create real-time response systems for immediate coaching delivery       | 10h             | ⚪ Planned |
-| **T1.3.9.4**  | Build wearable data integration framework for biometric monitoring      | 12h             | ⚪ Planned |
-| **T1.3.9.5**  | Implement context detection for sleep, activity, and stress patterns    | 10h             | ⚪ Planned |
-| **T1.3.9.6**  | Design low-latency notification system for instant interventions        | 8h              | ⚪ Planned |
-| **T1.3.9.7**  | Create intervention effectiveness tracking and optimization             | 8h              | ⚪ Planned |
-| **T1.3.9.8**  | Build context-aware ML models using Vertex AI                           | 10h             | ⚪ Planned |
-| **T1.3.9.9**  | Integrate medication adherence patterns from Epic 2.2 Enhanced          | 8h              | ⚪ **NEW** |
-| **T1.3.9.10** | Write unit tests (≥ 85 % coverage) for rules engine & context-detection | 6h              | ⚪ Planned |
-| **T1.3.9.11** | Integration tests simulating biometric trigger → push-notification flow | 6h              | ⚪ Planned |
-| **T1.3.9.12** | Load tests (1 k events/min) to validate latency & stability targets     | 4h              | ⚪ Planned |
+| Task          | Description                                                                                           | Estimated Hours | Status            |
+| ------------- | ----------------------------------------------------------------------------------------------------- | --------------- | ----------------- |
+| **T1.3.9.1**  | Develop dynamic contextual intervention rules engine                                                  | 12h             | ✅ Complete       |
+| **T1.3.9.2**  | Implement predictive modeling for proactive coaching triggers                                         | 14h             | ✅ Complete       |
+| **T1.3.9.3**  | Create real-time response systems for immediate coaching delivery                                     | 10h             | ✅ Complete       |
+| **T1.3.9.4**  | Build wearable data integration framework for biometric monitoring                                    | 12h             | ⚠️ Basic Complete |
+| **T1.3.9.5**  | Implement context detection for sleep, activity, and stress patterns                                  | 10h             | ⚠️ Basic Complete |
+| **T1.3.9.6**  | Design low-latency notification system for instant interventions                                      | 8h              | ⚠️ Basic Complete |
+| **T1.3.9.7**  | Create intervention effectiveness tracking and optimization                                           | 8h              | ⚠️ Basic Complete |
+| **T1.3.9.8**  | Build context-aware ML models using Vertex AI                                                         | 10h             | ⚠️ Basic Complete |
+| **T1.3.9.9**  | Integrate medication adherence patterns from Epic 2.2 Enhanced                                        | 8h              | 🚫 Deferred       |
+| **T1.3.9.10** | Write unit tests (≥ 85 % coverage) for rules engine & context-detection                               | 6h              | ⚠️ Basic Complete |
+| **T1.3.9.11** | Integration tests simulating biometric trigger → push-notification flow                               | 6h              | ✅ Complete       |
+| **T1.3.9.12** | Load tests (1 k events/min) to validate latency & stability targets                                   | 4h              | ✅ Complete       |
+| **T1.3.9.13** | Extend `wearable_daily_summary` schema with `steps_total` & `hrv_avg` columns; run 30–90-day backfill | 6h              | 🔴 In Progress    |
 
 **Milestone Deliverables:**
 
@@ -515,11 +516,11 @@ _⚠️ Requires Epic 2.2 (Enhanced Wearable Integration) completion_
 - Context-aware ML models learning from user patterns and outcomes
 - **Medication adherence integration for comprehensive health coaching**
 
-**Acceptance Criteria:**
+**Acceptance Criteria (updated):**
 
 - [ ] System detects contextual triggers within 30 seconds of occurrence
-- [ ] Predictive models achieve 75%+ accuracy in identifying intervention
-      opportunities
+- [ ] Predictive models achieve 75%+ ROC-AUC in identifying intervention
+      opportunities (logistic baseline currently ≥0.60)
 - [ ] Real-time interventions deliver within 1 minute of trigger detection
 - [ ] Wearable data integration provides continuous biometric monitoring
 - [ ] Context detection accurately identifies sleep, activity, and stress
@@ -529,6 +530,7 @@ _⚠️ Requires Epic 2.2 (Enhanced Wearable Integration) completion_
 - [ ] ML models continuously improve intervention accuracy based on user
       outcomes
 - [ ] **Medication adherence patterns integrated into coaching context**
+      _(Deferred – subject to roadmap review)_
 
 ---
 
@@ -652,12 +654,12 @@ promise fulfillment_
 
 - **Total Tasks**: 90 tasks across 11 milestones
 - **Estimated Hours**: 698 hours (~17.5 weeks for 1 developer)
-- **Phase 1 (Core)**: 498 hours (~12.5 weeks) - ⚠️ **CORE AI COMPLETE**
-- **Phase 3 (Advanced)**: 200 hours (~5 weeks) - 🛑 **BLOCKED**
-- **Completed**: 25/90 tasks (28%)
-- **Basic/Partial**: 12/90 tasks (13%)
+- **Phase 1 (Core)**: 498 hours (~12.5 weeks) – ⚠️ **CORE AI COMPLETE**
+- **Phase 3 (Advanced)**: 200 hours (~5 weeks) – 🟡 **IN PROGRESS**
+- **Completed**: 27/90 tasks (30%)
+- **Basic/Partial**: 10/90 tasks (11%)
 - **Planned**: 49/90 tasks (54%)
-- **Blocked**: 4/90 tasks (4%)
+- **Blocked**: 2/90 tasks (2%)
 
 ### **Promise Delivery Tracking**
 
@@ -673,14 +675,14 @@ promise fulfillment_
 | **Gamification for motivation transition**        | M1.3.8             | ⚪ Planned        |
 | **Real-time engagement monitoring**               | M1.3.5, M1.3.6     | ⚠️ Basic Complete |
 
-#### **Phase 3: Advanced Features** (Completes 100% of Promise) - 🛑 **BLOCKED**
+#### **Phase 3: Advanced Features** (Completes 100% of Promise) - 🟡 **IN PROGRESS**
 
-| Promise Element                         | Delivery Milestone | Status                      |
-| --------------------------------------- | ------------------ | --------------------------- |
-| **Just-in-time adaptive interventions** | M1.3.9             | ⚪ Blocked (Epic 2.2)       |
-| **Real-time physiological integration** | M1.3.10            | ⚪ Blocked (Epic 2.2 & 2.3) |
-| **Ultra-responsive feedback system**    | M1.3.10            | ⚪ Blocked (Epic 2.2 & 2.3) |
-| **Complete motivation monitoring**      | M1.3.11            | ⚠️ Core Testing Complete    |
+| Promise Element                         | Delivery Milestone | Status                          |
+| --------------------------------------- | ------------------ | ------------------------------- |
+| **Just-in-time adaptive interventions** | M1.3.9             | 🟡 In-Progress (Epic 2.2)       |
+| **Real-time physiological integration** | M1.3.10            | 🟡 In-Progress (Epic 2.2 & 2.3) |
+| **Ultra-responsive feedback system**    | M1.3.10            | 🟡 In-Progress (Epic 2.2 & 2.3) |
+| **Complete motivation monitoring**      | M1.3.11            | ⚠️ Core Testing Complete        |
 
 ### **Dependencies Status**
 
@@ -850,7 +852,7 @@ promise fulfillment_
 **Last Updated**: January 6, 2025\
 **Current Status**: Core AI Infrastructure Complete - Advanced Features Planned\
 **Next Milestone**: Complete M1.3.7 & M1.3.8 OR await Epic 2.2 & 2.3 for M1.3.9\
-**Completion Status**: 25/90 tasks complete (28%) - Core AI Functional, Advanced
+**Completion Status**: 27/90 tasks complete (30%) - Core AI Functional, Advanced
 Features Planned\
 **Epic Owner**: Development Team\
 **Stakeholders**: Product Team, AI/ML Team, Clinical Team, User Experience Team,
