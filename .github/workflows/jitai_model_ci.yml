@@ -24,10 +24,11 @@ jobs:
       - name: List workspace
         run: |
           echo "Workspace contents:" && ls -R | head
-      - name: Show path structure
+      - name: Dump workspace tree
         run: |
-          echo "Workspace root: $PWD" && ls -a
-          echo "Nested listing:" && ls bee-mvp || true
+          echo "== WORKSPACE ROOT ==" && pwd && ls -a
+          echo "== TWO-LEVEL TREE ==" && find . -maxdepth 2 -print
+          echo "== SEARCH FOR train_jitai_model.py ==" && find . -name train_jitai_model.py -print || true
       - name: Train model & enforce ROC-AUC gate
         run: |
           PY_SCRIPT="${{ github.workspace }}/scripts/train_jitai_model.py"
