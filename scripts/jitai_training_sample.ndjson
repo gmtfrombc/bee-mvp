@@ -1,4 +1,8 @@
 {"user_id":"u1","timestamp":"2024-06-12T12:00:00Z","trigger_type":"encourage_activity","outcome":"engaged","sleep_score":75,"avg_hr":65,"steps":500,"heart_rate":100}
 {"user_id":"u2","timestamp":"2024-06-12T13:00:00Z","trigger_type":"hydration_reminder","outcome":"ignored","sleep_score":60,"avg_hr":80,"steps":2000,"heart_rate":110}
 {"user_id":"u1","timestamp":"2024-06-12T14:00:00Z","trigger_type":"relaxation_breath","outcome":"engaged","sleep_score":75,"avg_hr":65,"steps":800,"heart_rate":95}
-{"user_id":"u3","timestamp":"2024-06-12T15:00:00Z","trigger_type":"sleep_hygiene","outcome":"ignored","sleep_score":50,"avg_hr":85,"steps":3000,"heart_rate":120} 
+{"user_id":"u3","timestamp":"2024-06-12T15:00:00Z","trigger_type":"sleep_hygiene","outcome":"ignored","sleep_score":50,"avg_hr":85,"steps":3000,"heart_rate":120}
+{"user_id":"u4","timestamp":"2024-06-12T16:00:00Z","trigger_type":"encourage_activity","outcome":"engaged","sleep_score":82,"avg_hr":70,"steps":1500,"heart_rate":105}
+{"user_id":"u5","timestamp":"2024-06-12T17:00:00Z","trigger_type":"hydration_reminder","outcome":"ignored","sleep_score":68,"avg_hr":78,"steps":1000,"heart_rate":112}
+{"user_id":"u6","timestamp":"2024-06-12T18:00:00Z","trigger_type":"relaxation_breath","outcome":"engaged","sleep_score":90,"avg_hr":60,"steps":700,"heart_rate":90}
+{"user_id":"u7","timestamp":"2024-06-12T19:00:00Z","trigger_type":"sleep_hygiene","outcome":"ignored","sleep_score":55,"avg_hr":88,"steps":2500,"heart_rate":118} 
