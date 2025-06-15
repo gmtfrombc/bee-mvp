@@ -75,6 +75,12 @@ def main():
     parser.add_argument(
         "--output", default="jitai_model.json", help="Path for JSON artefact"
     )
+    parser.add_argument(
+        "--min_auc",
+        type=float,
+        default=0.6,
+        help="Minimum acceptable ROC-AUC (set 0 to bypass gate)",
+    )
     args = parser.parse_args()
 
     df = load_ndjson(args.ndjson_path)
@@ -82,9 +88,8 @@ def main():
     model, auc = train(df)
     print(f"ROC-AUC: {auc:.4f}")
 
-    # Gate on minimum AUC of 0.60
-    if auc < 0.6:
-        print("AUC below threshold (0.60) – failing")
+    if args.min_auc and auc < args.min_auc:
+        print(f"AUC below threshold ({args.min_auc:.2f}) – failing")
         exit(1)
 
     export_model(model, args.output)
