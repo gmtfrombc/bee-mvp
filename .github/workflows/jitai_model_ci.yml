@@ -27,7 +27,7 @@ jobs:
         run: |
           python scripts/train_jitai_model.py $NDJSON_PATH --output jitai_model.json
       - name: Upload artefact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: jitai_model_json
           path: jitai_model.json
