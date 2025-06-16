@@ -40,7 +40,8 @@ def prepare_data(df: pd.DataFrame) -> pd.DataFrame:
         if col not in df.columns:
             df[col] = 0.0
         df[col] = pd.to_numeric(df[col], errors="coerce")
-        df[col].fillna(df[col].mean(), inplace=True)
+        # Avoid chained-assignment warning (and future pandas 3.0 breakage)
+        df[col] = df[col].fillna(df[col].mean())
     return df
 
 
