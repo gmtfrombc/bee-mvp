@@ -47,6 +47,16 @@ serve(async (req) => {
         return new Response("ok", { headers: corsHeaders });
     }
 
+    const API_VERSION = "1";
+    const versionHeader = req.headers.get("X-Api-Version");
+    if (!versionHeader || versionHeader !== API_VERSION) {
+        return errorResponse(
+            "Unsupported or missing X-Api-Version",
+            "INVALID_VERSION",
+            400,
+        );
+    }
+
     if (req.method !== "GET") {
         return errorResponse("Method not allowed", "METHOD_NOT_ALLOWED", 405);
     }

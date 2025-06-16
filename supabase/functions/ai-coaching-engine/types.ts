@@ -36,3 +36,19 @@ export interface GenerateResponseResponse {
   response_time_ms: number
   cache_hit: boolean
 }
+
+export interface WearableData {
+  timestamp: number
+  heart_rate: number
+  resting_heart_rate?: number
+  steps: number
+  sleep_hours: number
+  /** 0.0–1.0 where higher means more stress */
+  stress_level?: number
+}
+
+export interface JITAITrigger {
+  id: string
+  type: 'encourage_activity' | 'relaxation_breath' | 'hydration_reminder' | 'sleep_hygiene'
+  message: string
+}
