@@ -485,21 +485,25 @@ _Motivational elements including badges, streaks, and progress visualization_
 
 _⚠️ Requires Epic 2.2 (Enhanced Wearable Integration) completion_
 
-| Task          | Description                                                                                           | Estimated Hours | Status            |
-| ------------- | ----------------------------------------------------------------------------------------------------- | --------------- | ----------------- |
-| **T1.3.9.1**  | Develop dynamic contextual intervention rules engine                                                  | 12h             | ✅ Complete       |
-| **T1.3.9.2**  | Implement predictive modeling for proactive coaching triggers                                         | 14h             | ✅ Complete       |
-| **T1.3.9.3**  | Create real-time response systems for immediate coaching delivery                                     | 10h             | ✅ Complete       |
-| **T1.3.9.4**  | Build wearable data integration framework for biometric monitoring                                    | 12h             | ⚠️ Basic Complete |
-| **T1.3.9.5**  | Implement context detection for sleep, activity, and stress patterns                                  | 10h             | ⚠️ Basic Complete |
-| **T1.3.9.6**  | Design low-latency notification system for instant interventions                                      | 8h              | ⚠️ Basic Complete |
-| **T1.3.9.7**  | Create intervention effectiveness tracking and optimization                                           | 8h              | ⚠️ Basic Complete |
-| **T1.3.9.8**  | Build context-aware ML models using Vertex AI                                                         | 10h             | ⚠️ Basic Complete |
-| **T1.3.9.9**  | Integrate medication adherence patterns from Epic 2.2 Enhanced                                        | 8h              | 🚫 Deferred       |
-| **T1.3.9.10** | Write unit tests (≥ 85 % coverage) for rules engine & context-detection                               | 6h              | ⚠️ Basic Complete |
-| **T1.3.9.11** | Integration tests simulating biometric trigger → push-notification flow                               | 6h              | ✅ Complete       |
-| **T1.3.9.12** | Load tests (1 k events/min) to validate latency & stability targets                                   | 4h              | ✅ Complete       |
-| **T1.3.9.13** | Extend `wearable_daily_summary` schema with `steps_total` & `hrv_avg` columns; run 30–90-day backfill | 6h              | 🔴 In Progress    |
+| Task          | Description                                                                                             | Estimated Hours | Status            |
+| ------------- | ------------------------------------------------------------------------------------------------------- | --------------- | ----------------- |
+| **T1.3.9.1**  | Develop dynamic contextual intervention rules engine                                                    | 12h             | ✅ Complete       |
+| **T1.3.9.2**  | Implement predictive modeling for proactive coaching triggers                                           | 14h             | ✅ Complete       |
+| **T1.3.9.3**  | Create real-time response systems for immediate coaching delivery                                       | 10h             | ✅ Complete       |
+| **T1.3.9.4**  | Build wearable data integration framework for biometric monitoring                                      | 12h             | ⚠️ Basic Complete |
+| **T1.3.9.5**  | Implement context detection for sleep, activity, and stress patterns                                    | 10h             | ⚠️ Basic Complete |
+| **T1.3.9.6**  | Design low-latency notification system for instant interventions                                        | 8h              | ⚠️ Basic Complete |
+| **T1.3.9.7**  | Create intervention effectiveness tracking and optimization                                             | 8h              | ⚠️ Basic Complete |
+| **T1.3.9.8**  | Build context-aware ML models using Vertex AI                                                           | 10h             | ⚠️ Basic Complete |
+| **T1.3.9.9**  | Integrate medication adherence patterns from Epic 2.2 Enhanced                                          | 8h              | 🚫 Deferred       |
+| **T1.3.9.10** | Write unit tests (≥ 85 % coverage) for rules engine & context-detection                                 | 6h              | ⚠️ Basic Complete |
+| **T1.3.9.11** | Integration tests simulating biometric trigger → push-notification flow                                 | 6h              | ✅ Complete       |
+| **T1.3.9.12** | Load tests (1 k events/min) to validate latency & stability targets                                     | 4h              | ✅ Complete       |
+| **T1.3.9.13** | Extend `wearable_daily_summary` schema with `steps_total` & `hrv_avg` columns; run 30–90-day backfill   | 6h              | 🔴 In Progress    |
+| **T1.3.9.14** | Upgrade JITAI predictive model to LightGBM/XGBoost for richer non-linear patterns                       | 14h             | ⚪ Planned        |
+| **T1.3.9.15** | Add `patient_id` feature and hierarchical (mixed-effects) layer for rapid personalisation               | 10h             | ⚪ Planned        |
+| **T1.3.9.16** | Introduce `intervention_type` logging + contextual-bandit reward table for effectiveness learning       | 8h              | ⚪ Planned        |
+| **T1.3.9.17** | Embed coach transcripts via OpenAI `text-embedding-3-small`; store vector & hook into model feature set | 10h             | ⚪ Planned        |
 
 **Milestone Deliverables:**
 
