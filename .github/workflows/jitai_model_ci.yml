@@ -64,5 +64,7 @@ jobs:
           sudo dpkg -i supabase.deb
           # Authenticate CLI with PAT to avoid Unauthorized errors
           supabase login --token $SUPABASE_ACCESS_TOKEN --no-browser || true
-          # Update the JITAI_MODEL_URL secret for the project
-          supabase secrets set JITAI_MODEL_URL=$MODEL_URL --project-ref $SUPABASE_PROJECT_ID 
+          echo "Supabase CLI version:" && supabase --version
+          echo "Setting secret for project $SUPABASE_PROJECT_ID ..."
+          # Update secret (flag before key=value per CLI spec) with debug logs
+          supabase secrets set --project-ref $SUPABASE_PROJECT_ID JITAI_MODEL_URL=$MODEL_URL --debug 
