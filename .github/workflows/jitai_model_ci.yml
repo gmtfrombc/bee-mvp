@@ -58,8 +58,9 @@ jobs:
           gsutil cp jitai_model.json gs://$GCS_BUCKET/$MODEL_PATH
           MODEL_URL="https://storage.googleapis.com/$GCS_BUCKET/$MODEL_PATH"
           echo "Model uploaded to $MODEL_URL"
-          echo "::set-output name=model_url::$MODEL_URL"
+          echo "model_url=$MODEL_URL" >> $GITHUB_OUTPUT
           # Install supabase CLI
           curl -sL https://github.com/supabase/cli/releases/download/v1.154.1/supabase_1.154.1_linux_amd64.deb -o supabase.deb
           sudo dpkg -i supabase.deb
-          supabase functions secrets set JITAI_MODEL_URL=$MODEL_URL --project-ref $SUPABASE_PROJECT_ID --apikey $SUPABASE_ACCESS_TOKEN 
+          # Update the JITAI_MODEL_URL secret in the Supabase project (top-level `supabase secrets set`)
+          supabase secrets set JITAI_MODEL_URL=$MODEL_URL --project-ref $SUPABASE_PROJECT_ID 
