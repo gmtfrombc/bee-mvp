@@ -67,4 +67,8 @@ jobs:
           echo "Supabase CLI version:" && supabase --version
           echo "Setting secret for project $SUPABASE_PROJECT_ID ..."
           # Update secret (flag before key=value per CLI spec) with debug logs
-          supabase secrets set --project-ref $SUPABASE_PROJECT_ID JITAI_MODEL_URL=$MODEL_URL --debug 
+          if ! supabase secrets set --project-ref $SUPABASE_PROJECT_ID JITAI_MODEL_URL=$MODEL_URL --debug; then
+            echo "Primary secrets set failed – attempting fallback via functions secrets."
+            supabase link --project-ref $SUPABASE_PROJECT_ID --debug || true
+            supabase functions secrets set JITAI_MODEL_URL=$MODEL_URL --debug || true
+          fi 
