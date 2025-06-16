@@ -16,6 +16,7 @@ import { dailyContentController } from './routes/daily-content.controller.ts'
 import { frequencyOptController } from './routes/frequency-opt.controller.ts'
 import { patternAggregateController } from './routes/pattern-aggregate.controller.ts'
 import { conversationController } from './routes/conversation.controller.ts'
+import { jitaiController } from './routes/jitai.controller.ts'
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')
 const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')
@@ -145,6 +146,11 @@ export default async function handler(req: Request): Promise<Response> {
   // Route to cross-patient pattern aggregation endpoint (Epic 3.1 preparation)
   if (pathname.endsWith('/aggregate-patterns')) {
     return await patternAggregateController(req, { cors: corsHeaders })
+  }
+
+  // Route to JITAI evaluation endpoint
+  if (pathname.endsWith('/evaluate-jitai')) {
+    return await jitaiController(req, { cors: corsHeaders })
   }
 
   // Default to conversation handling

@@ -464,11 +464,11 @@ ________________________________________________________________________________
 
 | Milestone | Deliverable | Status | Priority |
 |-----------|-------------|--------|----------|
-| **M2.2.1: Device Integration Architecture** | Multi-platform wearable SDK integration | ✅ **CORE COMPLETE** | 🔴 Critical |
-| **M2.2.2: Real-time Data Streaming** | Continuous physiological data pipeline | ⚪ Planned | 🔴 Critical |
-| **M2.2.3: Data Processing & Storage** | Heart rate, sleep, activity data processing | ⚪ Planned | 🔴 Critical |
+| **M2.2.1: Device Integration Architecture** | Multi-platform wearable SDK integration | ✅ **CORE COMPLETE** |
+| **M2.2.2: Real-time Data Streaming** | Continuous physiological data pipeline | ⚪ Planned | 
+| **M2.2.3: Data Processing & Storage** | Heart rate, sleep, activity data processing | ⚪ Planned |
 | **M2.2.4: API Endpoints** | Wearable data access for AI coaching | ⚪ Planned | 🟡 High |
-| **M2.2.5: Medication Adherence Integration** | Medication reminder tracking and pharmacy data integration | ⚪ **NEW** | 🟡 High |
+| **M2.2.5: Medication Adherence Integration** | Medication reminder tracking and pharmacy data integration | 🔴 BLOCKED--DEFERRED |
 | **M2.2.6: Testing & Validation** | Device compatibility and data accuracy | ⚪ Planned | 🟠 Medium |
 
 **Enhancement Rationale**: The narrative specifically mentions medication adherence as a tracked factor affecting motivation and engagement patterns.
