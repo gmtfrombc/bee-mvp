@@ -1,0 +1,34 @@
+{
+  "title": "AI Coach Usage Overview",
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Messages / Day",
+      "datasource": "Postgres",
+      "targets": [
+        {
+          "format": "time_series",
+          "rawSql": "SELECT summary_date as time, total_messages as value FROM coach_daily_qa ORDER BY summary_date"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "msgs"
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Median Response (ms)",
+      "datasource": "Postgres",
+      "targets": [
+        {
+          "rawSql": "SELECT summary_date as time, median_response_ms as value FROM coach_daily_qa ORDER BY summary_date"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "ms" } }
+    }
+  ],
+  "refresh": "5m",
+  "time": { "from": "now-30d", "to": "now" }
+} 
