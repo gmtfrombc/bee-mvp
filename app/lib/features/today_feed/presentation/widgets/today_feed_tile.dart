@@ -8,6 +8,7 @@ import 'states/loading_state_widget.dart';
 import 'states/error_state_widget.dart';
 import 'states/loaded_state_widget.dart';
 import 'states/offline_state_widget.dart';
+import '../../../ai_coach/ui/coach_chat_screen.dart';
 
 /// Callback types for Today Feed tile interactions
 typedef TodayFeedCallback = void Function();
@@ -183,22 +184,29 @@ class _TodayFeedTileState extends State<TodayFeedTile>
       content: widget.state.content,
       onAnimationTrigger: _onAnimationTrigger,
       borderRadius: borderRadius,
-      child: Semantics(
-        label: _getSemanticLabel(),
-        hint: _getSemanticHint(),
-        button: widget.onTap != null,
-        child: Card(
-          elevation: _getCardElevation(),
-          shadowColor: _getShadowColor().withValues(alpha: 0.1),
-          child: Container(
-            height: cardHeight,
-            padding: _getCardPadding(context),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(borderRadius),
-              gradient: _getCardGradient(),
-              border: _getCardBorder(),
+      child: GestureDetector(
+        onLongPress: () {
+          Navigator.of(
+            context,
+          ).push(MaterialPageRoute(builder: (_) => const CoachChatScreen()));
+        },
+        child: Semantics(
+          label: _getSemanticLabel(),
+          hint: _getSemanticHint(),
+          button: widget.onTap != null,
+          child: Card(
+            elevation: _getCardElevation(),
+            shadowColor: _getShadowColor().withValues(alpha: 0.1),
+            child: Container(
+              height: cardHeight,
+              padding: _getCardPadding(context),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(borderRadius),
+                gradient: _getCardGradient(),
+                border: _getCardBorder(),
+              ),
+              child: _buildStateContent(context),
             ),
-            child: _buildStateContent(context),
           ),
         ),
       ),

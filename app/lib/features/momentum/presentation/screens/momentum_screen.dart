@@ -28,6 +28,9 @@ import '../providers/today_feed_provider.dart';
 // Gamification imports
 import '../../../gamification/ui/achievements_screen.dart';
 
+// Coach Chat imports
+import '../../../ai_coach/ui/coach_chat_screen.dart';
+
 /// Main momentum meter screen
 /// Displays the user's current momentum state and provides quick actions
 class MomentumScreen extends ConsumerWidget {
@@ -115,6 +118,20 @@ class MomentumScreen extends ConsumerWidget {
               ),
             ),
           ],
+        ),
+      ),
+      floatingActionButton: Semantics(
+        label: 'Open AI Coach chat',
+        hint: 'Tap to chat with your momentum coach',
+        button: true,
+        child: FloatingActionButton(
+          heroTag: 'coachChatFab',
+          onPressed: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => const CoachChatScreen()),
+            );
+          },
+          child: const Icon(Icons.chat_bubble_outline),
         ),
       ),
     );
