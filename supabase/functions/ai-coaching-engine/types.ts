@@ -28,6 +28,10 @@ export interface GenerateResponseRequest {
   system_event?: string
   previous_state?: string
   current_score?: number
+  /** Optional summary of the latest provider visit transcript */
+  provider_visit_summary?: string
+  /** ISO date (YYYY-MM-DD) of the provider visit */
+  provider_visit_date?: string
 }
 
 export interface GenerateResponseResponse {
@@ -35,6 +39,10 @@ export interface GenerateResponseResponse {
   persona: string
   response_time_ms: number
   cache_hit: boolean
+  prompt_tokens?: number
+  completion_tokens?: number
+  total_tokens?: number
+  cost_usd?: number
 }
 
 export interface WearableData {

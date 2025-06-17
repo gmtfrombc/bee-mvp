@@ -15,6 +15,7 @@ import 'features/gamification/ui/rewards_navigator.dart';
 import 'core/notifications/domain/services/notification_preferences_service.dart';
 import 'core/providers/theme_provider.dart';
 import 'features/wearable/ui/wearable_dashboard_screen.dart';
+import 'package:app/features/achievements/progress_celebration_widget.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -151,45 +152,47 @@ class _AppWrapperState extends ConsumerState<AppWrapper> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: IndexedStack(index: _currentIndex, children: _screens),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: AppTheme.getSurfacePrimary(context),
-        selectedItemColor: AppTheme.getMomentumColor(MomentumState.rising),
-        unselectedItemColor: AppTheme.getTextTertiary(context),
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.psychology_outlined),
-            activeIcon: Icon(Icons.psychology),
-            label: 'Coach',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.monitor_heart_outlined),
-            activeIcon: Icon(Icons.monitor_heart),
-            label: 'Vitals',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.emoji_events),
-            label: 'Rewards',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
+    return ProgressCelebrationListener(
+      child: Scaffold(
+        body: IndexedStack(index: _currentIndex, children: _screens),
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: _currentIndex,
+          onTap: (index) {
+            setState(() {
+              _currentIndex = index;
+            });
+          },
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: AppTheme.getSurfacePrimary(context),
+          selectedItemColor: AppTheme.getMomentumColor(MomentumState.rising),
+          unselectedItemColor: AppTheme.getTextTertiary(context),
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home_outlined),
+              activeIcon: Icon(Icons.home),
+              label: 'Home',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.psychology_outlined),
+              activeIcon: Icon(Icons.psychology),
+              label: 'Coach',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.monitor_heart_outlined),
+              activeIcon: Icon(Icons.monitor_heart),
+              label: 'Vitals',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.emoji_events),
+              label: 'Rewards',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person_outline),
+              activeIcon: Icon(Icons.person),
+              label: 'Profile',
+            ),
+          ],
+        ),
       ),
     );
   }

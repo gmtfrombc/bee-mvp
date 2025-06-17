@@ -17,6 +17,9 @@ import { frequencyOptController } from './routes/frequency-opt.controller.ts'
 import { patternAggregateController } from './routes/pattern-aggregate.controller.ts'
 import { conversationController } from './routes/conversation.controller.ts'
 import { jitaiController } from './routes/jitai.controller.ts'
+import { type Route, route } from 'jsr:@std/http/unstable-route'
+import { streamController } from './routes/stream.controller.ts'
+import { recordLatency } from '../_shared/metrics.ts'
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')
 const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')
@@ -102,62 +105,114 @@ interface AnthropicRequestBody {
   system: string
 }
 
-/**
- * Main HTTP handler for the AI coaching engine
- */
+// CORS headers constant (move out for global reuse)
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+}
+
+// OPTIONS preflight handler
+function handleOptions(): Response {
+  return new Response(null, { headers: corsHeaders })
+}
+
+// Build route definitions with lightweight wrappers for controllers
+const routes: Route[] = [
+  {
+    pattern: new URLPattern({ pathname: '/generate-daily-content' }),
+    handler: async (req) => {
+      if (req.method === 'OPTIONS') return handleOptions()
+      const start = Date.now()
+      const res = await dailyContentController(req, {
+        cors: corsHeaders,
+        isTestingEnv: isTestingEnvironment,
+        supabaseUrl,
+        serviceRoleKey,
+      })
+      await recordLatency('/generate-daily-content', Date.now() - start)
+      return res
+    },
+  },
+  {
+    pattern: new URLPattern({ pathname: '/optimize-frequency' }),
+    handler: (req) => {
+      if (req.method === 'OPTIONS') return handleOptions()
+      return frequencyOptController(req, { cors: corsHeaders })
+    },
+  },
+  {
+    pattern: new URLPattern({ pathname: '/aggregate-patterns' }),
+    handler: (req) => {
+      if (req.method === 'OPTIONS') return handleOptions()
+      return patternAggregateController(req, { cors: corsHeaders })
+    },
+  },
+  {
+    pattern: new URLPattern({ pathname: '/evaluate-jitai' }),
+    handler: (req) => {
+      if (req.method === 'OPTIONS') return handleOptions()
+      return jitaiController(req, { cors: corsHeaders })
+    },
+  },
+  // conversation endpoint for root path
+  {
+    pattern: new URLPattern({ pathname: '/' }),
+    handler: (req) => {
+      if (req.method === 'OPTIONS') return handleOptions()
+      if (req.method !== 'POST') {
+        return new Response('Method not allowed', { status: 405, headers: corsHeaders })
+      }
+      return conversationController(req, {
+        cors: corsHeaders,
+        isTestingEnv: isTestingEnvironment,
+      })
+    },
+  },
+  // wildcard catch-all for any sub-paths not matched above (still conversation)
+  {
+    pattern: new URLPattern({ pathname: '/*' }),
+    handler: (req) => {
+      if (req.method === 'OPTIONS') return handleOptions()
+      if (req.method !== 'POST') {
+        return new Response('Method not allowed', { status: 405, headers: corsHeaders })
+      }
+      return conversationController(req, {
+        cors: corsHeaders,
+        isTestingEnv: isTestingEnvironment,
+      })
+    },
+  },
+  {
+    pattern: new URLPattern({ pathname: '/v1/stream' }),
+    handler: (req) => {
+      if (req.method === 'OPTIONS') return handleOptions()
+      return streamController(req, { cors: corsHeaders })
+    },
+  },
+]
+
+const router = route(
+  routes,
+  (_req) => new Response('Not Found', { status: 404, headers: corsHeaders }),
+)
+
 export default async function handler(req: Request): Promise<Response> {
-  // Enable CORS
-  const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  }
-
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
-  }
-
-  if (req.method !== 'POST') {
-    return new Response('Method not allowed', {
-      status: 405,
-      headers: corsHeaders,
-    })
-  }
-
-  // Parse URL to determine endpoint
-  const url = new URL(req.url)
-  const pathname = url.pathname
-
-  // Route to daily content generation endpoint
-  if (pathname.endsWith('/generate-daily-content')) {
-    return await dailyContentController(req, {
+  if (req.method === 'OPTIONS') return handleOptions()
+  const start = Date.now()
+  const res = await router(req)
+  const ms = Date.now() - start
+  try {
+    const path = new URL(req.url).pathname
+    await recordLatency(path, ms)
+  } catch (_) {}
+  if (res.status === 404 && req.method === 'POST') {
+    return await conversationController(req, {
       cors: corsHeaders,
       isTestingEnv: isTestingEnvironment,
-      supabaseUrl,
-      serviceRoleKey,
     })
   }
-
-  // Route to frequency optimization endpoint
-  if (pathname.endsWith('/optimize-frequency')) {
-    return await frequencyOptController(req, { cors: corsHeaders })
-  }
-
-  // Route to cross-patient pattern aggregation endpoint (Epic 3.1 preparation)
-  if (pathname.endsWith('/aggregate-patterns')) {
-    return await patternAggregateController(req, { cors: corsHeaders })
-  }
-
-  // Route to JITAI evaluation endpoint
-  if (pathname.endsWith('/evaluate-jitai')) {
-    return await jitaiController(req, { cors: corsHeaders })
-  }
-
-  // Default to conversation handling
-  return await conversationController(req, {
-    cors: corsHeaders,
-    isTestingEnv: isTestingEnvironment,
-  })
+  return res
 }
 
 /**

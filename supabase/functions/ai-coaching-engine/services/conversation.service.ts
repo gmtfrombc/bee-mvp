@@ -16,6 +16,7 @@ import { EffectivenessTracker } from '../personalization/effectiveness-tracker.t
 import { StrategyOptimizer } from '../personalization/strategy-optimizer.ts'
 import { callAIAPI } from './ai-client.ts'
 import { GenerateResponseRequest, GenerateResponseResponse } from '../types.ts'
+import type { AIResponse } from './ai-client.ts'
 
 // --- Environment / singletons -------------------------------------------------
 
@@ -50,6 +51,10 @@ export async function processConversation(
     : null
   const stratOptimizer = effTracker ? new StrategyOptimizer(effTracker) : null
 
+  // Add after const startTime = Date.now() line, define timings record and helper.
+  const timings: Record<string, number> = {}
+  const testingTimingsEnabled = Deno.env.get('DENO_TESTING') === 'true'
+
   try {
     // Parse body
     const body: GenerateResponseRequest = await req.json()
@@ -62,6 +67,8 @@ export async function processConversation(
       current_score,
       article_id,
       article_summary,
+      provider_visit_summary,
+      provider_visit_date,
     } = body as any
 
     if (!user_id || !message) {
@@ -176,9 +183,12 @@ export async function processConversation(
     }
 
     // Caching
+    const cacheLookupStart = Date.now()
     const cacheKey = await generateCacheKey(user_id, message, persona, sentiment?.label)
     let assistantMessage = await getCachedResponse(cacheKey)
+    timings['cache_lookup_ms'] = Date.now() - cacheLookupStart
     let cacheHit = !!assistantMessage
+    let usage: AIResponse['usage'] | undefined = undefined
 
     if (!assistantMessage) {
       let promptMsg = message
@@ -186,6 +196,7 @@ export async function processConversation(
         promptMsg =
           `I noticed your momentum has shifted from ${previous_state} to ${momentum_state}. Let me offer some personalized guidance.`
       }
+      const promptBuildStart = Date.now()
       const prompt = await buildPrompt(
         promptMsg,
         persona as CoachingPersona,
@@ -199,15 +210,28 @@ export async function processConversation(
         article_summary
           ? { id: article_id as string | undefined, summary: article_summary as string }
           : undefined,
+        provider_visit_summary
+          ? {
+            transcriptSummary: provider_visit_summary as string,
+            visitDate: provider_visit_date as string | undefined,
+          }
+          : undefined,
       )
+      timings['prompt_build_ms'] = Date.now() - promptBuildStart
 
-      assistantMessage = await callAIAPI(prompt)
+      const aiStart = Date.now()
+      const aiRes = await callAIAPI(prompt)
+      timings['ai_api_ms'] = Date.now() - aiStart
+      assistantMessage = aiRes.text
       await setCachedResponse(
         cacheKey,
         assistantMessage,
         system_event === 'momentum_change' ? 300 : 900,
       )
+      usage = aiRes.usage
     }
+
+    timings['total_ms'] = Date.now() - startTime
 
     // Log assistant response
     const logId = await logConversation(
@@ -238,12 +262,23 @@ export async function processConversation(
       persona,
       response_time_ms: Date.now() - startTime,
       cache_hit: cacheHit,
+      prompt_tokens: usage?.prompt_tokens,
+      completion_tokens: usage?.completion_tokens,
+      total_tokens: usage?.total_tokens,
+      cost_usd: usage?.cost_usd,
     }
 
+    const requestId = crypto.randomUUID()
     return json(payload, 200, {
       ...cors,
       'X-Cache-Status': cacheHit ? 'HIT' : 'MISS',
       'X-Response-Time-ms': payload.response_time_ms.toString(),
+      'X-Request-Id': requestId,
+      ...(testingTimingsEnabled
+        ? Object.fromEntries(
+          Object.entries(timings).map(([k, v]) => [`X-Latency-${k}`, v.toString()]),
+        )
+        : {}),
     })
   } catch (err) {
     console.error('Conversation handler error:', err)

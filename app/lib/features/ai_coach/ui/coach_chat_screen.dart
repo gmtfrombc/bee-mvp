@@ -7,6 +7,7 @@ import '../../../core/services/ai_coaching_service.dart';
 import '../../achievements/streak_badge.dart';
 import 'message_bubble.dart';
 import 'coaching_card.dart';
+import '../../ai_coach/providers/coach_stream_provider.dart';
 
 /// Main coach chat screen with message history and input
 class CoachChatScreen extends ConsumerStatefulWidget {
@@ -30,6 +31,20 @@ class _CoachChatScreenState extends ConsumerState<CoachChatScreen> {
   void initState() {
     super.initState();
     _initializeChat();
+
+    // Listen to real-time coach stream events
+    ref.listen<AsyncValue<CoachStreamEvent>>(coachStreamProvider, (prev, next) {
+      next.whenData((event) {
+        if (event.type == 'typing') {
+          final isTyping = event.data['typing'] == true;
+          if (mounted && _isTyping != isTyping) {
+            setState(() => _isTyping = isTyping);
+            if (!isTyping) _scrollToBottom();
+          }
+        }
+        // Future: handle momentum_update events here
+      });
+    });
   }
 
   @override

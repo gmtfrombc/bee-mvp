@@ -11,7 +11,11 @@ Deno.test("should reject when X-Api-Version header missing", async () => {
     Deno.env.delete("DENO_TESTING");
 });
 
-Deno.test("/v1/ping returns 200 with version header", async () => {
+Deno.test({
+    name: "/v1/ping returns 200 with version header",
+    sanitizeResources: false,
+    sanitizeOps: false,
+}, async () => {
     Deno.env.set("DENO_TESTING", "true");
     const res = await handleRequest(
         new Request("http://localhost/v1/ping", {

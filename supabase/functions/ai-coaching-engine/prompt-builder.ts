@@ -34,6 +34,10 @@ export async function buildPrompt(
     id?: string
     summary?: string
   },
+  providerVisitContext?: {
+    transcriptSummary?: string
+    visitDate?: string
+  },
 ): Promise<ChatPrompt> {
   // Load template files – safety + system + momentum-specific conversation template
   const [safetyTemplate, systemTemplate, conversationTemplate] = await Promise.all([
@@ -51,6 +55,7 @@ export async function buildPrompt(
     systemEventContext,
     sentimentResult,
     articleContext,
+    providerVisitContext,
   )
 
   // Build the complete prompt array
@@ -167,6 +172,10 @@ function injectPersonalizationContext(
     id?: string
     summary?: string
   },
+  providerVisitContext?: {
+    transcriptSummary?: string
+    visitDate?: string
+  },
 ): string {
   const engagementSummary = formatEngagementSummary(summary)
 
@@ -212,6 +221,18 @@ function injectPersonalizationContext(
       `\n\nUser has just opened an article in the Today Feed. Article summary: "${articleContext.summary}".`
   }
 
+  // Inject provider visit summary if available
+  let providerVisitBlock = ''
+  if (providerVisitContext?.transcriptSummary) {
+    const visitInfo = providerVisitContext.visitDate
+      ? `${providerVisitContext.visitDate}: ${providerVisitContext.transcriptSummary}`
+      : providerVisitContext.transcriptSummary
+    providerVisitBlock = `\n\nProvider visit summary: ${visitInfo}`
+  } else {
+    // Remove placeholder to avoid exposing raw string to the model
+    providerVisitBlock = ''
+  }
+
   return (
     template
       .replace('{{momentum_state}}', momentumState)
@@ -220,7 +241,8 @@ function injectPersonalizationContext(
     sentimentContext +
     momentumChangeContext +
     toneInstruction +
-    articleBlock
+    articleBlock +
+    providerVisitBlock
   )
 }
 

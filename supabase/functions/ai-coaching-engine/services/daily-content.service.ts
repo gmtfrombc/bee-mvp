@@ -202,7 +202,8 @@ export async function generateDailyHealthContent(
     const maxAttempts = 3
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      aiResponse = await callAIAPI(messages)
+      const aiRespObj = await callAIAPI(messages as any)
+      aiResponse = aiRespObj.text
       if (!aiResponse) throw new Error('No response from AI API')
 
       parsedContent = parseAIContentResponse(aiResponse, topicCategory)
