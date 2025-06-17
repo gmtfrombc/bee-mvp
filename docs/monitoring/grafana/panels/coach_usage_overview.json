@@ -1,0 +1,19 @@
+{
+  "title": "Coach Usage Overview",
+  "type": "timeseries",
+  "datasource": "Supabase",
+  "targets": [
+    {
+      "rawSql": "SELECT metric_date AS time, response_time_avg FROM coach_interaction_metrics ORDER BY time",
+      "format": "time_series",
+      "refId": "A"
+    }
+  ],
+  "fieldConfig": {
+    "defaults": {
+      "unit": "ms",
+      "displayName": "Avg Response Time"
+    },
+    "overrides": []
+  }
+} 

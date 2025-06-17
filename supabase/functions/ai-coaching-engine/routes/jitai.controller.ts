@@ -4,6 +4,8 @@ import { logJITAIEvent } from '../services/jitai-event-logger.ts'
 import { enqueueJITAITriggers } from '../services/jitai-push.ts'
 import { recordJITAIOutcome } from '../services/jitai-effectiveness.ts'
 import { getDailySleepScore, getRollingAvgHR } from '../services/wearable-summary.client.ts'
+import { logCoachInteraction } from '../services/coach-interaction-logger.ts'
+import { broadcastEvent } from '../../_shared/realtime-util.ts'
 
 interface ControllerOptions {
   cors: Record<string, string>
@@ -51,15 +53,41 @@ export async function jitaiController(
     const source = Deno.env.get('PREDICTIVE_MODEL_URL') ? 'predictive' : 'rules'
     await logJITAIEvent(user_id, wearableData, triggers, source)
 
+    // ⏺️ Persist each AI coach interaction (Epic 2.3)
+    for (const trig of triggers) {
+      await logCoachInteraction({
+        userId: user_id,
+        sender: 'ai',
+        message: trig.message,
+        metadata: {
+          type: trig.type,
+          source,
+          latency_ms: Date.now() - start,
+        },
+      })
+    }
+
     // Enqueue push notifications for triggers
     await enqueueJITAITriggers(user_id, triggers)
 
     // Log initial outcome as delivered
     for (const trig of triggers) {
-      await recordJITAIOutcome(user_id, trig.id, 'delivered')
+      await recordJITAIOutcome(user_id, trig.id, 'delivered', trig.type)
     }
 
-    return json({ success: true, triggers, response_time_ms: Date.now() - start }, 200, cors)
+    // Broadcast momentum update event via realtime
+    await broadcastEvent('coach_stream', 'momentum_update', {
+      user_id,
+      triggers,
+      timestamp: new Date().toISOString(),
+    })
+
+    const requestId = crypto.randomUUID()
+    return json({ success: true, triggers, response_time_ms: Date.now() - start }, 200, {
+      ...cors,
+      'X-Request-Id': requestId,
+      'X-Response-Time-ms': (Date.now() - start).toString(),
+    })
   } catch (err) {
     console.error('Error evaluating JITAI triggers:', err)
     return json(

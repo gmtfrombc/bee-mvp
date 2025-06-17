@@ -1,0 +1,1 @@
+Average latency (s): 0.392154

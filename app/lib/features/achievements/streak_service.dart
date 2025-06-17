@@ -111,6 +111,21 @@ class StreakService {
     }
   }
 
+  /// Increment the seven-day streak badge counter for the given user. This
+  /// table/column is expected to exist as part of the gamification schema.
+  /// If the column does not yet exist nothing will break (the update will be
+  /// silently ignored by Supabase).
+  static Future<void> incrementSevenDayBadgeCount(String userId) async {
+    try {
+      await _supabase.rpc(
+        'increment_streak_badge',
+        params: {'p_user_id': userId},
+      );
+    } catch (e) {
+      debugPrint('Error incrementing streak badge count: $e');
+    }
+  }
+
   /// Check if streak should be reset (no activity yesterday)
   static Future<bool> shouldResetStreak(String userId) async {
     try {

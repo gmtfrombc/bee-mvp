@@ -179,6 +179,36 @@ alerts:
       description: "Push notification failure rate has exceeded 5%"
       runbook: "https://docs.bee-mvp.com/runbooks/notification-failures"
 
+  - name: "Coach Interactions p95 Latency High"
+    description: "95th percentile latency of /conversation endpoint exceeds 900 ms"
+    condition: "coach_interactions_latency_p95 > 0.9s"
+    duration: "10m"
+    severity: "warning"
+    channels: ["slack"]
+    labels:
+      team: "ai-coach"
+      environment: "production"
+      service: "ai-api"
+    annotations:
+      summary: "High latency for coach interactions"
+      description: "p95 latency has been above 900 ms for 10 minutes"
+      runbook: "https://docs.bee-mvp.com/runbooks/ai-latency"
+
+  - name: "Coach Interactions Error Rate"
+    description: "Error rate of ai-coaching-engine exceeds 2%"
+    condition: "ai_coach_error_rate > 2%"
+    duration: "5m"
+    severity: "warning"
+    channels: ["slack"]
+    labels:
+      team: "ai-coach"
+      environment: "production"
+      service: "ai-api"
+    annotations:
+      summary: "Elevated error rate in ai-coaching-engine"
+      description: "Error rate >2% for 5 minutes"
+      runbook: "https://docs.bee-mvp.com/runbooks/ai-errors"
+
 # Notification Channels Configuration
 channels:
   slack:
@@ -190,11 +220,11 @@ channels:
     title_template: "🚨 {{ .GroupLabels.severity | upper }} - {{ .CommonAnnotations.summary }}"
     text_template: |
       {{ .CommonAnnotations.description }}
-      
+
       *Environment*: {{ .GroupLabels.environment }}
       *Team*: {{ .GroupLabels.team }}
       {{ if .CommonAnnotations.runbook }}*Runbook*: {{ .CommonAnnotations.runbook }}{{ end }}
-      
+
       *Firing Alerts*:
       {{ range .Alerts }}
       - {{ .Annotations.summary }}
@@ -213,14 +243,14 @@ channels:
       Alert: {{ .CommonAnnotations.summary }}
       Severity: {{ .GroupLabels.severity }}
       Environment: {{ .GroupLabels.environment }}
-      
+
       Description:
       {{ .CommonAnnotations.description }}
-      
+
       {{ if .CommonAnnotations.runbook }}
       Runbook: {{ .CommonAnnotations.runbook }}
       {{ end }}
-      
+
       Firing Alerts:
       {{ range .Alerts }}
       - {{ .Annotations.summary }}
@@ -239,13 +269,13 @@ channels:
 global:
   # How often to evaluate alert rules
   evaluation_interval: "30s"
-  
+
   # How long to wait before sending repeat notifications
   repeat_interval: "4h"
-  
+
   # How long to wait before resolving an alert
   resolve_timeout: "5m"
-  
+
   # External labels applied to all alerts
   external_labels:
     monitor: "bee-momentum-meter"
@@ -274,7 +304,7 @@ route:
   group_interval: "10s"
   repeat_interval: "1h"
   receiver: "default"
-  
+
   routes:
     # Critical alerts go to all channels
     - match:
@@ -282,14 +312,14 @@ route:
       receiver: "critical-alerts"
       group_wait: "5s"
       repeat_interval: "15m"
-    
+
     # Warning alerts during business hours
     - match:
         severity: "warning"
       receiver: "warning-alerts"
       group_wait: "30s"
       repeat_interval: "2h"
-    
+
     # Info alerts go to Slack only
     - match:
         severity: "info"
@@ -301,7 +331,7 @@ receivers:
   - name: "default"
     slack_configs:
       - channel: "#momentum-meter-alerts"
-  
+
   - name: "critical-alerts"
     slack_configs:
       - channel: "#momentum-meter-alerts"
@@ -309,13 +339,13 @@ receivers:
       - to: "team@bee-mvp.com"
     pagerduty_configs:
       - service_key: "${PAGERDUTY_SERVICE_KEY}"
-  
+
   - name: "warning-alerts"
     slack_configs:
       - channel: "#momentum-meter-alerts"
     email_configs:
       - to: "team@bee-mvp.com"
-  
+
   - name: "info-alerts"
     slack_configs:
-      - channel: "#momentum-meter-alerts" 
+      - channel: "#momentum-meter-alerts"

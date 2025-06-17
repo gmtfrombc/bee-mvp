@@ -59,13 +59,6 @@ export async function handleRequest(req: Request): Promise<Response> {
         const url = new URL(req.url);
         const pathname = url.pathname;
 
-        const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
-        const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || "";
-        const serviceRole = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ||
-            Deno.env.get("SERVICE_ROLE_KEY") || "";
-
-        const client = createClient(supabaseUrl, serviceRole || anonKey);
-
         // helper to match route endings with optional /v1 prefix
         const matches = (endpoint: string): boolean =>
             pathname.endsWith(endpoint) ||
@@ -74,14 +67,26 @@ export async function handleRequest(req: Request): Promise<Response> {
         let res: Response | null = null;
         if (matches("/ping")) {
             res = json({ status: "ok", version: API_VERSION }, 200);
-        } else if (matches("/daily-sleep-score")) {
-            res = await handleSleepScore(url, client);
-        } else if (matches("/rolling-hr")) {
-            res = await handleRollingHR(url, client);
-        } else if (matches("/history")) {
-            res = await handleHistory(url, client);
-        } else if (matches("/trend")) {
-            res = await handleTrend(url, client);
+        } else if (
+            matches("/daily-sleep-score") || matches("/rolling-hr") ||
+            matches("/history") || matches("/trend")
+        ) {
+            // Create client lazily only when needed
+            const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
+            const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || "";
+            const serviceRole = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ||
+                Deno.env.get("SERVICE_ROLE_KEY") || "";
+            const client = createClient(supabaseUrl, serviceRole || anonKey);
+
+            if (matches("/daily-sleep-score")) {
+                res = await handleSleepScore(url, client);
+            } else if (matches("/rolling-hr")) {
+                res = await handleRollingHR(url, client);
+            } else if (matches("/history")) {
+                res = await handleHistory(url, client);
+            } else {
+                res = await handleTrend(url, client);
+            }
         } else {
             res = json({ error: "Endpoint not found" }, 404);
         }

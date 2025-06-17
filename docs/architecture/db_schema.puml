@@ -1,0 +1,23 @@
+@startuml
+!define Table(name,desc) class name as "desc" << (T,#FFAAAA) >>
+' Database schema ERD for Epic 2.3
+
+Table(coach_interactions, "coach_interactions") {
+  + id : uuid PK
+  + user_id : uuid FK -> auth.users.id
+  + sender : text
+  + message : text
+  + metadata : jsonb
+  + created_at : timestamptz
+}
+
+Table(interaction_events, "interaction_events") {
+  + id : uuid PK
+  + interaction_id : uuid FK -> coach_interactions.id
+  + event_type : text
+  + payload : jsonb
+  + created_at : timestamptz
+}
+
+coach_interactions ||--o{ interaction_events : "has"
+@enduml 

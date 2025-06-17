@@ -1,0 +1,58 @@
+openapi: 3.0.3
+info:
+  title: BEE-MVP JITAI Coaching Trigger API
+  version: "1.0.0"
+  description: |
+    Endpoint for evaluating coaching triggers (JITAI) for a user based on the latest wearable data and engagement context.
+    Must be called via Supabase Edge Function `ai-coaching-engine`.
+
+    Example cURL:
+    ```bash
+    curl -X POST \
+         -H "Authorization: Bearer <jwt>" \
+         -H "Content-Type: application/json" \
+         "https://<project>.functions.supabase.co/ai-coaching-engine/evaluate-jitai" \
+         -d '{"user_id":"abc-123"}'
+    ```
+servers:
+  - url: https://<project>.functions.supabase.co
+paths:
+  /ai-coaching-engine/evaluate-jitai:
+    post:
+      summary: Evaluate JITAI coaching triggers for a given user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [user_id]
+              properties:
+                user_id:
+                  type: string
+                  description: Supabase user ID.
+      responses:
+        "200":
+          description: Evaluation result with triggers.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  triggers:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/JITAITrigger"
+                  response_time_ms: { type: integer }
+        "400": { description: Missing user_id }
+        "401": { description: Authorization failure }
+        "500": { description: Internal error }
+components:
+  schemas:
+    JITAITrigger:
+      type: object
+      properties:
+        id: { type: string }
+        type: { type: string }
+        message: { type: string }
