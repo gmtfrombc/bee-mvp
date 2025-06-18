@@ -33,7 +33,7 @@ type QueryBuilder = {
     gte: (...args: unknown[]) => QueryBuilder;
     order: (
         ...args: unknown[]
-    ) => Promise<{ data: any[]; error: Error | null }>;
+    ) => Promise<{ data: unknown[]; error: Error | null }>;
 };
 
 serve(async (req) => {
@@ -93,7 +93,7 @@ async function handleMetricsQuery(
             .select("*")
             .gte("timestamp", startTime.toISOString())
             .order("timestamp", { ascending: true }) as unknown as {
-                data: any[];
+                data: unknown[];
                 error: Error | null;
             });
 
@@ -222,6 +222,7 @@ function parseTimeRange(range: string): number {
     }
 }
 
+// deno-lint-ignore no-explicit-any
 function aggregateMetrics(metrics: any[]): WearableMetrics {
     if (metrics.length === 0) {
         return {
@@ -274,6 +275,7 @@ function calculateMedian(values: number[]): number {
     return sorted[middle];
 }
 
+// deno-lint-ignore no-explicit-any
 function formatPrometheusMetrics(metrics: any[]): Response {
     if (metrics.length === 0) {
         return new Response("", {

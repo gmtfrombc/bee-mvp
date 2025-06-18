@@ -45,6 +45,7 @@ serve(async (req) => {
         new Date().toISOString().split("T")[0];
     const serviceRole = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ||
         Deno.env.get("SERVICE_ROLE_KEY");
+    // deno-lint-ignore no-explicit-any
     const client: any = await getSupabaseClient(serviceRole);
 
     try {
@@ -61,10 +62,17 @@ serve(async (req) => {
         }
 
         // Build metric arrays in user-aligned order
-        const steps = summaries.map((s: any) => Number(s.steps_total || 0));
-        const hr = summaries.map((s: any) => Number(s.avg_hr || 0));
-        const sleep = summaries.map((s: any) => Number(s.sleep_hours || 0));
-        const hrv = summaries.map((s: any) => Number(s.hrv_avg || 0));
+        type SummaryRow = {
+            steps_total: number | null;
+            avg_hr: number | null;
+            sleep_hours: number | null;
+            hrv_avg: number | null;
+        };
+        const castSummaries = summaries as unknown as SummaryRow[];
+        const steps = castSummaries.map((s) => Number(s.steps_total || 0));
+        const hr = castSummaries.map((s) => Number(s.avg_hr || 0));
+        const sleep = castSummaries.map((s) => Number(s.sleep_hours || 0));
+        const hrv = castSummaries.map((s) => Number(s.hrv_avg || 0));
 
         const correlations = {
             steps_vs_hr: pearson(steps, hr),
