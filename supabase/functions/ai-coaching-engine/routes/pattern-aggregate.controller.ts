@@ -8,7 +8,7 @@ interface ControllerOptions {
   cors: Record<string, string>
 }
 
-type SupabaseClient = any
+type SupabaseClient = unknown
 
 export async function patternAggregateController(
   req: Request,
@@ -18,7 +18,11 @@ export async function patternAggregateController(
 
   try {
     const body = await req.json()
-    const { week_start, force_regenerate = false, operation = 'weekly_aggregation' } = body
+    const {
+      week_start,
+      force_regenerate: _forceRegenerate = false,
+      operation = 'weekly_aggregation',
+    } = body
 
     // Authorization (service role)
     const authToken = req.headers.get('Authorization')?.replace('Bearer ', '')

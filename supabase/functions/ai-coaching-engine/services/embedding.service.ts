@@ -7,9 +7,9 @@ export async function getEmbedding(text: string): Promise<number[]> {
   // First check global in-memory cache, then KV for cross-invocation sharing
   const cacheKey = `${MODEL}:${text}`
 
-  const g = globalThis as any
-  if (!g.__embedCache) g.__embedCache = new Map()
-  const memCache = g.__embedCache as Map<string, number[]>
+  const g = globalThis as { __embedCache?: Map<string, number[]> }
+  if (!g.__embedCache) g.__embedCache = new Map<string, number[]>()
+  const memCache = g.__embedCache
   if (memCache.has(cacheKey)) return memCache.get(cacheKey)!
 
   const kvCached = await getCachedResponse(cacheKey)
@@ -42,7 +42,6 @@ export async function getEmbedding(text: string): Promise<number[]> {
     },
     body: JSON.stringify(body),
     // keepalive ensures connection reuse between requests in same worker
-    // deno-lint-ignore no-explicit-any
   })
   if (!res.ok) {
     console.error('[Embedding] OpenAI error', await res.text())

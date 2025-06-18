@@ -4,7 +4,7 @@
 // Triggers evaluation of JITAI rules via the ai-coaching-engine Edge Function.
 // Implements Task T1.3.10.2 (Sprint-E).
 
-const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+const _supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const aiCoachingEngineUrl = Deno.env.get("AI_COACHING_ENGINE_URL") ||
     "http://localhost:54321/functions/v1/ai-coaching-engine/evaluate-jitai";

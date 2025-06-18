@@ -5,7 +5,7 @@ import { FrequencyOptimizer } from './frequency-optimizer.ts'
 const DEFAULT_MAX_INTERVENTIONS_PER_DAY = 3
 const DEFAULT_MIN_HOURS_BETWEEN_INTERVENTIONS = 4
 const MILLISECONDS_PER_HOUR = 60 * 60 * 1000
-const MILLISECONDS_PER_DAY = 24 * MILLISECONDS_PER_HOUR
+const _MILLISECONDS_PER_DAY = 24 * MILLISECONDS_PER_HOUR
 
 type InterventionTrigger = {
   reason: string

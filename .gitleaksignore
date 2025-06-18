@@ -15,4 +15,7 @@ c95c45afe6f22f1d808ebef2f60f05b7c2824fc7:.vscode/launch.json:jwt:48
 
 # Pre-existing Supabase keys in environment.dart (development config)
 3671b55c151a251d7a8668529fedf7bd0945ce8c:app/lib/core/config/environment.dart:real-supabase-anon-key:18
-3671b55c151a251d7a8668529fedf7bd0945ce8c:app/lib/core/config/environment.dart:jwt:18 
+3671b55c151a251d7a8668529fedf7bd0945ce8c:app/lib/core/config/environment.dart:jwt:18
+
+# Ignore dependency directory
+node_modules/** 

@@ -2,13 +2,13 @@ import { assertEquals } from 'https://deno.land/std@0.168.0/testing/asserts.ts'
 import { FrequencyOptimizer } from './frequency-optimizer.ts'
 
 // Lightweight mock of the Supabase client chain used inside optimizeInterventionTiming
-function createMockSupabase(conversations: any[]) {
+function createMockSupabase(conversations: unknown[]) {
   return {
     from: (_table: string) => ({
       select: (_cols: string) => ({
-        eq: (_field: string, _value: any) => ({
-          eq: (_field2: string, _value2: any) => ({
-            gte: (_field3: string, _value3: any) => ({
+        eq: (_field: string, _value: unknown) => ({
+          eq: (_field2: string, _value2: unknown) => ({
+            gte: (_field3: string, _value3: unknown) => ({
               order: (_col: string, _opts: { ascending: boolean }) => ({
                 data: conversations,
                 error: null,
@@ -24,21 +24,24 @@ function createMockSupabase(conversations: any[]) {
   }
 }
 
-// deno-lint-ignore no-explicit-any
-function getPrivate(obj: any, key: string): any {
-  // @ts-ignore – accessing private member for test purposes only
+function getPrivate<TObj extends Record<string, unknown>, TKey extends keyof TObj>(
+  obj: TObj,
+  key: TKey,
+): TObj[TKey] {
   return obj[key]
 }
 
 Deno.test('FrequencyOptimizer.ensureReasonableSpacing enforces ≥3-hour gaps', () => {
   // Create instance without running constructor to avoid Supabase timers
-  const optimizer: any = Object.create(FrequencyOptimizer.prototype)
-  const ensureSpacing = getPrivate(optimizer, 'ensureReasonableSpacing') as (
-    h: number[],
-  ) => number[]
+  const optimizer = Object.create(FrequencyOptimizer.prototype) as Record<string, unknown>
 
   const input = [5, 6, 8, 12, 15]
-  const result = ensureSpacing(input)
+  const ensureSpacingFn = getPrivate(
+    optimizer,
+    'ensureReasonableSpacing',
+  ) as (h: number[]) => number[]
+
+  const result = ensureSpacingFn(input)
 
   // Should keep 5, 8, 12, 15 because 6 is too close to 5 but 8 is exactly 3 hours apart
   assertEquals(result, [5, 8, 12, 15])
@@ -49,10 +52,10 @@ Deno.test('FrequencyOptimizer.ensureReasonableSpacing enforces ≥3-hour gaps', 
 })
 
 Deno.test('FrequencyOptimizer.optimizeInterventionTiming falls back to defaults with insufficient data', async () => {
-  const conversations: any[] = [] // Not enough data (<5)
+  const conversations: unknown[] = [] // Not enough data (<5)
   // Create instance without running constructor to avoid Supabase timers
-  const optimizer: any = Object.create(FrequencyOptimizer.prototype)
-  optimizer.supabase = createMockSupabase(conversations)
+  const optimizer = Object.create(FrequencyOptimizer.prototype) as Record<string, unknown>
+  ;(optimizer as { supabase: unknown }).supabase = createMockSupabase(conversations)
 
   // Access the private method
   const optimizeTiming = getPrivate(

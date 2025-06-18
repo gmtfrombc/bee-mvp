@@ -1,3 +1,5 @@
+// deno-lint-ignore-file no-explicit-any
+
 /**
  * Coaching Frequency Optimizer
  * Determines optimal coaching frequency for each user based on behavior patterns (T1.3.2.7)
@@ -134,19 +136,19 @@ export class FrequencyOptimizer {
 
       // Calculate current metrics
       const totalInteractions = effectivenessData?.length || 0
-      const respondedInteractions = effectivenessData?.filter((d) =>
+      const respondedInteractions = effectivenessData?.filter((d: any) =>
         d.feedback_type !== 'ignored'
       ).length || 0
-      const helpfulInteractions = effectivenessData?.filter((d) =>
+      const helpfulInteractions = effectivenessData?.filter((d: any) =>
         d.feedback_type === 'helpful'
       ).length || 0
-      const ratedInteractions = effectivenessData?.filter((d) => d.user_rating !== null) || []
+      const ratedInteractions = effectivenessData?.filter((d: any) => d.user_rating !== null) || []
 
       const currentFrequency = preferences.maxInterventionsPerDay
       const responseRate = totalInteractions > 0 ? respondedInteractions / totalInteractions : 0
       const helpfulRate = totalInteractions > 0 ? helpfulInteractions / totalInteractions : 0
       const averageRating = ratedInteractions.length > 0
-        ? ratedInteractions.reduce((sum, d) => sum + (d.user_rating || 0), 0) /
+        ? ratedInteractions.reduce((sum: number, d: any) => sum + (d.user_rating || 0), 0) /
           ratedInteractions.length
         : 3.0
 
@@ -230,7 +232,7 @@ export class FrequencyOptimizer {
 
       // Count user responses by hour
       const hourCounts: Record<number, number> = {}
-      conversations.forEach((conv) => {
+      conversations.forEach((conv: any) => {
         const hour = new Date(conv.created_at).getHours()
         hourCounts[hour] = (hourCounts[hour] || 0) + 1
       })

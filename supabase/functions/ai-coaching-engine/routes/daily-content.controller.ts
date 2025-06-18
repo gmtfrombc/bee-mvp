@@ -1,3 +1,4 @@
+// deno-lint-ignore-file no-explicit-any
 // routes/daily-content.controller.ts
 // Controller for POST /generate-daily-content endpoint.
 // Expects DailyContentRequest and returns JSON<GeneratedContent>
@@ -13,7 +14,11 @@ interface ControllerOptions {
   serviceRoleKey?: string | null
 }
 
-type SupabaseClient = any
+interface SupabaseLike {
+  from: (table: string) => any
+}
+
+type SupabaseClient = SupabaseLike
 
 export async function dailyContentController(
   req: Request,
@@ -23,7 +28,7 @@ export async function dailyContentController(
 
   try {
     const body: DailyContentRequest = await req.json()
-    const { content_date, topic_category, force_regenerate = false } = body
+    const { content_date, topic_category, force_regenerate: _forceRegenerate = false } = body
 
     if (!content_date) {
       return json({ error: 'Missing required field: content_date' }, 400, cors)
@@ -41,9 +46,10 @@ export async function dailyContentController(
     if (isTestingEnv) throw new Error('Daily content generation not supported in test environment')
     if (!supabaseUrl || !serviceRoleKey) throw new Error('Missing Supabase configuration')
 
-    const supabase: SupabaseClient = await getSupabaseClient({ overrideKey: serviceRoleKey })
+    const supabase =
+      (await getSupabaseClient({ overrideKey: serviceRoleKey })) as unknown as SupabaseClient
 
-    if (!force_regenerate) {
+    if (!_forceRegenerate) {
       const { data: existing } = await supabase
         .from('daily_feed_content')
         .select('*')
@@ -127,8 +133,8 @@ function ensureRichFullContent(content: {
   topic_category?: string
   full_content?: unknown
 }): unknown {
-  // deno-lint-ignore no-explicit-any
-  const fc: any = content.full_content
+  // Using 'any' for flex validation of rich content structure
+  const fc = content.full_content as any
   if (fc && Array.isArray(fc.elements) && fc.elements.length >= 3) {
     // quick sanity—ensure first two paragraphs + bullet_list
     const [a, b, c] = fc.elements

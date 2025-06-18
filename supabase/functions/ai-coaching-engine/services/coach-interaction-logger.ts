@@ -8,6 +8,11 @@ interface LogParams {
   metadata?: Record<string, unknown>
 }
 
+// Introduce minimal client interface and cast
+interface SupabaseLike {
+  from: (table: string) => { insert: (row: Record<string, unknown>) => Promise<{ error: unknown }> }
+}
+
 /**
  * Insert a row into public.coach_interactions.
  * In DENO_TESTING mode this is a no-op to keep unit tests isolated.
@@ -23,7 +28,7 @@ export async function logCoachInteraction({ userId, sender, message, metadata = 
     return
   }
 
-  const client: any = await getSupabaseClient({ overrideKey: key })
+  const client = await getSupabaseClient({ overrideKey: key }) as unknown as SupabaseLike
   const embedding = await getEmbedding(message)
   await client.from('coach_interactions').insert({
     user_id: userId,

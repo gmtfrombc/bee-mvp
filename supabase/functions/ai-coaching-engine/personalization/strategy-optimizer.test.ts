@@ -1,3 +1,4 @@
+// deno-lint-ignore-file no-explicit-any
 import { assertEquals } from 'https://deno.land/std@0.168.0/testing/asserts.ts'
 
 // Test the core strategy selection logic without database dependencies
@@ -45,7 +46,7 @@ Deno.test('StrategyOptimizer - adjusts intervention frequency based on engagemen
   const context = { userEngagementLevel: 'high', momentumState: 'Rising' }
 
   // Test the frequency optimization logic
-  function optimizeInterventionFrequency(effectiveness: any, summary: any, context: any) {
+  function optimizeInterventionFrequency(effectiveness: any, _summary: any, context: any) {
     let frequency = 'medium'
 
     if (effectiveness.responseRate > 0.7 && effectiveness.overallEffectiveness > 0.6) {

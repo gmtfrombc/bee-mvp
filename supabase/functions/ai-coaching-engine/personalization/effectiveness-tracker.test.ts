@@ -3,7 +3,7 @@ import { assertEquals } from 'https://deno.land/std@0.168.0/testing/asserts.ts'
 // Test the core effectiveness analysis logic without Supabase dependency
 Deno.test('EffectivenessTracker - analyzes effectiveness with no data returns defaults', () => {
   // Test the default analysis logic directly
-  const mockData: any[] = []
+  const mockData: unknown[] = []
 
   // Simulate the analysis logic from the effectiveness tracker
   const totalInteractions = mockData.length
@@ -47,7 +47,13 @@ Deno.test('EffectivenessTracker - calculates metrics for positive data', () => {
 // Test core persona effectiveness calculation logic
 Deno.test('EffectivenessTracker - calculatePersonaEffectiveness logic', () => {
   // Replicate the calculatePersonaEffectiveness business logic
-  function calculatePersonaEffectiveness(effectivenessData: any[]) {
+  interface EffRow {
+    persona?: string
+    feedback_type?: string
+    user_rating?: number | null
+  }
+
+  function calculatePersonaEffectiveness(effectivenessData: EffRow[]) {
     const personaData = {
       supportive: { total: 0, helpful: 0, ratings: [] as number[] },
       challenging: { total: 0, helpful: 0, ratings: [] as number[] },
@@ -64,7 +70,7 @@ Deno.test('EffectivenessTracker - calculatePersonaEffectiveness logic', () => {
           personaData[persona as keyof typeof personaData].helpful++
         }
 
-        if (entry.user_rating !== null) {
+        if (typeof entry.user_rating === 'number') {
           personaData[persona as keyof typeof personaData].ratings.push(entry.user_rating)
         }
       }
@@ -132,7 +138,7 @@ Deno.test('EffectivenessTracker - determineRecommendedPersona logic', () => {
 
 // Test response rate calculation
 Deno.test('EffectivenessTracker - calculateResponseRate logic', () => {
-  function calculateResponseRate(data: any[]) {
+  function calculateResponseRate(data: { feedback_type: string }[]) {
     const totalInteractions = data.length
     const respondedInteractions = data.filter((d) => d.feedback_type !== 'ignored').length
 

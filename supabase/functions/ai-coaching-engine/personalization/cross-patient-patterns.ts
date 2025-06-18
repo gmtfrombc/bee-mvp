@@ -1,3 +1,5 @@
+// deno-lint-ignore-file no-explicit-any
+
 /**
  * Cross-Patient Pattern Integration Service
  * Epic 1.3.2.8: Privacy-safe pattern aggregation for cross-patient learning
@@ -83,7 +85,8 @@ export class CrossPatientPatternsService {
       // Calculate persona effectiveness
       const personaStats: Record<string, { helpful: number; total: number; avgRating: number }> = {}
 
-      effectivenessData.forEach((record) => {
+      // deno-lint-ignore no-explicit-any
+      effectivenessData.forEach((record: any) => {
         if (!record.persona_used) return
 
         if (!personaStats[record.persona_used]) {
@@ -111,7 +114,8 @@ export class CrossPatientPatternsService {
 
       // Extract common intervention patterns
       const triggerCounts: Record<string, number> = {}
-      effectivenessData.forEach((record) => {
+      // deno-lint-ignore no-explicit-any
+      effectivenessData.forEach((record: any) => {
         if (record.intervention_trigger) {
           triggerCounts[record.intervention_trigger] =
             (triggerCounts[record.intervention_trigger] || 0) + 1
@@ -170,12 +174,14 @@ export class CrossPatientPatternsService {
       if (!engagementData || engagementData.length < 5) return null
 
       // Count unique users for privacy check
-      const uniqueUsers = new Set(engagementData.map((e) => e.user_id)).size
+      // deno-lint-ignore no-explicit-any
+      const uniqueUsers = new Set(engagementData.map((e: any) => e.user_id)).size
       if (uniqueUsers < 5) return null
 
       // Analyze hourly engagement patterns
       const hourlyDistribution: Record<string, number> = {}
-      engagementData.forEach((event) => {
+      // deno-lint-ignore no-explicit-any
+      engagementData.forEach((event: any) => {
         const hour = new Date(event.created_at).getUTCHours()
         const hourKey = `${hour}:00`
         hourlyDistribution[hourKey] = (hourlyDistribution[hourKey] || 0) + 1
@@ -269,7 +275,8 @@ export class CrossPatientPatternsService {
       const insights: CrossPatientInsight[] = []
 
       // Generate timing optimization insights
-      const engagementPatterns = patterns.filter((p) => p.pattern_type === 'engagement_peak')
+      // deno-lint-ignore no-explicit-any
+      const engagementPatterns = patterns.filter((p: any) => p.pattern_type === 'engagement_peak')
       if (engagementPatterns.length > 0) {
         const topPattern = engagementPatterns[0]
         insights.push({
@@ -284,7 +291,10 @@ export class CrossPatientPatternsService {
       }
 
       // Generate persona effectiveness insights
-      const personaPatterns = patterns.filter((p) => p.pattern_type === 'persona_effectiveness')
+      // deno-lint-ignore no-explicit-any
+      const personaPatterns = patterns.filter((p: any) =>
+        p.pattern_type === 'persona_effectiveness'
+      )
       if (personaPatterns.length > 0) {
         const topPattern = personaPatterns[0]
         insights.push({

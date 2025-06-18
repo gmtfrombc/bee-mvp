@@ -1,6 +1,15 @@
 import { getSupabaseClient } from '../_shared/supabase_client.ts'
 import { JITAITrigger } from '../types.ts'
 
+// Introduce minimal client interface
+interface SupabaseLike {
+  from: (
+    table: string,
+  ) => {
+    insert: (row: Record<string, unknown>[]) => Promise<{ error: { message?: string } | null }>
+  }
+}
+
 /**
  * Lightweight service to enqueue push notifications for JITAI triggers.
  * Currently inserts rows into `push_notification_queue` which is consumed by
@@ -22,7 +31,7 @@ export async function enqueueJITAITriggers(
     return
   }
 
-  const client: any = await getSupabaseClient({ overrideKey: serviceRoleKey })
+  const client = await getSupabaseClient({ overrideKey: serviceRoleKey }) as unknown as SupabaseLike
   // Map each trigger to a push record. Assume queue table exists with payload JSON.
   const rows = triggers.map((t) => ({
     user_id: userId,
