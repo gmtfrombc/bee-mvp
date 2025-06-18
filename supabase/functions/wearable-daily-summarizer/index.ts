@@ -3,6 +3,7 @@ import { getSupabaseClient } from "../_shared/supabase_client.ts";
 
 const STEP_GOAL = 10000; // default daily step goal for goal-tracking (can be user-specific later)
 
+// deno-lint-ignore no-explicit-any
 type SupabaseClient = any;
 
 serve(async (req) => {
@@ -32,7 +33,9 @@ serve(async (req) => {
             .limit(isTest ? 5 : 10000);
 
         if (userErr) throw userErr;
-        const uniqueUsers = [...new Set(users?.map((u: any) => u.user_id))];
+        const uniqueUsers = [
+            ...new Set(users?.map((u: { user_id: string }) => u.user_id)),
+        ];
 
         let processed = 0;
         for (const uid of uniqueUsers) {
@@ -48,20 +51,22 @@ serve(async (req) => {
                 continue;
             }
 
-            const totalSleepMinutes = data?.filter((r: any) =>
-                r.data_type === "sleep_minutes"
-            ).reduce((a: number, r: any) =>
-                a + Number(r.value || 0), 0) || 0;
+            const totalSleepMinutes = data?.filter((
+                r: { data_type: string; value: string | number },
+            ) => r.data_type === "sleep_minutes").reduce(
+                (a: number, r: { value: string | number }) =>
+                    a + Number(r.value || 0),
+                0,
+            ) || 0;
             const hrs = totalSleepMinutes / 60;
             const sleepScore = Math.min(100, Math.round((hrs / 8) * 100));
 
             // Average heart rate
-            const hrSamples = data?.filter((r: any) =>
-                r.data_type === "heart_rate"
-            )
-                .map((r: any) =>
-                    Number(r.value)
-                ) || [];
+            const hrSamples = data?.filter((
+                r: { data_type: string; value: string | number },
+            ) => r.data_type === "heart_rate").map((
+                r: { value: string | number },
+            ) => Number(r.value)) || [];
             const avgHr = hrSamples.length
                 ? Math.round(
                     hrSamples.reduce((a: number, b: number) => a + b, 0) /
@@ -70,13 +75,22 @@ serve(async (req) => {
                 : null;
 
             // Total steps
-            const stepsTotal = data?.filter((r: any) => r.data_type === "steps")
-                .reduce((a: number, r: any) => a + Number(r.value || 0), 0) ||
+            const stepsTotal = data?.filter((
+                r: { data_type: string; value: string | number },
+            ) => r.data_type === "steps")
+                .reduce(
+                    (a: number, r: { value: string | number }) =>
+                        a + Number(r.value || 0),
+                    0,
+                ) ||
                 0;
 
             // HRV average (ms) if present
-            const hrvSamples = data?.filter((r: any) => r.data_type === "hrv")
-                .map((r: any) => Number(r.value)) || [];
+            const hrvSamples = data?.filter((
+                r: { data_type: string; value: string | number },
+            ) => r.data_type === "hrv")
+                .map((r: { value: string | number }) => Number(r.value)) ||
+                [];
             const avgHrv = hrvSamples.length
                 ? Math.round(
                     hrvSamples.reduce((a: number, b: number) => a + b, 0) /
@@ -86,16 +100,22 @@ serve(async (req) => {
 
             // ===== Task 4: Activity data processing =====
             // Active energy burned (kcal)
-            const activeEnergy = data?.filter((r: any) =>
-                r.data_type === "active_energy_burned"
-            ).reduce((a: number, r: any) =>
-                a + Number(r.value || 0), 0) || 0;
+            const activeEnergy = data?.filter((
+                r: { data_type: string; value: string | number },
+            ) => r.data_type === "active_energy").reduce(
+                (a: number, r: { value: string | number }) =>
+                    a + Number(r.value || 0),
+                0,
+            ) || 0;
 
             // Active minutes – if explicit exercise_time available use it, else estimate via 100 steps ≈ 1 min
-            let activeMinutes = data?.filter((r: any) =>
-                r.data_type === "exercise_time"
-            ).reduce((a: number, r: any) =>
-                a + Number(r.value || 0), 0) || 0;
+            let activeMinutes = data?.filter((
+                r: { data_type: string; value: string | number },
+            ) => r.data_type === "active_minutes").reduce(
+                (a: number, r: { value: string | number }) =>
+                    a + Number(r.value || 0),
+                0,
+            ) || 0;
             if (!activeMinutes && stepsTotal) {
                 activeMinutes = Math.round(stepsTotal / 100);
             }
