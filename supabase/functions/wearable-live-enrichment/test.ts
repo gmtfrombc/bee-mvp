@@ -14,7 +14,7 @@ const mockDeltaPacket = {
 const mockUserId = "test-user-123";
 
 // Test the enrichment endpoint
-Deno.test("Wearable Live Enrichment - Basic functionality", async () => {
+Deno.test("Wearable Live Enrichment - Basic functionality", () => {
     const testPayload = {
         userId: mockUserId,
         deltaPacket: mockDeltaPacket,

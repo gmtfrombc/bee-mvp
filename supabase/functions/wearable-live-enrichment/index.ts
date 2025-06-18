@@ -33,6 +33,9 @@ const corsHeaders = {
     "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+// deno-lint-ignore no-explicit-any
+type SupabaseClient = any;
+
 serve(async (req) => {
     if (req.method === "OPTIONS") {
         return new Response("ok", { headers: corsHeaders });
@@ -52,7 +55,7 @@ serve(async (req) => {
 
     try {
         const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-        const supabase: any = await getSupabaseClient(
+        const supabase: SupabaseClient = await getSupabaseClient(
             supabaseServiceKey,
         );
 
@@ -173,7 +176,7 @@ serve(async (req) => {
 });
 
 async function calculateRollingAverages(
-    supabase: any,
+    supabase: SupabaseClient,
     userId: string,
     dataType: string,
     currentValue: number,
@@ -185,7 +188,7 @@ async function calculateRollingAverages(
         { minutes: 30, key: "avg30min" },
     ];
 
-    const results: any = {};
+    const results: Record<string, number> = {};
 
     for (const interval of intervals) {
         const startTime = new Date(
@@ -203,7 +206,9 @@ async function calculateRollingAverages(
             .limit(100);
 
         if (!error && data && data.length > 0) {
-            const values = data.map((row: any) => parseFloat(row.value));
+            const values = data.map((row: { value: string }) =>
+                parseFloat(row.value)
+            );
             values.unshift(currentValue); // Include current value
             const average = values.reduce((sum: number, val: number) =>
                 sum + val, 0) /
@@ -234,7 +239,7 @@ function extractBatteryInfo(
 }
 
 async function calculateValueTrend(
-    supabase: any,
+    supabase: SupabaseClient,
     userId: string,
     dataType: string,
     currentValue: number,
@@ -257,7 +262,7 @@ async function calculateValueTrend(
         return "stable";
     }
 
-    const values = data.map((row: any) => parseFloat(row.value));
+    const values = data.map((row: { value: string }) => parseFloat(row.value));
     values.push(currentValue);
 
     // Simple trend calculation
