@@ -16,7 +16,7 @@ interface HealthSample {
     timestamp: string;
     endTime?: string;
     source: string;
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
 }
 
 interface HealthDataBatch {
@@ -24,16 +24,17 @@ interface HealthDataBatch {
     user_id: string;
     created_at: string;
     samples: HealthSample[];
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
 }
 
 interface ProcessingResult {
     samples_processed: number;
     samples_rejected: number;
     message: string;
-    diagnostics: Record<string, any>;
+    diagnostics: Record<string, unknown>;
 }
 
+// deno-lint-ignore no-explicit-any
 type SupabaseClient = any;
 
 serve(async (req) => {
@@ -131,7 +132,7 @@ serve(async (req) => {
         // Validate request headers
         const batchId = req.headers.get("X-Batch-ID");
         const sampleCount = req.headers.get("X-Sample-Count");
-        const requestUserId = req.headers.get("X-User-ID");
+        const _requestUserId = req.headers.get("X-User-ID");
 
         if (!batchId) {
             return new Response(
