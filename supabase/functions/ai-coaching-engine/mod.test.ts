@@ -1,8 +1,28 @@
 // Stub timer functions to prevent leaks
-;(globalThis as any).setInterval = () => 0
-;(globalThis as any).setTimeout = () => 0
-;(globalThis as any).clearInterval = () => {}
-;(globalThis as any).clearTimeout = () => {}
+;(globalThis as {
+  setInterval: unknown
+  setTimeout: unknown
+  clearInterval: unknown
+  clearTimeout: unknown
+}).setInterval = () => 0
+;(globalThis as {
+  setInterval: unknown
+  setTimeout: unknown
+  clearInterval: unknown
+  clearTimeout: unknown
+}).setTimeout = () => 0
+;(globalThis as {
+  setInterval: unknown
+  setTimeout: unknown
+  clearInterval: unknown
+  clearTimeout: unknown
+}).clearInterval = () => {}
+;(globalThis as {
+  setInterval: unknown
+  setTimeout: unknown
+  clearInterval: unknown
+  clearTimeout: unknown
+}).clearTimeout = () => {}
 
 import { assertEquals, assertExists } from 'https://deno.land/std@0.168.0/testing/asserts.ts'
 import { afterEach, beforeEach, describe, it } from 'https://deno.land/std@0.168.0/testing/bdd.ts'
@@ -39,19 +59,19 @@ describe('AI Coaching Engine Handler', () => {
     Deno.env.get = (key: string) => mockEnv[key as keyof typeof mockEnv] || undefined
 
     // Mock file reading for prompt templates
-    Deno.readTextFile = async (path: string | URL): Promise<string> => {
+    Deno.readTextFile = (path: string | URL): Promise<string> => {
       const pathStr = typeof path === 'string' ? path : path.toString()
       if (pathStr.includes('safety.md')) {
-        return 'You are a healthcare coach. Do not provide medical advice.'
+        return Promise.resolve('You are a healthcare coach. Do not provide medical advice.')
       }
       if (pathStr.includes('system.md')) {
-        return 'You are a supportive AI coach helping users with behavior change.'
+        return Promise.resolve('You are a supportive AI coach helping users with behavior change.')
       }
-      return 'Mock template content'
+      return Promise.resolve('Mock template content')
     }
 
     // Mock fetch for AI API calls
-    globalThis.fetch = async (input: string | Request | URL, init?: RequestInit) => {
+    globalThis.fetch = (input: string | Request | URL, init?: RequestInit): Promise<Response> => {
       const url = typeof input === 'string' ? input : input.toString()
 
       // Mock AI API response
@@ -64,7 +84,7 @@ describe('AI Coaching Engine Handler', () => {
             }],
           }
 
-        return new Response(JSON.stringify(mockResponse), { status: 200 })
+        return Promise.resolve(new Response(JSON.stringify(mockResponse), { status: 200 }))
       }
 
       // Mock Supabase auth response - handle different URL patterns
@@ -83,21 +103,23 @@ describe('AI Coaching Engine Handler', () => {
             aud: 'authenticated',
             role: 'authenticated',
           }
-          return new Response(JSON.stringify(mockAuthResponse), { status: 200 })
+          return Promise.resolve(new Response(JSON.stringify(mockAuthResponse), { status: 200 }))
         } else {
           // Return auth error for invalid tokens
-          return new Response(JSON.stringify({ message: 'Invalid JWT' }), { status: 401 })
+          return Promise.resolve(
+            new Response(JSON.stringify({ message: 'Invalid JWT' }), { status: 401 }),
+          )
         }
       }
 
       // Mock Supabase database queries (conversation_logs)
       if (url.includes('supabase.co') && url.includes('conversation_logs')) {
         // Mock conversation history as empty array
-        return new Response(JSON.stringify([]), { status: 200 })
+        return Promise.resolve(new Response(JSON.stringify([]), { status: 200 }))
       }
 
       // Default mock for any other requests (including other Supabase calls)
-      return new Response('{}', { status: 200 })
+      return Promise.resolve(new Response('{}', { status: 200 }))
     }
   })
 
@@ -113,7 +135,7 @@ describe('AI Coaching Engine Handler', () => {
       const { clearRateLimits } = await import('./middleware/rate-limit.ts')
       await clearCache()
       await clearRateLimits()
-    } catch (error) {
+    } catch (_error) {
       // Ignore cleanup errors in tests
     }
   })

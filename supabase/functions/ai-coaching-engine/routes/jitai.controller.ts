@@ -33,7 +33,7 @@ export async function jitaiController(
       getRollingAvgHR(user_id, 60),
     ])
 
-    let triggers = await predictTriggers(user_id, wearableData)
+    const triggers = await predictTriggers(user_id, wearableData)
 
     // Additional heuristic triggers using summaries
     const push = (type: import('../types.ts').JITAITrigger['type'], message: string) => {

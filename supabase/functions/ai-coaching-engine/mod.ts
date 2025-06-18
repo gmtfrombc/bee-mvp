@@ -224,7 +224,9 @@ export default async function handler(req: Request): Promise<Response> {
   try {
     const path = new URL(req.url).pathname
     await recordLatency(path, ms)
-  } catch (_) {}
+  } catch (_) {
+    // ignore telemetry failures – logging latency is non-critical
+  }
   if (res.status === 404 && req.method === 'POST') {
     return await conversationController(req, {
       cors: corsHeaders,
@@ -522,7 +524,9 @@ async function _handleConversation(
               { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
             )
           }
-          const supabase = await getSupabaseClient({ overrideKey: supabaseKeyForWrites! })
+          // Type of `getSupabaseClient` stub is `unknown` in test mode; cast to `any` for auth call
+          // deno-lint-ignore no-explicit-any
+          const supabase = await getSupabaseClient({ overrideKey: supabaseKeyForWrites! }) as any
           const { data: user, error: authError } = await supabase.auth.getUser(authToken)
           if (authError || !user?.user || user.user.id !== user_id) {
             return new Response(

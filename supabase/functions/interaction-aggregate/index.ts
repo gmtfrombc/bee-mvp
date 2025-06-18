@@ -14,6 +14,23 @@ type SupabaseClientLike = {
     rpc: (...args: unknown[]) => unknown;
 };
 
+type RPCResult<T> = { data: T | null; error: unknown };
+
+interface SupabaseLike {
+    rpc: <T>(
+        fn: string,
+        params: Record<string, unknown>,
+    ) => Promise<RPCResult<T>>;
+    from: (table: string) => {
+        select: (cols: string) => {
+            gte: (col: string, val: string) => {
+                lt: (col: string, val: string) => Promise<RPCResult<unknown[]>>;
+            };
+        };
+        upsert: (row: Record<string, unknown>) => Promise<RPCResult<unknown>>;
+    };
+}
+
 export async function handleRequest(req: Request): Promise<Response> {
     if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
 
@@ -38,11 +55,22 @@ export async function handleRequest(req: Request): Promise<Response> {
         : new Date(Date.now() - 24 * 60 * 60 * 1000);
     const ymd = targetDate.toISOString().slice(0, 10);
 
-    const client = await getSupabaseClient(srKey) as SupabaseClientLike;
+    // Cast because getSupabaseClient returns unknown in stubbed env
+    const client = await (getSupabaseClient as unknown as (
+        opts: unknown,
+    ) => Promise<unknown>)({ overrideKey: srKey }) as SupabaseLike;
 
     try {
         // Fetch aggregated stats per user for the day
-        const { data, error } = await client.rpc(
+        const { data, error } = await client.rpc<
+            Array<
+                {
+                    user_id: string;
+                    response_time_avg: number | null;
+                    persona_mix: Record<string, number>;
+                }
+            >
+        >(
             "coach_interaction_daily_aggregate",
             {
                 target_date: ymd,
@@ -75,11 +103,12 @@ export async function handleRequest(req: Request): Promise<Response> {
                     persona: Record<string, number>;
                 }
             >();
-            for (const row of rows as any[]) {
-                const u = row.user_id as string;
-                const latency = Number(row.metadata?.latency_ms ?? NaN);
-                const persona = row.metadata?.persona ??
-                    row.metadata?.momentum_state ?? "unknown";
+            for (const row of (rows ?? []) as Array<Record<string, unknown>>) {
+                const u = String(row.user_id);
+                const meta = row.metadata as
+                    | Record<string, unknown>
+                    | undefined;
+                const latency = Number(meta?.latency_ms ?? NaN);
                 if (!map.has(u)) {
                     map.set(u, { sumLat: 0, countLat: 0, persona: {} });
                 }
@@ -88,7 +117,8 @@ export async function handleRequest(req: Request): Promise<Response> {
                     agg.sumLat += latency;
                     agg.countLat += 1;
                 }
-                agg.persona[row.sender] = (agg.persona[row.sender] ?? 0) + 1;
+                const sender = String(row.sender ?? "unknown");
+                agg.persona[sender] = (agg.persona[sender] ?? 0) + 1;
             }
             aggregates = [...map.entries()].map(([user_id, v]) => ({
                 user_id,
@@ -98,7 +128,7 @@ export async function handleRequest(req: Request): Promise<Response> {
                 persona_mix: v.persona,
             }));
         } else {
-            aggregates = data as any;
+            aggregates = data ?? [];
         }
 
         // Upsert into metrics table

@@ -1,3 +1,4 @@
+// deno-lint-ignore-file no-explicit-any
 import { getSupabaseClient } from "./supabase_client.ts";
 
 // Using `any` to avoid heavy type import; runtime still typed.

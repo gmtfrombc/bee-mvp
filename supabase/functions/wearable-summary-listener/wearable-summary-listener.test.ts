@@ -28,7 +28,7 @@ Deno.test("listener forwards wearable summary update to coaching engine", async 
                 status: 200,
             });
         }
-        return origFetch(info as any, init);
+        return await origFetch(info as Request | URL | string, init);
     };
 
     const payload = {

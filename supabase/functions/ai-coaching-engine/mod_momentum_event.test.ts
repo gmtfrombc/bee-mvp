@@ -1,8 +1,28 @@
 // Stub timer functions to prevent leaks
-;(globalThis as any).setInterval = () => 0
-;(globalThis as any).setTimeout = () => 0
-;(globalThis as any).clearInterval = () => {}
-;(globalThis as any).clearTimeout = () => {}
+;(globalThis as {
+  setInterval: unknown
+  setTimeout: unknown
+  clearInterval: unknown
+  clearTimeout: unknown
+}).setInterval = () => 0
+;(globalThis as {
+  setInterval: unknown
+  setTimeout: unknown
+  clearInterval: unknown
+  clearTimeout: unknown
+}).setTimeout = () => 0
+;(globalThis as {
+  setInterval: unknown
+  setTimeout: unknown
+  clearInterval: unknown
+  clearTimeout: unknown
+}).clearInterval = () => {}
+;(globalThis as {
+  setInterval: unknown
+  setTimeout: unknown
+  clearInterval: unknown
+  clearTimeout: unknown
+}).clearTimeout = () => {}
 
 // Mock environment variables for test mode BEFORE any imports
 Deno.env.set('SUPABASE_URL', 'https://test.supabase.co')
@@ -17,8 +37,8 @@ Deno.env.set('CACHE_ENABLED', 'false')
 Deno.env.set('RATE_LIMIT_ENABLED', 'false')
 
 // Mock fetch for all external requests
-const originalFetch = globalThis.fetch
-globalThis.fetch = async (input: string | Request | URL, init?: RequestInit) => {
+const _originalFetch = globalThis.fetch
+globalThis.fetch = (input: string | Request | URL, init?: RequestInit): Promise<Response> => {
   const url = typeof input === 'string' ? input : input.toString()
 
   // Mock AI API response
@@ -38,7 +58,7 @@ globalThis.fetch = async (input: string | Request | URL, init?: RequestInit) => 
           },
         }],
       }
-    return new Response(JSON.stringify(mockResponse), { status: 200 })
+    return Promise.resolve(new Response(JSON.stringify(mockResponse), { status: 200 }))
   }
 
   // Mock Supabase auth response - accept service role key
@@ -50,40 +70,44 @@ globalThis.fetch = async (input: string | Request | URL, init?: RequestInit) => 
       authHeader &&
       (authHeader.includes('test-service-role-key') || authHeader.includes('test-token'))
     ) {
-      return new Response(
-        JSON.stringify({
-          id: '00000000-0000-0000-0000-000000000001',
-          email: 'test@example.com',
-          aud: 'authenticated',
-          role: 'authenticated',
-        }),
-        { status: 200 },
+      return Promise.resolve(
+        new Response(
+          JSON.stringify({
+            id: '00000000-0000-0000-0000-000000000001',
+            email: 'test@example.com',
+            aud: 'authenticated',
+            role: 'authenticated',
+          }),
+          { status: 200 },
+        ),
       )
     } else {
-      return new Response(JSON.stringify({ message: 'Invalid JWT' }), { status: 401 })
+      return Promise.resolve(
+        new Response(JSON.stringify({ message: 'Invalid JWT' }), { status: 401 }),
+      )
     }
   }
 
   // Mock other Supabase database calls
   if (url.includes('supabase.co')) {
-    return new Response(JSON.stringify([]), { status: 200 })
+    return Promise.resolve(new Response(JSON.stringify([]), { status: 200 }))
   }
 
   // Default mock
-  return new Response('{}', { status: 200 })
+  return Promise.resolve(new Response('{}', { status: 200 }))
 }
 
 // Mock file reading for prompt templates
-const originalReadTextFile = Deno.readTextFile
-Deno.readTextFile = async (path: string | URL): Promise<string> => {
+const _originalReadTextFile = Deno.readTextFile
+Deno.readTextFile = (path: string | URL): Promise<string> => {
   const pathStr = typeof path === 'string' ? path : path.toString()
   if (pathStr.includes('safety.md')) {
-    return 'You are a healthcare coach. Do not provide medical advice.'
+    return Promise.resolve('You are a healthcare coach. Do not provide medical advice.')
   }
   if (pathStr.includes('system.md')) {
-    return 'You are a supportive AI coach helping users with behavior change.'
+    return Promise.resolve('You are a supportive AI coach helping users with behavior change.')
   }
-  return 'Mock template content'
+  return Promise.resolve('Mock template content')
 }
 
 import { assertEquals, assertExists } from 'https://deno.land/std@0.208.0/assert/mod.ts'

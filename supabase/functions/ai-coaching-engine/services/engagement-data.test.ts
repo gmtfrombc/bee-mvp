@@ -1,3 +1,4 @@
+// deno-lint-ignore-file no-explicit-any
 // Stub timer functions to prevent leaks
 ;(globalThis as any).setInterval = () => 0
 ;(globalThis as any).setTimeout = () => 0
@@ -16,8 +17,6 @@ Deno.test('EngagementDataService - returns fallback in test environment', async 
   assertEquals(events.length, 1)
   assertEquals(events[0].event_type, 'app_session')
   assertEquals(events[0].metadata.source, 'fallback')
-
-  Deno.env.delete('DENO_TESTING')
 })
 
 Deno.test('EngagementDataService - maps event types correctly', () => {

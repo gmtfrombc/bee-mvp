@@ -37,7 +37,7 @@ function parseAIContentResponse(
       summary,
       topic_category: topicCategory,
     }
-  } catch (error) {
+  } catch (_error) {
     const lines = aiResponse.split('\n').filter((line) => line.trim())
     const title = lines[0]?.substring(0, 60) || `Daily ${topicCategory} Tip`
     const summary = lines.slice(1, 3).join(' ').substring(0, 200) ||

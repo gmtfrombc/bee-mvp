@@ -1,3 +1,5 @@
+// deno-lint-ignore-file no-explicit-any
+
 // services/conversation.service.ts
 // Conversation service extracted from previous handleConversation logic.
 // Provides processConversation that returns an HTTP Response for the conversational coaching endpoint.
@@ -35,6 +37,12 @@ if (Deno.env.get('DENO_TESTING') === 'true') {
 interface ServiceOptions {
   cors: Record<string, string>
   isTestingEnv: boolean
+}
+
+interface SupabaseLike {
+  auth: {
+    getUser: (token: string) => Promise<{ data: { user: { id: string } } | null; error: unknown }>
+  }
 }
 
 export async function processConversation(
@@ -98,7 +106,9 @@ export async function processConversation(
       if (!SUPABASE_URL || !SUPABASE_ANON) {
         return json({ error: 'Internal server error' }, 500, cors)
       }
-      const supabase = await getSupabaseClient({ overrideKey: SUPABASE_ANON })
+      const supabase = await getSupabaseClient({
+        overrideKey: SUPABASE_ANON,
+      }) as unknown as SupabaseLike
       const { data: user, error: authErr } = await supabase.auth.getUser(authToken || '')
       if (authErr || !user?.user || user.user.id !== user_id) {
         return json({ error: 'Unauthorized' }, 401, cors)
@@ -187,7 +197,7 @@ export async function processConversation(
     const cacheKey = await generateCacheKey(user_id, message, persona, sentiment?.label)
     let assistantMessage = await getCachedResponse(cacheKey)
     timings['cache_lookup_ms'] = Date.now() - cacheLookupStart
-    let cacheHit = !!assistantMessage
+    const cacheHit = !!assistantMessage
     let usage: AIResponse['usage'] | undefined = undefined
 
     if (!assistantMessage) {

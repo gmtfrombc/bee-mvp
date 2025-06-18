@@ -1,7 +1,7 @@
 export type EngagementEvent = {
   event_type: 'app_session' | 'goal_completion' | 'momentum_change'
   timestamp: string // ISO
-  metadata: Record<string, any>
+  metadata: Record<string, unknown>
 }
 
 export type PatternSummary = {

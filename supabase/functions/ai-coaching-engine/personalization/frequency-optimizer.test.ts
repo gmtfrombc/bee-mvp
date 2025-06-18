@@ -4,11 +4,7 @@
  * Simplified approach to avoid complex mocking and resource leaks
  */
 
-import {
-  assertArrayIncludes,
-  assertEquals,
-  assertExists,
-} from 'https://deno.land/std@0.208.0/assert/mod.ts'
+import { assertEquals } from 'https://deno.land/std@0.208.0/assert/mod.ts'
 
 // Test helper functions that mirror the core algorithm logic without database calls
 function calculateOptimalFrequency(

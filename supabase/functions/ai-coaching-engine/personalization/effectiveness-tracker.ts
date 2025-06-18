@@ -1,3 +1,5 @@
+// deno-lint-ignore-file no-explicit-any
+
 /**
  * Coaching Effectiveness Tracker
  * Tracks coaching interaction outcomes and user satisfaction for T1.3.2.6
@@ -107,13 +109,20 @@ export class EffectivenessTracker {
 
       // Calculate metrics
       const totalInteractions = effectivenessData.length
-      const ratedInteractions = effectivenessData.filter((d) => d.user_rating !== null)
-      const helpfulInteractions = effectivenessData.filter((d) => d.feedback_type === 'helpful')
-      const respondedInteractions = effectivenessData.filter((d) => d.feedback_type !== 'ignored')
+      // deno-lint-ignore no-explicit-any
+      const ratedInteractions = effectivenessData.filter((d: any) => d.user_rating !== null)
+      // deno-lint-ignore no-explicit-any
+      const helpfulInteractions = effectivenessData.filter((d: any) =>
+        d.feedback_type === 'helpful'
+      )
+      // deno-lint-ignore no-explicit-any
+      const respondedInteractions = effectivenessData.filter((d: any) =>
+        d.feedback_type !== 'ignored'
+      )
 
       // Overall effectiveness (combination of ratings and helpful feedback)
       const averageRating = ratedInteractions.length > 0
-        ? ratedInteractions.reduce((sum, d) => sum + (d.user_rating || 0), 0) /
+        ? ratedInteractions.reduce((sum: number, d: any) => sum + (d.user_rating || 0), 0) /
           ratedInteractions.length
         : 3.0
 
@@ -130,13 +139,16 @@ export class EffectivenessTracker {
       const personas = ['supportive', 'challenging', 'educational']
 
       personas.forEach((persona) => {
-        const personaData = effectivenessData.filter((d) => d.persona_used === persona)
+        // deno-lint-ignore no-explicit-any
+        const personaData = effectivenessData.filter((d: any) => d.persona_used === persona)
         if (personaData.length > 0) {
-          const personaRatings = personaData.filter((d) => d.user_rating !== null)
-          const personaHelpful = personaData.filter((d) => d.feedback_type === 'helpful')
+          // deno-lint-ignore no-explicit-any
+          const personaRatings = personaData.filter((d: any) => d.user_rating !== null)
+          // deno-lint-ignore no-explicit-any
+          const personaHelpful = personaData.filter((d: any) => d.feedback_type === 'helpful')
 
           const avgRating = personaRatings.length > 0
-            ? personaRatings.reduce((sum, d) => sum + (d.user_rating || 0), 0) /
+            ? personaRatings.reduce((sum: number, d: any) => sum + (d.user_rating || 0), 0) /
               personaRatings.length
             : 3.0
 

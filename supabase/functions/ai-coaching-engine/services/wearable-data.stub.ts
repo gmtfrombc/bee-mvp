@@ -5,7 +5,7 @@ import { WearableData } from '../types.ts'
  * This unblocks JITAI rules engine development until Epic 2.2 provides
  * real-time physiological streaming.
  */
-export async function getLatestWearableData(userId: string): Promise<WearableData> {
+export function getLatestWearableData(userId: string): WearableData {
   let pseudoSeed = [...userId].reduce((acc, char) => acc + char.charCodeAt(0), 0)
   const rand = (min: number, max: number): number => {
     const x = Math.sin(pseudoSeed++) * 10000

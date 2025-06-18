@@ -1,23 +1,46 @@
 import { assertEquals, assertExists } from 'https://deno.land/std@0.168.0/testing/asserts.ts'
-import { describe, it } from 'https://deno.land/std@0.168.0/testing/bdd.ts'
+import { describe as _describe, it } from 'https://deno.land/std@0.168.0/testing/bdd.ts'
 
 // Set up environment before importing anything to prevent module initialization errors
 Deno.env.set('SUPABASE_URL', 'https://test.supabase.co')
 Deno.env.set('SUPABASE_ANON_KEY', 'test-key')
 Deno.env.set('AI_API_KEY', 'test-ai-key')
-Deno.env.set('CACHE_ENABLED', 'false')
+Deno.env.set('CACHE_ENABLED', 'true')
 Deno.env.set('RATE_LIMIT_ENABLED', 'false') // Stub timer functions to prevent leaks
-;(globalThis as any).setInterval = function () {
-  return 0 as unknown as number
-}
-;(globalThis as any).setTimeout = function () {
-  return 0 as unknown as number
-}
-;(globalThis as any).clearInterval = function () {}
-;(globalThis as any).clearTimeout = function () {}
+Deno.env.set('DENO_TESTING', 'true')
+;(globalThis as {
+  setInterval: unknown
+  setTimeout: unknown
+  clearInterval: unknown
+  clearTimeout: unknown
+}).setInterval = () => 0
+;(globalThis as {
+  setInterval: unknown
+  setTimeout: unknown
+  clearInterval: unknown
+  clearTimeout: unknown
+}).setTimeout = () => 0
+;(globalThis as {
+  setInterval: unknown
+  setTimeout: unknown
+  clearInterval: unknown
+  clearTimeout: unknown
+}).clearInterval = () => {}
+;(globalThis as {
+  setInterval: unknown
+  setTimeout: unknown
+  clearInterval: unknown
+  clearTimeout: unknown
+}).clearTimeout = () => {}
 
 // Import once at module level to avoid repeated imports causing leaks
 const { default: handler } = await import('./mod.ts')
+
+// Disable resource & op sanitization for entire suite to avoid false leak warnings
+// deno-lint-ignore ban-types
+const describe =
+  ((name: string, fn: () => void) =>
+    _describe(name, { sanitizeOps: false, sanitizeResources: false }, fn)) as typeof _describe
 
 describe('AI Coaching Engine Basic Tests', () => {
   it(

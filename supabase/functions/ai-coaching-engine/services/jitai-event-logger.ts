@@ -1,7 +1,13 @@
 import { getSupabaseClient } from '../_shared/supabase_client.ts'
 import { JITAITrigger, WearableData } from '../types.ts'
 
-type SupabaseClient = any
+interface SupabaseLike {
+  from: (table: string) => {
+    insert: (payload: unknown) => unknown
+  }
+}
+
+type SupabaseClient = SupabaseLike
 
 export async function logJITAIEvent(
   userId: string,
@@ -19,7 +25,8 @@ export async function logJITAIEvent(
     return
   }
 
-  const client: SupabaseClient = await getSupabaseClient({ overrideKey: serviceRoleKey })
+  const client =
+    (await getSupabaseClient({ overrideKey: serviceRoleKey })) as unknown as SupabaseClient
 
   await client.from('jitai_training_events').insert({
     user_id: userId,

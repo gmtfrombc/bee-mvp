@@ -6,12 +6,11 @@
  * Focus: Happy-path and critical edge-cases only
  */
 
-import {
-  assertEquals,
-  assertExists,
-  assertRejects,
-} from 'https://deno.land/std@0.208.0/assert/mod.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+// The mock Supabase client in this test intentionally uses `any` for brevity.
+// Avoid spreading strict typing throughout nested mock return types.
+// deno-lint-ignore-file no-explicit-any
+
+import { assertEquals, assertExists } from 'https://deno.land/std@0.208.0/assert/mod.ts'
 import { type CrossPatientPattern, CrossPatientPatternsService } from './cross-patient-patterns.ts'
 
 // Mock Supabase client for testing
@@ -29,39 +28,39 @@ class MockSupabaseClient {
 
   from(table: string) {
     return {
-      select: (columns?: string) => ({
-        gte: (column: string, value: any) => ({
-          lt: (column: string, value: any) => ({
-            eq: (column: string, value: any) => this.mockQuery(table),
-            order: (column: string, options?: any) => this.mockQuery(table),
+      select: (_columns?: string) => ({
+        gte: (_column: string, _value: any) => ({
+          lt: (_column2: string, _value2: any) => ({
+            eq: (_column3: string, _value3: any) => this.mockQuery(table),
+            order: (_column4: string, _options4?: any) => this.mockQuery(table),
           }),
-          eq: (column: string, value: any) => this.mockQuery(table),
-          order: (column: string, options?: any) => this.mockQuery(table),
+          eq: (_column5: string, _value5: any) => this.mockQuery(table),
+          order: (_column6: string, _options6?: any) => this.mockQuery(table),
         }),
-        eq: (column: string, value: any) => this.mockQuery(table),
-        order: (column: string, options?: any) => this.mockQuery(table),
+        eq: (_column7: string, _value7: any) => this.mockQuery(table),
+        order: (_column8: string, _options8?: any) => this.mockQuery(table),
       }),
       insert: (data: any) => ({
-        select: (columns?: string) => ({
+        select: (_columns9?: string) => ({
           single: () => this.mockInsert(table, data),
         }),
       }),
-      upsert: (data: any, options?: any) => ({
-        select: (columns?: string) => ({
+      upsert: (data: any, _options?: any) => ({
+        select: (_columns10?: string) => ({
           single: () => this.mockInsert(table, data),
         }),
       }),
     }
   }
 
-  private mockQuery(table: string) {
+  private mockQuery(_table: string) {
     if (this.shouldError) {
       return { data: null, error: new Error('Mock database error') }
     }
-    return { data: this.mockData[table] || [], error: null }
+    return { data: this.mockData[_table] || [], error: null }
   }
 
-  private mockInsert(table: string, data: any) {
+  private mockInsert(_table: string, data: any) {
     if (this.shouldError) {
       return { data: null, error: new Error('Mock insert error') }
     }

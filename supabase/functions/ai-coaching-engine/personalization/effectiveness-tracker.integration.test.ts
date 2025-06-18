@@ -1,3 +1,5 @@
+// deno-lint-ignore-file no-explicit-any
+
 import { assertEquals } from 'https://deno.land/std@0.168.0/testing/asserts.ts'
 import { EffectivenessTracker } from './effectiveness-tracker.ts'
 

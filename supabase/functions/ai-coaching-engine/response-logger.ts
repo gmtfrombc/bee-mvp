@@ -1,5 +1,5 @@
 // dynamic supabase client import helper
-import { getSupabaseClient } from './_shared/supabase_client.ts'
+import { getSupabaseClient as _getSupabaseClient } from './_shared/supabase_client.ts'
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!
 const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!

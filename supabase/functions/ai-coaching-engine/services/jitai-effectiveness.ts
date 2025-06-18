@@ -1,3 +1,4 @@
+// deno-lint-ignore-file no-explicit-any
 import { getSupabaseClient } from '../_shared/supabase_client.ts'
 
 type SupabaseClient = any

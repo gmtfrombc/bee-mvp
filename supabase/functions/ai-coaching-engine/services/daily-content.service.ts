@@ -1,6 +1,8 @@
 // services/daily-content.service.ts
 // Utilities and helpers for generating daily health content.
 
+// deno-lint-ignore-file no-explicit-any
+
 import { ContentSafetyValidator } from '../safety/content-safety-validator.ts'
 import { callAIAPI } from './ai-client.ts'
 import { AIMessage, GeneratedContent } from '../types.ts'
@@ -82,7 +84,6 @@ export function parseAIContentResponse(
       jsonMatch = [aiResponse]
     }
 
-    // deno-lint-ignore no-explicit-any
     const parsed: any = JSON.parse(jsonMatch[0])
 
     if (!parsed.title || !parsed.summary) {
@@ -165,7 +166,6 @@ export function calculateContentConfidence(
 }
 
 function isFullContentValid(fullContent: unknown): boolean {
-  // deno-lint-ignore no-explicit-any
   const fc: any = fullContent
   if (!fc || !Array.isArray(fc.elements)) return false
   if (fc.elements.length < 3) return false
@@ -241,7 +241,6 @@ export async function generateDailyHealthContent(
 
     // Ensure full_content passes validation; if not, fall back to simple safe content
     if (!isFullContentValid(parsedContent.full_content)) {
-      // deno-lint-ignore no-explicit-any
       const safeParagraph = { type: 'paragraph', text: parsedContent.summary }
       parsedContent.full_content = {
         elements: [

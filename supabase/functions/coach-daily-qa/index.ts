@@ -8,6 +8,25 @@ import { getSupabaseClient } from "../_shared/supabase_client.ts";
  * logs and records high-level metrics into `coach_daily_qa`.
  */
 
+type SupabaseLike = {
+    from: (table: string) => {
+        select: (cols: string) => {
+            gte: (col: string, val: string) => {
+                lte: (col: string, val: string) => {
+                    eq: (
+                        col: string,
+                        val: string,
+                    ) => Promise<{ data: unknown[] | null; error: unknown }>;
+                };
+            };
+        };
+        upsert: (
+            row: Record<string, unknown>,
+            opt?: unknown,
+        ) => Promise<unknown>;
+    };
+};
+
 serve(async (req) => {
     if (req.method === "OPTIONS") return new Response("ok");
     if (req.method !== "POST" && req.method !== "GET") {
@@ -18,10 +37,12 @@ serve(async (req) => {
     const targetDate = url.searchParams.get("date") ||
         new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split("T")[0];
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
+    const _supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
     const serviceRole = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ||
         Deno.env.get("SERVICE_ROLE_KEY") || "";
-    const client = await getSupabaseClient(serviceRole);
+    const client = await (getSupabaseClient as unknown as (
+        opts: unknown,
+    ) => Promise<unknown>)({ overrideKey: serviceRole }) as SupabaseLike;
 
     try {
         // Fetch assistant messages for the date
@@ -42,11 +63,16 @@ serve(async (req) => {
 
         const total = logs.length;
         const medianResponse = median(
-            logs.map((l: any) => l.response_time_ms || 0),
+            logs.map((l) =>
+                Number((l as Record<string, unknown>).response_time_ms ?? 0)
+            ),
         );
         const personaCounts: Record<string, number> = {};
-        logs.forEach((l: any) => {
-            personaCounts[l.persona] = (personaCounts[l.persona] || 0) + 1;
+        logs.forEach((l) => {
+            const persona = String(
+                (l as Record<string, unknown>).persona ?? "unknown",
+            );
+            personaCounts[persona] = (personaCounts[persona] || 0) + 1;
         });
 
         await client.from("coach_daily_qa").upsert({

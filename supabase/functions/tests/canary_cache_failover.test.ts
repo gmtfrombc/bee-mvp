@@ -1,4 +1,4 @@
-import { processConversation } from "../ai-coaching-engine/services/conversation.service.ts";
+import { processConversation as _processConversation } from "../ai-coaching-engine/services/conversation.service.ts";
 
 Deno.test("cache canary – first MISS then HIT", async () => {
     const perm = await Deno.permissions.query({ name: "env" as const });
@@ -13,6 +13,7 @@ Deno.test("cache canary – first MISS then HIT", async () => {
 
     Deno.env.set("DENO_TESTING", "true");
     Deno.env.set("OFFLINE_AI", "true");
+    Deno.env.set("CACHE_ENABLED", "true");
 
     const body = {
         user_id: "00000000-0000-0000-0000-000000000001",

@@ -1,3 +1,5 @@
+// deno-lint-ignore-file no-explicit-any
+
 import { getSupabaseClient } from '../_shared/supabase_client.ts'
 import { EngagementEvent } from '../personalization/pattern-analysis.ts'
 
