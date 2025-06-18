@@ -1,9 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import {
-    createClient,
-    SupabaseClient,
-    User,
-} from "https://esm.sh/@supabase/supabase-js@2";
+import { getSupabaseClient } from "../_shared/supabase_client.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -42,6 +38,10 @@ interface AuthResult {
     user: User;
 }
 
+// Supabase types are only used for linting; avoid static dep weight.
+type SupabaseClient = any;
+type User = any;
+
 serve(async (req) => {
     if (req.method === "OPTIONS") {
         return new Response("ok", { headers: corsHeaders });
@@ -70,8 +70,7 @@ serve(async (req) => {
         if (isTestMode) {
             // For testing, create supabase client without user auth
             console.log("🔧 Running in test mode - bypassing auth");
-            supabase = createClient(
-                Deno.env.get("SUPABASE_URL") ?? "",
+            supabase = await getSupabaseClient(
                 Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
             );
         } else {
@@ -130,9 +129,8 @@ async function authenticate(
         throw new Error("Missing authorization header");
     }
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const supabase = await getSupabaseClient(supabaseServiceKey);
 
     const token = authHeader.replace("Bearer ", "");
     const { data: { user }, error } = await supabase.auth.getUser(token);

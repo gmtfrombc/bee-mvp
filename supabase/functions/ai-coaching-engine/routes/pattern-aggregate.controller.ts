@@ -1,12 +1,14 @@
 // routes/pattern-aggregate.controller.ts
 // Controller for POST /aggregate-patterns endpoint.
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { getSupabaseClient } from '../_shared/supabase_client.ts'
 import { CrossPatientPatternsService } from '../personalization/cross-patient-patterns.ts'
 
 interface ControllerOptions {
   cors: Record<string, string>
 }
+
+type SupabaseClient = any
 
 export async function patternAggregateController(
   req: Request,
@@ -33,7 +35,8 @@ export async function patternAggregateController(
       return json({ error: 'Missing Supabase configuration' }, 500, cors)
     }
 
-    const service = new CrossPatientPatternsService(createClient(supabaseUrl, serviceRole))
+    const supabaseClient: SupabaseClient = await getSupabaseClient({ overrideKey: serviceRole })
+    const service = new CrossPatientPatternsService(supabaseClient)
 
     switch (operation) {
       case 'weekly_aggregation': {

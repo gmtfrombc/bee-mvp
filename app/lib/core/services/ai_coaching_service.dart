@@ -273,10 +273,16 @@ class AICoachingService {
       }
 
       await _ensureSession();
-      final userId = _supabase!.auth.currentUser!.id;
+      final userId = _supabase!.auth.currentUser?.id;
+      if (userId == null) {
+        debugPrint('❌ Error checking rate limit: User is not authenticated.');
+        return false;
+      }
 
       // Check messages in last minute
       final oneMinuteAgo = DateTime.now().subtract(const Duration(minutes: 1));
+
+      debugPrint('🔍 Checking rate limit for user: $userId');
 
       final response =
           await _supabase!
@@ -287,13 +293,21 @@ class AICoachingService {
               .gte('timestamp', oneMinuteAgo.toIso8601String())
               .count();
 
+      // The PostgrestResponse from .count() does not have a separate error object.
+      // It will throw a PostgrestException on error.
+
+      final count = response.count;
+      debugPrint('💬 Found $count recent messages in the last minute.');
+
       // Allow up to 10 messages per minute for testing
-      return response.count < 10;
+      final canSend = count < 10;
+      debugPrint('✅ Rate limit check result: canSendMessage = $canSend');
+      return canSend;
     } catch (e) {
       if (kDebugMode) {
-        debugPrint('❌ Error checking rate limit: $e');
+        debugPrint('❌ Error checking rate limit: $e. Returning false.');
       }
-      return true; // Allow on error
+      return false; // Block sending on error, to match described behavior.
     }
   }
 }

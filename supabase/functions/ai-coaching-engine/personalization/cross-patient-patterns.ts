@@ -6,7 +6,8 @@
  * while maintaining strict privacy controls.
  */
 
-import { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2'
+// Local placeholder to avoid bundling supabase-js types. Replace with strict types later.
+type SupabaseClient = any
 
 export interface CrossPatientPattern {
   patternType:

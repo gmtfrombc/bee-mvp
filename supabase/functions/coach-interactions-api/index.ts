@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getSupabaseClient } from "../_shared/supabase_client.ts";
 
 const cors = {
     "Access-Control-Allow-Origin": "*",
@@ -8,6 +8,8 @@ const cors = {
 };
 
 const API_VERSION = "1";
+
+type SupabaseClient = any;
 
 export async function handleRequest(req: Request): Promise<Response> {
     if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
@@ -44,10 +46,9 @@ async function handleHistory(url: URL): Promise<Response> {
     const limit = Math.min(100, Math.max(1, parseInt(limitStr)));
     if (!userId) return json({ error: "user_id required" }, 400);
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ||
-        Deno.env.get("SERVICE_ROLE_KEY") || "";
-    const client = createClient(supabaseUrl, serviceKey);
+        Deno.env.get("SERVICE_ROLE_KEY");
+    const client: SupabaseClient = await getSupabaseClient(serviceKey);
 
     const { data, error } = await client
         .from("coach_interactions")

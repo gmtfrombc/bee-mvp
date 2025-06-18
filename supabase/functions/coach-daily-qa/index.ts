@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getSupabaseClient } from "../_shared/supabase_client.ts";
 
 /*
  * Coach Daily QA Check – T1.3.6.5
@@ -21,7 +21,7 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
     const serviceRole = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ||
         Deno.env.get("SERVICE_ROLE_KEY") || "";
-    const client = createClient(supabaseUrl, serviceRole);
+    const client = await getSupabaseClient(serviceRole);
 
     try {
         // Fetch assistant messages for the date

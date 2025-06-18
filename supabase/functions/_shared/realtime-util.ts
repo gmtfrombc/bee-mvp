@@ -1,21 +1,12 @@
-import {
-    createClient,
-    SupabaseClient,
-} from "https://esm.sh/@supabase/supabase-js@2";
+import { getSupabaseClient } from "./supabase_client.ts";
+
+// Using `any` to avoid heavy type import; runtime still typed.
+type SupabaseClient = any;
 
 let client: SupabaseClient | null = null;
-
-function getClient(): SupabaseClient {
+async function getClient(): Promise<SupabaseClient> {
     if (client) return client;
-    const url = Deno.env.get("SUPABASE_URL");
-    const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ??
-        Deno.env.get("SERVICE_ROLE_KEY");
-    if (!url || !key) {
-        throw new Error(
-            "Realtime util missing SUPABASE_URL or SERVICE_ROLE_KEY",
-        );
-    }
-    client = createClient(url, key);
+    client = await getSupabaseClient();
     return client;
 }
 
@@ -25,7 +16,7 @@ export async function broadcastEvent(
     payload: unknown,
 ): Promise<void> {
     if (Deno.env.get("DENO_TESTING") === "true") return; // no-op in tests
-    const supabase = getClient();
+    const supabase = await getClient();
     const ch = supabase.channel(channel);
     const res = await ch.send({ type: "broadcast", event, payload });
     if (res !== "ok") {

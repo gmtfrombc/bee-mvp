@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getSupabaseClient } from "../_shared/supabase_client.ts";
 
 /*
  * Wearable Data Retention Cleaner – T2.2.3.9
@@ -19,6 +19,38 @@ const cors = {
         "authorization, x-client-info, apikey, content-type",
 };
 
+// Lightweight Supabase client structural alias
+type DBSupabaseClient = {
+    from: (table: string) => {
+        select: (
+            columns: string,
+            opts?: Record<string, unknown>,
+        ) => QueryBuilder;
+        delete: () => QueryBuilder;
+        lt: (
+            column: string,
+            value: string,
+        ) => QueryBuilder;
+    };
+};
+
+type QueryBuilder = {
+    lt: (
+        column: string,
+        value: string,
+    ) =>
+        & QueryBuilder
+        & Promise<
+            { count?: number; data: unknown[] | null; error: Error | null }
+        >;
+    delete?: () => QueryBuilder;
+    select?: (
+        columns?: string,
+        opts?: Record<string, unknown>,
+    ) => QueryBuilder;
+    single?: () => Promise<{ data: unknown | null; error: Error | null }>;
+};
+
 serve(async (req) => {
     if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
     if (req.method !== "POST" && req.method !== "GET") {
@@ -32,10 +64,7 @@ serve(async (req) => {
     const retentionDays = Number(url.searchParams.get("days")) || 730; // default 2 years
     const dryRun = url.searchParams.get("dry_run") === "true";
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
-    const serviceRole = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ||
-        Deno.env.get("SERVICE_ROLE_KEY") || "";
-    const client = createClient(supabaseUrl, serviceRole);
+    const client = await getSupabaseClient() as unknown as DBSupabaseClient;
 
     try {
         const cutoffDate = new Date(
@@ -44,19 +73,24 @@ serve(async (req) => {
             .toISOString();
 
         // Count rows older than cutoff
-        const { count, error: countErr } = await client
+        const { count, error: countErr } = await (client
             .from("wearable_health_data")
             .select("id", { head: true, count: "exact" })
-            .lt("timestamp", cutoffDate);
+            .lt("timestamp", cutoffDate) as unknown as {
+                count: number | null;
+                error: Error | null;
+            });
 
         if (countErr) throw countErr;
 
         let deletedRows = 0;
         if (!dryRun && count && count > 0) {
-            const { error: delErr } = await client
+            const { error: delErr } = await (client
                 .from("wearable_health_data")
                 .delete()
-                .lt("timestamp", cutoffDate);
+                .lt("timestamp", cutoffDate) as unknown as {
+                    error: Error | null;
+                });
             if (delErr) throw delErr;
             deletedRows = count;
         }

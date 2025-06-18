@@ -1,4 +1,4 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { getSupabaseClient } from './_shared/supabase_client.ts'
 import { analyzeEngagement } from './personalization/pattern-analysis.ts'
 import { type CoachingPersona, derivePersona } from './personalization/coaching-personas.ts'
 import { buildPrompt } from './prompt-builder.ts'
@@ -21,14 +21,25 @@ import { type Route, route } from 'jsr:@std/http/unstable-route'
 import { streamController } from './routes/stream.controller.ts'
 import { recordLatency } from '../_shared/metrics.ts'
 
+// ---------------------------------------------------------------------------
+// Environment configuration
+// ---------------------------------------------------------------------------
 const supabaseUrl = Deno.env.get('SUPABASE_URL')
-const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')
+const anonKey = Deno.env.get('SUPABASE_ANON_KEY')
+const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? Deno.env.get('SERVICE_ROLE_KEY')
+console.log(`🔑 Service role key present: ${serviceRoleKey ? 'yes' : 'no'}`)
+
+// Use service-role key for server-side inserts when available (bypasses RLS)
+const supabaseKeyForWrites = serviceRoleKey ?? anonKey
+
 // Allow either AI_API_KEY (preferred) or legacy OPENAI_API_KEY for backward compatibility
 const aiApiKey: string = Deno.env.get('AI_API_KEY') ?? Deno.env.get('OPENAI_API_KEY') ?? ''
 const aiModel = Deno.env.get('AI_MODEL') || 'gpt-4o'
 console.log(`🤖 AI model selected: ${aiModel}`)
 
-// Initialize effectiveness tracking system (with null checks for tests and testing environment)
+// ---------------------------------------------------------------------------
+// Runtime flags
+// ---------------------------------------------------------------------------
 const isTestingEnvironment = Deno.env.get('DENO_TESTING') === 'true'
 
 // Prevent DENO_TESTING leakage across subsequent test files
@@ -36,21 +47,29 @@ if (isTestingEnvironment) {
   Deno.env.set('DENO_TESTING', 'false')
 }
 
-const effectivenessTracker = (supabaseUrl && supabaseKey && !isTestingEnvironment)
-  ? new EffectivenessTracker(supabaseUrl, supabaseKey)
+// ---------------------------------------------------------------------------
+// Service initialisation
+// ---------------------------------------------------------------------------
+const effectivenessTracker = (supabaseUrl && supabaseKeyForWrites && !isTestingEnvironment)
+  ? new EffectivenessTracker(supabaseUrl, supabaseKeyForWrites)
   : null
 const strategyOptimizer = effectivenessTracker ? new StrategyOptimizer(effectivenessTracker) : null
-const frequencyOptimizer = (supabaseUrl && supabaseKey && !isTestingEnvironment)
-  ? new FrequencyOptimizer(supabaseUrl, supabaseKey)
+const frequencyOptimizer = (supabaseUrl && anonKey && !isTestingEnvironment)
+  ? new FrequencyOptimizer(supabaseUrl, anonKey)
   : null
 
-// Initialize cross-patient patterns service for Epic 3.1 preparation
-const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? Deno.env.get('SERVICE_ROLE_KEY')
-const crossPatientService = (supabaseUrl && supabaseKey && serviceRoleKey && !isTestingEnvironment)
-  ? new CrossPatientPatternsService(
-    createClient(supabaseUrl, serviceRoleKey),
-  )
-  : null
+// Initialize cross-patient patterns service lazily to avoid supabase-js at compile time.
+let crossPatientService: CrossPatientPatternsService | null = null
+if (supabaseUrl && anonKey && serviceRoleKey && !isTestingEnvironment) {
+  ;(async () => {
+    try {
+      const client = await getSupabaseClient({ overrideKey: serviceRoleKey })
+      crossPatientService = new CrossPatientPatternsService(client)
+    } catch (err) {
+      console.warn('Failed to init crossPatientService', err)
+    }
+  })()
+}
 
 // TODO: Move model-ID lookup into prompt-builder.ts once we firm up tiered pricing
 // This will allow for dynamic model selection based on user tier, conversation complexity, etc.
@@ -468,6 +487,7 @@ async function _handleConversation(
     console.log(`🔍 Auth Debug - isTestUser: ${isTestUser}`)
     console.log(`🔍 Auth Debug - authToken present: ${!!authToken}`)
     console.log(`🔍 Auth Debug - authToken length: ${authToken?.length || 0}`)
+    console.log(`🔐 Using service role key for writes: ${serviceRoleKey ? 'yes' : 'no'}`)
 
     if (isDevelopmentMode && isTestUser && !authToken) {
       // Allow development mode with test user ID (no auth required)
@@ -496,13 +516,13 @@ async function _handleConversation(
           // Skip JWT validation in test environment
           console.log(`🧪 Test environment: skipping JWT validation for user ${user_id}`)
         } else {
-          if (!supabaseUrl || !supabaseKey) {
+          if (!supabaseUrl || !supabaseKeyForWrites) {
             return new Response(
               JSON.stringify({ error: 'Internal server error' }),
               { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
             )
           }
-          const supabase = createClient(supabaseUrl, supabaseKey)
+          const supabase = await getSupabaseClient({ overrideKey: supabaseKeyForWrites! })
           const { data: user, error: authError } = await supabase.auth.getUser(authToken)
           if (authError || !user?.user || user.user.id !== user_id) {
             return new Response(

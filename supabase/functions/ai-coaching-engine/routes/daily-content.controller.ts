@@ -2,7 +2,7 @@
 // Controller for POST /generate-daily-content endpoint.
 // Expects DailyContentRequest and returns JSON<GeneratedContent>
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { getSupabaseClient } from '../_shared/supabase_client.ts'
 import { DailyContentRequest } from '../types.ts'
 import { generateDailyHealthContent } from '../services/daily-content.service.ts'
 
@@ -12,6 +12,8 @@ interface ControllerOptions {
   supabaseUrl?: string | null
   serviceRoleKey?: string | null
 }
+
+type SupabaseClient = any
 
 export async function dailyContentController(
   req: Request,
@@ -39,7 +41,7 @@ export async function dailyContentController(
     if (isTestingEnv) throw new Error('Daily content generation not supported in test environment')
     if (!supabaseUrl || !serviceRoleKey) throw new Error('Missing Supabase configuration')
 
-    const supabase = createClient(supabaseUrl, serviceRoleKey)
+    const supabase: SupabaseClient = await getSupabaseClient({ overrideKey: serviceRoleKey })
 
     if (!force_regenerate) {
       const { data: existing } = await supabase

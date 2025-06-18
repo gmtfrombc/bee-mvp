@@ -1,7 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getSupabaseClient } from "../_shared/supabase_client.ts";
 
 const STEP_GOAL = 10000; // default daily step goal for goal-tracking (can be user-specific later)
+
+type SupabaseClient = any;
 
 serve(async (req) => {
     if (req.method === "OPTIONS") return new Response("ok");
@@ -14,11 +16,10 @@ serve(async (req) => {
     const targetDate = url.searchParams.get("date") ||
         new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split("T")[0];
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
     const serviceRole = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ||
-        Deno.env.get("SERVICE_ROLE_KEY") || "";
+        Deno.env.get("SERVICE_ROLE_KEY");
 
-    const client = createClient(supabaseUrl, serviceRole);
+    const client: SupabaseClient = await getSupabaseClient(serviceRole);
 
     try {
         // fetch distinct users with any data for date

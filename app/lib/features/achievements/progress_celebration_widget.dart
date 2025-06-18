@@ -30,10 +30,8 @@ class _ProgressCelebrationListenerState
   MomentumState? _prevMomentumState;
 
   @override
-  void initState() {
-    super.initState();
-
-    // Listen to streak updates (AsyncValue<int>)
+  Widget build(BuildContext context) {
+    // Register listeners inside build (required by Riverpod v2+)
     ref.listen<AsyncValue<int>>(streakProvider, (previous, next) {
       final prevValue = previous?.value ?? _prevStreak;
       final currentValue = next.value ?? _prevStreak;
@@ -46,13 +44,11 @@ class _ProgressCelebrationListenerState
       );
       if (milestone == _MilestoneType.streak7) {
         _showCelebration(message: '🎉 7-day streak! Keep the momentum going!');
-        // Award badge only once per milestone
         _awardSevenDayBadge();
       }
       _prevStreak = currentValue;
     });
 
-    // Listen to momentum state changes
     ref.listen<MomentumState?>(momentumStateProvider, (previous, next) {
       final milestone = _detectMilestone(
         previousStreak: _prevStreak,
@@ -65,6 +61,8 @@ class _ProgressCelebrationListenerState
       }
       _prevMomentumState = next;
     });
+
+    return widget.child;
   }
 
   _MilestoneType? _detectMilestone({
@@ -108,10 +106,5 @@ class _ProgressCelebrationListenerState
         duration: const Duration(seconds: 3),
       ),
     );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return widget.child;
   }
 }

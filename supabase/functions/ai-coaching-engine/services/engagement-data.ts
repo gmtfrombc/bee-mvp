@@ -1,4 +1,4 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
+import { getSupabaseClient } from '../_shared/supabase_client.ts'
 import { EngagementEvent } from '../personalization/pattern-analysis.ts'
 
 /**
@@ -23,7 +23,12 @@ export class EngagementDataService {
       Deno.env.get('SERVICE_ROLE_KEY')
 
     if (supabaseUrl && supabaseServiceRoleKey) {
-      this.supabase = createClient(supabaseUrl, supabaseServiceRoleKey)
+      // Initialize client asynchronously to avoid blocking constructor
+      getSupabaseClient({ overrideKey: supabaseServiceRoleKey })
+        .then((c) => {
+          this.supabase = c
+        })
+        .catch((err) => console.error('Supabase init failed', err))
     }
   }
 
@@ -57,10 +62,13 @@ export class EngagementDataService {
       const supabaseUrl = Deno.env.get('SUPABASE_URL')!
       const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
-      const client = authToken
-        ? createClient(supabaseUrl, supabaseServiceRoleKey, {
-          global: { headers: { Authorization: `Bearer ${authToken}` } },
-        })
+      const client: any = authToken
+        ? (await (async () => {
+          const { createClient } = await import('npm:@supabase/supabase-js@2')
+          return createClient(supabaseUrl, supabaseServiceRoleKey, {
+            global: { headers: { Authorization: `Bearer ${authToken}` } },
+          })
+        })())
         : this.supabase
 
       // Query engagement events for the user in the last 7 days

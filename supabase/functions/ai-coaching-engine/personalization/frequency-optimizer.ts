@@ -3,7 +3,7 @@
  * Determines optimal coaching frequency for each user based on behavior patterns (T1.3.2.7)
  */
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
+import { getSupabaseClient } from '../_shared/supabase_client.ts'
 
 interface FrequencyOptimization {
   userId: string
@@ -26,10 +26,12 @@ interface UserCoachingPreferences {
 }
 
 export class FrequencyOptimizer {
-  protected supabase
+  protected supabase: any = null
 
-  constructor(supabaseUrl: string, supabaseKey: string) {
-    this.supabase = createClient(supabaseUrl, supabaseKey)
+  constructor(_supabaseUrl?: string, overrideKey?: string) {
+    ;(async () => {
+      this.supabase = await getSupabaseClient({ overrideKey })
+    })()
   }
 
   /**

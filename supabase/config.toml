@@ -314,3 +314,6 @@ s3_secret_key = "env(S3_SECRET_KEY)"
 # managed via `supabase secrets`.
 
 # Instead, place ENVIRONMENT variable in an .env file (see comments below).
+
+[functions.daily-content-generator]
+verify_jwt = false

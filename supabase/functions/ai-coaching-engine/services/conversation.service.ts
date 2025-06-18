@@ -2,7 +2,7 @@
 // Conversation service extracted from previous handleConversation logic.
 // Provides processConversation that returns an HTTP Response for the conversational coaching endpoint.
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { getSupabaseClient } from '../_shared/supabase_client.ts'
 import { buildPrompt } from '../prompt-builder.ts'
 import { detectRedFlags } from '../middleware/safety/red-flag-detector.ts'
 import { analyzeSentiment, type SentimentResult } from '../sentiment/sentiment-analyzer.ts'
@@ -46,8 +46,8 @@ export async function processConversation(
   const IS_TEST_ENV = isTestingEnv
 
   // Initialize trackers lazily to avoid network calls in tests
-  const effTracker = (!IS_TEST_ENV && SUPABASE_URL && SUPABASE_ANON)
-    ? new EffectivenessTracker(SUPABASE_URL, SUPABASE_ANON)
+  const effTracker = (!IS_TEST_ENV && SUPABASE_URL && SERVICE_ROLE_KEY)
+    ? new EffectivenessTracker(SUPABASE_URL, SERVICE_ROLE_KEY)
     : null
   const stratOptimizer = effTracker ? new StrategyOptimizer(effTracker) : null
 
@@ -98,7 +98,7 @@ export async function processConversation(
       if (!SUPABASE_URL || !SUPABASE_ANON) {
         return json({ error: 'Internal server error' }, 500, cors)
       }
-      const supabase = createClient(SUPABASE_URL, SUPABASE_ANON)
+      const supabase = await getSupabaseClient({ overrideKey: SUPABASE_ANON })
       const { data: user, error: authErr } = await supabase.auth.getUser(authToken || '')
       if (authErr || !user?.user || user.user.id !== user_id) {
         return json({ error: 'Unauthorized' }, 401, cors)

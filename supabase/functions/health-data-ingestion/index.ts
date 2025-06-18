@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getSupabaseClient } from "../_shared/supabase_client.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -34,6 +34,8 @@ interface ProcessingResult {
     diagnostics: Record<string, any>;
 }
 
+type SupabaseClient = any;
+
 serve(async (req) => {
     // Handle CORS preflight requests
     if (req.method === "OPTIONS") {
@@ -57,10 +59,11 @@ serve(async (req) => {
     const startTime = Date.now();
 
     try {
-        // Initialize Supabase client
-        const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-        const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-        const supabase = createClient(supabaseUrl, supabaseServiceKey);
+        // Initialize Supabase client lazily
+        const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+        const supabase: SupabaseClient = await getSupabaseClient(
+            supabaseServiceKey,
+        );
 
         // Get authorization header
         const authHeader = req.headers.get("Authorization");
@@ -285,7 +288,7 @@ function validateBatch(
 }
 
 async function processHealthDataBatch(
-    supabase: any,
+    supabase: SupabaseClient,
     batch: HealthDataBatch,
     userId: string,
 ): Promise<ProcessingResult> {

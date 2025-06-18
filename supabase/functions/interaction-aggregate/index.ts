@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getSupabaseClient } from "../_shared/supabase_client.ts";
 
 const cors = {
     "Access-Control-Allow-Origin": "*",
@@ -8,6 +8,11 @@ const cors = {
 };
 
 const API_VERSION = "1";
+
+type SupabaseClientLike = {
+    from: (...args: unknown[]) => unknown;
+    rpc: (...args: unknown[]) => unknown;
+};
 
 export async function handleRequest(req: Request): Promise<Response> {
     if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
@@ -33,8 +38,7 @@ export async function handleRequest(req: Request): Promise<Response> {
         : new Date(Date.now() - 24 * 60 * 60 * 1000);
     const ymd = targetDate.toISOString().slice(0, 10);
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
-    const client = createClient(supabaseUrl, srKey || "");
+    const client = await getSupabaseClient(srKey) as SupabaseClientLike;
 
     try {
         // Fetch aggregated stats per user for the day

@@ -1,4 +1,4 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+// No runtime supabase client needed – removed static import to reduce bundle size
 
 // Listener for inserts/updates to `public.wearable_daily_summary`
 // Triggers evaluation of JITAI rules via the ai-coaching-engine Edge Function.
