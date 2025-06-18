@@ -2,7 +2,7 @@
 // Exports live streaming metrics for Grafana dashboard consumption
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getSupabaseClient } from "../_shared/supabase_client.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -19,23 +19,31 @@ interface WearableMetrics {
     total_errors: number;
 }
 
+// Lightweight structural alias for Supabase client used here
+type DBSupabaseClient = {
+    from: (table: string) => {
+        select: (...args: unknown[]) => QueryBuilder;
+        insert: (
+            values: Record<string, unknown>,
+        ) => Promise<{ error: Error | null }>;
+    };
+};
+
+type QueryBuilder = {
+    gte: (...args: unknown[]) => QueryBuilder;
+    order: (
+        ...args: unknown[]
+    ) => Promise<{ data: any[]; error: Error | null }>;
+};
+
 serve(async (req) => {
     if (req.method === "OPTIONS") {
         return new Response("ok", { headers: corsHeaders });
     }
 
     try {
-        const supabaseClient = createClient(
-            Deno.env.get("SUPABASE_URL") ?? "",
-            Deno.env.get("SUPABASE_ANON_KEY") ?? "",
-            {
-                global: {
-                    headers: {
-                        Authorization: req.headers.get("Authorization")!,
-                    },
-                },
-            },
-        );
+        const supabaseClient =
+            await getSupabaseClient() as unknown as DBSupabaseClient;
 
         if (req.method === "GET") {
             return handleMetricsQuery(supabaseClient, req);
@@ -67,7 +75,7 @@ serve(async (req) => {
 });
 
 async function handleMetricsQuery(
-    supabaseClient: any,
+    supabaseClient: DBSupabaseClient,
     req: Request,
 ): Promise<Response> {
     const url = new URL(req.url);
@@ -80,11 +88,14 @@ async function handleMetricsQuery(
         const startTime = new Date(now.getTime() - parseTimeRange(timeRange));
 
         // Query recent wearable live metrics
-        const { data: metrics, error } = await supabaseClient
+        const { data: metrics, error } = await (supabaseClient
             .from("wearable_live_metrics")
             .select("*")
             .gte("timestamp", startTime.toISOString())
-            .order("timestamp", { ascending: true });
+            .order("timestamp", { ascending: true }) as unknown as {
+                data: any[];
+                error: Error | null;
+            });
 
         if (error) {
             throw error;
@@ -129,7 +140,7 @@ async function handleMetricsQuery(
 }
 
 async function handleMetricsIngest(
-    supabaseClient: any,
+    supabaseClient: DBSupabaseClient,
     req: Request,
 ): Promise<Response> {
     try {
@@ -150,7 +161,7 @@ async function handleMetricsIngest(
         }
 
         // Insert metrics into database
-        const { error } = await supabaseClient
+        const { error } = await (supabaseClient
             .from("wearable_live_metrics")
             .insert({
                 user_id,
@@ -161,7 +172,7 @@ async function handleMetricsIngest(
                 total_messages: metrics.total_messages || 0,
                 total_errors: metrics.total_errors || 0,
                 metadata: metrics.metadata || {},
-            });
+            }) as unknown as { error: Error | null });
 
         if (error) {
             throw error;

@@ -17,6 +17,35 @@ export interface AIResponse {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Response shapes for supported providers
+// ---------------------------------------------------------------------------
+
+interface OpenAIUsage {
+  prompt_tokens: number
+  completion_tokens: number
+  total_tokens: number
+}
+
+interface OpenAIChoice {
+  message: {
+    content: string
+  }
+}
+
+interface OpenAIResponse {
+  choices: OpenAIChoice[]
+  usage?: OpenAIUsage
+}
+
+interface AnthropicContentBlock {
+  text: string
+}
+
+interface AnthropicResponse {
+  content?: AnthropicContentBlock[]
+}
+
 export async function callAIAPI(prompt: AIMessage[]): Promise<AIResponse> {
   // --- Fail-over & timeout configuration ----------------------------------
   // Hard latency budget (ms) before falling back to local stub to guarantee
@@ -152,21 +181,27 @@ export async function callAIAPI(prompt: AIMessage[]): Promise<AIResponse> {
     }
   }
 
-  const data = await res.json()
+  const data: unknown = await res.json()
 
   // ----------------------------- Parse ------------------------------------
-  const isOpenAI = (data as any)?.choices?.[0]?.message?.content !== undefined
 
-  if (isOpenAI) {
-    const text = (data as any).choices[0].message.content as string
-    const usage = (data as any).usage
+  // NARROW: OpenAI format has a choices array with a message.content string
+  const looksLikeOpenAI = typeof data === 'object' &&
+    data !== null &&
+    Array.isArray((data as Partial<OpenAIResponse>).choices) &&
+    ((data as Partial<OpenAIResponse>).choices?.[0]?.message?.content ?? false)
+
+  if (looksLikeOpenAI) {
+    const oa = data as OpenAIResponse
+    const text = oa.choices[0].message.content
+    const usage = oa.usage
     let cost = 0
     if (usage) {
-      const pricing = {
+      const pricing: Record<string, { prompt: number; completion: number }> = {
         'gpt-4o': { prompt: 0.005, completion: 0.015 },
         'gpt-4o-mini': { prompt: 0.003, completion: 0.009 },
         'gpt-3.5-turbo': { prompt: 0.0005, completion: 0.0015 },
-      } as Record<string, { prompt: number; completion: number }>
+      }
       const price = pricing[aiModel] ?? { prompt: 0.0, completion: 0.0 }
       cost = ((usage.prompt_tokens || 0) * price.prompt +
         (usage.completion_tokens || 0) * price.completion) / 1000
@@ -186,7 +221,8 @@ export async function callAIAPI(prompt: AIMessage[]): Promise<AIResponse> {
   }
 
   // Anthropic Claude shape (or any provider with similar structure)
-  const text = (data as any).content?.[0]?.text ??
+  const anthropic = data as AnthropicResponse
+  const text = anthropic.content?.[0]?.text ??
     'I apologize, but I cannot respond right now.'
   return { text }
 }

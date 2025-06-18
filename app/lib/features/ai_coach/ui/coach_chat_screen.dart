@@ -31,20 +31,6 @@ class _CoachChatScreenState extends ConsumerState<CoachChatScreen> {
   void initState() {
     super.initState();
     _initializeChat();
-
-    // Listen to real-time coach stream events
-    ref.listen<AsyncValue<CoachStreamEvent>>(coachStreamProvider, (prev, next) {
-      next.whenData((event) {
-        if (event.type == 'typing') {
-          final isTyping = event.data['typing'] == true;
-          if (mounted && _isTyping != isTyping) {
-            setState(() => _isTyping = isTyping);
-            if (!isTyping) _scrollToBottom();
-          }
-        }
-        // Future: handle momentum_update events here
-      });
-    });
   }
 
   @override
@@ -199,6 +185,21 @@ class _CoachChatScreenState extends ConsumerState<CoachChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Listen to real-time coach stream events (must be inside build)
+    ref.listen<AsyncValue<CoachStreamEvent>>(coachStreamProvider, (prev, next) {
+      next.whenData((event) {
+        if (event.type == 'typing') {
+          final isTyping = event.data['typing'] == true;
+          if (mounted && _isTyping != isTyping) {
+            setState(() => _isTyping = isTyping);
+            if (!isTyping) _scrollToBottom();
+          }
+        }
+        // Future: handle momentum_update events here
+      });
+    });
+
+    final theme = Theme.of(context);
     final spacing = ResponsiveService.getMediumSpacing(context);
 
     return MomentumScaffold(
@@ -218,7 +219,7 @@ class _CoachChatScreenState extends ConsumerState<CoachChatScreen> {
                 children: [
                   Text(
                     'Quick suggestions:',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    style: theme.textTheme.titleMedium?.copyWith(
                       color: AppTheme.getTextSecondary(context),
                     ),
                   ),

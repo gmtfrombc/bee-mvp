@@ -46,6 +46,12 @@ alwaysApply: false        # Use “@ bee_mvp” in chat or let Cursor auto‑att
 ## 5. AI Coach Guard‑Rails
 *(Auto‑attach when working in `lib/features/ai_coach/**` or `functions/ai-coaching-engine/**`)*
 
+## 6. Permissions and Expectations
+
+> “Run whatever CLI or shell commands are needed to finish the task.
+> Assume you have full terminal access and my approval.
+> If a secret or environment variable is required, tell me which one and then continue.”
+
 ```yaml
 globs:
   - lib/features/ai_coach/**

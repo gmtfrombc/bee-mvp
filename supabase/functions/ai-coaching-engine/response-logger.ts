@@ -1,4 +1,5 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+// dynamic supabase client import helper
+import { getSupabaseClient } from './_shared/supabase_client.ts'
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!
 const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!
@@ -49,6 +50,7 @@ export async function logConversation(
     console.log(`🧪 Using key type: ${serviceRoleKey ? 'service_role' : 'anon'}`)
   }
 
+  const { createClient } = await import('npm:@supabase/supabase-js@2')
   const supabase = createClient(supabaseUrl, keyToUse, {
     global: {
       headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
@@ -112,6 +114,7 @@ export async function getRecentMessages(
     ? (Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || supabaseKey)
     : supabaseKey
 
+  const { createClient } = await import('npm:@supabase/supabase-js@2')
   const supabase = createClient(supabaseUrl, keyToUse, {
     global: {
       headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},

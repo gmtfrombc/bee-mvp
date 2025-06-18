@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getSupabaseClient } from "../_shared/supabase_client.ts";
 
 /*
  * Wearable Data Anomaly Detector – T2.2.3.7
@@ -28,6 +28,11 @@ const cors = {
         "authorization, x-client-info, apikey, content-type",
 };
 
+// Minimal structural type for query chaining
+type SupabaseClientLike = {
+    from: (...args: unknown[]) => any;
+};
+
 serve(async (req) => {
     if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
     if (req.method !== "POST" && req.method !== "GET") {
@@ -40,10 +45,9 @@ serve(async (req) => {
     const url = new URL(req.url);
     const targetDate = url.searchParams.get("date") ||
         new Date().toISOString().split("T")[0];
-    const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
     const serviceRole = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ||
-        Deno.env.get("SERVICE_ROLE_KEY") || "";
-    const client = createClient(supabaseUrl, serviceRole);
+        Deno.env.get("SERVICE_ROLE_KEY");
+    const client = await getSupabaseClient(serviceRole) as SupabaseClientLike;
 
     try {
         // Pull day samples
@@ -61,7 +65,7 @@ serve(async (req) => {
             );
         }
 
-        const anomalies = [] as any[];
+        const anomalies: Array<Record<string, unknown>> = [];
 
         for (const s of samples) {
             const rule = anomalyRules.find((r) => r.data_type === s.data_type);

@@ -1,8 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import {
-    createClient,
-    SupabaseClient,
-} from "https://esm.sh/@supabase/supabase-js@2";
+import { getSupabaseClient } from "../_shared/supabase_client.ts";
 import { enforceRateLimit, RateLimitError } from "../_shared/rate-limit.ts";
 
 const cors = {
@@ -12,6 +9,9 @@ const cors = {
 };
 
 const API_VERSION = "1";
+
+// Type placeholders to avoid static dependency
+type SupabaseClient = any;
 
 export async function handleRequest(req: Request): Promise<Response> {
     if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
@@ -72,11 +72,12 @@ export async function handleRequest(req: Request): Promise<Response> {
             matches("/history") || matches("/trend")
         ) {
             // Create client lazily only when needed
-            const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
-            const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || "";
+            const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || undefined;
             const serviceRole = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ||
-                Deno.env.get("SERVICE_ROLE_KEY") || "";
-            const client = createClient(supabaseUrl, serviceRole || anonKey);
+                Deno.env.get("SERVICE_ROLE_KEY") || undefined;
+            const client: SupabaseClient = await getSupabaseClient(
+                serviceRole || anonKey,
+            );
 
             if (matches("/daily-sleep-score")) {
                 res = await handleSleepScore(url, client);
@@ -273,7 +274,7 @@ async function logUsage(
     const isTest = Deno.env.get("DENO_TESTING") === "true";
     if (!supabaseUrl || !key || isTest) return;
     try {
-        const client = createClient(supabaseUrl, key);
+        const client = await getSupabaseClient(key);
         await client.from("api_usage_log").insert({
             endpoint,
             user_id: userId,

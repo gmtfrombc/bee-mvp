@@ -1,4 +1,6 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { getSupabaseClient } from '../_shared/supabase_client.ts'
+
+type SupabaseClient = any
 
 export async function recordJITAIOutcome(
   userId: string,
@@ -15,7 +17,7 @@ export async function recordJITAIOutcome(
     console.log('[JITAI-Outcome]', userId, triggerId, outcome)
     return
   }
-  const client = createClient(supabaseUrl, serviceRoleKey)
+  const client: SupabaseClient = await getSupabaseClient({ overrideKey: serviceRoleKey })
   const { error } = await client.from('jitai_effectiveness').insert({
     user_id: userId,
     trigger_id: triggerId,

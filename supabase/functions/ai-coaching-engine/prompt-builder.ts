@@ -3,13 +3,68 @@ import type { PatternSummary } from './personalization/pattern-analysis.ts'
 import type { ConversationLog } from './response-logger.ts'
 import type { SentimentResult } from './sentiment/sentiment-analyzer.ts'
 
-// Directory holding momentum-specific conversation templates
-const CONVERSATION_TEMPLATE_DIR = 'docs/ai_coach/prompt_templates'
+// Directory holding momentum-specific conversation templates (bundled with the function)
+const CONVERSATION_TEMPLATE_DIR = 'prompt_templates'
+
+// Local template paths (resolved relative to the function's working dir)
+const SAFETY_TEMPLATE_PATH = `${CONVERSATION_TEMPLATE_DIR}/safety.md`
+const SYSTEM_TEMPLATE_PATH = `${CONVERSATION_TEMPLATE_DIR}/system.md`
+
+// ---------------------------------------------------------------------------
+// Embedded core templates – avoids runtime file reads & bundling issues
+// ---------------------------------------------------------------------------
+
+const SYSTEM_TEMPLATE_CONTENT = `# BEE AI Coach System Prompt
+
+You are a behavioral engagement coach for the BEE mobile app, designed to help users build momentum in their personal goals and habits.
+
+## Your Coaching Identity:
+- **Warm but focused**: Supportive yet goal-oriented
+- **Evidence-based**: Ground advice in behavioral psychology
+- **Personalized**: Adapt to user's patterns and preferences
+- **Practical**: Offer concrete, actionable steps
+
+## Current User Context:
+- **Momentum State**: {{momentum_state}}
+- **Coaching Persona**: {{persona}}
+- **Engagement Patterns**: {{engagement_summary}}
+
+## Persona Adaptations:
+- **Supportive**: Focus on encouragement, emotional validation, small wins
+- **Challenging**: Push for growth, celebrate achievements, set stretch goals  
+- **Educational**: Share insights, explain behavioral principles, build understanding
+
+## Response Guidelines:
+- Keep responses conversational and under 150 words
+- Always end with a specific, actionable suggestion
+- Reference user's momentum state when relevant
+- Use "I notice..." or "It sounds like..." to show you're listening `
+
+const SAFETY_TEMPLATE_CONTENT = `# AI Coach Safety Guidelines
+
+You are an AI behavioral coach for the BEE (Behavioral Engagement Engine) app. Your role is to provide supportive, evidence-based coaching to help users build positive habits and achieve their goals.
+
+## Core Safety Rules:
+1. **Never provide medical advice** - Direct users to healthcare professionals for any health concerns
+2. **The assistant does NOT diagnose conditions** - You cannot and will not provide medical diagnoses
+3. **No crisis intervention** - If a user expresses thoughts of self-harm, provide crisis resources immediately
+4. **The assistant NEVER repeats personal identifiers** - Do not echo back SSN, addresses, or other PII
+5. **Respect boundaries** - Don't push users who express they want space or time
+6. **Evidence-based only** - Base suggestions on established behavioral science principles
+7. **Privacy protection** - Never reference other users or share personal information
+
+## Crisis Resources:
+- National Suicide Prevention Lifeline: 988
+- Crisis Text Line: Text HOME to 741741
+- International Association for Suicide Prevention: https://www.iasp.info/resources/Crisis_Centres/
+
+## Response Format:
+- Keep responses under 150 words
+- Use encouraging, non-judgmental tone
+- Focus on actionable, small steps
+- Acknowledge user's emotions without diagnosing `
 
 export type ChatPrompt = { role: 'system' | 'user' | 'assistant'; content: string }[]
-
-const SAFETY_TEMPLATE_PATH = 'docs/ai_coach/prompt_templates/safety.md'
-const SYSTEM_TEMPLATE_PATH = 'docs/ai_coach/prompt_templates/system.md'
 
 // TODO: Add model-ID lookup functionality here for tiered pricing
 // Future: selectModelForUser(userId, conversationComplexity, userTier) => modelId
@@ -89,38 +144,31 @@ export async function buildPrompt(
  * Loads a prompt template from the filesystem
  */
 async function loadTemplate(templatePath: string): Promise<string> {
-  // Attempt to read the template from multiple potential locations.
-  const candidatePaths = [
-    templatePath, // original relative path (when executed from project root)
-    `../../${templatePath}`,
-    `../../../${templatePath}`,
-  ]
+  // For core templates, return embedded strings directly – ensures availability
+  if (templatePath === SAFETY_TEMPLATE_PATH) return SAFETY_TEMPLATE_CONTENT
+  if (templatePath === SYSTEM_TEMPLATE_PATH) return SYSTEM_TEMPLATE_CONTENT
 
-  for (const path of candidatePaths) {
-    try {
-      const content = await Deno.readTextFile(path)
-      return content.trim()
-    } catch (_) {
-      // continue trying next path
+  // For other templates (e.g., momentum-specific), attempt to read from file system
+  try {
+    const fileUrl = new URL(`./${templatePath}`, import.meta.url)
+    const content = await Deno.readTextFile(fileUrl)
+    return content.trim()
+  } catch (_) {
+    // Inline fallback templates (minimal) if file cannot be loaded
+    const fallbackTemplates: Record<string, string> = {
+      [SAFETY_TEMPLATE_PATH]:
+        `You are an AI health coach. Follow HIPAA and privacy best practices. Never provide medical diagnosis. Encourage users to consult professionals for medical advice.`,
+      [SYSTEM_TEMPLATE_PATH]:
+        `You are a supportive digital coach.\n\nCurrent momentum state: {{momentum_state}}.\nPersona: {{persona}}.\nEngagement summary: {{engagement_summary}}.`,
     }
+
+    if (fallbackTemplates[templatePath]) {
+      console.warn(`📄 Template file not bundled (${templatePath}) – using inline fallback`)
+      return fallbackTemplates[templatePath]
+    }
+
+    throw new Error(`Template not found: ${templatePath}`)
   }
-
-  // Inline fallback templates (minimal) if file cannot be loaded
-  const fallbackTemplates: Record<string, string> = {
-    [SAFETY_TEMPLATE_PATH]:
-      `You are an AI health coach. Follow HIPAA and privacy best practices. Never provide medical diagnosis. Encourage users to consult professionals for medical advice.`,
-    [SYSTEM_TEMPLATE_PATH]:
-      `You are a supportive digital coach.\n\nCurrent momentum state: {{momentum_state}}.\nPersona: {{persona}}.\nEngagement summary: {{engagement_summary}}.`,
-  }
-
-  console.error(`Failed to load template after checking paths: ${candidatePaths.join(', ')}`)
-
-  if (fallbackTemplates[templatePath]) {
-    console.log(`🧪 Using inline fallback for template: ${templatePath}`)
-    return fallbackTemplates[templatePath]
-  }
-
-  throw new Error(`Template not found: ${templatePath}`)
 }
 
 /**
@@ -139,7 +187,8 @@ async function loadMomentumConversationTemplate(momentumState: string): Promise<
 
   for (const path of candidateFiles) {
     try {
-      const content = await Deno.readTextFile(path)
+      const fileUrl = new URL(`./${path}`, import.meta.url)
+      const content = await Deno.readTextFile(fileUrl)
       return content.trim()
     } catch (_) {
       // continue

@@ -1,14 +1,9 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getSupabaseClient } from "./supabase_client.ts";
 
-const url = Deno.env.get("SUPABASE_URL");
-const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ??
-    Deno.env.get("SERVICE_ROLE_KEY");
-
-let supabase = null as ReturnType<typeof createClient> | null;
-function client() {
-    if (!url || !key) throw new Error("Metrics util missing env");
-    if (!supabase) supabase = createClient(url, key);
-    return supabase!;
+let supabase: Awaited<ReturnType<typeof getSupabaseClient>> | null = null;
+async function client() {
+    if (!supabase) supabase = await getSupabaseClient();
+    return supabase;
 }
 
 /**
@@ -17,7 +12,8 @@ function client() {
 export async function recordLatency(path: string, ms: number): Promise<void> {
     if (Deno.env.get("DENO_TESTING") === "true") return; // skip in tests
     try {
-        await client()
+        const db = await client();
+        await db
             .from("api_latency")
             .insert({
                 path,

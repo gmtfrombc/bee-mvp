@@ -1,4 +1,4 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { getSupabaseClient } from '../_shared/supabase_client.ts'
 import { JITAITrigger } from '../types.ts'
 
 /**
@@ -22,7 +22,7 @@ export async function enqueueJITAITriggers(
     return
   }
 
-  const client = createClient(supabaseUrl, serviceRoleKey)
+  const client: any = await getSupabaseClient({ overrideKey: serviceRoleKey })
   // Map each trigger to a push record. Assume queue table exists with payload JSON.
   const rows = triggers.map((t) => ({
     user_id: userId,

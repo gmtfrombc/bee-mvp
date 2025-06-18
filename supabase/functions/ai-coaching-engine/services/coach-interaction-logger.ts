@@ -1,4 +1,4 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { getSupabaseClient } from '../_shared/supabase_client.ts'
 import { getEmbedding } from './embedding.service.ts'
 
 interface LogParams {
@@ -23,7 +23,7 @@ export async function logCoachInteraction({ userId, sender, message, metadata = 
     return
   }
 
-  const client = createClient(url, key)
+  const client: any = await getSupabaseClient({ overrideKey: key })
   const embedding = await getEmbedding(message)
   await client.from('coach_interactions').insert({
     user_id: userId,

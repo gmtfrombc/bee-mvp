@@ -38,14 +38,13 @@ export interface PatternAggregateQuery {
     startWeek: string // ISO date string
     endWeek: string // ISO date string
   }
-  patternTypes:
-    (
-      | 'engagement_peak'
-      | 'volatility_trend'
-      | 'persona_effectiveness'
-      | 'intervention_timing'
-      | 'response_frequency'
-    )[]
+  patternTypes: (
+    | 'engagement_peak'
+    | 'volatility_trend'
+    | 'persona_effectiveness'
+    | 'intervention_timing'
+    | 'response_frequency'
+  )[]
   momentumStates?: ('Rising' | 'Steady' | 'NeedsCare')[]
   minConfidenceLevel?: number // 0.0 to 1.0
   minCohortSize?: number // Minimum users for privacy
@@ -119,7 +118,7 @@ export interface InsightGenerationOutput {
     id: string
     type: string
     recommendation: string
-    data: Record<string, any>
+    data: Record<string, unknown>
     confidence: number
     supportingEvidence: string[]
     applicableWeek: string
@@ -155,7 +154,7 @@ export interface EventStreamingContract {
   payloadFormat: {
     eventType: string
     timestamp: string
-    data: Record<string, any>
+    data: Record<string, unknown>
     metadata: {
       source: string
       version: string
@@ -228,7 +227,7 @@ export interface Epic31MigrationUtils {
   }>
 
   // Schema evolution
-  validateSchemaCompatibility(newSchema: any): Promise<{
+  validateSchemaCompatibility(newSchema: unknown): Promise<{
     compatible: boolean
     requiredChanges: string[]
     breakingChanges: string[]

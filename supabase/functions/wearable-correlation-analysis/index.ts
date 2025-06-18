@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getSupabaseClient } from "../_shared/supabase_client.ts";
 
 /*
  * Wearable Correlation Analysis – T2.2.3.8
@@ -43,10 +43,9 @@ serve(async (req) => {
     const url = new URL(req.url);
     const targetDate = url.searchParams.get("date") ||
         new Date().toISOString().split("T")[0];
-    const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
     const serviceRole = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ||
-        Deno.env.get("SERVICE_ROLE_KEY") || "";
-    const client = createClient(supabaseUrl, serviceRole);
+        Deno.env.get("SERVICE_ROLE_KEY");
+    const client: any = await getSupabaseClient(serviceRole);
 
     try {
         const { data: summaries, error } = await client
