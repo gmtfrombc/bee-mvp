@@ -4,6 +4,7 @@ import 'package:app/core/providers/vitals_notifier_provider.dart';
 import 'package:app/core/services/responsive_service.dart';
 import 'package:app/core/services/vitals_notifier_service.dart';
 import 'package:app/core/providers/analytics_provider.dart';
+import 'package:intl/intl.dart';
 
 /// StepsTile widget - shows live steps count from VitalsNotifier
 class StepsTile extends ConsumerStatefulWidget {
@@ -49,11 +50,22 @@ class _StepsTileState extends ConsumerState<StepsTile> {
 
   Widget _buildCard(BuildContext context, AsyncValue<VitalsData> vitalsAsync) {
     return Card(
+      elevation: 0,
+      color: Theme.of(
+        context,
+      ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
-        padding: ResponsiveService.getMediumPadding(context),
+        padding: ResponsiveService.getLargePadding(context),
         child: vitalsAsync.when(
           data: (vitals) => _buildContent(context, vitals),
-          loading: () => _buildLoadingState(context),
+          loading: () {
+            final cached = ref.read(currentVitalsProvider);
+            if (cached != null) {
+              return _buildContent(context, cached);
+            }
+            return _buildEmptyState(context);
+          },
           error: (error, _) => _buildErrorState(context),
         ),
       ),
@@ -67,49 +79,61 @@ class _StepsTileState extends ConsumerState<StepsTile> {
 
     final qualityColor = _getQualityColor(vitals.quality);
     final stepsValue = vitals.steps ?? 0;
+    final timeStr = DateFormat('h:mm a').format(vitals.timestamp);
 
     return Semantics(
-      label: 'Steps $stepsValue',
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
+      label: 'Steps $stepsValue at $timeStr',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.directions_walk, color: qualityColor, semanticLabel: ''),
-          SizedBox(width: ResponsiveService.getSmallSpacing(context)),
-          Text(
-            '$stepsValue',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: qualityColor,
-            ),
+          // Header row with icon + title and timestamp
+          Row(
+            children: [
+              Icon(
+                Icons.directions_walk,
+                color: Colors.orange[600],
+                size: ResponsiveService.getIconSize(context, baseSize: 20),
+                semanticLabel: '',
+              ),
+              SizedBox(width: ResponsiveService.getSmallSpacing(context)),
+              Text(
+                'Steps',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: Colors.orange[600],
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                timeStr,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
           ),
-          SizedBox(width: ResponsiveService.getTinySpacing(context)),
-          Text(
-            'steps',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLoadingState(BuildContext context) {
-    return Semantics(
-      label: 'Loading steps',
-      child: Row(
-        children: [
-          const SizedBox(
-            width: 16,
-            height: 16,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
-          SizedBox(width: ResponsiveService.getSmallSpacing(context)),
-          Text(
-            'Loading…',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
+          SizedBox(height: ResponsiveService.getMediumSpacing(context)),
+          // Main value display
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Text(
+                '$stepsValue',
+                style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+              SizedBox(width: ResponsiveService.getSmallSpacing(context)),
+              Text(
+                'steps',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
           ),
         ],
       ),

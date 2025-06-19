@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/providers/theme_provider.dart';
 import '../widgets/adaptive_polling_toggle.dart';
+import '../widgets/health_permission_toggle.dart';
 
 /// Screen for managing user profile and app settings
 class ProfileSettingsScreen extends ConsumerWidget {
@@ -257,6 +258,8 @@ class ProfileSettingsScreen extends ConsumerWidget {
             const SizedBox(height: 8),
             const Divider(),
             const AdaptivePollingToggle(),
+            const Divider(),
+            const HealthPermissionToggle(),
           ],
         ),
       ),

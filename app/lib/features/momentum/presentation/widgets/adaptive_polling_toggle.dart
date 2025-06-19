@@ -1,16 +1,20 @@
 import 'package:app/core/services/vitals_notifier_service.dart';
 import 'package:app/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:app/core/providers/vitals_notifier_provider.dart';
+import 'package:app/core/providers/supabase_provider.dart';
 
-class AdaptivePollingToggle extends StatefulWidget {
+class AdaptivePollingToggle extends ConsumerStatefulWidget {
   const AdaptivePollingToggle({super.key});
 
   @override
-  State<AdaptivePollingToggle> createState() => _AdaptivePollingToggleState();
+  ConsumerState<AdaptivePollingToggle> createState() =>
+      _AdaptivePollingToggleState();
 }
 
-class _AdaptivePollingToggleState extends State<AdaptivePollingToggle> {
+class _AdaptivePollingToggleState extends ConsumerState<AdaptivePollingToggle> {
   bool _isPollingEnabled = false;
   bool _isLoading = true;
 
@@ -35,6 +39,18 @@ class _AdaptivePollingToggleState extends State<AdaptivePollingToggle> {
     });
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(VitalsNotifierService.adaptivePollingPrefKey, value);
+
+    // Restart VitalsNotifierService with new mode so change takes effect immediately.
+    final service = ref.read(vitalsNotifierServiceProvider);
+    await service.stopSubscription();
+
+    final supabase = ref.read(supabaseClientProvider);
+    final userId = supabase.auth.currentUser?.id;
+    if (userId != null) {
+      // Ignore failure here; UI will show disconnected state if it fails.
+      // ignore: unawaited_futures
+      service.startSubscription(userId);
+    }
   }
 
   @override

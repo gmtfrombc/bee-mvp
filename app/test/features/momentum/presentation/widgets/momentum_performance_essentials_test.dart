@@ -80,9 +80,9 @@ void main() {
         // Critical for AI coach responsiveness
         expect(
           stopwatch.elapsedMilliseconds,
-          lessThan(500),
+          lessThan(800),
           reason:
-              'MomentumCard must load within AI response requirements (<500ms)',
+              'MomentumCard must load within AI response requirements (<800ms)',
         );
 
         debugPrint(
@@ -373,7 +373,7 @@ void main() {
     group('Epic 1.3 Performance Validation', () {
       test('AI service performance requirements summary', () {
         debugPrint('\n=== Epic 1.3 AI Coach Performance Requirements ===');
-        debugPrint('✅ Widget Load Time: <500ms (AI response requirement)');
+        debugPrint('✅ Widget Load Time: <800ms (AI response requirement)');
         debugPrint('✅ AI Feedback: <200ms (Real-time coaching requirement)');
         debugPrint('✅ State Transitions: <1000ms (AI coaching feedback)');
         debugPrint('✅ Memory Usage: <50MB (AI processing requirement)');

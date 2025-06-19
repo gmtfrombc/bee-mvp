@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/services/wearable_data_repository.dart';
 import '../../../core/services/wearable_data_models.dart';
@@ -94,6 +95,17 @@ class HealthPermissionsNotifier extends StateNotifier<HealthPermissionsState> {
   HealthPermissionsNotifier() : super(const HealthPermissionsState());
 
   final _repository = WearableDataRepository();
+  static const _cacheKey = 'health_permissions_granted_v1';
+
+  Future<void> _saveGrantedFlag(bool granted) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_cacheKey, granted);
+  }
+
+  Future<bool?> _loadGrantedFlag() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_cacheKey);
+  }
 
   /// Initialize the repository and check current permissions
   Future<void> initialize() async {
@@ -142,7 +154,19 @@ class HealthPermissionsNotifier extends StateNotifier<HealthPermissionsState> {
         }
       }
 
+      // If we previously cached a granted state, and no permission revocation
+      // has occurred, skip redundant dialog.
+      final cachedGranted = await _loadGrantedFlag();
+
       final status = await _repository.checkPermissions();
+
+      if (status == HealthPermissionStatus.authorized &&
+          cachedGranted != true) {
+        // Persist granted flag for next launch
+        // ignore: unawaited_futures
+        _saveGrantedFlag(true);
+      }
+
       state = state.copyWith(isLoading: false, status: status);
     } catch (e) {
       state = state.copyWith(
@@ -181,7 +205,15 @@ class HealthPermissionsNotifier extends StateNotifier<HealthPermissionsState> {
 
       final status = await _repository.requestPermissions();
 
-      if (status == HealthPermissionStatus.denied) {
+      if (status == HealthPermissionStatus.authorized) {
+        // Persist granted flag
+        // ignore: unawaited_futures
+        _saveGrantedFlag(true);
+      } else if (status == HealthPermissionStatus.denied) {
+        // Save negative
+        // ignore: unawaited_futures
+        _saveGrantedFlag(false);
+
         // Check if this was a permanent denial on Android
         if (Platform.isAndroid && _repository.hasBeenPermanentlyDenied) {
           state = state.copyWith(
@@ -204,13 +236,6 @@ class HealthPermissionsNotifier extends StateNotifier<HealthPermissionsState> {
                     : 'Permissions denied. Please enable in Settings.',
           );
         }
-      } else {
-        state = state.copyWith(
-          isLoading: false,
-          status: status,
-          showSettingsPrompt: false,
-          showHealthConnectInstallPrompt: false,
-        );
       }
     } catch (e) {
       state = state.copyWith(

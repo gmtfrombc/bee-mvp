@@ -4,6 +4,7 @@ import 'package:app/core/providers/vitals_notifier_provider.dart';
 import 'package:app/core/services/responsive_service.dart';
 import 'package:app/core/services/vitals_notifier_service.dart';
 import 'package:app/core/providers/analytics_provider.dart';
+import 'package:intl/intl.dart';
 
 /// SleepTile widget - shows total hours slept from VitalsNotifier
 class SleepTile extends ConsumerStatefulWidget {
@@ -48,11 +49,22 @@ class _SleepTileState extends ConsumerState<SleepTile> {
 
   Widget _buildCard(BuildContext context, AsyncValue<VitalsData> vitalsAsync) {
     return Card(
+      elevation: 0,
+      color: Theme.of(
+        context,
+      ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
-        padding: ResponsiveService.getMediumPadding(context),
+        padding: ResponsiveService.getLargePadding(context),
         child: vitalsAsync.when(
           data: (vitals) => _buildContent(context, vitals),
-          loading: () => _buildLoadingState(context),
+          loading: () {
+            final cached = ref.read(currentVitalsProvider);
+            if (cached != null) {
+              return _buildContent(context, cached);
+            }
+            return _buildEmptyState(context);
+          },
           error: (error, _) => _buildErrorState(context),
         ),
       ),
@@ -67,48 +79,87 @@ class _SleepTileState extends ConsumerState<SleepTile> {
     final qualityColor = _getQualityColor(vitals.quality);
 
     final hours = vitals.sleepHours ?? 0;
-    return Semantics(
-      label: 'Sleep ${hours.toStringAsFixed(1)} hours',
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Icon(Icons.bedtime, color: qualityColor, semanticLabel: ''),
-          SizedBox(width: ResponsiveService.getSmallSpacing(context)),
-          Text(
-            hours.toStringAsFixed(1),
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: qualityColor,
-            ),
-          ),
-          SizedBox(width: ResponsiveService.getTinySpacing(context)),
-          Text(
-            'hrs',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+    final timeStr = DateFormat('h:mm a').format(vitals.timestamp);
 
-  Widget _buildLoadingState(BuildContext context) {
+    // Format hours and minutes separately like Apple Health
+    final totalMinutes = (hours * 60).round();
+    final displayHours = totalMinutes ~/ 60;
+    final displayMinutes = totalMinutes % 60;
+
     return Semantics(
-      label: 'Loading sleep data',
-      child: Row(
+      label: 'Sleep $displayHours hours $displayMinutes minutes at $timeStr',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(
-            width: 16,
-            height: 16,
-            child: CircularProgressIndicator(strokeWidth: 2),
+          // Header row with icon + title and timestamp
+          Row(
+            children: [
+              Icon(
+                Icons.bedtime,
+                color: Colors.cyan[400],
+                size: ResponsiveService.getIconSize(context, baseSize: 20),
+                semanticLabel: '',
+              ),
+              SizedBox(width: ResponsiveService.getSmallSpacing(context)),
+              Text(
+                'Sleep',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: Colors.cyan[400],
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                timeStr,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
           ),
-          SizedBox(width: ResponsiveService.getSmallSpacing(context)),
+          SizedBox(height: ResponsiveService.getSmallSpacing(context)),
+          // Subtitle
           Text(
-            'Loading…',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            'Time Asleep',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
+          ),
+          SizedBox(height: ResponsiveService.getSmallSpacing(context)),
+          // Main value display - Apple style with hours and minutes
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Text(
+                '$displayHours',
+                style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+              Text(
+                'hr ',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              Text(
+                '$displayMinutes',
+                style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+              Text(
+                'min',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
           ),
         ],
       ),

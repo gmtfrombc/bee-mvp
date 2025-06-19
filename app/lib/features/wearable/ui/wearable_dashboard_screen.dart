@@ -10,6 +10,7 @@ import 'tiles/steps_tile.dart';
 import 'tiles/sleep_tile.dart';
 import 'tiles/heart_rate_tile.dart';
 import '../../../core/providers/supabase_provider.dart';
+import '../../../core/providers/analytics_provider.dart';
 
 /// Wearable Dashboard Screen – shows live health metric tiles with
 /// empty/error/loading states and pull-to-refresh. If permissions are
@@ -44,9 +45,18 @@ class _WearableDashboardScreenState
         // Simply invalidate the vitals stream & permission cache so new data
         // gets fetched. Riverpod will recreate providers.
         ref.invalidate(vitalsDataStreamProvider);
-        ref.invalidate(healthPermissionsProvider);
         // Give the UI a tiny delay so the indicator has time to show.
         await Future<void>.delayed(const Duration(milliseconds: 300));
+
+        // Emit analytics event for manual refresh
+        ref.read(analyticsServiceProvider).logEvent('vitals_manual_refresh');
+
+        if (mounted) {
+          // Provide user feedback once refresh completes.
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Vitals updated')));
+        }
       },
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
