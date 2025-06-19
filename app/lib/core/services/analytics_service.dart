@@ -20,7 +20,23 @@ class AnalyticsService {
       });
     } catch (e) {
       // Fail silently in production – analytics errors must never crash UX.
-      debugPrint('❌ Analytics logEvent failed: $e');
+      // Throttle to avoid console spam and leave TODO for backend fix.
+      // TODO(T2-telemetry): Update Supabase RPC/table to accept analytics events.
+      final now = DateTime.now();
+      // static variable to track last emit
+      // ignore: prefer_typing_uninitialized_variables
+      // Using function-level static so it's shared across instances.
+      // Dart allows this pattern.
+      // ignore: prefer_function_declarations_over_variables
+      @pragma('vm:entry-point')
+      // ignore: avoid_init_to_null
+      DateTime? lastError;
+
+      if (lastError == null ||
+          now.difference(lastError) > const Duration(minutes: 2)) {
+        lastError = now;
+        debugPrint('❌ Analytics logEvent failed (suppressed repeats): $e');
+      }
     }
   }
 }

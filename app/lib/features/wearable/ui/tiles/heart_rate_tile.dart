@@ -4,6 +4,7 @@ import 'package:app/core/providers/vitals_notifier_provider.dart';
 import 'package:app/core/services/responsive_service.dart';
 import 'package:app/core/services/vitals_notifier_service.dart';
 import 'package:app/core/providers/analytics_provider.dart';
+import 'package:intl/intl.dart';
 
 /// HeartRateTile widget - shows live heart rate from VitalsNotifier
 class HeartRateTile extends ConsumerStatefulWidget {
@@ -48,11 +49,23 @@ class _HeartRateTileState extends ConsumerState<HeartRateTile> {
 
   Widget _buildCard(BuildContext context, AsyncValue<VitalsData> vitalsAsync) {
     return Card(
+      elevation: 0,
+      color: Theme.of(
+        context,
+      ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
-        padding: ResponsiveService.getMediumPadding(context),
+        padding: ResponsiveService.getLargePadding(context),
         child: vitalsAsync.when(
           data: (vitals) => _buildContent(context, vitals),
-          loading: () => _buildLoadingState(context),
+          loading: () {
+            // While waiting for fresh data, fall back to current cached value
+            final cached = ref.read(currentVitalsProvider);
+            if (cached != null) {
+              return _buildContent(context, cached);
+            }
+            return _buildEmptyState(context);
+          },
           error: (error, _) => _buildErrorState(context),
         ),
       ),
@@ -66,50 +79,72 @@ class _HeartRateTileState extends ConsumerState<HeartRateTile> {
 
     final qualityColor = _getQualityColor(vitals.quality);
     final hrValue = vitals.heartRate?.toStringAsFixed(0) ?? '—';
+    final timeStr = DateFormat('h:mm a').format(vitals.timestamp);
+    final range = vitals.metadata['hrRange'] as String?; // set later
 
     return Semantics(
-      label: 'Heart rate $hrValue beats per minute',
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
+      label: 'Heart rate $hrValue beats per minute at $timeStr',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.favorite, color: qualityColor, semanticLabel: ''),
-          SizedBox(width: ResponsiveService.getSmallSpacing(context)),
-          Text(
-            hrValue,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: qualityColor,
+          // Header row with icon + title and timestamp
+          Row(
+            children: [
+              Icon(
+                Icons.favorite,
+                color: Colors.red[400],
+                size: ResponsiveService.getIconSize(context, baseSize: 20),
+                semanticLabel: '',
+              ),
+              SizedBox(width: ResponsiveService.getSmallSpacing(context)),
+              Text(
+                'Heart Rate',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: Colors.red[400],
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                timeStr,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: ResponsiveService.getMediumSpacing(context)),
+          // Main value display
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Text(
+                hrValue,
+                style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+              SizedBox(width: ResponsiveService.getSmallSpacing(context)),
+              Text(
+                'BPM',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+          if (range != null) ...[
+            SizedBox(height: ResponsiveService.getSmallSpacing(context)),
+            Text(
+              range,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
-          ),
-          SizedBox(width: ResponsiveService.getTinySpacing(context)),
-          Text(
-            'bpm',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLoadingState(BuildContext context) {
-    return Semantics(
-      label: 'Loading heart rate',
-      child: Row(
-        children: [
-          const SizedBox(
-            width: 16,
-            height: 16,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
-          SizedBox(width: ResponsiveService.getSmallSpacing(context)),
-          Text(
-            'Loading…',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
+          ],
         ],
       ),
     );

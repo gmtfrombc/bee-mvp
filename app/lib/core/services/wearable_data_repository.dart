@@ -482,6 +482,40 @@ class WearableDataRepository {
               .map((point) => HealthSample.fromHealthDataPoint(point))
               .toList();
 
+      // ── Diagnostic logging ───────────────────────────────────────────
+      if (kDebugMode) {
+        debugPrint(
+          '📡 getHealthData returned ${samples.length} points '
+          '[types: ${types.map((t) => t.name).join(', ')}] '
+          'range: ${start.toIso8601String()} → ${end.toIso8601String()}',
+        );
+
+        // Group by type for a quick breakdown
+        final Map<WearableDataType, List<HealthSample>> byType = {};
+        for (final s in samples) {
+          byType.putIfAbsent(s.type, () => <HealthSample>[]).add(s);
+        }
+
+        for (final entry in byType.entries) {
+          debugPrint('   ↳ ${entry.key.name} • count=${entry.value.length}');
+          for (final sample in entry.value.take(3)) {
+            debugPrint(
+              '      • ts=${sample.timestamp} | val=${sample.value} | src=${sample.source}',
+            );
+          }
+          if (entry.value.length > 3) {
+            debugPrint('      … (${entry.value.length - 3} more)');
+          }
+        }
+
+        if (samples.isEmpty) {
+          debugPrint(
+            '⚠️ No samples returned – consider widening look-back window',
+          );
+        }
+      }
+      // ─────────────────────────────────────────────────────────────────
+
       // Emit data to stream
       _dataStreamController.add(samples);
 
