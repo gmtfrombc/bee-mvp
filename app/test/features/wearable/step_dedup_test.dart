@@ -2,9 +2,8 @@
 // A proper mock of VitalsNotifierService will be added in a follow-up patch.
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:app/core/services/vitals_notifier_service.dart';
 import 'package:app/core/services/vitals_notifier_service.dart'
-    show VitalsData, VitalsQuality;
+    show VitalsNotifierService, VitalsData, VitalsQuality;
 
 void main() {
   group('sumStepsForTest', () {

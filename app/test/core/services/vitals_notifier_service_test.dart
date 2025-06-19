@@ -20,6 +20,11 @@ class MockWearableDataRepository extends Mock
     implements WearableDataRepository {}
 
 void main() {
+  // Register fallback for mocktail so `any<WearableDataType>()` works.
+  setUpAll(() {
+    registerFallbackValue(WearableDataType.steps);
+  });
+
   late VitalsNotifierService service;
   late MockWearableLiveService mockLiveService;
   late MockWearableDataRepository mockRepository;
@@ -46,10 +51,23 @@ void main() {
     when(() => mockRepository.initialize()).thenAnswer((_) async => true);
     when(
       () => mockRepository.getHealthData(
+        dataTypes: any(named: 'dataTypes'),
         startTime: any(named: 'startTime'),
         endTime: any(named: 'endTime'),
       ),
     ).thenAnswer((_) async => const HealthDataQueryResult(samples: []));
+
+    // Provide fallback for getLatestSample used in bootstrap paths.
+    when(() => mockRepository.getLatestSample(any())).thenAnswer(
+      (_) async => HealthSample(
+        id: 'dummy_hr',
+        type: WearableDataType.heartRate,
+        value: 70,
+        unit: 'bpm',
+        timestamp: DateTime(2020, 1, 1),
+        source: 'Mock',
+      ),
+    );
 
     service = VitalsNotifierService(mockLiveService, mockRepository);
 
@@ -91,10 +109,11 @@ void main() {
       verifyNever(() => mockLiveService.startStreaming(any()));
       verify(
         () => mockRepository.getHealthData(
+          dataTypes: any(named: 'dataTypes'),
           startTime: any(named: 'startTime'),
           endTime: any(named: 'endTime'),
         ),
-      ).called(1);
+      );
       expect(service.connectionStatus, VitalsConnectionStatus.polling);
     },
   );

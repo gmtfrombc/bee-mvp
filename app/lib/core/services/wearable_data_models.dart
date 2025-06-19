@@ -239,6 +239,7 @@ class HealthSyncConfig {
       WearableDataType.sleepDuration,
       WearableDataType.activeEnergyBurned,
       WearableDataType.heartRateVariability,
+      WearableDataType.weight,
     ],
     syncInterval: Duration(minutes: 5),
     maxHistoryRange: Duration(days: 7), // Start with 1 week for MVP

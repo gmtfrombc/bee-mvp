@@ -180,7 +180,7 @@ class _AppWrapperState extends ConsumerState<AppWrapper> {
             BottomNavigationBarItem(
               icon: Icon(Icons.monitor_heart_outlined),
               activeIcon: Icon(Icons.monitor_heart),
-              label: 'Vitals',
+              label: 'Stats',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.emoji_events),

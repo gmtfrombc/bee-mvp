@@ -52,10 +52,10 @@ class _SleepTileState extends ConsumerState<SleepTile> {
       elevation: 0,
       color: Theme.of(
         context,
-      ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+      ).colorScheme.surfaceContainerHighest.withAlpha(77),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
-        padding: ResponsiveService.getLargePadding(context),
+        padding: ResponsiveService.getMediumPadding(context),
         child: vitalsAsync.when(
           data: (vitals) => _buildContent(context, vitals),
           loading: () {
@@ -96,7 +96,7 @@ class _SleepTileState extends ConsumerState<SleepTile> {
             children: [
               Icon(
                 Icons.bedtime,
-                color: Colors.cyan[400],
+                color: qualityColor,
                 size: ResponsiveService.getIconSize(context, baseSize: 20),
                 semanticLabel: '',
               ),
@@ -104,7 +104,7 @@ class _SleepTileState extends ConsumerState<SleepTile> {
               Text(
                 'Sleep',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Colors.cyan[400],
+                  color: qualityColor,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -125,7 +125,7 @@ class _SleepTileState extends ConsumerState<SleepTile> {
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
-          SizedBox(height: ResponsiveService.getSmallSpacing(context)),
+          SizedBox(height: ResponsiveService.getTinySpacing(context) * 0.5),
           // Main value display - Apple style with hours and minutes
           Row(
             crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -193,7 +193,7 @@ class _SleepTileState extends ConsumerState<SleepTile> {
       label: 'No sleep data',
       child: Text(
         'No sleep data',
-        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+        style: Theme.of(context).textTheme.titleMedium?.copyWith(
           color: Theme.of(context).colorScheme.onSurfaceVariant,
         ),
       ),
