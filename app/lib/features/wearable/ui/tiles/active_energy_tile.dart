@@ -6,15 +6,15 @@ import 'package:app/core/services/vitals_notifier_service.dart';
 import 'package:app/core/providers/analytics_provider.dart';
 import 'package:intl/intl.dart';
 
-/// StepsTile widget - shows live steps count from VitalsNotifier
-class StepsTile extends ConsumerStatefulWidget {
-  const StepsTile({super.key});
+/// ActiveEnergyTile – shows Active Energy (kcal) burned today.
+class ActiveEnergyTile extends ConsumerStatefulWidget {
+  const ActiveEnergyTile({super.key});
 
   @override
-  ConsumerState<StepsTile> createState() => _StepsTileState();
+  ConsumerState<ActiveEnergyTile> createState() => _ActiveEnergyTileState();
 }
 
-class _StepsTileState extends ConsumerState<StepsTile> {
+class _ActiveEnergyTileState extends ConsumerState<ActiveEnergyTile> {
   bool _loggedView = false;
   bool _loggedError = false;
 
@@ -22,7 +22,6 @@ class _StepsTileState extends ConsumerState<StepsTile> {
   Widget build(BuildContext context) {
     final vitalsAsync = ref.watch(vitalsDataStreamProvider);
 
-    // Listen for state changes to emit analytics
     vitalsAsync.when(
       data: (_) => _maybeLogView(),
       error: (_, __) => _maybeLogError(),
@@ -37,7 +36,7 @@ class _StepsTileState extends ConsumerState<StepsTile> {
     _loggedView = true;
     ref
         .read(analyticsServiceProvider)
-        .logEvent('tile_viewed', params: {'tile': 'steps'});
+        .logEvent('tile_viewed', params: {'tile': 'energy'});
   }
 
   void _maybeLogError() {
@@ -45,7 +44,7 @@ class _StepsTileState extends ConsumerState<StepsTile> {
     _loggedError = true;
     ref
         .read(analyticsServiceProvider)
-        .logEvent('tile_error', params: {'tile': 'steps'});
+        .logEvent('tile_error', params: {'tile': 'energy'});
   }
 
   Widget _buildCard(BuildContext context, AsyncValue<VitalsData> vitalsAsync) {
@@ -61,45 +60,42 @@ class _StepsTileState extends ConsumerState<StepsTile> {
           data: (vitals) => _buildContent(context, vitals),
           loading: () {
             final cached = ref.read(currentVitalsProvider);
-            if (cached != null) {
-              return _buildContent(context, cached);
-            }
-            return _buildEmptyState(context);
+            return _buildContent(
+              context,
+              cached ?? VitalsData(timestamp: DateTime.now()),
+            );
           },
-          error: (error, _) => _buildErrorState(context),
+          error: (_, __) => _buildErrorState(context),
         ),
       ),
     );
   }
 
   Widget _buildContent(BuildContext context, VitalsData vitals) {
-    if (!vitals.hasSteps) {
-      return _buildEmptyState(context);
-    }
-
-    final qualityColor = _getQualityColor(vitals.quality);
-    final stepsValue = vitals.steps ?? 0;
+    final energy = vitals.activeEnergy;
     final timeStr = DateFormat('h:mm a').format(vitals.timestamp);
 
     return Semantics(
-      label: 'Steps $stepsValue at $timeStr',
+      label:
+          energy == null
+              ? 'No active energy data'
+              : 'Active energy $energy kilocalories at $timeStr',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header row with icon + title and timestamp
           Row(
             children: [
               Icon(
-                Icons.directions_walk,
-                color: qualityColor,
+                Icons.local_fire_department,
+                color: Colors.orange[600],
                 size: ResponsiveService.getIconSize(context, baseSize: 20),
                 semanticLabel: '',
               ),
               SizedBox(width: ResponsiveService.getSmallSpacing(context)),
               Text(
-                'Steps',
+                'Active Energy',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: qualityColor,
+                  color: Colors.orange[600],
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -113,87 +109,53 @@ class _StepsTileState extends ConsumerState<StepsTile> {
             ],
           ),
           SizedBox(height: ResponsiveService.getSmallSpacing(context)),
-          // Subtitle
           Text(
-            'Daily Steps',
+            'Calories Burned',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
           SizedBox(height: ResponsiveService.getTinySpacing(context) * 0.5),
-          // Main value display
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
-            children: [
-              Text(
-                '$stepsValue',
-                style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-              ),
-              SizedBox(width: ResponsiveService.getSmallSpacing(context)),
-              Text(
-                'steps',
+          energy == null
+              ? Text(
+                'No stats',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w500,
                 ),
+              )
+              : Row(
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: [
+                  Text(
+                    energy.toStringAsFixed(0),
+                    style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                  SizedBox(width: ResponsiveService.getSmallSpacing(context)),
+                  Text(
+                    'kcal',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
         ],
       ),
     );
   }
 
-  Widget _buildErrorState(BuildContext context) {
-    return Semantics(
-      label: 'Steps data error',
-      child: Row(
-        children: [
-          Icon(
-            Icons.error_outline,
-            color: Theme.of(context).colorScheme.error,
-            size: 16,
-          ),
-          SizedBox(width: ResponsiveService.getSmallSpacing(context)),
-          Text(
-            'Error',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.error,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget _buildErrorState(BuildContext context) =>
+      _buildNoState(context, 'Error');
 
-  Widget _buildEmptyState(BuildContext context) {
-    return Semantics(
-      label: 'No steps data',
-      child: Text(
-        'No steps',
-        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
-        ),
-      ),
-    );
-  }
-
-  Color _getQualityColor(VitalsQuality quality) {
-    switch (quality) {
-      case VitalsQuality.excellent:
-        return Colors.green[700]!;
-      case VitalsQuality.good:
-        return Colors.green;
-      case VitalsQuality.fair:
-        return Colors.orange;
-      case VitalsQuality.poor:
-        return Colors.red;
-      case VitalsQuality.unknown:
-        return Colors.grey;
-    }
-  }
+  Widget _buildNoState(BuildContext context, String msg) => Text(
+    msg,
+    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+      color: Theme.of(context).colorScheme.onSurfaceVariant,
+    ),
+  );
 }

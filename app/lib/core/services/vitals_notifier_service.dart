@@ -22,6 +22,8 @@ class VitalsData {
   final int? steps;
   final double? heartRateVariability;
   final double? sleepHours;
+  final double? activeEnergy; // kcal
+  final double? weight; // lbs  – converted from kg for display
   final DateTime timestamp;
   final VitalsQuality quality;
   final Map<String, dynamic> metadata;
@@ -31,6 +33,8 @@ class VitalsData {
     this.steps,
     this.heartRateVariability,
     this.sleepHours,
+    this.activeEnergy,
+    this.weight,
     required this.timestamp,
     this.quality = VitalsQuality.unknown,
     this.metadata = const {},
@@ -39,13 +43,18 @@ class VitalsData {
   bool get hasHeartRate => heartRate != null;
   bool get hasSteps => steps != null;
   bool get hasSleep => sleepHours != null;
-  bool get hasValidData => hasHeartRate || hasSteps || hasSleep;
+  bool get hasEnergy => activeEnergy != null;
+  bool get hasWeight => weight != null;
+  bool get hasValidData =>
+      hasHeartRate || hasSteps || hasSleep || hasEnergy || hasWeight;
 
   VitalsData copyWith({
     double? heartRate,
     int? steps,
     double? heartRateVariability,
     double? sleepHours,
+    double? activeEnergy,
+    double? weight,
     DateTime? timestamp,
     VitalsQuality? quality,
     Map<String, dynamic>? metadata,
@@ -55,6 +64,8 @@ class VitalsData {
       steps: steps ?? this.steps,
       heartRateVariability: heartRateVariability ?? this.heartRateVariability,
       sleepHours: sleepHours ?? this.sleepHours,
+      activeEnergy: activeEnergy ?? this.activeEnergy,
+      weight: weight ?? this.weight,
       timestamp: timestamp ?? this.timestamp,
       quality: quality ?? this.quality,
       metadata: metadata ?? this.metadata,
@@ -145,13 +156,7 @@ class VitalsNotifierService {
   bool _hrBootstrapDone = false;
   bool _sleepBootstrapDone = false;
 
-  // NEW: running step total for current day so we don't rely on _dataHistory
-  final int _stepsToday = 0;
-  final DateTime _stepsDayAnchor = DateTime(
-    DateTime.now().year,
-    DateTime.now().month,
-    DateTime.now().day,
-  );
+  // Running step total logic was refactored; legacy fields removed.
 
   // SharedPreferences keys for caching the last good vitals reading
   static const String _cacheKey = 'lastVitalsCache_v1';
@@ -338,6 +343,8 @@ class VitalsNotifierService {
     int? steps;
     double? hrv;
     double? sleepHours;
+    double? activeEnergy;
+    double? weight;
 
     // Extract data based on message type
     switch (message.type) {
@@ -361,6 +368,13 @@ class VitalsNotifierService {
           sleepHours = (message.value as num?)?.toDouble();
         }
         break;
+      case WearableDataType.activeEnergyBurned:
+        activeEnergy = _extractDouble(message.value);
+        break;
+      case WearableDataType.weight:
+        final kg = _extractDouble(message.value);
+        if (kg != null) weight = kg * 2.20462; // convert to lbs
+        break;
       default:
         return null; // Skip unsupported data types
     }
@@ -373,6 +387,8 @@ class VitalsNotifierService {
       steps: steps,
       heartRateVariability: hrv,
       sleepHours: sleepHours,
+      activeEnergy: activeEnergy,
+      weight: weight,
       timestamp: timestamp,
       quality: quality,
       metadata: {'source': message.source},
@@ -428,6 +444,8 @@ class VitalsNotifierService {
             vitalsData.heartRateVariability ??
             _currentVitals!.heartRateVariability,
         sleepHours: vitalsData.sleepHours ?? _currentVitals!.sleepHours,
+        activeEnergy: vitalsData.activeEnergy ?? _currentVitals!.activeEnergy,
+        weight: vitalsData.weight ?? _currentVitals!.weight,
         timestamp: vitalsData.timestamp,
         quality: vitalsData.quality,
         metadata: vitalsData.metadata,
@@ -531,6 +549,57 @@ class VitalsNotifierService {
     return latest > average * 1.15; // 15% above recent average
   }
 
+  /// Manually trigger an immediate data refresh. This is invoked by the
+  /// pull-to-refresh gesture in the WearableDashboardScreen. A broader
+  /// look-back window is used to guarantee that new samples are fetched even
+  /// if HealthKit has not produced events in the last minute.
+  Future<void> refreshNow() async {
+    if (!_isInitialized) return;
+
+    final now = DateTime.now();
+    final List<HealthSample> combined = [];
+
+    // 1) Steps – fetch since midnight so we always have the full daily total.
+    final midnight = DateTime(now.year, now.month, now.day);
+    final stepsRes = await _repository.getHealthData(
+      dataTypes: [WearableDataType.steps],
+      startTime: midnight,
+      endTime: now,
+    );
+    combined.addAll(stepsRes.samples);
+
+    // 2) Heart-related metrics – last 2 h is enough for freshness.
+    final hrRes = await _repository.getHealthData(
+      dataTypes: [
+        WearableDataType.heartRate,
+        WearableDataType.heartRateVariability,
+      ],
+      startTime: now.subtract(const Duration(hours: 2)),
+      endTime: now,
+    );
+    combined.addAll(hrRes.samples);
+
+    // 3) Sleep – previous night (6 PM) until now covers the common window.
+    final sleepStart = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    ).subtract(const Duration(hours: 6));
+    final sleepRes = await _repository.getHealthData(
+      dataTypes: [WearableDataType.sleepDuration],
+      startTime: sleepStart,
+      endTime: now,
+    );
+    combined.addAll(sleepRes.samples);
+
+    if (combined.isEmpty) {
+      logD('🌧️ Manual refresh found no new samples');
+      return;
+    }
+
+    _processHealthSamples(combined);
+  }
+
   // T2.2.2.9: New method to poll for vitals data using repository
   Future<void> _pollForVitals() async {
     if (!_isActive || _currentUserId == null) return;
@@ -542,8 +611,9 @@ class VitalsNotifierService {
 
       if (_consecutiveEmptyPolls >= 8) return const Duration(hours: 1);
       if (_consecutiveEmptyPolls >= 5) return const Duration(minutes: 30);
-      if (_consecutiveEmptyPolls >= 3) return const Duration(minutes: 5);
-      return _config.pollingInterval;
+      // Default to 5 minutes instead of the polling interval to ensure we pick
+      // up samples that are written less frequently than our timer.
+      return const Duration(minutes: 5);
     }
 
     final lookback = adaptiveLookback();
@@ -740,44 +810,46 @@ class VitalsNotifierService {
 
     // Calculate total steps since midnight using dedup logic and emit as aggregated VitalsData.
     _emitAggregatedSteps();
+    _emitAggregatedActiveEnergy();
   }
 
   // T2.2.2.9: New method to process a single HealthSample into VitalsData
   VitalsData? _processHealthSample(HealthSample sample) {
+    final timestamp = sample.timestamp;
+
     double? heartRate;
     int? steps;
     double? hrv;
     double? sleepHours;
+    double? activeEnergy;
+    double? weight;
 
     switch (sample.type) {
       case WearableDataType.heartRate:
         heartRate = _extractDouble(sample.value);
         break;
+
       case WearableDataType.steps:
         // Deduplicate phone + watch double-count (VR-03)
         final source = sample.source.toLowerCase();
-        final isWatch = source.contains('watch');
         final isPhone = source.contains('phone') || source.contains('iphone');
 
         // If this is a phone sample and we already processed a Watch sample
         // within ±30 s of this timestamp, skip to avoid double count.
         if (isPhone && _recentWatchStepSampleExists(sample.timestamp)) {
           logD('🚫 Skipping phone steps sample at ${sample.timestamp}');
-          break;
+          return null;
         }
 
         steps = _extractInt(sample.value);
         logD('🔢 extracted steps=$steps from ${sample.value}');
         break;
+
       case WearableDataType.heartRateVariability:
         hrv = _extractDouble(sample.value);
         break;
+
       case WearableDataType.sleepDuration:
-      case WearableDataType.sleepInBed:
-      case WearableDataType.sleepAwake:
-      case WearableDataType.sleepDeep:
-      case WearableDataType.sleepLight:
-      case WearableDataType.sleepRem:
         // Assume incoming value is total sleep duration in minutes
         try {
           final minutes = _extractDouble(sample.value);
@@ -786,25 +858,40 @@ class VitalsNotifierService {
           sleepHours = _extractDouble(sample.value);
         }
         break;
+
+      case WearableDataType.activeEnergyBurned:
+        activeEnergy = _extractDouble(sample.value);
+        break;
+
+      case WearableDataType.weight:
+        final kg = _extractDouble(sample.value);
+        if (kg != null) weight = kg * 2.20462; // convert to lbs
+        break;
+
       default:
-        return null;
+        return null; // Unsupported or unknown type
     }
 
+    // If nothing was extracted, skip.
     if (heartRate == null &&
         steps == null &&
         hrv == null &&
-        sleepHours == null) {
+        sleepHours == null &&
+        activeEnergy == null &&
+        weight == null) {
       return null;
     }
 
-    final quality = _calculateDataQuality(sample.timestamp);
+    final quality = _calculateDataQuality(timestamp);
 
     return VitalsData(
       heartRate: heartRate,
       steps: steps,
       heartRateVariability: hrv,
       sleepHours: sleepHours,
-      timestamp: sample.timestamp,
+      activeEnergy: activeEnergy,
+      weight: weight,
+      timestamp: timestamp,
       quality: quality,
       metadata: {'source': sample.source, 'polled': true},
     );
@@ -975,6 +1062,8 @@ class VitalsNotifierService {
         steps: json['steps'] as int?,
         heartRateVariability: json['hrv'] as double?,
         sleepHours: json['sleepHours'] as double?,
+        activeEnergy: json['activeEnergy'] as double?,
+        weight: json['weight'] as double?,
         timestamp:
             DateTime.tryParse(json['timestamp'] as String? ?? '') ??
             DateTime.now(),
@@ -997,6 +1086,8 @@ class VitalsNotifierService {
         'steps': data.steps,
         'hrv': data.heartRateVariability,
         'sleepHours': data.sleepHours,
+        'activeEnergy': data.activeEnergy,
+        'weight': data.weight,
         'timestamp': data.timestamp.toIso8601String(),
         'quality': data.quality.index,
       });
@@ -1037,5 +1128,41 @@ class VitalsNotifierService {
       if (src.contains('watch')) return true;
     }
     return false;
+  }
+
+  // Sum total active energy (kcal) burned since midnight.
+  double? _calculateActiveEnergyToday() {
+    final midnight = DateTime(
+      DateTime.now().year,
+      DateTime.now().month,
+      DateTime.now().day,
+    );
+
+    final todayEnergySamples =
+        _dataHistory.where((d) {
+          return d.hasEnergy &&
+              !d.timestamp.isBefore(midnight) &&
+              d.metadata['aggregated'] != true;
+        }).toList();
+
+    if (todayEnergySamples.isEmpty) return null;
+
+    return todayEnergySamples
+        .map((d) => d.activeEnergy ?? 0)
+        .fold<double>(0, (prev, e) => prev + e);
+  }
+
+  void _emitAggregatedActiveEnergy() {
+    final totalEnergy = _calculateActiveEnergyToday();
+    if (totalEnergy == null || totalEnergy == 0) return;
+
+    final aggregated = VitalsData(
+      activeEnergy: totalEnergy,
+      timestamp: DateTime.now(),
+      quality: VitalsQuality.good,
+      metadata: const {'aggregated': true},
+    );
+
+    _addVitalsData(aggregated);
   }
 }

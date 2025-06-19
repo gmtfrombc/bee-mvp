@@ -405,6 +405,8 @@ class WearableLiveService {
         return 'ml/kg/min';
       case WearableDataType.heartRateVariability:
         return 'ms';
+      case WearableDataType.weight:
+        return 'lbs';
       default:
         return 'count';
     }

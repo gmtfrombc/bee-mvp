@@ -120,10 +120,10 @@ class HealthPermissionsListWidget extends StatelessWidget {
       dataTypes: [WearableDataType.sleepDuration, WearableDataType.sleepInBed],
     ),
     const PermissionItem(
-      icon: CupertinoIcons.waveform_path_ecg,
-      title: 'Heart Rate Variability',
-      description: 'Advanced stress and recovery insights',
-      dataTypes: [WearableDataType.heartRateVariability],
+      icon: CupertinoIcons.person,
+      title: 'Body Weight',
+      description: 'Track weight changes over time',
+      dataTypes: [WearableDataType.weight],
     ),
   ];
 

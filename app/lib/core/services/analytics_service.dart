@@ -7,6 +7,12 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 /// Designed for small volume UX tracking – not suitable for high-frequency data.
 class AnalyticsService {
   final SupabaseClient _client;
+
+  /// Tracks the last time an analytics failure was surfaced so we can
+  /// throttle error logs and avoid spamming the console. Static so it is
+  /// shared across all `AnalyticsService` instances and across multiple
+  /// invocations of [logEvent].
+  static DateTime? _lastError;
   AnalyticsService(this._client);
 
   /// Record an analytics event with optional parameters.
@@ -23,18 +29,10 @@ class AnalyticsService {
       // Throttle to avoid console spam and leave TODO for backend fix.
       // TODO(T2-telemetry): Update Supabase RPC/table to accept analytics events.
       final now = DateTime.now();
-      // static variable to track last emit
-      // ignore: prefer_typing_uninitialized_variables
-      // Using function-level static so it's shared across instances.
-      // Dart allows this pattern.
-      // ignore: prefer_function_declarations_over_variables
-      @pragma('vm:entry-point')
-      // ignore: avoid_init_to_null
-      DateTime? lastError;
-
-      if (lastError == null ||
-          now.difference(lastError) > const Duration(minutes: 2)) {
-        lastError = now;
+      // Throttle identical errors so we only emit once every ~2 minutes.
+      if (_lastError == null ||
+          now.difference(_lastError!) > const Duration(minutes: 2)) {
+        _lastError = now;
         debugPrint('❌ Analytics logEvent failed (suppressed repeats): $e');
       }
     }

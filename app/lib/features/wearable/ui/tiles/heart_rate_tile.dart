@@ -52,10 +52,10 @@ class _HeartRateTileState extends ConsumerState<HeartRateTile> {
       elevation: 0,
       color: Theme.of(
         context,
-      ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+      ).colorScheme.surfaceContainerHighest.withAlpha(77),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
-        padding: ResponsiveService.getLargePadding(context),
+        padding: ResponsiveService.getMediumPadding(context),
         child: vitalsAsync.when(
           data: (vitals) => _buildContent(context, vitals),
           loading: () {
@@ -92,7 +92,7 @@ class _HeartRateTileState extends ConsumerState<HeartRateTile> {
             children: [
               Icon(
                 Icons.favorite,
-                color: Colors.red[400],
+                color: qualityColor,
                 size: ResponsiveService.getIconSize(context, baseSize: 20),
                 semanticLabel: '',
               ),
@@ -100,7 +100,7 @@ class _HeartRateTileState extends ConsumerState<HeartRateTile> {
               Text(
                 'Heart Rate',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Colors.red[400],
+                  color: qualityColor,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -113,7 +113,15 @@ class _HeartRateTileState extends ConsumerState<HeartRateTile> {
               ),
             ],
           ),
-          SizedBox(height: ResponsiveService.getMediumSpacing(context)),
+          SizedBox(height: ResponsiveService.getSmallSpacing(context)),
+          // Subtitle
+          Text(
+            'Average Heart Rate',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+          SizedBox(height: ResponsiveService.getTinySpacing(context) * 0.5),
           // Main value display
           Row(
             crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -177,7 +185,7 @@ class _HeartRateTileState extends ConsumerState<HeartRateTile> {
       label: 'No heart rate data',
       child: Text(
         'No heart rate',
-        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+        style: Theme.of(context).textTheme.titleMedium?.copyWith(
           color: Theme.of(context).colorScheme.onSurfaceVariant,
         ),
       ),

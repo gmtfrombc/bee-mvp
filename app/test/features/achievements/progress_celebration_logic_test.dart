@@ -1,5 +1,7 @@
+// ignore_for_file: library_private_types_in_public_api
+
 import 'package:flutter_test/flutter_test.dart';
-import 'package:app/core/theme/app_theme.dart';
+import 'package:app/core/theme/app_theme.dart' show MomentumState;
 
 // Re-declare enum for test (matches production semantics)
 enum _MilestoneType { streak7, momentumRiseToSteady }
