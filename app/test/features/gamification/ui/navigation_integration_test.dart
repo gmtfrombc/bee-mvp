@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:app/features/gamification/ui/achievements_screen.dart';
-import 'package:app/features/momentum/presentation/screens/profile_settings_screen.dart';
 import 'package:app/features/gamification/providers/gamification_providers.dart';
 import 'package:app/features/gamification/models/badge.dart';
 
