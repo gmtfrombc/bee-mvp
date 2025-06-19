@@ -35,7 +35,8 @@ android {
         applicationId = "com.momentumhealth.beemvp"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
+        // Raised to API 26 per health plugin requirement (CI build-android fix)
+        minSdk = 26
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
