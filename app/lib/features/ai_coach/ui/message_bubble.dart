@@ -26,7 +26,8 @@ class MessageBubble extends StatelessWidget {
 
     Color backgroundColor;
     if (isUser) {
-      backgroundColor = AppTheme.getMomentumColor(MomentumState.rising);
+      // Use blue to mimic iOS iMessage bubbles while staying in theme
+      backgroundColor = AppTheme.getMomentumColor(MomentumState.steady);
     } else {
       // Apply tone-based styling for assistant messages
       switch (assistantTone) {
