@@ -8,6 +8,10 @@ import '../../achievements/streak_badge.dart';
 import 'message_bubble.dart';
 import 'coaching_card.dart';
 import '../../ai_coach/providers/coach_stream_provider.dart';
+import 'chat_history_drawer.dart';
+import '../providers/conversation_providers.dart';
+import '../../../core/providers/supabase_provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Main coach chat screen with message history and input
 class CoachChatScreen extends ConsumerStatefulWidget {
@@ -26,30 +30,92 @@ class _CoachChatScreenState extends ConsumerState<CoachChatScreen> {
   bool _isRateLimited = false;
   int _messageCount = 0;
   DateTime? _rateLimitResetTime;
+  ProviderSubscription<String?>? _convSub;
 
   @override
   void initState() {
     super.initState();
-    _initializeChat();
+    final initialConvoId = ref.read(currentConversationIdProvider);
+    if (initialConvoId != null) {
+      _loadConversationMessages(initialConvoId);
+    } else {
+      _initializeChat();
+    }
+    // Register manual listener (allowed outside build)
+    _convSub = ref.listenManual<String?>(currentConversationIdProvider, (
+      prev,
+      next,
+    ) {
+      if (prev != next && mounted) {
+        if (next != null) {
+          _loadConversationMessages(next);
+        } else {
+          setState(() {
+            _messages.clear();
+            _initializeChat();
+          });
+        }
+      }
+    });
   }
 
   @override
   void dispose() {
+    _convSub?.close();
     _textController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
 
   void _initializeChat() {
-    // Add welcome message from coach
+    // Temporary hard-coded first name; replace with user profile lookup when available
+    const firstName = 'Sarah';
+
+    // Rotating greeting messages to avoid a mechanical feel
+    final greetings = [
+      'Hi $firstName! How can I help you today?',
+      'Hello $firstName, what\'s on your mind?',
+      'Hey $firstName! Need any support right now?',
+      'Hi $firstName, how is it going today?',
+      'Hello $firstName – how can I assist you?',
+      'Hi there $firstName! What would you like to talk about?',
+      'Good to see you $firstName. How can I help?',
+      'Hey $firstName, what\'s up?',
+      'Greetings $firstName! How may I support you?',
+      'Hi $firstName – ready when you are!',
+    ]..shuffle();
+
     _messages.add(
       ChatMessage(
-        text:
-            "Hi! I'm your momentum coach. I'm here to help you build sustainable habits and maintain your momentum. How can I support you today?",
+        text: greetings.first,
         isUser: false,
         timestamp: DateTime.now(),
       ),
     );
+  }
+
+  Future<void> _loadConversationMessages(String convoId) async {
+    setState(() => _messages.clear());
+    try {
+      final msgs = await ref.read(conversationMessagesProvider(convoId).future);
+      if (!mounted) return;
+      setState(() {
+        _messages.addAll(
+          msgs.map(
+            (m) => ChatMessage(
+              text: m.content,
+              isUser: m.isFromUser,
+              timestamp: m.timestamp,
+            ),
+          ),
+        );
+      });
+      _scrollToBottom();
+    } catch (_) {
+      // graceful fail – keep empty
+      if (!mounted) return;
+      _initializeChat();
+    }
   }
 
   void _checkRateLimit() {
@@ -62,8 +128,8 @@ class _CoachChatScreenState extends ConsumerState<CoachChatScreen> {
       _isRateLimited = false;
     }
 
-    // Check if user exceeded 10 messages per minute (relaxed for testing)
-    if (_messageCount >= 10) {
+    // Soft cap – practically unreachable under normal use.
+    if (_messageCount >= 30) {
       _isRateLimited = true;
       _showRateLimitSnackBar();
     }
@@ -95,7 +161,51 @@ class _CoachChatScreenState extends ConsumerState<CoachChatScreen> {
       return;
     }
 
+    // Conversation handling -------------------------------------------------
+    SupabaseClient? client;
+    try {
+      client = ref.read(supabaseClientProvider);
+    } catch (_) {
+      // Likely test environment where Supabase.initialize() has not run
+      client = null;
+    }
+
+    String? conversationId;
+    if (client != null) {
+      conversationId = ref.read(currentConversationIdProvider);
+
+      try {
+        // If no active conversation row yet, create one (blank title)
+        if (conversationId == null) {
+          final insertRes =
+              await client
+                  .from('coach_conversations')
+                  .insert({'title': '', 'user_id': client.auth.currentUser?.id})
+                  .select('id')
+                  .single();
+          conversationId = insertRes['id'] as String?;
+          ref.read(currentConversationIdProvider.notifier).state =
+              conversationId;
+          ref.invalidate(conversationListProvider);
+        }
+
+        // If this is the very first user message in the thread, generate title
+        final existingUserMsgs = _messages.where((m) => m.isUser).length;
+        if (conversationId != null && existingUserMsgs == 0) {
+          await client
+              .from('coach_conversations')
+              .update({'title': _makeTitleSnippet(text)})
+              .eq('id', conversationId);
+          ref.invalidate(conversationListProvider);
+        }
+      } catch (_) {
+        // Ignore Supabase errors in offline/test modes
+      }
+    }
+
     // Add user message
+    if (!mounted) return;
+
     setState(() {
       _messages.add(
         ChatMessage(text: text, isUser: true, timestamp: DateTime.now()),
@@ -106,13 +216,17 @@ class _CoachChatScreenState extends ConsumerState<CoachChatScreen> {
 
     final userMessageText = text; // Store message for AI call
     _textController.clear();
+    FocusScope.of(context).unfocus();
     _scrollToBottom();
 
     // Generate real AI coach response
-    _generateCoachResponse(userMessageText);
+    _generateCoachResponse(userMessageText, conversationId: conversationId);
   }
 
-  void _generateCoachResponse(String userMessage) async {
+  void _generateCoachResponse(
+    String userMessage, {
+    String? conversationId,
+  }) async {
     try {
       // Get current momentum state (you can enhance this with real momentum data)
       const momentumState = 'Steady'; // TODO: Get from momentum provider
@@ -121,6 +235,8 @@ class _CoachChatScreenState extends ConsumerState<CoachChatScreen> {
       final response = await AICoachingService.instance.generateResponse(
         message: userMessage,
         momentumState: momentumState,
+        context:
+            conversationId == null ? null : {'conversation_id': conversationId},
       );
 
       if (!mounted) return;
@@ -156,14 +272,32 @@ class _CoachChatScreenState extends ConsumerState<CoachChatScreen> {
   }
 
   void _scrollToBottom() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
+    void doScroll() {
+      if (!_scrollController.hasClients) return;
+
+      final max = _scrollController.position.maxScrollExtent;
+      final offset = _scrollController.offset;
+      const threshold = 8.0;
+      if ((max - offset).abs() < threshold) return;
+
+      // If the keyboard is still visible, jumping avoids the overscroll
+      // rubber-band that happens when the view inset shrinks mid-animation.
+      final viewInset = MediaQuery.of(context).viewInsets.bottom;
+      if (viewInset > 0) {
+        _scrollController.jumpTo(max);
+      } else {
         _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
+          max,
+          duration: const Duration(milliseconds: 250),
           curve: Curves.easeOut,
         );
       }
+    }
+
+    // Wait two frames: one for list updates, another for keyboard/inset
+    // changes, then scroll.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      WidgetsBinding.instance.addPostFrameCallback((__) => doScroll());
     });
   }
 
@@ -183,6 +317,16 @@ class _CoachChatScreenState extends ConsumerState<CoachChatScreen> {
     }
   }
 
+  // Helper to create a short title from the first user message
+  String _makeTitleSnippet(String text) {
+    final trimmed = text.trim();
+    if (trimmed.length <= 40) return trimmed;
+    // Cut at word boundary roughly at 40 chars
+    final snippet = trimmed.substring(0, 40);
+    final lastSpace = snippet.lastIndexOf(' ');
+    return '${lastSpace > 20 ? snippet.substring(0, lastSpace) : snippet}…';
+  }
+
   @override
   Widget build(BuildContext context) {
     // Listen to real-time coach stream events (must be inside build)
@@ -199,170 +343,171 @@ class _CoachChatScreenState extends ConsumerState<CoachChatScreen> {
       });
     });
 
-    final theme = Theme.of(context);
     final spacing = ResponsiveService.getMediumSpacing(context);
 
     return MomentumScaffold(
       title: 'Coach',
+      drawer: const ChatHistoryDrawer(),
+      leading: Builder(
+        builder:
+            (context) => IconButton(
+              icon: const Icon(Icons.menu),
+              onPressed: () {
+                // Ensure keyboard is dismissed before opening drawer to avoid it
+                // popping up underneath the overlay.
+                FocusScope.of(context).unfocus();
+                Scaffold.of(context).openDrawer();
+              },
+            ),
+      ),
       actions: [
         AutoStreakBadge(onTap: () => StreakInfoDialog.show(context)),
         SizedBox(width: ResponsiveService.getSmallSpacing(context)),
       ],
-      body: Column(
-        children: [
-          // Coaching suggestions section
-          if (_messages.length <= 2) ...[
-            Container(
-              padding: EdgeInsets.all(spacing),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Quick suggestions:',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      color: AppTheme.getTextSecondary(context),
-                    ),
-                  ),
-                  SizedBox(height: ResponsiveService.getSmallSpacing(context)),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: CompactCoachingCard(
-                          title: 'Daily habits',
-                          emoji: '🌱',
-                          onTap:
-                              () => _onCoachingCardTap(
-                                'Help me build daily habits',
-                              ),
-                          momentumState: MomentumState.rising,
-                        ),
-                      ),
-                      Expanded(
-                        child: CompactCoachingCard(
-                          title: 'Motivation',
-                          emoji: '🚀',
-                          onTap: () => _onCoachingCardTap('I need motivation'),
-                          momentumState: MomentumState.steady,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+      body: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: Column(
+          children: [
+            // Messages list
+            Expanded(
+              child: ListView.builder(
+                controller: _scrollController,
+                padding: EdgeInsets.symmetric(vertical: spacing),
+                itemCount: _messages.length + (_isTyping ? 1 : 0),
+                itemBuilder: (context, index) {
+                  if (index == _messages.length && _isTyping) {
+                    return const TypingIndicatorBubble();
+                  }
+
+                  final message = _messages[index];
+                  return MessageBubble(
+                    isUser: message.isUser,
+                    text: message.text,
+                    timestamp: message.timestamp,
+                  );
+                },
               ),
             ),
-            Divider(
-              color: AppTheme.getTextTertiary(context).withValues(alpha: 0.3),
-              height: 1,
-            ),
-          ],
 
-          // Messages list
-          Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: EdgeInsets.symmetric(vertical: spacing),
-              itemCount: _messages.length + (_isTyping ? 1 : 0),
-              itemBuilder: (context, index) {
-                if (index == _messages.length && _isTyping) {
-                  return const TypingIndicatorBubble();
-                }
-
-                final message = _messages[index];
-                return MessageBubble(
-                  isUser: message.isUser,
-                  text: message.text,
-                  timestamp: message.timestamp,
-                );
-              },
-            ),
-          ),
-
-          // Input section
-          Container(
-            padding: EdgeInsets.all(spacing),
-            decoration: BoxDecoration(
-              color: AppTheme.getSurfacePrimary(context),
-              border: Border(
-                top: BorderSide(
-                  color: AppTheme.getTextTertiary(
-                    context,
-                  ).withValues(alpha: 0.2),
-                  width: 1,
+            // Suggestion chips row (always visible like ChatGPT)
+            Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: spacing,
+                vertical: ResponsiveService.getSmallSpacing(context),
+              ),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    CompactCoachingCard(
+                      title: 'How am I doing?',
+                      emoji: '📊',
+                      onTap: () => _onCoachingCardTap('How am I doing?'),
+                      momentumState: MomentumState.steady,
+                    ),
+                    SizedBox(width: ResponsiveService.getSmallSpacing(context)),
+                    CompactCoachingCard(
+                      title: "What's next?",
+                      emoji: '➡️',
+                      onTap: () => _onCoachingCardTap("What's next?"),
+                      momentumState: MomentumState.rising,
+                    ),
+                  ],
                 ),
               ),
             ),
-            child: SafeArea(
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _textController,
-                      decoration: InputDecoration(
-                        hintText: 'Ask your coach...',
-                        hintStyle: TextStyle(
-                          color: AppTheme.getTextTertiary(context),
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(24),
-                          borderSide: BorderSide(
-                            color: AppTheme.getTextTertiary(
-                              context,
-                            ).withValues(alpha: 0.3),
+
+            // Input section
+            Container(
+              padding: EdgeInsets.all(spacing),
+              decoration: BoxDecoration(
+                color: AppTheme.getSurfacePrimary(context),
+                border: Border(
+                  top: BorderSide(
+                    color: AppTheme.getTextTertiary(
+                      context,
+                    ).withValues(alpha: 0.2),
+                    width: 1,
+                  ),
+                ),
+              ),
+              child: SafeArea(
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _textController,
+                        decoration: InputDecoration(
+                          hintText: 'Ask your coach...',
+                          hintStyle: TextStyle(
+                            color: AppTheme.getTextTertiary(context),
                           ),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(24),
-                          borderSide: BorderSide(
-                            color: AppTheme.getTextTertiary(
-                              context,
-                            ).withValues(alpha: 0.3),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(24),
+                            borderSide: BorderSide(
+                              color: AppTheme.getTextTertiary(
+                                context,
+                              ).withValues(alpha: 0.3),
+                            ),
                           ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(24),
-                          borderSide: BorderSide(
-                            color: AppTheme.getMomentumColor(
-                              MomentumState.steady,
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(24),
+                            borderSide: BorderSide(
+                              color: AppTheme.getTextTertiary(
+                                context,
+                              ).withValues(alpha: 0.3),
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(24),
+                            borderSide: BorderSide(
+                              color: AppTheme.getMomentumColor(
+                                MomentumState.steady,
+                              ),
+                            ),
+                          ),
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: spacing,
+                            vertical: ResponsiveService.getSmallSpacing(
+                              context,
                             ),
                           ),
                         ),
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: spacing,
-                          vertical: ResponsiveService.getSmallSpacing(context),
-                        ),
+                        maxLines: null,
+                        textInputAction: TextInputAction.send,
+                        onSubmitted: (_) => _sendMessage(),
                       ),
-                      maxLines: null,
-                      textInputAction: TextInputAction.send,
-                      onSubmitted: (_) => _sendMessage(),
                     ),
-                  ),
-                  SizedBox(width: ResponsiveService.getSmallSpacing(context)),
-                  IconButton(
-                    onPressed: _isRateLimited ? null : _sendMessage,
-                    icon: Icon(
-                      Icons.send_rounded,
-                      color:
-                          _isRateLimited
-                              ? AppTheme.getTextTertiary(context)
-                              : AppTheme.getMomentumColor(MomentumState.rising),
+                    SizedBox(width: ResponsiveService.getSmallSpacing(context)),
+                    IconButton(
+                      onPressed: _isRateLimited ? null : _sendMessage,
+                      icon: Icon(
+                        Icons.send_rounded,
+                        color:
+                            _isRateLimited
+                                ? AppTheme.getTextTertiary(context)
+                                : AppTheme.getMomentumColor(
+                                  MomentumState.rising,
+                                ),
+                      ),
+                      style: IconButton.styleFrom(
+                        backgroundColor:
+                            _isRateLimited
+                                ? AppTheme.getTextTertiary(
+                                  context,
+                                ).withValues(alpha: 0.1)
+                                : AppTheme.getMomentumColor(
+                                  MomentumState.rising,
+                                ).withValues(alpha: 0.1),
+                        shape: const CircleBorder(),
+                      ),
                     ),
-                    style: IconButton.styleFrom(
-                      backgroundColor:
-                          _isRateLimited
-                              ? AppTheme.getTextTertiary(
-                                context,
-                              ).withValues(alpha: 0.1)
-                              : AppTheme.getMomentumColor(
-                                MomentumState.rising,
-                              ).withValues(alpha: 0.1),
-                      shape: const CircleBorder(),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

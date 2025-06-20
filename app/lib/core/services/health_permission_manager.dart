@@ -121,6 +121,8 @@ class PermissionManagerConfig {
       WearableDataType.heartRate,
       WearableDataType.sleepDuration,
       WearableDataType.activeEnergyBurned,
+      WearableDataType.heartRateVariability,
+      WearableDataType.weight,
     ],
   });
 }
@@ -413,6 +415,10 @@ class HealthPermissionManager {
         return 'Walking Distance';
       case WearableDataType.flightsClimbed:
         return 'Flights Climbed';
+      case WearableDataType.heartRateVariability:
+        return 'Heart Rate Variability';
+      case WearableDataType.weight:
+        return 'Weight';
       default:
         return type.name;
     }
