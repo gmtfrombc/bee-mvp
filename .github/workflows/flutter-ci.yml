@@ -49,6 +49,27 @@ jobs:
       working-directory: ./app
       run: flutter test --coverage
       
+    - name: Check coverage threshold
+      working-directory: ./app
+      run: |
+        echo "📊 Verifying global coverage threshold (≥70%)..."
+        sudo apt-get update
+        sudo apt-get install -y lcov bc
+
+        # Generate HTML coverage for debugging (optional)
+        genhtml coverage/lcov.info -o coverage/html
+
+        # Extract coverage percentage
+        COVERAGE=$(lcov --summary coverage/lcov.info 2>&1 | grep "lines" | grep -o '[0-9.]*%' | head -1 | sed 's/%//')
+        echo "Current repository coverage: ${COVERAGE}%"
+
+        if (( $(echo "$COVERAGE < 70" | bc -l) )); then
+          echo "❌ Coverage ${COVERAGE}% is below required 70%"
+          exit 1
+        else
+          echo "✅ Coverage ${COVERAGE}% meets minimum requirement"
+        fi
+
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v4
       with:
