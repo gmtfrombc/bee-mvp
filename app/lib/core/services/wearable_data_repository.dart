@@ -16,6 +16,7 @@ import 'wearable_data_models.dart';
 import 'health_background_sync_service.dart';
 import 'wearable_edge_case_logger.dart';
 import 'data_source_filter_service.dart';
+import 'health_permission_manager.dart';
 
 /// Repository for accessing wearable device data across platforms
 class WearableDataRepository {
@@ -342,6 +343,25 @@ class WearableDataRepository {
         _hasBeenDeniedTwice = true;
       }
       await _edgeCaseLogger.checkPermissionRevocation();
+
+      // 🛡️ Auto-repair: if the error indicates missing authorization, trigger
+      // a one-shot permission request so the next poll can succeed without
+      // manual user intervention.  We do **not** loop endlessly – the caller
+      // decides when to re-fetch.
+      if (e is PlatformException &&
+          e.code == 'HEALTH_ERROR' &&
+          (e.message?.toLowerCase().contains('authorization not determined') ??
+              false)) {
+        try {
+          final pm = HealthPermissionManager();
+          if (!pm.isInitialized) {
+            await pm.initialize();
+          }
+          await pm.requestPermissions(dataTypes: types);
+        } catch (permErr) {
+          debugPrint('Auto-permission recovery failed: $permErr');
+        }
+      }
       return HealthPermissionStatus.denied;
     }
   }
@@ -529,6 +549,25 @@ class WearableDataRepository {
       // T2.2.1.5-5: Log edge cases for data fetch failures
       await _edgeCaseLogger.checkConnectivityIssues();
       await _edgeCaseLogger.checkPermissionRevocation();
+
+      // 🛡️ Auto-repair: if the error indicates missing authorization, trigger
+      // a one-shot permission request so the next poll can succeed without
+      // manual user intervention.  We do **not** loop endlessly – the caller
+      // decides when to re-fetch.
+      if (e is PlatformException &&
+          e.code == 'HEALTH_ERROR' &&
+          (e.message?.toLowerCase().contains('authorization not determined') ??
+              false)) {
+        try {
+          final pm = HealthPermissionManager();
+          if (!pm.isInitialized) {
+            await pm.initialize();
+          }
+          await pm.requestPermissions(dataTypes: types);
+        } catch (permErr) {
+          debugPrint('Auto-permission recovery failed: $permErr');
+        }
+      }
 
       return HealthDataQueryResult(samples: const [], error: e.toString());
     }
