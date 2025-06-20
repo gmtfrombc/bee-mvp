@@ -10,6 +10,7 @@ class MomentumScaffold extends StatelessWidget {
   final List<Widget>? actions;
   final bool centerTitle;
   final Widget? leading;
+  final Widget? drawer;
 
   const MomentumScaffold({
     super.key,
@@ -19,6 +20,7 @@ class MomentumScaffold extends StatelessWidget {
     this.actions,
     this.centerTitle = false,
     this.leading,
+    this.drawer,
   });
 
   @override
@@ -31,6 +33,7 @@ class MomentumScaffold extends StatelessWidget {
         centerTitle: centerTitle,
         leading: leading,
       ),
+      drawer: drawer,
       body: body,
       floatingActionButton: floatingActionButton,
     );

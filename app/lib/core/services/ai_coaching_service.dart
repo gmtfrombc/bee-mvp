@@ -293,15 +293,11 @@ class AICoachingService {
               .gte('timestamp', oneMinuteAgo.toIso8601String())
               .count();
 
-      // The PostgrestResponse from .count() does not have a separate error object.
-      // It will throw a PostgrestException on error.
-
       final count = response.count;
-      debugPrint('💬 Found $count recent messages in the last minute.');
 
-      // Allow up to 10 messages per minute for testing
-      final canSend = count < 10;
-      debugPrint('✅ Rate limit check result: canSendMessage = $canSend');
+      // Allow up to 30 messages per minute – high enough to be invisible to users
+      final canSend = count < 30;
+      debugPrint('💬 Found $count recent messages in the last minute.');
       return canSend;
     } catch (e) {
       if (kDebugMode) {

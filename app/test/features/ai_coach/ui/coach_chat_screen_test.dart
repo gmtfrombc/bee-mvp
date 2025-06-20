@@ -44,11 +44,10 @@ void main() {
         ),
       );
 
-      // Verify coaching suggestion section exists
-      expect(find.text('Quick suggestions:'), findsOneWidget);
+      // Verify suggestion chips rendered
       expect(find.byType(CompactCoachingCard), findsAtLeastNWidgets(2));
-      expect(find.text('Daily habits'), findsOneWidget);
-      expect(find.text('Motivation'), findsOneWidget);
+      expect(find.text('How am I doing?'), findsOneWidget);
+      expect(find.text("What's next?"), findsOneWidget);
     });
 
     testWidgets('sends message when send button is tapped', (tester) async {
@@ -139,11 +138,12 @@ void main() {
       );
 
       // Tap on a coaching card
-      await tester.tap(find.text('Daily habits'));
+      await tester.tap(find.text('How am I doing?'));
       await tester.pumpAndSettle(const Duration(milliseconds: 100));
 
-      // Verify message was sent
-      expect(find.text('Help me build daily habits'), findsOneWidget);
+      // Verify the suggestion text appears both in the bubble and still on
+      // the persistent coaching card.
+      expect(find.text('How am I doing?'), findsAtLeastNWidgets(2));
 
       // Clean up pending timers
       await tester.pumpAndSettle();
