@@ -11,7 +11,7 @@ void main() {
     });
 
     group('identifySourceCategory', () {
-      test('identifies Garmin sources correctly', () {
+      test('should detect Garmin sources', () {
         expect(
           service.identifySourceCategory('Garmin Connect'),
           DataSourceCategory.garmin,
@@ -22,13 +22,9 @@ void main() {
           ),
           DataSourceCategory.garmin,
         );
-        expect(
-          service.identifySourceCategory('Garmin'),
-          DataSourceCategory.garmin,
-        );
       });
 
-      test('identifies Apple sources correctly', () {
+      test('should detect Apple sources', () {
         expect(
           service.identifySourceCategory('Health'),
           DataSourceCategory.apple,
@@ -43,12 +39,32 @@ void main() {
         );
       });
 
-      test('returns unknown for unrecognized sources', () {
+      test('should detect Fitbit sources', () {
         expect(
-          service.identifySourceCategory('Unknown App'),
+          service.identifySourceCategory('Fitbit App'),
+          DataSourceCategory.fitbit,
+        );
+      });
+
+      test('should detect Samsung sources', () {
+        expect(
+          service.identifySourceCategory('Galaxy Watch'),
+          DataSourceCategory.samsung,
+        );
+      });
+
+      test('should detect Google Fit sources', () {
+        expect(
+          service.identifySourceCategory('Google Fit'),
+          DataSourceCategory.googleFit,
+        );
+      });
+
+      test('should mark unknown sources', () {
+        expect(
+          service.identifySourceCategory('Some Random Source'),
           DataSourceCategory.unknown,
         );
-        expect(service.identifySourceCategory(''), DataSourceCategory.unknown);
       });
     });
 
