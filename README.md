@@ -174,3 +174,7 @@ A Flutter application for tracking personal momentum and progress.
 ✅ Asset bundle .env issue resolved ✅ Lint issues (print & unused element)
 resolved 🔄 Epic 1.3 CI fixes - import structure and dependency resolution
 improvements in progress
+
+## Developer Docs
+
+- [Supabase CLI setup](docs/supabase_cli_setup.md)
