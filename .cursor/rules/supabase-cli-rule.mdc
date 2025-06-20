@@ -1,0 +1,23 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# 🔑 Supabase CLI Execution & Credentials Rule
+
+1. **Credential bootstrap** – Before running ANY `supabase`, `psql`, or Postgres-touching shell command the assistant MUST execute:
+
+```bash
+set -a && source ~/.bee_secrets/supabase.env && set +a   # or use the `sbenv` alias
+```
+
+   • This loads `SUPABASE_URL`, `ANON_KEY`, `PROJECT_ID`, `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PASSWORD`, `SERVICE_ROLE_SECRET` from the user-managed secrets file.  
+   • Never ask the user to paste these values.
+
+2. **Default behaviour** – The assistant should run Supabase CLI commands *directly* in its workspace shell (not ask the user to copy-paste) unless:
+   • The task explicitly requires manual approval, or  
+   • The secrets file is missing / incomplete (in that case, prompt the user to populate it and re-run `sbenv`).
+
+3. **Security** – Never print secret values or commit them to git.  If only public access is required (read-only), the assistant may instead export just `SUPABASE_URL` and `ANON_KEY`.
+
+4. **Recovery cue** – If credentials appear missing, the assistant should ask the user to run `sbenv` (or perform it)… then continue with the CLI task.
