@@ -24,6 +24,7 @@ import 'profile_settings_screen.dart';
 // Today Feed imports
 import '../../../today_feed/presentation/widgets/today_feed_tile.dart';
 import '../providers/today_feed_provider.dart';
+import '../../../today_feed/presentation/screens/today_feed_article_screen.dart';
 
 // Gamification imports
 import '../../../gamification/ui/achievements_screen.dart';
@@ -158,8 +159,28 @@ class _MomentumContent extends ConsumerWidget {
           // Today Feed Tile - Fresh daily content
           TodayFeedTile(
             state: todayFeedState,
-            onTap: () {
-              ref.read(todayFeedProvider.notifier).handleTap();
+            onTap: () async {
+              final notifier = ref.read(todayFeedProvider.notifier);
+              final content = notifier.state.content;
+
+              if (content != null && context.mounted) {
+                await Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => TodayFeedArticleScreen(content: content),
+                  ),
+                );
+              } else if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      "We're just writing something up — check back soon!",
+                    ),
+                  ),
+                );
+              }
+
+              // Record interaction (once per day)
+              await notifier.handleTap();
             },
             onRetry: () {
               ref.read(todayFeedProvider.notifier).forceRefresh();
