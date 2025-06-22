@@ -27,7 +27,7 @@ export function buildDailyContentPrompt(topicCategory: string, contentDate: stri
   const monthName = date.toLocaleDateString('en-US', { month: 'long' })
 
   const systemPrompt =
-    `You are a health and wellness content writer creating daily tips for a mobile health app.
+    `You are a health-and-wellness content writer for a mobile app. Each day you create ONE compact but complete article.
 
 IMPORTANT SAFETY GUIDELINES:
 - Never provide medical advice or diagnose conditions.
@@ -38,6 +38,7 @@ IMPORTANT SAFETY GUIDELINES:
 
 TASK:
 Write engaging, actionable content for the topic category "${topicCategory}" for ${dayName}, ${monthName} ${date.getDate()}.
+The **total word count of the article (all text inside full_content.elements) MUST be between 220 and 300 words** so users can finish it in about two minutes.
 
 RESPONSE FORMAT (JSON ONLY):
 {
@@ -46,8 +47,8 @@ RESPONSE FORMAT (JSON ONLY):
   "key_points": ["Point 1", "Point 2", "Point 3"],
   "full_content": {
     "elements": [
-      { "type": "paragraph", "text": "A rich introductory paragraph that hooks the reader." },
-      { "type": "paragraph", "text": "A second paragraph that elaborates on the topic." },
+      { "type": "paragraph", "text": "A ~120-150 word introductory paragraph that hooks the reader." },
+      { "type": "paragraph", "text": "A second ~100-130 word paragraph that elaborates on the topic." },
       { "type": "bullet_list", "list_items": ["Tip 1", "Tip 2", "Tip 3"], "text": "" }
     ],
     "actionable_advice": "One short actionable takeaway.",
@@ -56,11 +57,12 @@ RESPONSE FORMAT (JSON ONLY):
 }
 
 RULES:
-1. The 'elements' array MUST contain at least two paragraphs **followed by** one bullet_list (3+ elements total).
-2. The bullet_list 'list_items' MUST have at least three tips.
-3. Do NOT include markdown, HTML, or special formatting.
-4. Respond **ONLY** with valid JSON that EXACTLY matches the schema above—no extra keys, no commentary.
-5. If the first attempt does not meet every rule, think step-by-step, correct the JSON, and output again until it is valid.`
+1. 'elements' MUST contain exactly two paragraphs followed by one bullet_list.
+2. The combined word count of the two paragraphs PLUS bullet list items must be 220-300 words.
+3. The bullet_list 'list_items' MUST have at least three tips.
+4. Do NOT include markdown, HTML, or special formatting.
+5. Respond **ONLY** with valid JSON that EXACTLY matches the schema above—no extra keys, no commentary.
+6. If the first attempt does not meet every rule, think step-by-step, correct the JSON, and output again until it is valid.`
 
   const userPrompt =
     `Generate daily health content for ${topicCategory} that users can apply today. Make it relevant for a ${dayName} and include specific, actionable advice.`
@@ -79,12 +81,22 @@ export function parseAIContentResponse(
   topicCategory: string,
 ): Omit<GeneratedContent, 'confidence_score'> | null {
   try {
-    let jsonMatch = aiResponse.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) {
-      jsonMatch = [aiResponse]
-    }
+    // ------------------------------------------------------------
+    // Strip common markdown code-fence wrappers (```json ... ```)
+    // and any leading/trailing whitespace before parsing.
+    // ------------------------------------------------------------
+    const cleaned = aiResponse
+      .trim()
+      .replace(/^```(?:json)?/i, '')
+      .replace(/```$/i, '')
+      .trim()
 
-    const parsed: any = JSON.parse(jsonMatch[0])
+    // Try to find the first JSON object inside the string;
+    // fallback to the whole cleaned string if no match.
+    const jsonMatch = cleaned.match(/\{[\s\S]*\}/)
+    const jsonText = jsonMatch ? jsonMatch[0] : cleaned
+
+    const parsed: any = JSON.parse(jsonText)
 
     if (!parsed.title || !parsed.summary) {
       throw new Error('Missing required fields in AI response')
@@ -113,12 +125,29 @@ export function parseAIContentResponse(
       full_content: parsed.full_content ?? defaultFull,
     }
   } catch (error) {
-    console.error('Error parsing AI content response:', error)
+    console.warn('⚠️  Error parsing AI content response (fallback will repair):', error)
 
-    const lines = aiResponse.split('\n').filter((l) => l.trim())
-    const title = lines[0]?.substring(0, 60) || `Daily ${topicCategory} Tip`
-    const summary = lines.slice(1, 3).join(' ').substring(0, 200) ||
-      'Focus on improving your health today.'
+    // ------------------------------------------------------------
+    // Fallback heuristics when JSON.parse fails.
+    // Try to extract title / summary from common key strings first.
+    // ------------------------------------------------------------
+    const titleMatch = aiResponse.match(/"title"\s*:\s*"([^"]{3,80})"/i)
+    const summaryMatch = aiResponse.match(/"summary"\s*:\s*"([^"]{10,300})"/i)
+
+    const rawLines = aiResponse.split('\n').filter((l) => l.trim())
+
+    let title = (titleMatch ? titleMatch[1] : rawLines[0] ?? '').trim()
+    if (title.startsWith('{')) title = ''
+    title = title.substring(0, 60)
+    if (title.length < 5) {
+      title = `Daily ${topicCategory.charAt(0).toUpperCase()}${topicCategory.slice(1)} Tip`
+    }
+
+    let summary = (summaryMatch ? summaryMatch[1] : rawLines.slice(1, 3).join(' ')).trim()
+    summary = summary.substring(0, 200)
+    if (summary.length < 20) {
+      summary = 'Focus on improving your health today.'
+    }
 
     const defaultFull = {
       elements: [
@@ -177,6 +206,10 @@ function isFullContentValid(fullContent: unknown): boolean {
   return paragraphsValid && bulletValid
 }
 
+function isTitleValid(t: string): boolean {
+  return t.trim().length >= 5 && !t.trim().startsWith('{') && !t.includes('"')
+}
+
 /**
  * High-level function to generate daily content, including safety validation.
  */
@@ -207,7 +240,10 @@ export async function generateDailyHealthContent(
       if (!aiResponse) throw new Error('No response from AI API')
 
       parsedContent = parseAIContentResponse(aiResponse, topicCategory)
-      if (parsedContent && isFullContentValid(parsedContent.full_content)) {
+      if (
+        parsedContent && isTitleValid(parsedContent.title) &&
+        isFullContentValid(parsedContent.full_content)
+      ) {
         break // valid content obtained
       }
 
