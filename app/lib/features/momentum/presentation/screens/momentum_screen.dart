@@ -161,7 +161,7 @@ class _MomentumContent extends ConsumerWidget {
             state: todayFeedState,
             onTap: () async {
               final notifier = ref.read(todayFeedProvider.notifier);
-              final content = notifier.state.content;
+              final content = todayFeedState.content;
 
               if (content != null && context.mounted) {
                 await Navigator.of(context).push(
@@ -376,7 +376,7 @@ class _DemoButton extends ConsumerWidget {
         child: ElevatedButton(
           onPressed: () {
             // Update demo state using Riverpod
-            ref.read(demoStateProvider.notifier).state = state;
+            ref.read(demoStateProvider.notifier).update((_) => state);
           },
           style: ElevatedButton.styleFrom(
             backgroundColor:

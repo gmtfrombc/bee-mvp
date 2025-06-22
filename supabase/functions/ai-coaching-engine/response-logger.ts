@@ -20,11 +20,12 @@ export interface ConversationLog {
  * Returns the conversation log ID for linking to effectiveness tracking
  */
 export async function logConversation(
+  _conversationId: string,
   userId: string,
   role: ConversationRole,
   content: string,
   persona?: string,
-  authToken?: string,
+  _authToken?: string,
 ): Promise<string | null> {
   // Skip logging in test environment
   const isTestingEnvironment = Deno.env.get('DENO_TESTING') === 'true'
@@ -50,12 +51,8 @@ export async function logConversation(
     console.log(`🧪 Using key type: ${serviceRoleKey ? 'service_role' : 'anon'}`)
   }
 
-  const { createClient } = await import('npm:@supabase/supabase-js@2')
-  const supabase = createClient(supabaseUrl, keyToUse, {
-    global: {
-      headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
-    },
-  })
+  const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2')
+  const supabase = createClient(supabaseUrl, keyToUse)
 
   const logEntry: ConversationLog = {
     user_id: userId,
@@ -95,7 +92,7 @@ export async function logConversation(
 export async function getRecentMessages(
   userId: string,
   limit: number = 20,
-  authToken?: string,
+  _authToken?: string,
 ): Promise<ConversationLog[]> {
   // Skip fetching messages in test environment
   const isTestingEnvironment = Deno.env.get('DENO_TESTING') === 'true'
@@ -114,12 +111,8 @@ export async function getRecentMessages(
     ? (Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || supabaseKey)
     : supabaseKey
 
-  const { createClient } = await import('npm:@supabase/supabase-js@2')
-  const supabase = createClient(supabaseUrl, keyToUse, {
-    global: {
-      headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
-    },
-  })
+  const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2')
+  const supabase = createClient(supabaseUrl, keyToUse)
 
   const { data, error } = await supabase
     .from('conversation_logs')
