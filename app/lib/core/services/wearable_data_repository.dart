@@ -328,11 +328,11 @@ class WearableDataRepository {
       );
 
       debugPrint('[Permissions] hasPermissions raw result: $finalHasBool');
-      // In some iOS versions `hasPermissions` may return `null` even when
-      // permissions are actually granted. We interpret `null` as authorised
-      // *only* on iOS; Android always expects explicit `true`.
-      final finalHas =
-          finalHasBool == true || (finalHasBool == null && Platform.isIOS);
+      // The Flutter health plugin may return `null` on iOS 17+ even when
+      // permissions are granted OR denied.  We no longer interpret `null`
+      // as authorised; instead we treat it as *unknown* and fall back to
+      // our bridge/probe detection.
+      final finalHas = finalHasBool == true;
       debugPrint('[Permissions] hasPermissions finalHas: $finalHas');
 
       if (success || finalHas) {
@@ -423,20 +423,17 @@ class WearableDataRepository {
         );
       }
 
-      // In some iOS versions `hasPermissions` may return `null` even when
-      // permissions are actually granted. We interpret `null` as authorised
-      // *only* on iOS; Android always expects explicit `true`.
-      final hasPermissions =
-          hasPermissionsResult == true ||
-          (hasPermissionsResult == null && Platform.isIOS);
+      // The Flutter health plugin may return `null` on iOS 17+ even when
+      // permissions are granted OR denied.  We no longer interpret `null`
+      // as authorised; instead we treat it as *unknown* and fall back to
+      // our bridge/probe detection.
+      final hasPermissions = hasPermissionsResult == true;
 
       if (kDebugMode) {
-        debugPrint(
-          '[Permissions] checkPermissions.finalHas=$hasPermissions (nullAsAuth=${Platform.isIOS && hasPermissionsResult == null})',
-        );
+        debugPrint('[Permissions] checkPermissions.finalHas=$hasPermissions');
       }
 
-      // If Flutter plugin reports not authorized on iOS, fall back to read probe
+      // If plugin did not confirm grant on iOS, fall back to read probe
       if (Platform.isIOS && !hasPermissions) {
         final probeOk = await _iosProbeReadAccess();
         if (kDebugMode) {
