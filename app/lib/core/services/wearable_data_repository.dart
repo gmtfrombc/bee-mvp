@@ -51,6 +51,11 @@ class WearableDataRepository {
     'com.bee.health_permission_status',
   );
 
+  // iOS-only read probe channel (detects revoked permissions via empty read window)
+  static const MethodChannel _iosReadProbeChannel = MethodChannel(
+    'health_read_probe',
+  );
+
   /// Stream of health data updates
   Stream<List<HealthSample>> get dataStream => _dataStreamController.stream;
 
@@ -429,6 +434,17 @@ class WearableDataRepository {
         debugPrint(
           '[Permissions] checkPermissions.finalHas=$hasPermissions (nullAsAuth=${Platform.isIOS && hasPermissionsResult == null})',
         );
+      }
+
+      // If Flutter plugin reports not authorized on iOS, fall back to read probe
+      if (Platform.isIOS && !hasPermissions) {
+        final probeOk = await _iosProbeReadAccess();
+        if (kDebugMode) {
+          debugPrint('[Permissions] iOS read probe result: $probeOk');
+        }
+        return probeOk
+            ? HealthPermissionStatus.authorized
+            : HealthPermissionStatus.denied;
       }
 
       // iOS custom bridge – per-type bool map (iOS bridge)
@@ -994,6 +1010,25 @@ class WearableDataRepository {
         return 'HKQuantityTypeIdentifierFlightsClimbed';
       default:
         return 'HKQuantityTypeIdentifierStepCount';
+    }
+  }
+
+  /// Run a lightweight HealthKit sample query to infer read permission status.
+  /// Returns true when at least one sample exists in the look-back window –
+  /// indicating access is still granted.
+  Future<bool> _iosProbeReadAccess({
+    WearableDataType type = WearableDataType.steps,
+    Duration window = const Duration(minutes: 15),
+  }) async {
+    try {
+      final ok = await _iosReadProbeChannel.invokeMethod<bool>('probe', {
+        'id': _toHKIdentifier(type),
+        'interval': window.inSeconds,
+      });
+      return ok == true;
+    } catch (e) {
+      debugPrint('iOS read-probe failed: $e');
+      return false;
     }
   }
 }
