@@ -288,12 +288,12 @@ class HealthPermissionsButtonsWidget extends StatelessWidget {
 
   String _getButtonText() {
     if (state.isPermanentlyDenied) {
-      return 'Open Settings';
+      return Platform.isIOS ? 'Open Health Settings' : 'Open Settings';
     }
     if (Platform.isAndroid && state.status == HealthPermissionStatus.denied) {
       return 'Try Again';
     }
-    return 'Grant Health Permissions';
+    return 'Grant Apple Health Access';
   }
 
   @override

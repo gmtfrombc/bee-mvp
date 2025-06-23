@@ -1,10 +1,16 @@
-import 'package:app/core/services/health_permission_manager.dart';
-import 'package:app/core/theme/app_theme.dart';
-import 'package:flutter/material.dart';
 import 'dart:async';
 
-/// Toggle widget that shows overall Health permission status and lets
-/// the user request authorization again if permissions have been revoked.
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'package:app/core/services/health_permission_manager.dart';
+import 'package:app/core/theme/app_theme.dart';
+import 'package:app/core/models/permission_summary.dart';
+import 'package:app/core/providers/permission_summary_provider.dart';
+
+/// Widget that shows overall Health permission status (Granted / Partial /
+/// Denied).  Tapping it re-requests any missing permissions when possible or
+/// directs the user to Apple Health / Health Connect settings.
 ///
 /// Behaviour:
 /// • Displays a green (on) switch when *all* required permissions are granted.
@@ -15,109 +21,91 @@ import 'dart:async';
 /// Note: Permission revocation cannot be performed in-app, so turning the
 /// switch *off* simply opens platform settings so the user can manage
 /// permissions manually.
-class HealthPermissionToggle extends StatefulWidget {
-  final HealthPermissionManager? manager;
-  const HealthPermissionToggle({super.key, this.manager});
+class HealthPermissionToggle extends ConsumerWidget {
+  const HealthPermissionToggle({super.key});
 
   @override
-  State<HealthPermissionToggle> createState() => _HealthPermissionToggleState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final summaryAsync = ref.watch(permissionSummaryProvider);
 
-class _HealthPermissionToggleState extends State<HealthPermissionToggle> {
-  bool _permissionsGranted = false;
-  bool _isLoading = true;
-  late final HealthPermissionManager _manager;
-  StreamSubscription<List<PermissionDelta>>? _deltaSub;
-
-  @override
-  void initState() {
-    super.initState();
-    _manager = widget.manager ?? HealthPermissionManager();
-    _init();
+    return summaryAsync.when(
+      data: (summary) => _buildContent(context, summary, ref),
+      loading:
+          () => const ListTile(
+            title: Text('Health Data Permissions'),
+            trailing: SizedBox(
+              height: 24,
+              width: 24,
+              child: CircularProgressIndicator(),
+            ),
+          ),
+      error:
+          (e, _) => ListTile(
+            title: const Text('Health Data Permissions'),
+            subtitle: Text('Error: $e'),
+            trailing: const Icon(Icons.error, color: Colors.red),
+          ),
+    );
   }
 
-  Future<void> _init() async {
-    // Initialise manager once (noop on subsequent calls).
-    if (!_manager.isInitialized) {
-      await _manager.initialize();
+  Widget _buildContent(
+    BuildContext context,
+    PermissionSummary summary,
+    WidgetRef ref,
+  ) {
+    final mgr = HealthPermissionManager();
+    final colorScheme = Theme.of(context).colorScheme;
+
+    Icon icon;
+    String subtitle;
+    if (summary.isConnected) {
+      icon = const Icon(Icons.check_circle, color: AppTheme.momentumRising);
+      subtitle = 'Connected';
+    } else {
+      icon = Icon(Icons.cancel, color: colorScheme.error);
+      subtitle = 'Not Connected – tap to enable';
     }
-    await _refreshStatus();
 
-    // Listen for permission deltas to update UI live.
-    _deltaSub = _manager.deltaStream.listen((_) => _refreshStatus());
-  }
+    Future<void> handleTap() async {
+      if (summary.isConnected &&
+          summary.state == PermissionAggregateState.granted) {
+        // Show info dialog – guide user to system settings to revoke.
+        await showDialog<void>(
+          context: context,
+          builder:
+              (_) => const AlertDialog(
+                title: Text('Manage Permissions'),
+                content: Text(
+                  'To change health permissions, open the Apple Health app (Sources → Apps) '
+                  'or Health Connect on Android.',
+                ),
+              ),
+        );
+        return;
+      }
 
-  Future<void> _refreshStatus() async {
-    final required = _manager.config.requiredPermissions;
-    final granted = required.every((type) {
-      final entry = _manager.permissionCache[type];
-      return entry?.isGranted ?? false;
-    });
-    setState(() {
-      _permissionsGranted = granted;
-      _isLoading = false;
-    });
-  }
+      // Re-request missing permissions.
+      final snack = ScaffoldMessenger.of(context);
+      snack.showSnackBar(
+        const SnackBar(content: Text('Requesting permissions…')),
+      );
 
-  Future<void> _handleTap() async {
-    if (!_permissionsGranted) {
-      // Request permissions again
-      setState(() => _isLoading = true);
-      final results = await _manager.requestPermissions();
-      final granted = results.values.every((v) => v);
-      setState(() {
-        _permissionsGranted = granted;
-        _isLoading = false;
-      });
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      final resultMap = await mgr.requestPermissions(
+        dataTypes: summary.missingTypes,
+      );
+      final allGranted = resultMap.values.every((g) => g);
+
+      snack.hideCurrentSnackBar();
+      snack.showSnackBar(
         SnackBar(
           content: Text(
-            granted
-                ? 'Health permissions granted'
-                : 'Some permissions are still missing',
+            allGranted
+                ? 'Permissions granted'
+                : 'Some permissions still missing',
           ),
-          duration: const Duration(seconds: 3),
         ),
       );
-    } else {
-      // Cannot revoke via API – guide user to system settings
-      await showDialog<void>(
-        context: context,
-        builder:
-            (context) => AlertDialog(
-              title: const Text('Manage Permissions'),
-              content: const Text(
-                'To revoke health data access, please use the Health app (iOS) or '
-                'Health Connect settings (Android).',
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('OK'),
-                ),
-              ],
-            ),
-      );
     }
-  }
-
-  @override
-  void dispose() {
-    _deltaSub?.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    final icon =
-        _permissionsGranted
-            ? const Icon(Icons.check_circle, color: AppTheme.momentumRising)
-            : Icon(Icons.cancel, color: Theme.of(context).colorScheme.error);
 
     return ListTile(
       title: Text(
@@ -127,13 +115,13 @@ class _HealthPermissionToggleState extends State<HealthPermissionToggle> {
         ),
       ),
       subtitle: Text(
-        _permissionsGranted ? 'Granted' : 'Not Granted',
+        subtitle,
         style: Theme.of(context).textTheme.bodySmall?.copyWith(
           color: AppTheme.getTextSecondary(context),
         ),
       ),
       trailing: icon,
-      onTap: _handleTap,
+      onTap: handleTap,
       contentPadding: EdgeInsets.zero,
     );
   }
