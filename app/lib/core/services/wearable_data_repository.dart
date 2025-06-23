@@ -439,13 +439,9 @@ class WearableDataRepository {
         if (kDebugMode) {
           debugPrint('[Permissions] iOS read probe result: $probeOk');
         }
-        if (probeOk) {
-          return HealthPermissionStatus.authorized;
-        } else {
-          // We couldn't detect data – treat as notDetermined so UI can
-          // prompt the user again rather than showing a hard denial.
-          return HealthPermissionStatus.notDetermined;
-        }
+        return probeOk
+            ? HealthPermissionStatus.authorized
+            : HealthPermissionStatus.denied;
       }
 
       // iOS custom bridge – per-type bool map (iOS bridge)
