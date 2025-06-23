@@ -50,8 +50,8 @@ class _MomentumGaugeState extends State<MomentumGauge>
     // Start animations here instead of initState to ensure MediaQuery is available
     if (!_animationController.hasStartedAnimations) {
       _animationController.startAnimations(context);
-      // Also update progress to match the current state for consistent visual representation
-      _animationController.updateProgressForState(widget.state);
+      // Ensure progress reflects actual percentage rather than discrete state
+      _animationController.updateProgress(widget.percentage);
     }
   }
 
@@ -66,9 +66,12 @@ class _MomentumGaugeState extends State<MomentumGauge>
         oldWidget.state,
         widget.state,
       );
-    } else if (oldWidget.percentage != widget.percentage) {
-      // Use state-based progress update for consistent visual representation
-      _animationController.updateProgressForState(widget.state);
+    }
+
+    // Update progress whenever percentage or state changes
+    if (oldWidget.percentage != widget.percentage ||
+        oldWidget.state != widget.state) {
+      _animationController.updateProgress(widget.percentage);
     }
   }
 

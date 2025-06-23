@@ -71,8 +71,13 @@ class TodayFeedLoadingStateWidget extends StatelessWidget {
                 style: Theme.of(context).textTheme.labelMedium?.copyWith(
                   color: AppTheme.getTextSecondary(context),
                   letterSpacing: 0.5,
+                  fontWeight: FontWeight.w600,
+                  fontSize:
+                      Theme.of(context).textTheme.labelMedium!.fontSize! *
+                      ResponsiveService.getFontSizeMultiplier(context) *
+                      1.1,
                 ),
-                overflow: TextOverflow.ellipsis,
+                maxLines: 2,
               ),
               SizedBox(height: ResponsiveService.getTinySpacing(context) / 2),
               Text(

@@ -194,15 +194,15 @@ class ResponsiveService {
 
     switch (deviceType) {
       case DeviceType.mobileSmall:
-        return 220.0;
+        return 250.0;
       case DeviceType.mobile:
-        return 240.0;
+        return 270.0;
       case DeviceType.mobileLarge:
-        return 260.0;
+        return 290.0;
       case DeviceType.tablet:
-        return 280.0;
+        return 310.0;
       case DeviceType.desktop:
-        return 300.0;
+        return 330.0;
     }
   }
 

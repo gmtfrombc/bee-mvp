@@ -37,86 +37,42 @@ class StatsCardsLayout extends StatelessWidget {
   }
 
   Widget _buildStandardLayout(double spacing) {
-    return Column(
+    return Row(
       children: [
-        Row(
-          children: [
-            Expanded(child: cardWrapper(_buildLessonsCard())),
-            SizedBox(width: spacing),
-            Expanded(child: cardWrapper(_buildStreakCard())),
-          ],
-        ),
-        SizedBox(height: spacing),
-        Row(
-          children: [
-            Expanded(child: cardWrapper(_buildTodayCard())),
-            SizedBox(width: spacing),
-            Expanded(child: cardWrapper(_buildAchievementsCard())),
-          ],
-        ),
+        Expanded(child: cardWrapper(_buildReadinessCard())),
+        SizedBox(width: spacing),
+        Expanded(child: cardWrapper(_buildActionStepCard())),
       ],
     );
   }
 
   Widget _buildCompactLayout(double spacing) {
-    return Column(
+    return Row(
       children: [
-        Row(
-          children: [
-            Expanded(child: cardWrapper(_buildLessonsCard())),
-            SizedBox(width: spacing),
-            Expanded(child: cardWrapper(_buildStreakCard())),
-          ],
-        ),
-        SizedBox(height: spacing),
-        Row(
-          children: [
-            Expanded(child: cardWrapper(_buildTodayCard())),
-            SizedBox(width: spacing),
-            Expanded(child: cardWrapper(_buildAchievementsCard())),
-          ],
-        ),
+        Expanded(child: cardWrapper(_buildReadinessCard())),
+        SizedBox(width: spacing),
+        Expanded(child: cardWrapper(_buildActionStepCard())),
       ],
     );
   }
 
-  IndividualStatCard _buildLessonsCard() {
+  IndividualStatCard _buildReadinessCard() {
     return IndividualStatCard(
-      icon: Icons.menu_book_rounded,
-      value: stats.lessonsRatio,
-      label: 'Lessons',
-      color: AppTheme.momentumRising,
-      onTap: onLessonsTap,
-    );
-  }
-
-  IndividualStatCard _buildStreakCard() {
-    return IndividualStatCard(
-      icon: Icons.local_fire_department_rounded,
-      value: stats.streakText,
-      label: 'Streak',
-      color: AppTheme.momentumCare,
-      onTap: onStreakTap,
-    );
-  }
-
-  IndividualStatCard _buildTodayCard() {
-    return IndividualStatCard(
-      icon: Icons.schedule_rounded,
-      value: stats.todayText,
-      label: 'Today',
+      icon: Icons.self_improvement_rounded,
+      value: '--', // Placeholder until DNS logic is wired
+      label: 'Readiness',
       color: AppTheme.momentumSteady,
-      onTap: onTodayTap,
+      onTap: onLessonsTap, // Reuse callback slot for future DNS survey
     );
   }
 
-  IndividualStatCard _buildAchievementsCard() {
+  IndividualStatCard _buildActionStepCard() {
     return IndividualStatCard(
-      icon: Icons.emoji_events_rounded,
-      value: '3', // Mock value - in practice this would come from stats
-      label: 'Badges',
+      icon: Icons.flag_circle_rounded,
+      value: '--', // Placeholder until Action Step logic is wired
+      label: 'Action Step',
       color: AppTheme.momentumRising,
-      onTap: onAchievementsTap,
+      onTap: onStreakTap, // Reuse callback slot for future Action Step details
     );
   }
 }

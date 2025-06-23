@@ -1,10 +1,17 @@
 import 'package:logger/logger.dart';
 import 'package:flutter/foundation.dart';
 
+// Compile-time flag: pass --dart-define=VERBOSE_LOGS=true for more verbose output.
+const bool kVerboseLogs = bool.fromEnvironment(
+  'VERBOSE_LOGS',
+  defaultValue: false,
+);
+
 // Global logger instance configured with pretty printing in debug builds
 // and more concise output in release builds.
 final Logger _logger = Logger(
-  level: kDebugMode ? Level.debug : Level.warning,
+  level:
+      kDebugMode ? (kVerboseLogs ? Level.info : Level.warning) : Level.warning,
   printer: PrettyPrinter(
     colors: false,
     printEmojis: false,
@@ -21,6 +28,7 @@ void logD(dynamic message, [dynamic error, StackTrace? stackTrace]) {
 
 /// Info-level log – always printed.
 void logI(dynamic message, [dynamic error, StackTrace? stackTrace]) {
+  if (!kVerboseLogs) return; // Suppress info logs unless verbose.
   _logger.i(message, error: error, stackTrace: stackTrace);
 }
 

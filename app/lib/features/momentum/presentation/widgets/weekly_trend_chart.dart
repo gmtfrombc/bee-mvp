@@ -280,18 +280,7 @@ class _WeeklyTrendChartState extends State<WeeklyTrendChart>
 
   // Helper method for trend color calculation
   Color _getTrendColor() {
-    if (widget.weeklyTrend.isEmpty) return AppTheme.getTextSecondary(context);
-
-    // Calculate overall trend
-    final recentStates =
-        widget.weeklyTrend.take(3).map((d) => d.state).toList();
-    final risingCount =
-        recentStates.where((s) => s == MomentumState.rising).length;
-    final needsCareCount =
-        recentStates.where((s) => s == MomentumState.needsCare).length;
-
-    if (risingCount >= 2) return AppTheme.momentumRising;
-    if (needsCareCount >= 2) return AppTheme.momentumCare;
-    return AppTheme.momentumSteady;
+    // Use a neutral accent colour so line doesn't imply a specific state
+    return AppTheme.momentumSteadyLight; // defined in theme as light blue
   }
 }

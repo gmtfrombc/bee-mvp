@@ -49,7 +49,7 @@ export async function getSupabaseClient(options?: {
 
   try {
     // Dynamic import keeps supabase-js out of the cold-start bundle
-    const { createClient } = await import('npm:@supabase/supabase-js@2')
+    const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2')
     return createClient(supabaseUrl, apiKey)
   } catch (_err) {
     // In CI or offline test environments the npm import may fail – return minimal stub

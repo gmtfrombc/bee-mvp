@@ -234,6 +234,10 @@ class HealthPermissionManager {
         );
         final isGranted = status == HealthPermissionStatus.authorized;
 
+        if (!isGranted) {
+          debugPrint('Permission $dataType denied with status $status');
+        }
+
         // Update cache
         final entry = PermissionCacheEntry(
           dataType: dataType,
@@ -309,6 +313,10 @@ class HealthPermissionManager {
             dataTypes: [dataType],
           );
           isGranted = status == HealthPermissionStatus.authorized;
+
+          if (!isGranted) {
+            debugPrint('Permission $dataType denied with status $status');
+          }
 
           // Update cache
           final entry = PermissionCacheEntry(

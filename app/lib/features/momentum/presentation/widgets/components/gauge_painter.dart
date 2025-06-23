@@ -39,9 +39,11 @@ class MomentumGaugePainter extends CustomPainter {
     final displayProgress =
         progress > 0 ? progress : 0.02; // Minimum 2% for visibility
 
+    final progressColor = (transitionColor ?? AppTheme.getMomentumColor(state))
+        .withValues(alpha: 0.8);
     final progressPaint =
         Paint()
-          ..color = transitionColor ?? AppTheme.getMomentumColor(state)
+          ..color = progressColor
           ..strokeWidth = strokeWidth
           ..style = PaintingStyle.stroke
           ..strokeCap = StrokeCap.round;

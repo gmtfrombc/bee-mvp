@@ -421,6 +421,11 @@ class VitalsNotifierService {
 
   /// Add vitals data to history and notify consumers
   void _addVitalsData(VitalsData vitalsData) {
+    if (kDebugMode && vitalsData.metadata['aggregated'] == true) {
+      debugPrint(
+        '📮 aggregated emit → sleep=${vitalsData.sleepHours} steps=${vitalsData.steps}',
+      );
+    }
     // Always persist to history first
     _dataHistory.add(vitalsData);
     _cleanupHistory();
@@ -432,7 +437,12 @@ class VitalsNotifierService {
         !vitalsData.hasSleep &&
         (vitalsData.metadata['aggregated'] != true);
 
-    if (isRawStepOnly) return;
+    // Skip raw per-segment sleep entries (sleepKind ≠ aggregated) so the UI shows the
+    // properly aggregated nightly total rather than the last individual stage sample.
+    final isRawSleepSegment =
+        vitalsData.hasSleep && (vitalsData.metadata['aggregated'] != true);
+
+    if (isRawStepOnly || isRawSleepSegment) return;
 
     // Merge with previous vitals so metrics missing in latest record are kept.
     VitalsData merged = vitalsData;
@@ -553,13 +563,55 @@ class VitalsNotifierService {
   /// pull-to-refresh gesture in the WearableDashboardScreen. A broader
   /// look-back window is used to guarantee that new samples are fetched even
   /// if HealthKit has not produced events in the last minute.
+  ///
+  /// In addition to fetching fresh data we now *purge* any existing sleep-related
+  /// samples that fall within the analysis window so that deleted or amended
+  /// Sleep records in Apple Health are reflected immediately.  This fixes the
+  /// scenario where a user removed an erroneous 0.1-minute record but the app
+  /// continued to display the stale value (#H2-A-sleep-stale).
   Future<void> refreshNow() async {
-    if (!_isInitialized) return;
+    if (!_isInitialized) {
+      // Attempt late initialization so manual refresh still works.
+      final ok = await initialize();
+      if (!ok) return;
+    }
 
+    // ---------------------------------------------------------------------
+    // 1️⃣ Purge stale sleep samples so that subsequent aggregation reflects
+    // the *current* ground-truth from HealthKit/Health Connect.  We only wipe
+    // records from the analysis window (yesterday 18:00 → now) to keep memory
+    // usage low while guaranteeing correct aggregation.
+    // ---------------------------------------------------------------------
     final now = DateTime.now();
+    final sleepWindowStart = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    ).subtract(const Duration(hours: 6)); // yesterday 18:00
+
+    _purgeSleepSamples(since: sleepWindowStart);
+
+    // If the current snapshot contains a sleepHours value, clear it out so the
+    // UI doesn't continue showing the stale figure in the brief interval
+    // before fresh data arrives.
+    if (_currentVitals?.hasSleep ?? false) {
+      _currentVitals = _currentVitals!.copyWith(sleepHours: null);
+    }
+
+    // Notify listeners of the cleared state so the Sleep tile can render a
+    // loading/placeholder UI immediately, giving the user feedback that the
+    // refresh gesture is in progress.
+    if (_currentVitals != null) {
+      _vitalsController.add(_currentVitals!);
+      // Persist the cleared snapshot so a hot-restart doesn't resurrect the
+      // stale 0.1-minute value from SharedPreferences.
+      // ignore: unawaited_futures
+      _saveCachedVitals(_currentVitals!);
+    }
+
     final List<HealthSample> combined = [];
 
-    // 1) Steps – fetch since midnight so we always have the full daily total.
+    // 2️⃣ Steps – fetch since midnight so we always have the full daily total.
     final midnight = DateTime(now.year, now.month, now.day);
     final stepsRes = await _repository.getHealthData(
       dataTypes: [WearableDataType.steps],
@@ -568,29 +620,94 @@ class VitalsNotifierService {
     );
     combined.addAll(stepsRes.samples);
 
-    // 2) Heart-related metrics – last 2 h is enough for freshness.
+    // 3️⃣ Heart-related metrics – fetch both instantaneous and resting HR for context.
     final hrRes = await _repository.getHealthData(
       dataTypes: [
         WearableDataType.heartRate,
+        WearableDataType.restingHeartRate,
         WearableDataType.heartRateVariability,
       ],
-      startTime: now.subtract(const Duration(hours: 2)),
+      startTime: now.subtract(const Duration(hours: 24)),
       endTime: now,
     );
-    combined.addAll(hrRes.samples);
+    // Process instantaneous HR first, then resting HR so the latter becomes the final merged value.
+    final hrSamplesSorted = [...hrRes.samples]..sort((a, b) {
+      final aRest = a.type == WearableDataType.restingHeartRate;
+      final bRest = b.type == WearableDataType.restingHeartRate;
+      if (aRest == bRest) return 0;
+      return aRest ? 1 : -1; // resting → after
+    });
+    combined.addAll(hrSamplesSorted);
 
-    // 3) Sleep – previous night (6 PM) until now covers the common window.
-    final sleepStart = DateTime(
-      now.year,
-      now.month,
-      now.day,
-    ).subtract(const Duration(hours: 6));
-    final sleepRes = await _repository.getHealthData(
-      dataTypes: [WearableDataType.sleepDuration],
-      startTime: sleepStart,
+    // 4️⃣ Active energy – since midnight to capture full-day burn.
+    final energyRes = await _repository.getHealthData(
+      dataTypes: [WearableDataType.activeEnergyBurned],
+      startTime: midnight,
       endTime: now,
     );
+    combined.addAll(energyRes.samples);
+
+    // 5️⃣ Weight – use most recent sample within last 30 days.
+    final weightRes = await _repository.getHealthData(
+      dataTypes: [WearableDataType.weight],
+      startTime: now.subtract(const Duration(days: 30)),
+      endTime: now,
+    );
+    if (weightRes.samples.isNotEmpty) {
+      // Choose the most recent weight entry by timestamp.
+      weightRes.samples.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      combined.add(weightRes.samples.first);
+    }
+
+    // 6️⃣ Sleep – previous night (18:00) → now covers the common window.
+    var sleepRes = await _repository.getHealthData(
+      dataTypes: [
+        WearableDataType.sleepDuration,
+        WearableDataType.sleepAwake,
+        WearableDataType.sleepAsleep,
+        WearableDataType.sleepDeep,
+        WearableDataType.sleepLight,
+        WearableDataType.sleepRem,
+      ],
+      startTime: sleepWindowStart,
+      endTime: now,
+    );
+
+    // Fallback: widen look-back to past 5 days if no samples found
+    if (sleepRes.samples.isEmpty) {
+      logD('🛌 No sleep samples in 21-h window – retrying 5-day fetch');
+      sleepRes = await _repository.getHealthData(
+        dataTypes: [
+          WearableDataType.sleepDuration,
+          WearableDataType.sleepAwake,
+          WearableDataType.sleepAsleep,
+          WearableDataType.sleepDeep,
+          WearableDataType.sleepLight,
+          WearableDataType.sleepRem,
+        ],
+        startTime: now.subtract(const Duration(days: 5)),
+        endTime: now,
+      );
+    }
+
     combined.addAll(sleepRes.samples);
+
+    // ---------------------------------------------------------------------
+    // 🔢 Compute nightly restful sleep total from the freshly fetched samples
+    //     and emit it as an aggregated record so the Sleep tile has the
+    //     correct value immediately after a manual refresh.
+    // ---------------------------------------------------------------------
+    final nightlyHours = _computeRestfulSleepHours(sleepRes.samples);
+    if (nightlyHours != null && nightlyHours > 0) {
+      _addVitalsData(
+        VitalsData(
+          sleepHours: nightlyHours,
+          timestamp: now,
+          quality: VitalsQuality.good,
+          metadata: const {'aggregated': true, 'source': 'manualRefresh'},
+        ),
+      );
+    }
 
     if (combined.isEmpty) {
       logD('🌧️ Manual refresh found no new samples');
@@ -598,6 +715,15 @@ class VitalsNotifierService {
     }
 
     _processHealthSamples(combined);
+  }
+
+  // ---------------------------------------------------------------------------
+  // 🧹 Helper: remove existing sleep-related samples from history so that a
+  //           subsequent fetch can rebuild the nightly sleep aggregate without
+  //           double-counting or retaining deleted entries.
+  // ---------------------------------------------------------------------------
+  void _purgeSleepSamples({required DateTime since}) {
+    _dataHistory.removeWhere((d) => d.hasSleep && d.timestamp.isAfter(since));
   }
 
   // T2.2.2.9: New method to poll for vitals data using repository
@@ -726,7 +852,10 @@ class VitalsNotifierService {
 
           // First try last 2 h
           final hr2h = await _repository.getHealthData(
-            dataTypes: [WearableDataType.heartRate],
+            dataTypes: [
+              WearableDataType.heartRate,
+              WearableDataType.restingHeartRate,
+            ],
             startTime: now.subtract(const Duration(hours: 2)),
             endTime: now,
           );
@@ -735,7 +864,10 @@ class VitalsNotifierService {
           // Fallback: last 24 h
           if (hrSamples.isEmpty) {
             final hr24h = await _repository.getHealthData(
-              dataTypes: [WearableDataType.heartRate],
+              dataTypes: [
+                WearableDataType.heartRate,
+                WearableDataType.restingHeartRate,
+              ],
               startTime: now.subtract(const Duration(hours: 24)),
               endTime: now,
             );
@@ -766,7 +898,11 @@ class VitalsNotifierService {
             now.day,
           ).subtract(const Duration(hours: 6));
           final sleepResult = await _repository.getHealthData(
-            dataTypes: [WearableDataType.sleepDuration],
+            dataTypes: [
+              WearableDataType.sleepDuration,
+              WearableDataType.sleepAwake,
+              WearableDataType.sleepAsleep,
+            ],
             startTime: yesterday18,
             endTime: now,
           );
@@ -808,9 +944,10 @@ class VitalsNotifierService {
       }
     }
 
-    // Calculate total steps since midnight using dedup logic and emit as aggregated VitalsData.
+    // Aggregations for summary metrics -------------------------------------------------
     _emitAggregatedSteps();
     _emitAggregatedActiveEnergy();
+    _emitAggregatedSleep();
   }
 
   // T2.2.2.9: New method to process a single HealthSample into VitalsData
@@ -824,8 +961,16 @@ class VitalsNotifierService {
     double? activeEnergy;
     double? weight;
 
+    // Capture common metadata (will add sleepKind later if needed)
+    final Map<String, dynamic> meta = {'source': sample.source, 'polled': true};
+
     switch (sample.type) {
       case WearableDataType.heartRate:
+        heartRate = _extractDouble(sample.value);
+        break;
+
+      case WearableDataType.restingHeartRate:
+        // Prefer resting HR for daily snapshot
         heartRate = _extractDouble(sample.value);
         break;
 
@@ -850,6 +995,7 @@ class VitalsNotifierService {
         break;
 
       case WearableDataType.sleepDuration:
+        meta['sleepKind'] = 'inBed';
         // Assume incoming value is total sleep duration in minutes
         try {
           final minutes = _extractDouble(sample.value);
@@ -857,6 +1003,23 @@ class VitalsNotifierService {
         } catch (_) {
           sleepHours = _extractDouble(sample.value);
         }
+        break;
+
+      case WearableDataType.sleepAwake:
+        // Awake minutes during sleep session – used to subtract from in-bed duration.
+        final minutes = _extractDouble(sample.value);
+        if (minutes != null) sleepHours = minutes / 60.0;
+        meta['sleepKind'] = 'awake';
+        break;
+
+      case WearableDataType.sleepDeep:
+      case WearableDataType.sleepLight:
+      case WearableDataType.sleepRem:
+      case WearableDataType.sleepAsleep:
+        // Treat sleep stage minutes as sleep contribution.
+        final minutes = _extractDouble(sample.value);
+        if (minutes != null) sleepHours = minutes / 60.0;
+        meta['sleepKind'] = 'stage';
         break;
 
       case WearableDataType.activeEnergyBurned:
@@ -893,7 +1056,7 @@ class VitalsNotifierService {
       weight: weight,
       timestamp: timestamp,
       quality: quality,
-      metadata: {'source': sample.source, 'polled': true},
+      metadata: meta,
     );
   }
 
@@ -914,7 +1077,7 @@ class VitalsNotifierService {
   // property that holds the actual double.  These helpers safely extracted that
   // value while still supporting plain `num` values.
 
-  double? _extractDouble(dynamic raw) {
+  static double? _extractDouble(dynamic raw) {
     if (raw == null) return null;
     if (raw is num) return raw.toDouble();
 
@@ -935,7 +1098,7 @@ class VitalsNotifierService {
     return null;
   }
 
-  int? _extractInt(dynamic raw) {
+  static int? _extractInt(dynamic raw) {
     final v = _extractDouble(raw);
     return v?.round();
   }
@@ -1164,5 +1327,134 @@ class VitalsNotifierService {
     );
 
     _addVitalsData(aggregated);
+  }
+
+  void _emitAggregatedSleep() {
+    // Calculate restorative sleep (time actually asleep) for the most recent sleep session.
+
+    // Define analysis window → yesterday 6 PM → now. This safely captures the entire previous
+    // night even if the user is a late sleeper.
+    final now = DateTime.now();
+    final analysisStart = DateTime(now.year, now.month, now.day).subtract(
+      const Duration(hours: 6), // 6 PM previous calendar day
+    );
+
+    double minutesInBed = 0;
+    double minutesAwake = 0;
+    double minutesStages = 0;
+
+    for (final d in _dataHistory) {
+      if (!d.hasSleep) continue;
+      if (d.timestamp.isBefore(analysisStart)) continue;
+      if (d.metadata['aggregated'] == true) continue;
+
+      final kind = d.metadata['sleepKind']?.toString() ?? 'unknown';
+      final minutes = (d.sleepHours ?? 0) * 60;
+
+      if (kind == 'awake') {
+        minutesAwake += minutes;
+      } else if (kind == 'inBed') {
+        minutesInBed += minutes;
+      } else if (kind == 'stage') {
+        minutesStages += minutes;
+      }
+    }
+
+    double restfulMinutes;
+
+    if (minutesStages > 0) {
+      // Prefer summed sleep stages when available – more precise.
+      restfulMinutes = minutesStages;
+    } else {
+      // Fallback to in-bed minus awake.
+      restfulMinutes = minutesInBed - minutesAwake;
+    }
+
+    if (restfulMinutes <= 0) return;
+
+    final restfulHours = restfulMinutes / 60.0;
+
+    final aggregated = VitalsData(
+      sleepHours: restfulHours,
+      timestamp: now,
+      quality: VitalsQuality.good,
+      metadata: const {'aggregated': true},
+    );
+
+    _addVitalsData(aggregated);
+  }
+
+  /// Exposes the restorative-sleep computation for unit tests.
+  @visibleForTesting
+  static double? computeRestfulSleepForTest(List<HealthSample> samples) {
+    return _computeRestfulSleepHoursStatic(samples);
+  }
+
+  // Static helper that contains the actual algorithm so both production
+  // and tests use the exact same code path.
+  static double? _computeRestfulSleepHoursStatic(List<HealthSample> samples) {
+    if (samples.isEmpty) return null;
+
+    // Focus on the latest sleep session (18:00 → +18 h window)
+    final latestTs = samples
+        .map((s) => s.timestamp)
+        .reduce((a, b) => a.isAfter(b) ? a : b);
+
+    DateTime sessionStart;
+    if (latestTs.hour < 12) {
+      final prevDay = latestTs.subtract(const Duration(days: 1));
+      sessionStart = DateTime(prevDay.year, prevDay.month, prevDay.day, 18);
+    } else {
+      sessionStart = DateTime(latestTs.year, latestTs.month, latestTs.day, 18);
+    }
+    final sessionEnd = sessionStart.add(const Duration(hours: 18));
+
+    double minutesInBed = 0;
+    double minutesAwake = 0;
+    double minutesStages = 0;
+
+    for (final s in samples) {
+      if (s.timestamp.isBefore(sessionStart) ||
+          s.timestamp.isAfter(sessionEnd)) {
+        continue;
+      }
+
+      final v = _extractDouble(s.value);
+      if (v == null) continue;
+
+      switch (s.type) {
+        case WearableDataType.sleepAwake:
+          minutesAwake += v;
+          break;
+        case WearableDataType.sleepDuration:
+        case WearableDataType.sleepInBed:
+          minutesInBed += v;
+          break;
+        case WearableDataType.sleepDeep:
+        case WearableDataType.sleepLight:
+        case WearableDataType.sleepRem:
+        case WearableDataType.sleepAsleep:
+          minutesStages += v;
+          break;
+        default:
+          break;
+      }
+    }
+
+    double? restfulMinutes;
+    if (minutesInBed > 0) {
+      restfulMinutes = (minutesInBed - minutesAwake).clamp(0, double.infinity);
+    } else if (minutesStages > 0) {
+      restfulMinutes = minutesStages;
+    }
+
+    if (restfulMinutes == null || restfulMinutes <= 0) return null;
+    return restfulMinutes / 60.0;
+  }
+
+  // Instance proxy that calls the static algorithm so existing code remains
+  // unchanged.
+  double? _computeRestfulSleepHours(List<HealthSample> samples) {
+    return _computeRestfulSleepHoursStatic(samples);
   }
 }

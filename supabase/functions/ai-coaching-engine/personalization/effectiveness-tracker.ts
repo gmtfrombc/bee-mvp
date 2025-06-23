@@ -109,13 +109,10 @@ export class EffectivenessTracker {
 
       // Calculate metrics
       const totalInteractions = effectivenessData.length
-      // deno-lint-ignore no-explicit-any
       const ratedInteractions = effectivenessData.filter((d: any) => d.user_rating !== null)
-      // deno-lint-ignore no-explicit-any
       const helpfulInteractions = effectivenessData.filter((d: any) =>
         d.feedback_type === 'helpful'
       )
-      // deno-lint-ignore no-explicit-any
       const respondedInteractions = effectivenessData.filter((d: any) =>
         d.feedback_type !== 'ignored'
       )
@@ -139,12 +136,9 @@ export class EffectivenessTracker {
       const personas = ['supportive', 'challenging', 'educational']
 
       personas.forEach((persona) => {
-        // deno-lint-ignore no-explicit-any
         const personaData = effectivenessData.filter((d: any) => d.persona_used === persona)
         if (personaData.length > 0) {
-          // deno-lint-ignore no-explicit-any
           const personaRatings = personaData.filter((d: any) => d.user_rating !== null)
-          // deno-lint-ignore no-explicit-any
           const personaHelpful = personaData.filter((d: any) => d.feedback_type === 'helpful')
 
           const avgRating = personaRatings.length > 0

@@ -5,6 +5,7 @@ import 'package:app/core/services/responsive_service.dart';
 import 'package:app/core/services/vitals_notifier_service.dart';
 import 'package:app/core/providers/analytics_provider.dart';
 import 'package:intl/intl.dart';
+import 'package:app/core/theme/app_theme.dart';
 
 /// StepsTile widget - shows live steps count from VitalsNotifier
 class StepsTile extends ConsumerStatefulWidget {
@@ -77,7 +78,7 @@ class _StepsTileState extends ConsumerState<StepsTile> {
       return _buildEmptyState(context);
     }
 
-    final qualityColor = _getQualityColor(vitals.quality);
+    const Color tileColor = AppTheme.vitalsSteps;
     final stepsValue = vitals.steps ?? 0;
     final timeStr = DateFormat('h:mm a').format(vitals.timestamp);
 
@@ -91,7 +92,7 @@ class _StepsTileState extends ConsumerState<StepsTile> {
             children: [
               Icon(
                 Icons.directions_walk,
-                color: qualityColor,
+                color: tileColor,
                 size: ResponsiveService.getIconSize(context, baseSize: 20),
                 semanticLabel: '',
               ),
@@ -99,7 +100,7 @@ class _StepsTileState extends ConsumerState<StepsTile> {
               Text(
                 'Steps',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: qualityColor,
+                  color: tileColor,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -180,20 +181,5 @@ class _StepsTileState extends ConsumerState<StepsTile> {
         ),
       ),
     );
-  }
-
-  Color _getQualityColor(VitalsQuality quality) {
-    switch (quality) {
-      case VitalsQuality.excellent:
-        return Colors.green[700]!;
-      case VitalsQuality.good:
-        return Colors.green;
-      case VitalsQuality.fair:
-        return Colors.orange;
-      case VitalsQuality.poor:
-        return Colors.red;
-      case VitalsQuality.unknown:
-        return Colors.grey;
-    }
   }
 }

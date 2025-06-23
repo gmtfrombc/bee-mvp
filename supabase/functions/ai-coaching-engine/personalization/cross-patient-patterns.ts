@@ -85,7 +85,6 @@ export class CrossPatientPatternsService {
       // Calculate persona effectiveness
       const personaStats: Record<string, { helpful: number; total: number; avgRating: number }> = {}
 
-      // deno-lint-ignore no-explicit-any
       effectivenessData.forEach((record: any) => {
         if (!record.persona_used) return
 
@@ -114,7 +113,6 @@ export class CrossPatientPatternsService {
 
       // Extract common intervention patterns
       const triggerCounts: Record<string, number> = {}
-      // deno-lint-ignore no-explicit-any
       effectivenessData.forEach((record: any) => {
         if (record.intervention_trigger) {
           triggerCounts[record.intervention_trigger] =
@@ -174,13 +172,11 @@ export class CrossPatientPatternsService {
       if (!engagementData || engagementData.length < 5) return null
 
       // Count unique users for privacy check
-      // deno-lint-ignore no-explicit-any
       const uniqueUsers = new Set(engagementData.map((e: any) => e.user_id)).size
       if (uniqueUsers < 5) return null
 
       // Analyze hourly engagement patterns
       const hourlyDistribution: Record<string, number> = {}
-      // deno-lint-ignore no-explicit-any
       engagementData.forEach((event: any) => {
         const hour = new Date(event.created_at).getUTCHours()
         const hourKey = `${hour}:00`
@@ -275,7 +271,6 @@ export class CrossPatientPatternsService {
       const insights: CrossPatientInsight[] = []
 
       // Generate timing optimization insights
-      // deno-lint-ignore no-explicit-any
       const engagementPatterns = patterns.filter((p: any) => p.pattern_type === 'engagement_peak')
       if (engagementPatterns.length > 0) {
         const topPattern = engagementPatterns[0]
@@ -291,7 +286,6 @@ export class CrossPatientPatternsService {
       }
 
       // Generate persona effectiveness insights
-      // deno-lint-ignore no-explicit-any
       const personaPatterns = patterns.filter((p: any) =>
         p.pattern_type === 'persona_effectiveness'
       )

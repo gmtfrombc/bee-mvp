@@ -36,7 +36,7 @@ class MomentumApiService {
         // Online - try cache first if valid, then fetch fresh data
         final cachedData = await OfflineCacheService.getCachedMomentumData();
         if (cachedData != null) {
-          debugPrint('📱 Using valid cached momentum data (online)');
+          // debugPrint('📱 Using valid cached momentum data (online)'); // silenced to reduce log spam
 
           // Queue background refresh for next time
           _queueBackgroundRefresh();

@@ -5,6 +5,7 @@ import 'package:app/core/services/responsive_service.dart';
 import 'package:app/core/services/vitals_notifier_service.dart';
 import 'package:app/core/providers/analytics_provider.dart';
 import 'package:intl/intl.dart';
+import 'package:app/core/theme/app_theme.dart';
 
 /// SleepTile widget - shows total hours slept from VitalsNotifier
 class SleepTile extends ConsumerStatefulWidget {
@@ -76,7 +77,7 @@ class _SleepTileState extends ConsumerState<SleepTile> {
       return _buildEmptyState(context);
     }
 
-    final qualityColor = _getQualityColor(vitals.quality);
+    const Color tileColor = AppTheme.vitalsSleep;
 
     final hours = vitals.sleepHours ?? 0;
     final timeStr = DateFormat('h:mm a').format(vitals.timestamp);
@@ -96,7 +97,7 @@ class _SleepTileState extends ConsumerState<SleepTile> {
             children: [
               Icon(
                 Icons.bedtime,
-                color: qualityColor,
+                color: tileColor,
                 size: ResponsiveService.getIconSize(context, baseSize: 20),
                 semanticLabel: '',
               ),
@@ -104,7 +105,7 @@ class _SleepTileState extends ConsumerState<SleepTile> {
               Text(
                 'Sleep',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: qualityColor,
+                  color: tileColor,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -198,20 +199,5 @@ class _SleepTileState extends ConsumerState<SleepTile> {
         ),
       ),
     );
-  }
-
-  Color _getQualityColor(VitalsQuality quality) {
-    switch (quality) {
-      case VitalsQuality.excellent:
-        return Colors.green[700]!;
-      case VitalsQuality.good:
-        return Colors.green;
-      case VitalsQuality.fair:
-        return Colors.orange;
-      case VitalsQuality.poor:
-        return Colors.red;
-      case VitalsQuality.unknown:
-        return Colors.grey;
-    }
   }
 }

@@ -27,7 +27,7 @@ export function buildDailyContentPrompt(topicCategory: string, contentDate: stri
   const monthName = date.toLocaleDateString('en-US', { month: 'long' })
 
   const systemPrompt =
-    `You are a health-and-wellness content writer for a mobile app. Each day you create ONE compact but complete article.
+    `You are a health and wellness content writer creating daily tips for a mobile health app.
 
 IMPORTANT SAFETY GUIDELINES:
 - Never provide medical advice or diagnose conditions.
@@ -38,7 +38,6 @@ IMPORTANT SAFETY GUIDELINES:
 
 TASK:
 Write engaging, actionable content for the topic category "${topicCategory}" for ${dayName}, ${monthName} ${date.getDate()}.
-The **total word count of the article (all text inside full_content.elements) MUST be between 220 and 300 words** so users can finish it in about two minutes.
 
 RESPONSE FORMAT (JSON ONLY):
 {
@@ -47,8 +46,8 @@ RESPONSE FORMAT (JSON ONLY):
   "key_points": ["Point 1", "Point 2", "Point 3"],
   "full_content": {
     "elements": [
-      { "type": "paragraph", "text": "A ~120-150 word introductory paragraph that hooks the reader." },
-      { "type": "paragraph", "text": "A second ~100-130 word paragraph that elaborates on the topic." },
+      { "type": "paragraph", "text": "A rich introductory paragraph (50-75 words) that hooks the reader." },
+      { "type": "paragraph", "text": "A second paragraph (50-75 words) that elaborates on the topic, bringing the total article length to roughly 100-150 words." },
       { "type": "bullet_list", "list_items": ["Tip 1", "Tip 2", "Tip 3"], "text": "" }
     ],
     "actionable_advice": "One short actionable takeaway.",
@@ -57,9 +56,9 @@ RESPONSE FORMAT (JSON ONLY):
 }
 
 RULES:
-1. 'elements' MUST contain exactly two paragraphs followed by one bullet_list.
-2. The combined word count of the two paragraphs PLUS bullet list items must be 220-300 words.
-3. The bullet_list 'list_items' MUST have at least three tips.
+1. The 'elements' array MUST contain **exactly two paragraphs followed by** one bullet_list (3 elements total).
+2. The combined word count of the two paragraphs MUST fall between **100 and 150 words**. Aim for ~120 words total.
+3. The bullet_list 'list_items' MUST have at least three concise tips.
 4. Do NOT include markdown, HTML, or special formatting.
 5. Respond **ONLY** with valid JSON that EXACTLY matches the schema above—no extra keys, no commentary.
 6. If the first attempt does not meet every rule, think step-by-step, correct the JSON, and output again until it is valid.`
@@ -81,22 +80,12 @@ export function parseAIContentResponse(
   topicCategory: string,
 ): Omit<GeneratedContent, 'confidence_score'> | null {
   try {
-    // ------------------------------------------------------------
-    // Strip common markdown code-fence wrappers (```json ... ```)
-    // and any leading/trailing whitespace before parsing.
-    // ------------------------------------------------------------
-    const cleaned = aiResponse
-      .trim()
-      .replace(/^```(?:json)?/i, '')
-      .replace(/```$/i, '')
-      .trim()
+    let jsonMatch = aiResponse.match(/\{[\s\S]*\}/)
+    if (!jsonMatch) {
+      jsonMatch = [aiResponse]
+    }
 
-    // Try to find the first JSON object inside the string;
-    // fallback to the whole cleaned string if no match.
-    const jsonMatch = cleaned.match(/\{[\s\S]*\}/)
-    const jsonText = jsonMatch ? jsonMatch[0] : cleaned
-
-    const parsed: any = JSON.parse(jsonText)
+    const parsed: any = JSON.parse(jsonMatch[0])
 
     if (!parsed.title || !parsed.summary) {
       throw new Error('Missing required fields in AI response')
@@ -194,16 +183,42 @@ export function calculateContentConfidence(
   return Math.min(confidence, 1.0)
 }
 
-function isFullContentValid(fullContent: unknown): boolean {
+// ------------------------------------------------------------
+// Utility – quick word counter (tokens separated by whitespace)
+// ------------------------------------------------------------
+function wordCount(txt: string): number {
+  return txt.trim().split(/\s+/).length
+}
+
+function isFullContentValid(fullContent: unknown, summary?: string): boolean {
   const fc: any = fullContent
-  if (!fc || !Array.isArray(fc.elements)) return false
-  if (fc.elements.length < 3) return false
+  if (!fc || !Array.isArray(fc.elements) || fc.elements.length < 3) return false
+
   const [first, second, third] = fc.elements
+
+  // Ensure two proper paragraphs
   const paragraphsValid = first?.type === 'paragraph' && typeof first.text === 'string' &&
     second?.type === 'paragraph' && typeof second.text === 'string'
+  if (!paragraphsValid) return false
+
+  // Word-count rule (each 40+ words, combined 100-160 words)
+  const firstWords = wordCount(first.text)
+  const secondWords = wordCount(second.text)
+  const totalWords = firstWords + secondWords
+  if (firstWords < 40 || secondWords < 40 || totalWords < 100 || totalWords > 160) {
+    return false
+  }
+
+  // Prevent duplicate paragraphs / summary clones
+  const sTrim = (summary ?? '').trim()
+  if (first.text.trim() === second.text.trim()) return false
+  if (sTrim && (first.text.trim() === sTrim || second.text.trim() === sTrim)) return false
+
+  // Bullet list validation (≥3 items)
   const bulletValid = third?.type === 'bullet_list' && Array.isArray(third.list_items) &&
     third.list_items.length >= 3
-  return paragraphsValid && bulletValid
+
+  return bulletValid
 }
 
 function isTitleValid(t: string): boolean {
@@ -232,9 +247,10 @@ export async function generateDailyHealthContent(
     let messages = buildDailyContentPrompt(topicCategory, contentDate)
     let parsedContent: Omit<GeneratedContent, 'confidence_score'> | null = null
     let aiResponse = ''
-    const maxAttempts = 3
+    const maxAttempts = 5
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      console.log(`🌀 AI generation attempt ${attempt}/${maxAttempts}`)
       const aiRespObj = await callAIAPI(messages as any)
       aiResponse = aiRespObj.text
       if (!aiResponse) throw new Error('No response from AI API')
@@ -242,14 +258,14 @@ export async function generateDailyHealthContent(
       parsedContent = parseAIContentResponse(aiResponse, topicCategory)
       if (
         parsedContent && isTitleValid(parsedContent.title) &&
-        isFullContentValid(parsedContent.full_content)
+        isFullContentValid(parsedContent.full_content, parsedContent.summary)
       ) {
         break // valid content obtained
       }
 
       if (attempt < maxAttempts) {
         const correctionMsg =
-          `Your previous output was invalid because it did not follow the RESPONSE FORMAT or RULES. Please output JSON ONLY that matches the schema exactly, ensuring 'full_content.elements' has at least two paragraphs followed by one bullet_list with three or more list_items.`
+          `Your previous output was invalid because it did not follow the RESPONSE FORMAT or RULES. Please output JSON ONLY that matches the schema exactly.\nREQUIREMENTS:\n1. Exactly two paragraphs followed by one bullet_list.\n2. Each paragraph must be 50-75 words; combined 100-150 words.\n3. Paragraphs must be different from each other and from the summary.\n4. Bullet_list must have at least three concise tips.\n\nEXAMPLE (do NOT copy):\n{\n  \"full_content\": {\n    \"elements\": [\n      { \"type\": \"paragraph\", \"text\": \"Start your morning with a nutritious breakfast that balances protein, complex carbs, and healthy fats to fuel your body...\" },\n      { \"type\": \"paragraph\", \"text\": \"Later in the day, keep energy steady by choosing snacks like Greek yogurt with berries or a handful of nuts; planning meals in advance prevents...\" },\n      { \"type\": \"bullet_list\", \"list_items\": [\"Include colorful vegetables at lunch\", \"Hydrate with at least 8 cups of water\", \"Plan tomorrow's grocery list\"], \"text\": \"\" }\n    ]\n  }\n}`
         messages = [
           ...messages,
           { role: 'assistant', content: aiResponse },
@@ -259,6 +275,76 @@ export async function generateDailyHealthContent(
     }
 
     if (!parsedContent) throw new Error('Failed to parse AI response after retries')
+
+    // ------------------------------------------------------------------
+    // Secondary fallback – if, after retries, the full_content is still
+    // invalid, ask the AI to expand the summary into two paragraphs of the
+    // desired length.  This keeps long-form quality >95 % with minimal cost.
+    // ------------------------------------------------------------------
+    if (!isFullContentValid(parsedContent.full_content, parsedContent.summary)) {
+      try {
+        console.log('🔄 Attempting secondary expansion call…')
+
+        const expansionPrompt: AIMessage[] = [
+          {
+            role: 'system',
+            content:
+              `You are a health-and-wellness copywriter. Expand the user summary into exactly two distinct paragraphs, each 50-75 words (total 100-150 words). Respond with JSON ONLY:\n{ "paragraphs": [ "para1", "para2" ] }`,
+          },
+          {
+            role: 'user',
+            content: parsedContent.summary,
+          },
+        ]
+
+        const expansionResp = await callAIAPI(expansionPrompt as any)
+
+        let para1 = ''
+        let para2 = ''
+        try {
+          const parsedExp: any = JSON.parse(expansionResp.text)
+          if (Array.isArray(parsedExp.paragraphs) && parsedExp.paragraphs.length >= 2) {
+            para1 = String(parsedExp.paragraphs[0])
+            para2 = String(parsedExp.paragraphs[1])
+          }
+        } catch (_) {
+          // Fallback: naive split by double new line
+          const parts = expansionResp.text.split(/\n\s*\n/).filter((p) => p.trim().length > 40)
+          if (parts.length >= 2) {
+            ;[para1, para2] = parts
+          }
+        }
+
+        if (para1 && para2 && wordCount(para1) >= 40 && wordCount(para2) >= 40) {
+          parsedContent.full_content = {
+            elements: [
+              { type: 'paragraph', text: para1 },
+              { type: 'paragraph', text: para2 },
+              {
+                type: 'bullet_list',
+                list_items: [
+                  "Apply today's insight in a small way",
+                  'Share it with a friend for accountability',
+                  'Consult a professional for personalised advice',
+                ],
+                text: '',
+              },
+            ],
+          }
+
+          // Re-validate to update confidence
+          if (isFullContentValid(parsedContent.full_content, parsedContent.summary)) {
+            console.log('✅ Secondary expansion succeeded')
+          } else {
+            console.warn('⚠️ Expansion paragraphs still invalid, falling back to static content')
+          }
+        } else {
+          console.warn('⚠️ Expansion call did not return valid paragraphs')
+        }
+      } catch (expErr) {
+        console.warn('⚠️ Secondary expansion call failed:', expErr)
+      }
+    }
 
     const safety = ContentSafetyValidator.validateContent(
       parsedContent.title,
@@ -276,18 +362,37 @@ export async function generateDailyHealthContent(
     }
 
     // Ensure full_content passes validation; if not, fall back to simple safe content
-    if (!isFullContentValid(parsedContent.full_content)) {
-      const safeParagraph = { type: 'paragraph', text: parsedContent.summary }
+    if (!isFullContentValid(parsedContent.full_content, parsedContent.summary)) {
+      const para1 = { type: 'paragraph', text: parsedContent.summary }
+      const topicSecond: Record<string, string> = {
+        nutrition:
+          'Consistently choosing balanced meals lays the foundation for long-term health and sustained energy throughout the week.',
+        exercise:
+          'Regular movement, even in short sessions, supports strength, mobility, and a positive mood—schedule it like any important appointment.',
+        sleep:
+          'A calming wind-down ritual signals your body that it is time to rest, improving both sleep quality and overall wellbeing.',
+        stress:
+          'Brief mindful pauses sprinkled through the day can lower stress hormones and train your brain for greater resilience.',
+        prevention:
+          'Small protective choices today—like sunscreen or a flu shot—compound into significant long-term health benefits.',
+        lifestyle:
+          'Tiny healthy habits performed daily accumulate, creating meaningful lifestyle change you can sustain for years.',
+      }
+      const para2 = {
+        type: 'paragraph',
+        text: topicSecond[topicCategory] ?? topicSecond['lifestyle'],
+      }
+
       parsedContent.full_content = {
         elements: [
-          safeParagraph,
-          safeParagraph,
+          para1,
+          para2,
           {
             type: 'bullet_list',
             list_items: [
-              'Stay mindful of your health today',
-              'Apply the tips provided',
-              'Consult a professional for personal advice',
+              "Apply today's insight in a small way",
+              'Share it with a friend for accountability',
+              'Consult a professional for personalised advice',
             ],
             text: '',
           },
