@@ -101,6 +101,22 @@ class _TodayFeedTileState extends State<TodayFeedTile>
   @override
   void didUpdateWidget(TodayFeedTile oldWidget) {
     super.didUpdateWidget(oldWidget);
+
+    // Recreate interaction handler if any of its callback dependencies changed
+    if (oldWidget.onTap != widget.onTap ||
+        oldWidget.onExternalLinkTap != widget.onExternalLinkTap ||
+        oldWidget.onShare != widget.onShare ||
+        oldWidget.onBookmark != widget.onBookmark ||
+        oldWidget.onInteraction != widget.onInteraction) {
+      _interactionHandler = TodayFeedInteractionHandler(
+        onTap: widget.onTap,
+        onExternalLinkTap: widget.onExternalLinkTap,
+        onShare: widget.onShare,
+        onBookmark: widget.onBookmark,
+        onInteraction: widget.onInteraction,
+      );
+    }
+
     if (oldWidget.state.runtimeType != widget.state.runtimeType) {
       _handleStateTransition();
     }
@@ -283,17 +299,51 @@ class _TodayFeedTileState extends State<TodayFeedTile>
   }
 
   LinearGradient? _getCardGradient() {
-    if (!_isFreshState()) return null;
+    // For fresh state highlight
+    if (_isFreshState()) {
+      return LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          AppTheme.momentumRising.withValues(alpha: 0.02),
+          Colors.transparent,
+          AppTheme.momentumRising.withValues(alpha: 0.01),
+        ],
+      );
+    }
 
-    return LinearGradient(
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
-      colors: [
-        AppTheme.momentumRising.withValues(alpha: 0.02),
-        Colors.transparent,
-        AppTheme.momentumRising.withValues(alpha: 0.01),
-      ],
-    );
+    // Subtle tint based on topic color for loaded content
+    final topicColor = _getTopicTintColor();
+    if (topicColor != null) {
+      return LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [topicColor.withValues(alpha: 0.15), Colors.transparent],
+      );
+    }
+
+    return null;
+  }
+
+  Color? _getTopicTintColor() {
+    if (!widget.state.isLoaded) return null;
+    final content = widget.state.content;
+    if (content == null) return null;
+
+    switch (content.topicCategory) {
+      case HealthTopic.nutrition:
+        return const Color(0xFF4CAF50);
+      case HealthTopic.exercise:
+        return const Color(0xFF2196F3);
+      case HealthTopic.sleep:
+        return const Color(0xFF9C27B0);
+      case HealthTopic.stress:
+        return const Color(0xFFFF9800);
+      case HealthTopic.prevention:
+        return const Color(0xFFF44336);
+      case HealthTopic.lifestyle:
+        return const Color(0xFF607D8B);
+    }
   }
 
   Border? _getCardBorder() {

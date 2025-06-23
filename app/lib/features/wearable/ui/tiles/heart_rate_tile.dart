@@ -5,6 +5,7 @@ import 'package:app/core/services/responsive_service.dart';
 import 'package:app/core/services/vitals_notifier_service.dart';
 import 'package:app/core/providers/analytics_provider.dart';
 import 'package:intl/intl.dart';
+import 'package:app/core/theme/app_theme.dart';
 
 /// HeartRateTile widget - shows live heart rate from VitalsNotifier
 class HeartRateTile extends ConsumerStatefulWidget {
@@ -77,7 +78,7 @@ class _HeartRateTileState extends ConsumerState<HeartRateTile> {
       return _buildEmptyState(context);
     }
 
-    final qualityColor = _getQualityColor(vitals.quality);
+    const Color tileColor = AppTheme.vitalsHeartRate;
     final hrValue = vitals.heartRate?.toStringAsFixed(0) ?? '—';
     final timeStr = DateFormat('h:mm a').format(vitals.timestamp);
     final range = vitals.metadata['hrRange'] as String?; // set later
@@ -92,7 +93,7 @@ class _HeartRateTileState extends ConsumerState<HeartRateTile> {
             children: [
               Icon(
                 Icons.favorite,
-                color: qualityColor,
+                color: tileColor,
                 size: ResponsiveService.getIconSize(context, baseSize: 20),
                 semanticLabel: '',
               ),
@@ -100,7 +101,7 @@ class _HeartRateTileState extends ConsumerState<HeartRateTile> {
               Text(
                 'Heart Rate',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: qualityColor,
+                  color: tileColor,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -190,20 +191,5 @@ class _HeartRateTileState extends ConsumerState<HeartRateTile> {
         ),
       ),
     );
-  }
-
-  Color _getQualityColor(VitalsQuality quality) {
-    switch (quality) {
-      case VitalsQuality.excellent:
-        return Colors.green[700]!;
-      case VitalsQuality.good:
-        return Colors.green;
-      case VitalsQuality.fair:
-        return Colors.orange;
-      case VitalsQuality.poor:
-        return Colors.red;
-      case VitalsQuality.unknown:
-        return Colors.grey;
-    }
   }
 }

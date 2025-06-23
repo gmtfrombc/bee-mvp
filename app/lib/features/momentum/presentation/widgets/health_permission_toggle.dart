@@ -1,6 +1,7 @@
 import 'package:app/core/services/health_permission_manager.dart';
 import 'package:app/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
+import 'dart:async';
 
 /// Toggle widget that shows overall Health permission status and lets
 /// the user request authorization again if permissions have been revoked.
@@ -15,7 +16,8 @@ import 'package:flutter/material.dart';
 /// switch *off* simply opens platform settings so the user can manage
 /// permissions manually.
 class HealthPermissionToggle extends StatefulWidget {
-  const HealthPermissionToggle({super.key});
+  final HealthPermissionManager? manager;
+  const HealthPermissionToggle({super.key, this.manager});
 
   @override
   State<HealthPermissionToggle> createState() => _HealthPermissionToggleState();
@@ -24,11 +26,13 @@ class HealthPermissionToggle extends StatefulWidget {
 class _HealthPermissionToggleState extends State<HealthPermissionToggle> {
   bool _permissionsGranted = false;
   bool _isLoading = true;
-  final HealthPermissionManager _manager = HealthPermissionManager();
+  late final HealthPermissionManager _manager;
+  StreamSubscription<List<PermissionDelta>>? _deltaSub;
 
   @override
   void initState() {
     super.initState();
+    _manager = widget.manager ?? HealthPermissionManager();
     _init();
   }
 
@@ -38,6 +42,9 @@ class _HealthPermissionToggleState extends State<HealthPermissionToggle> {
       await _manager.initialize();
     }
     await _refreshStatus();
+
+    // Listen for permission deltas to update UI live.
+    _deltaSub = _manager.deltaStream.listen((_) => _refreshStatus());
   }
 
   Future<void> _refreshStatus() async {
@@ -52,8 +59,8 @@ class _HealthPermissionToggleState extends State<HealthPermissionToggle> {
     });
   }
 
-  Future<void> _handleToggle(bool value) async {
-    if (value) {
+  Future<void> _handleTap() async {
+    if (!_permissionsGranted) {
       // Request permissions again
       setState(() => _isLoading = true);
       final results = await _manager.requestPermissions();
@@ -96,12 +103,23 @@ class _HealthPermissionToggleState extends State<HealthPermissionToggle> {
   }
 
   @override
+  void dispose() {
+    _deltaSub?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
 
-    return SwitchListTile(
+    final icon =
+        _permissionsGranted
+            ? const Icon(Icons.check_circle, color: AppTheme.momentumRising)
+            : Icon(Icons.cancel, color: Theme.of(context).colorScheme.error);
+
+    return ListTile(
       title: Text(
         'Health Data Permissions',
         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
@@ -109,16 +127,13 @@ class _HealthPermissionToggleState extends State<HealthPermissionToggle> {
         ),
       ),
       subtitle: Text(
-        _permissionsGranted
-            ? 'All required permissions granted'
-            : 'Permissions missing – tap to grant access',
+        _permissionsGranted ? 'Granted' : 'Not Granted',
         style: Theme.of(context).textTheme.bodySmall?.copyWith(
           color: AppTheme.getTextSecondary(context),
         ),
       ),
-      value: _permissionsGranted,
-      onChanged: _handleToggle,
-      activeColor: AppTheme.momentumRising,
+      trailing: icon,
+      onTap: _handleTap,
       contentPadding: EdgeInsets.zero,
     );
   }

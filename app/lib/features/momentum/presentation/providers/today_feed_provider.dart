@@ -5,7 +5,6 @@ import '../../../today_feed/domain/models/today_feed_content.dart';
 import '../../../today_feed/data/services/today_feed_simple_service.dart';
 import '../../../../core/services/today_feed_local_store.dart';
 import '../../../../core/services/connectivity_service.dart';
-import '../../../../core/services/ai_coaching_service.dart';
 
 /// Helper method to build a simple fallback result when no content is available.
 TodayFeedFallbackResult _buildOfflineFallback(String message) {
@@ -150,27 +149,24 @@ class TodayFeedNotifier extends StateNotifier<TodayFeedState> {
 
   /// Handle tap interaction (awards momentum on first daily interaction)
   Future<void> handleTap() async {
-    await recordInteraction(TodayFeedInteractionType.tap);
-    // TODO: Award momentum points for first daily interaction
+    final currentContent = state.content;
 
-    // Pass article context to AI coach for personalized follow-up
-    try {
-      final content = state.content;
-      if (content != null) {
-        // Fire-and-forget; no need to await response
-        // ignore: discarded_futures
-        AICoachingService.instance.generateResponse(
-          message: 'today_feed_open',
-          momentumState: null,
-          context: {
-            'article_id': content.id,
-            'article_summary': content.summary,
-            'system_event': 'today_feed_open',
-          },
-        );
+    if (currentContent == null) return;
+
+    // Record interaction only once per day (per article)
+    if (!currentContent.hasUserEngaged) {
+      await recordInteraction(TodayFeedInteractionType.tap);
+
+      // Update local state & cache so subsequent taps are ignored today
+      final updatedContent = currentContent.copyWith(hasUserEngaged: true);
+      state = TodayFeedState.loaded(updatedContent);
+
+      // Persist to local store so the flag survives app restarts
+      try {
+        await TodayFeedLocalStore.saveContent(updatedContent);
+      } catch (e) {
+        debugPrint('⚠️ Failed to update local Today Feed cache: $e');
       }
-    } catch (e) {
-      debugPrint('⚠️ Failed to notify AI coach of Today Feed open: $e');
     }
   }
 

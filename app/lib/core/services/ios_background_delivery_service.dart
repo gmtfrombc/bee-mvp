@@ -29,7 +29,7 @@ class IOSBackgroundDeliveryConfig {
       WearableDataType.steps,
       WearableDataType.activeEnergyBurned,
     },
-    this.pollingInterval = const Duration(seconds: 10),
+    this.pollingInterval = const Duration(minutes: 15),
     this.maxBatchSize = 50,
     this.backgroundLookback = const Duration(minutes: 10),
   });

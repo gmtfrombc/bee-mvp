@@ -39,9 +39,14 @@ class TodayFeedSimpleService {
     }
 
     debugPrint('🌐 [TodayFeed] Fetching fresh content from Supabase...');
-    final fresh = await _fetchFromSupabase();
+    var fresh = await _fetchFromSupabase();
 
     if (fresh != null) {
+      // Preserve local engagement flag if same article id/date
+      if (cached != null && cached.id == fresh.id) {
+        fresh = fresh.copyWith(hasUserEngaged: cached.hasUserEngaged);
+      }
+
       await TodayFeedLocalStore.saveContent(fresh);
       debugPrint('✅ [TodayFeed] Fresh content fetched & cached');
       return fresh;
@@ -69,65 +74,37 @@ class TodayFeedSimpleService {
   static Future<TodayFeedContent?> _fetchFromSupabase() async {
     try {
       final supabase = Supabase.instance.client;
-      final today = DateTime.now();
-      final todayStr =
-          '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+
+      // -------------------------------------------------------------
+      // New approach (2025-06-22): backend always marks the most-recent
+      // row as `is_active = true` and exposes a view that returns *only*
+      // that winner.  No date filtering required here – we simply grab
+      // the single row from the view.
+      // -------------------------------------------------------------
 
       final resp =
           await supabase
-              .from('daily_feed_content')
+              .from('daily_feed_content_current')
               .select('*')
-              .eq('content_date', todayStr)
               .maybeSingle();
 
       if (resp == null) {
-        debugPrint(
-          '📭 [TodayFeed] No row for today – attempting fallback to latest',
-        );
+        debugPrint('📭 [TodayFeed] No active daily content row yet');
 
-        // Trigger generation asynchronously without blocking the UI.
+        // Kick off generation for today in the background so the user
+        // will see content after a short delay without blocking the UI.
+        final today = DateTime.now();
+        final todayStr =
+            '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
         unawaited(_triggerGeneration(todayStr));
-
-        // -----------------------------------------------------------------
-        // Fallback: fetch the most recent article (yesterday / earlier)
-        // -----------------------------------------------------------------
-        final latest =
-            await supabase
-                .from('daily_feed_content')
-                .select('*')
-                .order('content_date', ascending: false)
-                .limit(1)
-                .maybeSingle();
-
-        if (latest != null) {
-          debugPrint('📦 [TodayFeed] Using latest available article');
-
-          return TodayFeedContent.fromJson({
-            'id': latest['id'],
-            'content_date': latest['content_date'],
-            'title': latest['title'],
-            'summary': latest['summary'],
-            'content_url': latest['content_url'],
-            'external_link': latest['external_link'],
-            'topic_category': latest['topic_category'],
-            if (latest['full_content'] != null)
-              'full_content': latest['full_content'],
-            'ai_confidence_score': latest['ai_confidence_score'] ?? 0.8,
-            'created_at': latest['created_at'],
-            'updated_at': latest['updated_at'],
-            'estimated_reading_minutes': 2,
-            'has_user_engaged': false,
-            'is_cached': false,
-          });
-        }
-
-        return null; // no fallback found either
+        return null;
       }
 
-      // -------------------------------------------------------------------
-      // If content exists but rich payload is missing, request regeneration
-      // -------------------------------------------------------------------
+      // If rich payload missing, request regeneration (edge-case safety)
       if (resp['full_content'] == null) {
+        final today = DateTime.now();
+        final todayStr =
+            '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
         unawaited(_triggerGeneration(todayStr, forceRegenerate: true));
       }
 

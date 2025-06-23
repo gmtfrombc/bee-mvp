@@ -35,6 +35,15 @@ class AppTheme {
   static const Color darkTextSecondary = Color(0xFFB3B3B3);
   static const Color darkTextTertiary = Color(0xFF666666);
 
+  // Vitals Tile Colors
+  static const Color vitalsHeartRate = Colors.red;
+  static const Color vitalsSleep = Colors.teal;
+  static const Color vitalsSteps = Colors.blue;
+
+  // Accent Colors
+  // Purple accent used for call-to-action buttons like "Read More / Read Again"
+  static const Color accentPurple = Color(0xFF9C27B0);
+
   // Light Theme
   static ThemeData get lightTheme {
     return ThemeData(

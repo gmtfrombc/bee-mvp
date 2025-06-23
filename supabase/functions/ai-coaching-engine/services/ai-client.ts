@@ -7,6 +7,9 @@ import { AIMessage } from '../types.ts'
 const aiApiKey = Deno.env.get('AI_API_KEY') ?? ''
 const aiModel = Deno.env.get('AI_MODEL') || 'gpt-4o'
 
+// Default temperature; allow override via AI_TEMPERATURE env var (e.g. 0.4)
+const defaultTemp = parseFloat(Deno.env.get('AI_TEMPERATURE') ?? '0.4')
+
 export interface AIResponse {
   text: string
   usage?: {
@@ -72,7 +75,7 @@ export async function callAIAPI(prompt: AIMessage[]): Promise<AIResponse> {
       model: aiModel,
       messages: prompt,
       max_tokens: 200,
-      temperature: 0.7,
+      temperature: defaultTemp,
     }
   } else {
     headers['x-api-key'] = aiApiKey
@@ -137,7 +140,12 @@ export async function callAIAPI(prompt: AIMessage[]): Promise<AIResponse> {
 
         let fbBody: unknown
         if (fallbackModel.startsWith('gpt')) {
-          fbBody = { model: fallbackModel, messages: prompt, max_tokens: 200, temperature: 0.7 }
+          fbBody = {
+            model: fallbackModel,
+            messages: prompt,
+            max_tokens: 200,
+            temperature: defaultTemp,
+          }
         } else {
           const system = prompt.find((m) => m.role === 'system')?.content ?? ''
           fbBody = {

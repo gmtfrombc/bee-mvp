@@ -19,6 +19,7 @@ class RichContentRenderer extends StatelessWidget {
   final OnLinkTapCallback? onLinkTap;
   final bool isCompact;
   final bool enableInteractions;
+  final bool includeBulletList;
 
   const RichContentRenderer({
     super.key,
@@ -26,6 +27,7 @@ class RichContentRenderer extends StatelessWidget {
     this.onLinkTap,
     this.isCompact = false,
     this.enableInteractions = true,
+    this.includeBulletList = true,
   });
 
   @override
@@ -50,6 +52,9 @@ class RichContentRenderer extends StatelessWidget {
     BuildContext context,
     RichContentElement element,
   ) {
+    if (!includeBulletList && element.type == RichContentType.bulletList) {
+      return const SizedBox.shrink();
+    }
     final spacing = ResponsiveService.getSmallSpacing(context);
 
     return Padding(

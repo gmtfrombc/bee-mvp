@@ -66,10 +66,10 @@ export class EngagementDataService {
 
       const client: any = authToken
         ? (await (async () => {
-          const { createClient } = await import('npm:@supabase/supabase-js@2')
-          return createClient(supabaseUrl, supabaseServiceRoleKey, {
+          const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2')
+          return (createClient as any)(supabaseUrl, supabaseServiceRoleKey, {
             global: { headers: { Authorization: `Bearer ${authToken}` } },
-          })
+          }) as any
         })())
         : this.supabase
 

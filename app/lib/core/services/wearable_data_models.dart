@@ -103,6 +103,7 @@ enum WearableDataType {
   sleepDeep,
   sleepLight,
   sleepRem,
+  sleepAsleep,
 
   // Body Measurements
   weight,
@@ -142,6 +143,8 @@ enum WearableDataType {
         return WearableDataType.sleepLight;
       case HealthDataType.SLEEP_REM:
         return WearableDataType.sleepRem;
+      case HealthDataType.SLEEP_ASLEEP:
+        return WearableDataType.sleepAsleep;
       case HealthDataType.WEIGHT:
         return WearableDataType.weight;
       case HealthDataType.BODY_FAT_PERCENTAGE:
@@ -182,6 +185,8 @@ enum WearableDataType {
         return HealthDataType.SLEEP_LIGHT;
       case WearableDataType.sleepRem:
         return HealthDataType.SLEEP_REM;
+      case WearableDataType.sleepAsleep:
+        return HealthDataType.SLEEP_ASLEEP;
       case WearableDataType.sleepDuration:
         return HealthDataType.SLEEP_IN_BED;
       case WearableDataType.weight:
@@ -223,12 +228,14 @@ class HealthSyncConfig {
   final Duration syncInterval;
   final Duration maxHistoryRange;
   final bool backgroundSync;
+  final bool verboseLogging;
 
   const HealthSyncConfig({
     required this.dataTypes,
     this.syncInterval = const Duration(minutes: 5),
     this.maxHistoryRange = const Duration(days: 30),
     this.backgroundSync = true,
+    this.verboseLogging = false,
   });
 
   /// Default configuration for BEE MVP focusing on key metrics
@@ -240,10 +247,14 @@ class HealthSyncConfig {
       WearableDataType.activeEnergyBurned,
       WearableDataType.heartRateVariability,
       WearableDataType.weight,
+      WearableDataType.restingHeartRate,
+      WearableDataType.sleepAwake,
+      WearableDataType.sleepAsleep,
     ],
     syncInterval: Duration(minutes: 5),
     maxHistoryRange: Duration(days: 7), // Start with 1 week for MVP
     backgroundSync: true,
+    verboseLogging: false,
   );
 }
 

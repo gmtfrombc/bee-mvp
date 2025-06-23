@@ -37,7 +37,6 @@ Deno.env.set('DENO_TESTING', 'true')
 const { default: handler } = await import('./mod.ts')
 
 // Disable resource & op sanitization for entire suite to avoid false leak warnings
-// deno-lint-ignore ban-types
 const describe =
   ((name: string, fn: () => void) =>
     _describe(name, { sanitizeOps: false, sanitizeResources: false }, fn)) as typeof _describe

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/theme/app_theme.dart';
 import '../../../../core/services/responsive_service.dart';
 import '../../../../core/services/accessibility_service.dart';
 import '../../domain/models/momentum_data.dart';
@@ -11,9 +10,7 @@ import '../providers/momentum_api_provider.dart' as api;
 import '../widgets/momentum_card.dart';
 import '../widgets/weekly_trend_chart.dart';
 import '../widgets/quick_stats_cards.dart';
-import '../widgets/action_buttons.dart';
 import '../widgets/momentum_detail_modal.dart';
-import '../widgets/momentum_gauge.dart';
 import '../widgets/skeleton_widgets.dart';
 import '../widgets/loading_indicator.dart';
 import '../widgets/error_widgets.dart';
@@ -134,7 +131,6 @@ class _MomentumContent extends ConsumerWidget {
     // Watch individual providers for reactive updates
     final weeklyTrend = ref.watch(weeklyTrendProvider);
     final stats = ref.watch(momentumStatsProvider);
-    final momentumState = ref.watch(momentumStateProvider);
     final todayFeedState = ref.watch(todayFeedProvider);
 
     // Get responsive spacing
@@ -253,151 +249,11 @@ class _MomentumContent extends ConsumerWidget {
 
           SizedBox(height: spacing),
 
-          // Action Buttons - T1.1.3.6 Complete
-          if (momentumState != null)
-            ActionButtons(
-              state: momentumState,
-              onLearnTap: () {
-                // TODO: Navigate to learning content
-                context.announceToScreenReader('Opening learning content');
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Learning content coming soon!'),
-                  ),
-                );
-              },
-              onShareTap: () {
-                // TODO: Navigate to sharing options
-                context.announceToScreenReader('Opening sharing options');
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Sharing options coming soon!')),
-                );
-              },
-            )
-          else
-            const SkeletonActionButtons(),
-
-          SizedBox(height: spacing),
-
-          // Demo section now using Riverpod providers
-          const _DemoSection(),
+          // Transition State Demo removed per HS task
         ],
       ),
     );
   }
 }
 
-/// Demo section using Riverpod providers for state management
-class _DemoSection extends ConsumerWidget {
-  const _DemoSection();
 
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final demoState = ref.watch(demoStateProvider);
-    final demoPercentage = ref.watch(demoPercentageProvider);
-
-    return Card(
-      margin: ResponsiveService.getResponsivePadding(context),
-      child: Padding(
-        padding: ResponsiveService.getResponsivePadding(context),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'State Transition Demo',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-            ),
-            SizedBox(height: ResponsiveService.getResponsiveSpacing(context)),
-            Center(
-              child: MomentumGauge(
-                state: demoState,
-                percentage: demoPercentage,
-                size: 140,
-                stateTransitionDuration: const Duration(milliseconds: 800),
-              ),
-            ),
-            SizedBox(height: ResponsiveService.getLargeSpacing(context)),
-            const Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _DemoButton(
-                  label: 'Rising 🚀',
-                  state: MomentumState.rising,
-                  color: AppTheme.momentumRising,
-                ),
-                _DemoButton(
-                  label: 'Steady 🙂',
-                  state: MomentumState.steady,
-                  color: AppTheme.momentumSteady,
-                ),
-                _DemoButton(
-                  label: 'Care 🌱',
-                  state: MomentumState.needsCare,
-                  color: AppTheme.momentumCare,
-                ),
-              ],
-            ),
-            SizedBox(height: ResponsiveService.getResponsiveSpacing(context)),
-            Text(
-              'Tap the buttons above to see smooth state transitions with haptic feedback!',
-              style: Theme.of(context).textTheme.bodySmall,
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Individual demo button using Riverpod for state management
-class _DemoButton extends ConsumerWidget {
-  final String label;
-  final MomentumState state;
-  final Color color;
-
-  const _DemoButton({
-    required this.label,
-    required this.state,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final currentDemoState = ref.watch(demoStateProvider);
-    final isSelected = currentDemoState == state;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Expanded(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4),
-        child: ElevatedButton(
-          onPressed: () {
-            // Update demo state using Riverpod
-            ref.read(demoStateProvider.notifier).update((_) => state);
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor:
-                isSelected
-                    ? color
-                    : (isDark ? Colors.grey.shade700 : Colors.grey.shade200),
-            foregroundColor:
-                isSelected
-                    ? Colors.white
-                    : (isDark ? Colors.white70 : Colors.grey.shade700),
-            elevation: isSelected ? 2 : 0,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            minimumSize: const Size(double.infinity, 48),
-          ),
-          child: Text(
-            label,
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-            textAlign: TextAlign.center,
-          ),
-        ),
-      ),
-    );
-  }
-}

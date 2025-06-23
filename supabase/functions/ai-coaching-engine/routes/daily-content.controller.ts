@@ -49,28 +49,6 @@ export async function dailyContentController(
     const supabase =
       (await getSupabaseClient({ overrideKey: serviceRoleKey })) as unknown as SupabaseClient
 
-    if (!_forceRegenerate) {
-      const { data: existing } = await supabase
-        .from('daily_feed_content')
-        .select('*')
-        .eq('content_date', content_date)
-        .single()
-
-      if (existing && existing.full_content !== null && existing.full_content !== undefined) {
-        return json(
-          {
-            success: true,
-            message: 'Content already exists for this date',
-            content: existing,
-            generated: false,
-            response_time_ms: Date.now() - start,
-          },
-          200,
-          cors,
-        )
-      }
-    }
-
     const generated = await generateDailyHealthContent(content_date, topic_category)
     if (!generated) throw new Error('Failed to generate content')
 
@@ -81,7 +59,7 @@ export async function dailyContentController(
 
     const { data: saved, error: saveErr } = await supabase
       .from('daily_feed_content')
-      .upsert({
+      .insert({
         content_date,
         title: generated.title,
         summary: generated.summary,
@@ -90,7 +68,7 @@ export async function dailyContentController(
         content_url: generated.content_url,
         external_link: generated.external_link,
         full_content: generated.full_content,
-      }, { onConflict: 'content_date' })
+      })
       .select()
       .single()
 

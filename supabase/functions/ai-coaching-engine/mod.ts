@@ -174,27 +174,59 @@ const routes: Route[] = [
       return jitaiController(req, { cors: corsHeaders })
     },
   },
-  // conversation endpoint for root path
+  // wildcard catch-all for any sub-paths (placed BEFORE root '/' route)
   {
-    pattern: new URLPattern({ pathname: '/' }),
-    handler: (req) => {
+    pattern: new URLPattern({ pathname: '/*' }),
+    handler: async (req) => {
       if (req.method === 'OPTIONS') return handleOptions()
+      const pathname = new URL(req.url).pathname
+      // ------------------------------------------------------------------
+      // If the path ends with /generate-daily-content (common when the runtime
+      // prepends the function name), route it to the dailyContentController.
+      // ------------------------------------------------------------------
+      if (pathname.includes('generate-daily-content')) {
+        console.log('🚀 Early route to dailyContentController for', pathname)
+        return await dailyContentController(req, {
+          cors: corsHeaders,
+          isTestingEnv: isTestingEnvironment,
+          supabaseUrl,
+          serviceRoleKey,
+        })
+      }
       if (req.method !== 'POST') {
         return new Response('Method not allowed', { status: 405, headers: corsHeaders })
       }
+      // Fallback to conversation controller for all other paths
       return conversationController(req, {
         cors: corsHeaders,
         isTestingEnv: isTestingEnvironment,
       })
     },
   },
-  // wildcard catch-all for any sub-paths not matched above (still conversation)
+  // conversation endpoint for root path (kept AFTER wildcard so more specific
+  // routing happens first)
   {
-    pattern: new URLPattern({ pathname: '/*' }),
-    handler: (req) => {
+    pattern: new URLPattern({ pathname: '/' }),
+    handler: async (req) => {
+      console.log('🛣️  incoming path=', new URL(req.url).pathname)
       if (req.method === 'OPTIONS') return handleOptions()
       if (req.method !== 'POST') {
         return new Response('Method not allowed', { status: 405, headers: corsHeaders })
+      }
+      // Heuristic: detect content_date in the body and forward to generator
+      try {
+        const cloned = req.clone()
+        const body = await cloned.json().catch(() => null)
+        if (body && typeof body === 'object' && 'content_date' in body) {
+          return await dailyContentController(req, {
+            cors: corsHeaders,
+            isTestingEnv: isTestingEnvironment,
+            supabaseUrl,
+            serviceRoleKey,
+          })
+        }
+      } catch (_) {
+        // Fall through to conversation controller
       }
       return conversationController(req, {
         cors: corsHeaders,
@@ -217,13 +249,24 @@ const router = route(
 )
 
 export default async function handler(req: Request): Promise<Response> {
+  const pathname = new URL(req.url).pathname
+  // Early shortcut: any path containing generate-daily-content should bypass router and use the daily content controller directly.
+  if (pathname.includes('generate-daily-content')) {
+    console.log('🚀 Early route to dailyContentController for', pathname)
+    return await dailyContentController(req, {
+      cors: corsHeaders,
+      isTestingEnv: isTestingEnvironment,
+      supabaseUrl,
+      serviceRoleKey,
+    })
+  }
+  console.log('📍 global incoming path=', pathname)
   if (req.method === 'OPTIONS') return handleOptions()
   const start = Date.now()
   const res = await router(req)
   const ms = Date.now() - start
   try {
-    const path = new URL(req.url).pathname
-    await recordLatency(path, ms)
+    await recordLatency(pathname, ms)
   } catch (_) {
     // ignore telemetry failures – logging latency is non-critical
   }

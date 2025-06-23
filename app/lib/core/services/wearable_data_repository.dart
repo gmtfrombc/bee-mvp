@@ -11,6 +11,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:health/health.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:app/core/utils/logger.dart';
 
 import 'wearable_data_models.dart';
 import 'health_background_sync_service.dart';
@@ -502,9 +503,9 @@ class WearableDataRepository {
               .map((point) => HealthSample.fromHealthDataPoint(point))
               .toList();
 
-      // ── Diagnostic logging ───────────────────────────────────────────
-      if (kDebugMode) {
-        debugPrint(
+      // ── Diagnostic logging (verbose) ────────────────────────────────
+      if (kDebugMode && _config.verboseLogging) {
+        logD(
           '📡 getHealthData returned ${samples.length} points '
           '[types: ${types.map((t) => t.name).join(', ')}] '
           'range: ${start.toIso8601String()} → ${end.toIso8601String()}',
@@ -517,24 +518,22 @@ class WearableDataRepository {
         }
 
         for (final entry in byType.entries) {
-          debugPrint('   ↳ ${entry.key.name} • count=${entry.value.length}');
+          logD('   ↳ ${entry.key.name} • count=${entry.value.length}');
           for (final sample in entry.value.take(3)) {
-            debugPrint(
+            logD(
               '      • ts=${sample.timestamp} | val=${sample.value} | src=${sample.source}',
             );
           }
           if (entry.value.length > 3) {
-            debugPrint('      … (${entry.value.length - 3} more)');
+            logD('      … (${entry.value.length - 3} more)');
           }
         }
 
         if (samples.isEmpty) {
-          debugPrint(
-            '⚠️ No samples returned – consider widening look-back window',
-          );
+          logD('⚠️ No samples returned – consider widening look-back window');
         }
       }
-      // ─────────────────────────────────────────────────────────────────
+      // ────────────────────────────────────────────────────────────────
 
       // Emit data to stream
       _dataStreamController.add(samples);
