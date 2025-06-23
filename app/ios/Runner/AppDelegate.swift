@@ -46,6 +46,10 @@ import HealthKit
     }
     // ────────────────────────────────────────────────────────────────
     
+    // ── Health Read Probe registration ──────────────────────────────
+    HealthReadProbe.register(with: self.registrar(forPlugin: "HealthReadProbe")!)
+    // ────────────────────────────────────────────────────────────────
+    
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
   
