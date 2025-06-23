@@ -439,9 +439,13 @@ class WearableDataRepository {
         if (kDebugMode) {
           debugPrint('[Permissions] iOS read probe result: $probeOk');
         }
-        return probeOk
-            ? HealthPermissionStatus.authorized
-            : HealthPermissionStatus.denied;
+        if (probeOk) {
+          return HealthPermissionStatus.authorized;
+        } else {
+          // We couldn't detect data – treat as notDetermined so UI can
+          // prompt the user again rather than showing a hard denial.
+          return HealthPermissionStatus.notDetermined;
+        }
       }
 
       // iOS custom bridge – per-type bool map (iOS bridge)
@@ -1015,7 +1019,7 @@ class WearableDataRepository {
   /// indicating access is still granted.
   Future<bool> _iosProbeReadAccess({
     WearableDataType type = WearableDataType.steps,
-    Duration window = const Duration(minutes: 15),
+    Duration window = const Duration(hours: 24),
   }) async {
     try {
       final ok = await _iosReadProbeChannel.invokeMethod<bool>('probe', {
