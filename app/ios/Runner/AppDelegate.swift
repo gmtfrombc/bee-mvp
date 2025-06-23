@@ -36,12 +36,27 @@ import HealthKit
       )
 
       channel.setMethodCallHandler { call, result in
-        guard call.method == "check" else {
+        guard call.method == "check",
+              let identifiers = call.arguments as? [String] else {
           result(FlutterMethodNotImplemented)
           return
         }
-        // Temporary no-op implementation – returns empty map
-        result([:])
+
+        let store = HKHealthStore()
+        var map: [String: Bool] = [:]
+
+        for id in identifiers {
+          if let qty = HKObjectType.quantityType(forIdentifier: HKQuantityTypeIdentifier(rawValue: id)) {
+            map[id] = store.authorizationStatus(for: qty) == .sharingAuthorized
+          } else if let cat = HKObjectType.categoryType(forIdentifier: HKCategoryTypeIdentifier(rawValue: id)) {
+            map[id] = store.authorizationStatus(for: cat) == .sharingAuthorized
+          } else {
+            // Unsupported identifier – mark as false
+            map[id] = false
+          }
+        }
+
+        result(map)
       }
     }
     // ────────────────────────────────────────────────────────────────

@@ -423,29 +423,22 @@ class WearableDataRepository {
         );
       }
 
-      // The Flutter health plugin may return `null` on iOS 17+ even when
-      // permissions are granted OR denied.  We no longer interpret `null`
-      // as authorised; instead we treat it as *unknown* and fall back to
-      // our bridge/probe detection.
       final hasPermissions = hasPermissionsResult == true;
 
       if (kDebugMode) {
-        debugPrint('[Permissions] checkPermissions.finalHas=$hasPermissions');
+        debugPrint('[Permissions] checkPermissions.pluginHas=$hasPermissions');
       }
 
-      // If plugin did not confirm grant on iOS, fall back to read probe
-      if (Platform.isIOS && !hasPermissions) {
-        final probeOk = await _iosProbeReadAccess();
-        if (kDebugMode) {
-          debugPrint('[Permissions] iOS read probe result: $probeOk');
-        }
-        return probeOk
-            ? HealthPermissionStatus.authorized
-            : HealthPermissionStatus.denied;
+      // 1. If plugin confirmed – done.
+      if (hasPermissions) {
+        return HealthPermissionStatus.authorized;
       }
 
-      // iOS custom bridge – per-type bool map (iOS bridge)
+      // 2. iOS fallback – first consult the native Swift bridge.
       if (Platform.isIOS) {
+        bool? bridgeAuthorized;
+        bool bridgeHasData = false;
+
         try {
           final hkIds = types.map(_toHKIdentifier).toList();
           final raw = await _iosPermissionChannel.invokeMapMethod<String, bool>(
@@ -458,22 +451,31 @@ class WearableDataRepository {
           }
 
           if (raw != null && raw.isNotEmpty) {
-            final allGranted = types.every(
-              (t) => raw[_toHKIdentifier(t)] == true,
-            );
-            return allGranted
-                ? HealthPermissionStatus.authorized
-                : HealthPermissionStatus.notDetermined;
+            bridgeHasData = true;
+            bridgeAuthorized = raw.values.any((granted) => granted == true);
           }
         } catch (e) {
           debugPrint('iOS permission bridge failed: $e');
-          // fall through
         }
+
+        if (bridgeHasData && bridgeAuthorized == true) {
+          return HealthPermissionStatus.authorized;
+        }
+
+        // 3. Last resort – lightweight sample probe (covers cases where
+        // bridge indicates no write sharing but read access may still be
+        // available, as Apple doesn't expose read-scopes via the status API)
+        final probeOk = await _iosProbeReadAccess();
+        if (kDebugMode) {
+          debugPrint('[Permissions] iOS read probe result: $probeOk');
+        }
+        return probeOk
+            ? HealthPermissionStatus.authorized
+            : HealthPermissionStatus.denied;
       }
 
-      return hasPermissions
-          ? HealthPermissionStatus.authorized
-          : HealthPermissionStatus.notDetermined;
+      // ─ Android & other platforms ────────────────────────────────
+      return HealthPermissionStatus.notDetermined;
     } catch (e) {
       debugPrint('Error checking health permissions: $e');
       return HealthPermissionStatus.denied;
