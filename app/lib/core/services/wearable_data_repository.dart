@@ -471,7 +471,7 @@ class WearableDataRepository {
         }
         return probeOk
             ? HealthPermissionStatus.authorized
-            : HealthPermissionStatus.denied;
+            : HealthPermissionStatus.notDetermined;
       }
 
       // ─ Android & other platforms ────────────────────────────────
