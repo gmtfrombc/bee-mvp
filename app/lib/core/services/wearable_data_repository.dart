@@ -46,6 +46,11 @@ class WearableDataRepository {
   bool _hasBeenDeniedTwice = false;
   int _permissionDenialCount = 0;
 
+  // iOS-only HealthKit permission bridge (returns tri-state int)
+  static const MethodChannel _iosPermissionChannel = MethodChannel(
+    'com.bee.health_permission_status',
+  );
+
   /// Stream of health data updates
   Stream<List<HealthSample>> get dataStream => _dataStreamController.stream;
 
@@ -318,7 +323,9 @@ class WearableDataRepository {
       );
 
       debugPrint('[Permissions] hasPermissions raw result: $finalHasBool');
-      // Treat an indeterminate (null) response as not yet authorized.
+      // In some iOS versions `hasPermissions` may return `null` even when
+      // permissions are actually granted. We interpret `null` as authorised
+      // *only* on iOS; Android always expects explicit `true`.
       final finalHas =
           finalHasBool == true || (finalHasBool == null && Platform.isIOS);
       debugPrint('[Permissions] hasPermissions finalHas: $finalHas');
@@ -403,11 +410,53 @@ class WearableDataRepository {
         permissions: permissions,
       );
 
-      // Do **not** treat a null result as authorized – it simply means the
-      // underlying HealthKit API couldn't determine status (iOS 17 beta bug).
+      // NEW verbose diagnostics – capture raw result per invocation
+      if (kDebugMode) {
+        debugPrint(
+          '[Permissions] checkPermissions.types=${types.map((e) => e.name).join(', ')} '
+          'rawResult=$hasPermissionsResult',
+        );
+      }
+
+      // In some iOS versions `hasPermissions` may return `null` even when
+      // permissions are actually granted. We interpret `null` as authorised
+      // *only* on iOS; Android always expects explicit `true`.
       final hasPermissions =
           hasPermissionsResult == true ||
           (hasPermissionsResult == null && Platform.isIOS);
+
+      if (kDebugMode) {
+        debugPrint(
+          '[Permissions] checkPermissions.finalHas=$hasPermissions (nullAsAuth=${Platform.isIOS && hasPermissionsResult == null})',
+        );
+      }
+
+      // iOS custom bridge – per-type bool map (iOS bridge)
+      if (Platform.isIOS) {
+        try {
+          final hkIds = types.map(_toHKIdentifier).toList();
+          final raw = await _iosPermissionChannel.invokeMapMethod<String, bool>(
+            'check',
+            hkIds,
+          );
+
+          if (kDebugMode) {
+            debugPrint('[Permissions] iOS bridge map=$raw');
+          }
+
+          if (raw != null && raw.isNotEmpty) {
+            final allGranted = types.every(
+              (t) => raw[_toHKIdentifier(t)] == true,
+            );
+            return allGranted
+                ? HealthPermissionStatus.authorized
+                : HealthPermissionStatus.notDetermined;
+          }
+        } catch (e) {
+          debugPrint('iOS permission bridge failed: $e');
+          // fall through
+        }
+      }
 
       return hasPermissions
           ? HealthPermissionStatus.authorized
@@ -894,6 +943,58 @@ class WearableDataRepository {
     _backgroundSyncService.dispose();
     _dataStreamController.close();
     _isInitialized = false;
+  }
+
+  /// Request authorization for a batch of HealthKit/Health Connect types
+  Future<bool> requestPermissionsRaw(
+    List<HealthDataType> types,
+    List<HealthDataAccess> access,
+  ) async {
+    try {
+      return await _health.requestAuthorization(types, permissions: access);
+    } catch (e) {
+      debugPrint('Batch permission request failed: $e');
+      return false;
+    }
+  }
+
+  /// Check permission status for given types (returns true if all granted).
+  Future<bool?> hasPermissionsRaw(
+    List<HealthDataType> types,
+    List<HealthDataAccess> access,
+  ) async {
+    try {
+      return await _health.hasPermissions(types, permissions: access);
+    } catch (e) {
+      debugPrint('Permission check failed: $e');
+      return null;
+    }
+  }
+
+  // Map WearableDataType to HK identifier string used by the Swift bridge
+  String _toHKIdentifier(WearableDataType type) {
+    switch (type) {
+      case WearableDataType.steps:
+        return 'HKQuantityTypeIdentifierStepCount';
+      case WearableDataType.heartRate:
+        return 'HKQuantityTypeIdentifierHeartRate';
+      case WearableDataType.sleepDuration:
+        return 'HKCategoryTypeIdentifierSleepAnalysis';
+      case WearableDataType.restingHeartRate:
+        return 'HKQuantityTypeIdentifierRestingHeartRate';
+      case WearableDataType.activeEnergyBurned:
+        return 'HKQuantityTypeIdentifierActiveEnergyBurned';
+      case WearableDataType.heartRateVariability:
+        return 'HKQuantityTypeIdentifierHeartRateVariabilitySDNN';
+      case WearableDataType.weight:
+        return 'HKQuantityTypeIdentifierBodyMass';
+      case WearableDataType.distanceWalking:
+        return 'HKQuantityTypeIdentifierDistanceWalkingRunning';
+      case WearableDataType.flightsClimbed:
+        return 'HKQuantityTypeIdentifierFlightsClimbed';
+      default:
+        return 'HKQuantityTypeIdentifierStepCount';
+    }
   }
 }
 

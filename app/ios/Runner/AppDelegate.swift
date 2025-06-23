@@ -1,5 +1,6 @@
 import Flutter
 import UIKit
+import HealthKit
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
@@ -24,6 +25,26 @@ import UIKit
     }
     
     application.registerForRemoteNotifications()
+    
+    // ── Health Permission Bridge (iOS-only) ────────────────────────────
+    // Provides tri-state permission status per HK identifier:
+    //   0 = notDetermined, 1 = denied, 2 = authorized
+    if let controller = window?.rootViewController as? FlutterViewController {
+      let channel = FlutterMethodChannel(
+        name: "com.bee.health_permission_status",
+        binaryMessenger: controller.binaryMessenger
+      )
+
+      channel.setMethodCallHandler { call, result in
+        guard call.method == "check" else {
+          result(FlutterMethodNotImplemented)
+          return
+        }
+        // Temporary no-op implementation – returns empty map
+        result([:])
+      }
+    }
+    // ────────────────────────────────────────────────────────────────
     
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
