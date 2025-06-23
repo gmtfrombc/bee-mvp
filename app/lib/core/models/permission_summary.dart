@@ -36,8 +36,16 @@ class PermissionSummary {
   bool get isGranted => state == PermissionAggregateState.granted;
   bool get isDenied => state == PermissionAggregateState.denied;
 
-  /// Whether at least one permission is granted (used for simple "Connected" indicator)
-  bool get isConnected => grantedCount > 0;
+  /// Core metrics we consider essential for the app's main features.
+  static const List<WearableDataType> _coreMetrics = [
+    WearableDataType.steps,
+    WearableDataType.heartRate,
+    WearableDataType.activeEnergyBurned,
+    WearableDataType.restingHeartRate,
+  ];
+
+  /// Whether the user has granted at least one *core* metric permission.
+  bool get isConnected => _coreMetrics.any((t) => status[t] == true);
 
   List<WearableDataType> get missingTypes =>
       status.entries.where((e) => !e.value).map((e) => e.key).toList();
