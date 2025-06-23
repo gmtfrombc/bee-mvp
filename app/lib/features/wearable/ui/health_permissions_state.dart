@@ -203,9 +203,24 @@ class HealthPermissionsNotifier extends StateNotifier<HealthPermissionsState> {
         }
       }
 
-      final status = await _repository.requestPermissions();
+      final statusReq = await _repository.requestPermissions();
 
-      if (status == HealthPermissionStatus.authorized) {
+      // Immediately re-query to capture the true state after the system sheet
+      // closes (handles the case where the user changed their mind inside the
+      // dialog).  This avoids having to cold-restart the app.
+      final status = await _repository.checkPermissions();
+
+      // On iOS the plugin may still return unknown immediately after a grant
+      // even though requestAuthorization succeeded. When that happens, trust
+      // the positive request result for this session.
+      var effectiveStatus = status;
+      if (Platform.isIOS &&
+          statusReq == HealthPermissionStatus.authorized &&
+          status != HealthPermissionStatus.authorized) {
+        effectiveStatus = HealthPermissionStatus.authorized;
+      }
+
+      if (effectiveStatus == HealthPermissionStatus.authorized) {
         // Persist granted flag
         // ignore: unawaited_futures
         _saveGrantedFlag(true);
@@ -317,5 +332,15 @@ class HealthPermissionsNotifier extends StateNotifier<HealthPermissionsState> {
   /// Dismiss the Health Connect install prompt
   void dismissHealthConnectInstallPrompt() {
     state = state.copyWith(showHealthConnectInstallPrompt: false);
+  }
+
+  /// Lightweight foreground refresh used by app lifecycle listener.
+  Future<void> refreshPermissions() async {
+    try {
+      final status = await _repository.checkPermissions();
+      state = state.copyWith(status: status);
+    } catch (e) {
+      debugPrint('Error refreshing permissions: $e');
+    }
   }
 }
