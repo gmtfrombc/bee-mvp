@@ -46,8 +46,37 @@ import HealthKit
     }
     // ────────────────────────────────────────────────────────────────
     
-    // ── Health Read Probe registration ──────────────────────────────
-    HealthReadProbe.register(with: self.registrar(forPlugin: "HealthReadProbe")!)
+    // ── Health Read Probe (lightweight query) ───────────────────────
+    let probeChannel = FlutterMethodChannel(
+      name: "health_read_probe",
+      binaryMessenger: (window?.rootViewController as! FlutterViewController).binaryMessenger
+    )
+
+    probeChannel.setMethodCallHandler { call, result in
+      guard call.method == "probe",
+            let args = call.arguments as? [String: Any],
+            let id = args["id"] as? String,
+            let interval = args["interval"] as? Double,
+            let qType = HKObjectType.quantityType(forIdentifier: HKQuantityTypeIdentifier(rawValue: id))
+      else {
+        result(FlutterError(code: "bad_args", message: nil, details: nil))
+        return
+      }
+
+      let store = HKHealthStore()
+      let now = Date()
+      let start = now.addingTimeInterval(-interval)
+      let predicate = HKQuery.predicateForSamples(withStart: start, end: now, options: .strictEndDate)
+
+      let query = HKSampleQuery(sampleType: qType,
+                                predicate: predicate,
+                                limit: 1,
+                                sortDescriptors: nil) { _, samples, _ in
+        let hasData = !(samples?.isEmpty ?? true)
+        result(hasData)
+      }
+      store.execute(query)
+    }
     // ────────────────────────────────────────────────────────────────
     
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
