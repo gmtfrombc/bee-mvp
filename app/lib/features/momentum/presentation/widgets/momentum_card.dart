@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'dart:math' as math;
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/services/responsive_service.dart';
 import '../../../../core/services/accessibility_service.dart';
@@ -148,6 +149,11 @@ class _MomentumCardState extends State<MomentumCard>
                         child: Column(
                           children: [
                             _buildHeader(),
+                            SizedBox(
+                              height: ResponsiveService.getSmallSpacing(
+                                context,
+                              ),
+                            ),
                             _buildGaugeSection(),
                             if (widget.showProgressBar) _buildProgressBar(),
                           ],
@@ -181,34 +187,67 @@ class _MomentumCardState extends State<MomentumCard>
   }
 
   Widget _buildGaugeSection() {
-    return Expanded(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Flexible(
-            child: MomentumGauge(
-              state: widget.momentumData.state,
-              percentage: widget.momentumData.percentage,
-              onTap: widget.onTap,
-              showGlow: true,
-              size: ResponsiveService.getMomentumGaugeSize(context),
-            ),
-          ),
-          if (_getStateDisplayText().isNotEmpty) ...[
-            SizedBox(height: ResponsiveService.getTinySpacing(context)),
-            Flexible(
-              child: AccessibilityService.createAccessibleText(
-                _getStateDisplayText(),
-                baseStyle: Theme.of(context).textTheme.headlineMedium!.copyWith(
-                  color: AppTheme.getMomentumColor(widget.momentumData.state),
-                  fontWeight: FontWeight.w600,
-                ),
-                context: context,
+    final double spacer = ResponsiveService.getSmallSpacing(context);
+
+    // Use LayoutBuilder so we can adapt the gauge size to the available
+    // vertical space. This prevents RenderFlex overflow in very tight
+    // scenarios such as unit tests that wrap the card in a small SizedBox.
+    return Flexible(
+      fit: FlexFit.loose,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          // Compute a gauge size that fits within roughly 45% of the
+          // available height, but never exceeds the default responsive size.
+          // Sub-components (header, spacer, label) roughly consume the rest.
+          final double defaultGaugeSize =
+              ResponsiveService.getMomentumGaugeSize(context);
+
+          // Estimate non-gauge vertical space inside this section
+          // (spacer & potential state label). We approximate ~30 logical
+          // pixels which is generally safe for a single line label plus the
+          // small spacer.
+          const double extraVerticalSpace = 30.0;
+
+          final double maxGaugeHeight = math.max(
+            20.0,
+            constraints.maxHeight - extraVerticalSpace - spacer,
+          );
+
+          final double calculatedGaugeSize = math.min(
+            defaultGaugeSize,
+            maxGaugeHeight,
+          );
+
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              MomentumGauge(
+                state: widget.momentumData.state,
+                percentage: widget.momentumData.percentage,
+                onTap: widget.onTap,
+                showGlow: true,
+                size: calculatedGaugeSize,
               ),
-            ),
-          ],
-        ],
+
+              // Spacer below gauge equal to header→gauge spacing
+              SizedBox(height: spacer),
+
+              // State label
+              if (_getStateDisplayText().isNotEmpty)
+                AccessibilityService.createAccessibleText(
+                  _getStateDisplayText(),
+                  baseStyle: Theme.of(context).textTheme.titleMedium!.copyWith(
+                    fontSize:
+                        Theme.of(context).textTheme.titleMedium!.fontSize! *
+                        ResponsiveService.getFontSizeMultiplier(context),
+                    fontWeight: FontWeight.w600,
+                  ),
+                  context: context,
+                ),
+            ],
+          );
+        },
       ),
     );
   }
