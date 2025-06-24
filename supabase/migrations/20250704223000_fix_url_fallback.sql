@@ -1,0 +1,2 @@
+-- Placeholder for 20250704223000_fix_url_fallback.sql
+-- Original migration already applied in production. 

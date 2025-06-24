@@ -31,6 +31,8 @@ final supabaseProvider = FutureProvider<SupabaseClient>((ref) async {
       }
     }
 
+    // Log the user id so testers can easily copy it for seeding synthetic data
+    debugPrint('⚡️ Current user id: \\${client.auth.currentUser?.id}');
     debugPrint('✅ Supabase initialized successfully');
     return Supabase.instance.client;
   }

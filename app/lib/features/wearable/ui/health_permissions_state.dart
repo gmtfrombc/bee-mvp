@@ -96,6 +96,7 @@ class HealthPermissionsNotifier extends StateNotifier<HealthPermissionsState> {
 
   final _repository = WearableDataRepository();
   static const _cacheKey = 'health_permissions_granted_v1';
+  static const _explicitGrantKey = 'health_permissions_explicit_grant_v1';
 
   Future<void> _saveGrantedFlag(bool granted) async {
     final prefs = await SharedPreferences.getInstance();
@@ -105,6 +106,16 @@ class HealthPermissionsNotifier extends StateNotifier<HealthPermissionsState> {
   Future<bool?> _loadGrantedFlag() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(_cacheKey);
+  }
+
+  Future<void> _saveExplicitGrant(bool granted) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_explicitGrantKey, granted);
+  }
+
+  Future<bool?> _loadExplicitGrant() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_explicitGrantKey);
   }
 
   /// Initialize the repository and check current permissions
@@ -158,7 +169,15 @@ class HealthPermissionsNotifier extends StateNotifier<HealthPermissionsState> {
       // has occurred, skip redundant dialog.
       final cachedGranted = await _loadGrantedFlag();
 
-      final status = await _repository.checkPermissions();
+      var status = await _repository.checkPermissions();
+
+      // If user explicitly granted before, treat as authorized even if
+      // HealthKit still reports unknown (common right after fresh grant).
+      final explicitGrant = await _loadExplicitGrant();
+      if (explicitGrant == true &&
+          status != HealthPermissionStatus.authorized) {
+        status = HealthPermissionStatus.authorized;
+      }
 
       if (status == HealthPermissionStatus.authorized &&
           cachedGranted != true) {
@@ -224,10 +243,21 @@ class HealthPermissionsNotifier extends StateNotifier<HealthPermissionsState> {
         // Persist granted flag
         // ignore: unawaited_futures
         _saveGrantedFlag(true);
+        // Remember explicit grant
+        // ignore: unawaited_futures
+        _saveExplicitGrant(true);
+
+        state = state.copyWith(
+          isLoading: false,
+          status: HealthPermissionStatus.authorized,
+        );
       } else if (status == HealthPermissionStatus.denied) {
         // Save negative
         // ignore: unawaited_futures
         _saveGrantedFlag(false);
+        // clear explicit grant
+        // ignore: unawaited_futures
+        _saveExplicitGrant(false);
 
         // Check if this was a permanent denial on Android
         if (Platform.isAndroid && _repository.hasBeenPermanentlyDenied) {
@@ -338,7 +368,18 @@ class HealthPermissionsNotifier extends StateNotifier<HealthPermissionsState> {
   Future<void> refreshPermissions() async {
     try {
       final status = await _repository.checkPermissions();
-      state = state.copyWith(status: status);
+
+      // If explicit grant stored but now revoked, clear flag.
+      final explicitGrant = await _loadExplicitGrant();
+      if (explicitGrant == true && status == HealthPermissionStatus.denied) {
+        await _saveExplicitGrant(false);
+      }
+
+      // If explicit grant exists treat as authorized.
+      final effective =
+          (explicitGrant == true) ? HealthPermissionStatus.authorized : status;
+
+      state = state.copyWith(status: effective);
     } catch (e) {
       debugPrint('Error refreshing permissions: $e');
     }

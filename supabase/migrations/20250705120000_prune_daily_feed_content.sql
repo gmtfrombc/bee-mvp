@@ -1,0 +1,2 @@
+-- Placeholder for 20250705120000_prune_daily_feed_content.sql
+-- Original migration already applied in production. 
