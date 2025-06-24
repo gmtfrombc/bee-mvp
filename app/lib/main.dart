@@ -16,6 +16,7 @@ import 'core/notifications/domain/services/notification_preferences_service.dart
 import 'core/providers/theme_provider.dart';
 import 'features/wearable/ui/wearable_dashboard_screen.dart';
 import 'package:app/features/achievements/progress_celebration_widget.dart';
+import 'package:app/features/wearable/ui/health_permissions_state.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -96,7 +97,8 @@ class AppWrapper extends ConsumerStatefulWidget {
   ConsumerState<AppWrapper> createState() => _AppWrapperState();
 }
 
-class _AppWrapperState extends ConsumerState<AppWrapper> {
+class _AppWrapperState extends ConsumerState<AppWrapper>
+    with WidgetsBindingObserver {
   int _currentIndex = 0;
 
   final List<Widget> _screens = [
@@ -110,7 +112,22 @@ class _AppWrapperState extends ConsumerState<AppWrapper> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _initializeApp();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Refresh health permissions when returning to foreground.
+      ref.read(healthPermissionsProvider.notifier).refreshPermissions();
+    }
   }
 
   Future<void> _initializeApp() async {

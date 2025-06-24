@@ -1,0 +1,2 @@
+-- Placeholder for 20250704194500_add_conversation_id.sql
+-- Original migration already applied in production. 

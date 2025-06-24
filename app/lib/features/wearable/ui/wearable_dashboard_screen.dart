@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:io' show Platform;
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/services/responsive_service.dart';
 import '../../../core/providers/vitals_notifier_provider.dart';
@@ -13,7 +15,7 @@ import 'tiles/heart_rate_tile.dart';
 import 'tiles/active_energy_tile.dart';
 import 'tiles/weight_tile.dart';
 import '../../../core/providers/supabase_provider.dart';
-import '../../../core/providers/analytics_provider.dart';
+import '../../../core/mixins/permission_auto_refresh_mixin.dart';
 
 /// Wearable Dashboard Screen – shows live health metric tiles with
 /// empty/error/loading states and pull-to-refresh. If permissions are
@@ -28,7 +30,8 @@ class WearableDashboardScreen extends ConsumerStatefulWidget {
 }
 
 class _WearableDashboardScreenState
-    extends ConsumerState<WearableDashboardScreen> {
+    extends ConsumerState<WearableDashboardScreen>
+    with PermissionAutoRefreshMixin<WearableDashboardScreen> {
   @override
   void initState() {
     super.initState();
@@ -42,30 +45,15 @@ class _WearableDashboardScreenState
   Widget build(BuildContext context) {
     final permissionsState = ref.watch(healthPermissionsProvider);
 
+    final bool showCta =
+        permissionsState.status != HealthPermissionStatus.authorized;
+
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(title: const Text('Health Stats')),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          // Trigger a manual refresh via the VitalsNotifier so that we fetch a
-          // wider data window and guarantee fresh values from HealthKit/Connect.
-          await ref.read(vitalsNotifierServiceProvider).refreshNow();
-
-          // Allow the RefreshIndicator widget to remain visible briefly so
-          // users see feedback that their gesture succeeded.
-          await Future<void>.delayed(const Duration(milliseconds: 300));
-
-          // Emit analytics event for manual refresh
-          ref.read(analyticsServiceProvider).logEvent('vitals_manual_refresh');
-
-          if (!context.mounted) return;
-          // Provide user feedback once refresh completes.
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Health stats updated')));
-        },
-        child: _buildContent(context, ref, permissionsState),
-      ),
+      body:
+          showCta
+              ? _PermissionCta(permissionsState: permissionsState)
+              : _buildContent(context, ref, permissionsState),
     );
   }
 
@@ -85,18 +73,6 @@ class _WearableDashboardScreenState
             ),
           ),
         ],
-      );
-    }
-
-    // Show CTA when permissions are not yet granted or have been denied.
-    if (permissionsState.status != HealthPermissionStatus.authorized) {
-      return ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: EdgeInsets.symmetric(
-          horizontal: ResponsiveService.getResponsivePadding(context).left,
-          vertical: ResponsiveService.getSmallSpacing(context),
-        ),
-        children: [_PermissionCta(permissionsState: permissionsState)],
       );
     }
 
@@ -191,12 +167,52 @@ class _PermissionCta extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isDenied = permissionsState.status == HealthPermissionStatus.denied;
+    final bool isDenied =
+        permissionsState.status == HealthPermissionStatus.denied;
+    final bool isNotDetermined =
+        permissionsState.status == HealthPermissionStatus.notDetermined;
 
-    final description =
-        isDenied
-            ? 'Health access is currently blocked. Please enable permissions to see your data.'
-            : 'To view your health data, please grant the required permissions.';
+    // On iOS a denial can be "permanent" when toggled off in Settings. We
+    // deep-link the user directly to the Health app sources list in that case.
+    final bool needsSettingsLink = Platform.isIOS && isDenied;
+
+    final String description;
+    final String buttonLabel;
+    VoidCallback onPressed;
+
+    if (isNotDetermined) {
+      description =
+          'To view your health data, please grant the required permissions.';
+      buttonLabel = 'Grant Apple Health Access';
+      onPressed = () {
+        // Open permissions flow inside bottom-sheet modal
+        showHealthPermissionsModal(context);
+      };
+    } else if (needsSettingsLink) {
+      description =
+          'Apple Health access is turned off. Please enable it in Settings to resume data syncing.';
+      buttonLabel = 'Open Health Settings';
+      onPressed = () async {
+        const url = 'x-apple-health://sources';
+        if (await canLaunchUrl(Uri.parse(url))) {
+          await launchUrl(Uri.parse(url));
+        } else {
+          // Fallback to generic app settings
+          const settingsUrl = 'app-settings:';
+          if (await canLaunchUrl(Uri.parse(settingsUrl))) {
+            await launchUrl(Uri.parse(settingsUrl));
+          }
+        }
+      };
+    } else {
+      // Android denial case or unknown; fall back to modal / settings
+      description =
+          'Health access is currently blocked. Please enable permissions to see your data.';
+      buttonLabel = Platform.isAndroid ? 'Grant Permissions' : 'Open Settings';
+      onPressed = () {
+        showHealthPermissionsModal(context);
+      };
+    }
 
     return Center(
       child: Semantics(
@@ -220,24 +236,9 @@ class _PermissionCta extends ConsumerWidget {
               ),
             ),
             ElevatedButton.icon(
-              onPressed: () async {
-                // Capture container to allow provider operations even if this
-                // widget is disposed before the modal completes.
-                final container = ProviderScope.containerOf(
-                  context,
-                  listen: false,
-                );
-
-                await showHealthPermissionsModal(context);
-
-                // Invalidate outside widget lifecycle to avoid "ref disposed"
-                // exceptions when the CTA is replaced by tiles.
-                container.invalidate(healthPermissionsProvider);
-                // Re-run initialization to refresh permission status.
-                container.read(healthPermissionsProvider.notifier).initialize();
-              },
+              onPressed: onPressed,
               icon: const Icon(Icons.lock_open),
-              label: Text(isDenied ? 'Open Settings' : 'Grant Permissions'),
+              label: Text(buttonLabel),
             ),
           ],
         ),

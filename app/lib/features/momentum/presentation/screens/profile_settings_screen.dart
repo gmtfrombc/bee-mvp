@@ -5,13 +5,21 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../core/providers/theme_provider.dart';
 import '../widgets/adaptive_polling_toggle.dart';
 import '../widgets/health_permission_toggle.dart';
+import '../../../../core/mixins/permission_auto_refresh_mixin.dart';
 
 /// Screen for managing user profile and app settings
-class ProfileSettingsScreen extends ConsumerWidget {
+class ProfileSettingsScreen extends ConsumerStatefulWidget {
   const ProfileSettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProfileSettingsScreen> createState() =>
+      _ProfileSettingsScreenState();
+}
+
+class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen>
+    with PermissionAutoRefreshMixin<ProfileSettingsScreen> {
+  @override
+  Widget build(BuildContext context) {
     final themeMode = ref.watch(themeModeProvider);
 
     return Scaffold(
