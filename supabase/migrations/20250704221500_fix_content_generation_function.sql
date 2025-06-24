@@ -1,0 +1,2 @@
+-- Placeholder for 20250704221500_fix_content_generation_function.sql
+-- Original migration already applied in production. 

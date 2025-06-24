@@ -1,0 +1,4 @@
+[warning] The value of the local variable 'iconSize' isn't used (/Users/gmtfr/bee-mvp/bee-mvp/app/lib/features/today_feed/presentation/widgets/article_actions.dart:29:18)
+[warning] Unused import: '../../../../core/services/ai_coaching_service.dart' (/Users/gmtfr/bee-mvp/bee-mvp/app/lib/features/momentum/presentation/providers/today_feed_provider.dart:8:8)
+[warning] The member 'state' can only be used within instance members of subclasses of 'package:state_notifier/state_notifier.dart' (/Users/gmtfr/bee-mvp/bee-mvp/app/lib/features/momentum/presentation/screens/momentum_screen.dart:164:40)
+[warning] The member 'state' can only be used within 'package:state_notifier/state_notifier.dart' or a test (/Users/gmtfr/bee-mvp/bee-mvp/app/lib/features/momentum/presentation/screens/momentum_screen.dart:164:40)

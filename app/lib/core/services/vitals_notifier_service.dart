@@ -161,6 +161,8 @@ class VitalsNotifierService {
   // SharedPreferences keys for caching the last good vitals reading
   static const String _cacheKey = 'lastVitalsCache_v1';
 
+  StreamSubscription<List<PermissionDelta>>? _permissionDeltaSubscription;
+
   VitalsNotifierService(
     this._liveService,
     this._repository, {
@@ -185,6 +187,12 @@ class VitalsNotifierService {
   /// Whether service is actively processing data
   bool get isActive => _isActive;
 
+  /// Manually trigger an immediate refresh of health data – can be called from
+  /// Settings → Health Permissions UI to ensure latest samples are pulled.
+  Future<void> refreshVitals() async {
+    await _pollForVitals();
+  }
+
   /// Initialize the vitals notifier service
   Future<bool> initialize() async {
     if (_isInitialized) return true;
@@ -200,6 +208,16 @@ class VitalsNotifierService {
         _currentVitals = cached;
         // Emit to stream so widgets get the value.
         _vitalsController.add(cached);
+      }
+
+      // Listen for permission changes so we can refresh data when user grants
+      // previously denied HealthKit/Health Connect types. This avoids stale
+      // cache after the user revisits Settings → Health.
+      final pm = HealthPermissionManager();
+      if (pm.isInitialized) {
+        _permissionDeltaSubscription = pm.deltaStream.listen(
+          _handlePermissionDelta,
+        );
       }
 
       _isInitialized = true;
@@ -312,6 +330,9 @@ class VitalsNotifierService {
       _isActive = false;
       _currentVitals = null;
       _dataHistory.clear();
+
+      await _permissionDeltaSubscription?.cancel();
+      _permissionDeltaSubscription = null;
 
       _updateConnectionStatus(VitalsConnectionStatus.disconnected);
       logI('⏹️ VitalsNotifier subscription stopped (Mode: ${_mode.name})');
@@ -495,6 +516,7 @@ class VitalsNotifierService {
   /// Handle stream errors
   void _handleStreamError(dynamic error) {
     logE('❌ VitalsNotifier stream error', error);
+    _currentVitals = null;
     _updateConnectionStatus(VitalsConnectionStatus.error);
   }
 
@@ -730,6 +752,8 @@ class VitalsNotifierService {
   Future<void> _pollForVitals() async {
     if (!_isActive || _currentUserId == null) return;
 
+    logD('📡 _pollForVitals triggered at ${DateTime.now().toIso8601String()}');
+
     final now = DateTime.now();
     // Dynamically widen the look-back window if we have seen many empty polls.
     Duration adaptiveLookback() {
@@ -747,26 +771,51 @@ class VitalsNotifierService {
     final startTime = now.subtract(lookback);
 
     try {
-      final result = await _repository.getHealthData(
+      // 🆕 Separate cumulative vs point-in-time metrics so we can use the correct
+      // look-back window for each category.
+      final allTypes = _repository.config.dataTypes;
+      final cumulativeTypes = allTypes.where((t) => t.isCumulative).toList();
+      final pointTypes = allTypes.where((t) => !t.isCumulative).toList();
+
+      // 1️⃣ Point-in-time metrics with adaptive look-back window (default 5 min).
+      final pointRes = await _repository.getHealthData(
+        dataTypes: pointTypes,
         startTime: startTime,
         endTime: now,
       );
 
-      if (result.isSuccess) {
+      // 2️⃣ Cumulative metrics (Steps, ActiveEnergy) with midnight window.
+      final midnight = DateTime(now.year, now.month, now.day);
+      final cumulativeRes = await _repository.getHealthData(
+        dataTypes: cumulativeTypes,
+        startTime: midnight,
+        endTime: now,
+      );
+
+      final List<HealthSample> combinedSamples = [
+        ...pointRes.samples,
+        ...cumulativeRes.samples,
+      ];
+
+      final bool querySuccess = pointRes.isSuccess && cumulativeRes.isSuccess;
+
+      if (querySuccess) {
         // Reset retry counter after a successful fetch
         _retryAttempts = 0;
 
-        // Update consecutive empty counter
-        if (result.samples.isEmpty) {
+        // Update consecutive empty counter – only count as empty when *both* queries are empty
+        if (combinedSamples.isEmpty) {
           _consecutiveEmptyPolls++;
+          // Do NOT clear _currentVitals here – we retain last good data until stale.
         } else {
           _consecutiveEmptyPolls = 0;
         }
 
-        _processHealthSamples(result.samples);
+        // Merge sample lists before processing
+        _processHealthSamples(combinedSamples);
 
         // Throttled logging: show counts when we actually have data, or once per minute when empty.
-        bool shouldLog = result.samples.isNotEmpty;
+        bool shouldLog = combinedSamples.isNotEmpty;
         if (!shouldLog) {
           final nowLog = DateTime.now();
           if (_lastZeroPollLogTime == null ||
@@ -777,11 +826,11 @@ class VitalsNotifierService {
           }
         }
         if (shouldLog) {
-          logD('🔄 Polled ${result.samples.length} vitals samples.');
+          logD('🔄 Polled ${combinedSamples.length} vitals samples.');
         }
 
         // --- iOS cumulative-type quirk workaround ----------------------
-        final bool hasStepsRaw = result.samples.any(
+        final bool hasStepsRaw = combinedSamples.any(
           (s) => s.type == WearableDataType.steps,
         );
 
@@ -824,8 +873,7 @@ class VitalsNotifierService {
         // Extra diagnostic & bootstrap: in release we run after 6 empties; in DEBUG run after 1
         const int bootstrapThreshold = kDebugMode ? 1 : 6;
 
-        if (_consecutiveEmptyPolls >= bootstrapThreshold &&
-            !_midnightBootstrapDone) {
+        if (!_midnightBootstrapDone) {
           _midnightBootstrapDone = true;
           final midnight = DateTime(now.year, now.month, now.day);
           final diagResult = await _repository.getHealthData(
@@ -912,8 +960,10 @@ class VitalsNotifierService {
           }
         }
       } else {
-        logE('❌ Polling for vitals failed', result.error);
-        _handleStreamError('Polling failed: ${result.error}');
+        final errMsg = pointRes.error ?? cumulativeRes.error ?? 'unknown';
+        logE('❌ Polling for vitals failed', errMsg);
+        // Do not clear cached vitals here; we rely on retention windows to determine staleness.
+        _handleStreamError('Polling failed: $errMsg');
         _scheduleRetry();
       }
     } catch (e) {
@@ -1456,5 +1506,24 @@ class VitalsNotifierService {
   // unchanged.
   double? _computeRestfulSleepHours(List<HealthSample> samples) {
     return _computeRestfulSleepHoursStatic(samples);
+  }
+
+  // Listen for permission changes so we can refresh data when user grants
+  // previously denied HealthKit/Health Connect types. This avoids stale
+  // cache after the user revisits Settings → Health.
+  void _handlePermissionDelta(List<PermissionDelta> deltas) {
+    // Trigger refresh only when previously denied → now granted to avoid
+    // unnecessary fetches on unrelated permission events.
+    final newlyGranted = deltas.where((d) => d.isNewlyGranted);
+    if (newlyGranted.isNotEmpty) {
+      final names = newlyGranted.map((d) => d.dataType.name).join(', ');
+      logI('🔄 Permissions newly granted for $names → refreshing vitals');
+
+      // Clear history so downstream UI widgets don\'t keep stale values.
+      _dataHistory.clear();
+
+      // Force an immediate poll. No need to await.
+      _pollForVitals();
+    }
   }
 }

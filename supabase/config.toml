@@ -317,3 +317,6 @@ s3_secret_key = "env(S3_SECRET_KEY)"
 
 [functions.daily-content-generator]
 verify_jwt = false
+
+[functions.ai-coaching-engine]
+verify_jwt = false

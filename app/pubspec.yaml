@@ -152,6 +152,7 @@ flutter:
   # Assets for momentum meter
   assets:
     - assets/images/
+    - assets/images/placeholders/
     - assets/animations/
     - assets/icons/
     - .env.example

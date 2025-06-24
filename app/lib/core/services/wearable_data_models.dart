@@ -321,3 +321,18 @@ class HealthConnectAvailabilityResult {
     };
   }
 }
+
+/// Extension with helper getters for common type-specific behaviours
+extension WearableDataTypeX on WearableDataType {
+  /// Returns true when the metric represents a running cumulative total that
+  /// should be queried from midnight rather than an incremental look-back.
+  bool get isCumulative {
+    switch (this) {
+      case WearableDataType.steps:
+      case WearableDataType.activeEnergyBurned:
+        return true;
+      default:
+        return false;
+    }
+  }
+}

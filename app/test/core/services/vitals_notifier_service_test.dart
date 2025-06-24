@@ -50,6 +50,9 @@ void main() {
     // Mock WearableDataRepository
     when(() => mockRepository.initialize()).thenAnswer((_) async => true);
     when(
+      () => mockRepository.config,
+    ).thenReturn(HealthSyncConfig.defaultConfig);
+    when(
       () => mockRepository.getHealthData(
         dataTypes: any(named: 'dataTypes'),
         startTime: any(named: 'startTime'),

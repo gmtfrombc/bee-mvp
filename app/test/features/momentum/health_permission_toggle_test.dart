@@ -6,6 +6,8 @@ import 'package:app/features/momentum/presentation/widgets/health_permission_tog
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:app/core/providers/health_permission_provider.dart';
 
 class MockHealthPermissionManager extends Mock
     implements HealthPermissionManager {}
@@ -38,6 +40,11 @@ void main() {
       when(
         () => mockManager.requestPermissions(),
       ).thenAnswer((_) async => {WearableDataType.steps: true});
+
+      // Stub fresh permission check so provider await doesn't fail in tests
+      when(
+        () => mockManager.checkPermissions(useCache: false),
+      ).thenAnswer((_) async => {});
     });
 
     tearDown(() {
@@ -46,13 +53,21 @@ void main() {
 
     testWidgets('updates based on deltaStream', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(body: HealthPermissionToggle(manager: mockManager)),
+        ProviderScope(
+          overrides: [
+            healthPermissionManagerProvider.overrideWithValue(mockManager),
+          ],
+          child: const MaterialApp(
+            home: Scaffold(body: HealthPermissionToggle()),
+          ),
         ),
       );
 
-      // Initial state should show Not Granted
-      expect(find.text('Not Granted'), findsOneWidget);
+      // Allow provider to emit initial value
+      await tester.pumpAndSettle();
+
+      // Initial state should show "Not Connected" subtitle
+      expect(find.textContaining('Not Connected'), findsOneWidget);
 
       // Update permissionCache to granted for all required types
       final now = DateTime.now();
@@ -78,8 +93,8 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      // Widget should now show Granted
-      expect(find.text('Granted'), findsOneWidget);
+      // Widget should now show "Connected" subtitle
+      expect(find.text('Connected'), findsOneWidget);
     });
   });
 }
