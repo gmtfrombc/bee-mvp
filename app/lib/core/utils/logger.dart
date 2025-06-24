@@ -20,9 +20,10 @@ final Logger _logger = Logger(
   ),
 );
 
-/// Debug-level log – printed only in debug and profile builds.
+/// Debug-level log. Printed only when running in debug/profile _and_
+/// VERBOSE_LOGS is enabled (pass --dart-define=VERBOSE_LOGS=true).
 void logD(dynamic message, [dynamic error, StackTrace? stackTrace]) {
-  if (!kDebugMode) return;
+  if (!kDebugMode || !kVerboseLogs) return;
   _logger.d(message, error: error, stackTrace: stackTrace);
 }
 
@@ -40,4 +41,13 @@ void logW(dynamic message, [dynamic error, StackTrace? stackTrace]) {
 /// Error-level log.
 void logE(dynamic message, [dynamic error, StackTrace? stackTrace]) {
   _logger.e(message, error: error, stackTrace: stackTrace);
+}
+
+/// Lightweight replacement for `debugPrint` that honours VERBOSE_LOGS. Use
+/// this instead of calling `debugPrint` directly in new code. Existing calls
+/// can be gradually migrated but will stay silent unless verbose logging has
+/// been requested.
+void vPrint(String? msg) {
+  if (!kDebugMode || !kVerboseLogs) return;
+  debugPrint(msg);
 }

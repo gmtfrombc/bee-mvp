@@ -14,6 +14,7 @@ import 'package:health/health.dart';
 
 import 'wearable_data_models.dart';
 import 'wearable_data_repository.dart';
+import '../utils/logger.dart';
 
 /// Permission cache entry with metadata
 class PermissionCacheEntry {
@@ -180,7 +181,7 @@ class HealthPermissionManager {
       // 1️⃣ Repository bootstrap (idempotent)
       final repoOk = await _repository.initialize();
       if (!repoOk) {
-        debugPrint('Failed to initialize WearableDataRepository');
+        logD('Failed to initialize WearableDataRepository');
         return false;
       }
 
@@ -196,10 +197,10 @@ class HealthPermissionManager {
       // 4️⃣ Kick off periodic monitoring
       _startPeriodicMonitoring();
 
-      debugPrint('HealthPermissionManager initialized successfully');
+      logD('HealthPermissionManager initialized successfully');
       return true;
     } catch (e) {
-      debugPrint('Failed to initialize HealthPermissionManager: $e');
+      logD('Failed to initialize HealthPermissionManager: $e');
       _isInitialized = false;
       return false;
     }
@@ -233,7 +234,7 @@ class HealthPermissionManager {
         HealthDataAccess.READ,
       );
 
-      debugPrint('Requesting HK types: $healthTypes');
+      logD('Requesting HK types: $healthTypes');
 
       final batchOk = await _repository.requestPermissionsRaw(
         healthTypes,
@@ -258,7 +259,7 @@ class HealthPermissionManager {
         return {for (var t in typesToRequest) t: true};
       }
     } catch (e) {
-      debugPrint('Batch permission request skipped/fell back: $e');
+      logD('Batch permission request skipped/fell back: $e');
     }
 
     final results = <WearableDataType, bool>{};
@@ -277,7 +278,7 @@ class HealthPermissionManager {
         final isGranted = status == HealthPermissionStatus.authorized;
 
         if (!isGranted) {
-          debugPrint('Permission $dataType denied with status $status');
+          logD('Permission $dataType denied with status $status');
         }
 
         // Update cache
@@ -305,9 +306,9 @@ class HealthPermissionManager {
           );
         }
 
-        debugPrint('Permission request for $dataType: $isGranted');
+        logD('Permission request for $dataType: $isGranted');
       } catch (e) {
-        debugPrint('Error requesting permission for $dataType: $e');
+        logD('Error requesting permission for $dataType: $e');
         results[dataType] = false;
       }
     }
@@ -357,7 +358,7 @@ class HealthPermissionManager {
           isGranted = status == HealthPermissionStatus.authorized;
 
           if (!isGranted) {
-            debugPrint('Permission $dataType denied with status $status');
+            logD('Permission $dataType denied with status $status');
           }
 
           // Update cache
@@ -393,7 +394,7 @@ class HealthPermissionManager {
 
         results[dataType] = isGranted;
       } catch (e) {
-        debugPrint('Error checking permission for $dataType: $e');
+        logD('Error checking permission for $dataType: $e');
         results[dataType] = false;
       }
     }
@@ -409,7 +410,7 @@ class HealthPermissionManager {
       final snapshot = _permissionCache.entries
           .map((e) => '${e.key.name}:${e.value.isGranted}')
           .join(', ');
-      debugPrint('checkPermissions final cache → {$snapshot}');
+      logD('checkPermissions final cache → {$snapshot}');
     }
 
     return results;
@@ -437,7 +438,7 @@ class HealthPermissionManager {
     Duration? duration,
   }) async {
     _toastStreamController.add(message);
-    debugPrint('Permission toast: $message');
+    logD('Permission toast: $message');
   }
 
   /// Check for missing permissions and notify user
@@ -488,9 +489,9 @@ class HealthPermissionManager {
   Future<void> _performInitialPermissionCheck() async {
     try {
       await checkPermissions(useCache: false);
-      debugPrint('Initial permission check completed');
+      logD('Initial permission check completed');
     } catch (e) {
-      debugPrint('Error during initial permission check: $e');
+      logD('Error during initial permission check: $e');
     }
   }
 
@@ -503,7 +504,7 @@ class HealthPermissionManager {
       try {
         await checkPermissions(useCache: false);
       } catch (e) {
-        debugPrint('Error during periodic permission check: $e');
+        logD('Error during periodic permission check: $e');
       }
     });
   }
@@ -525,11 +526,11 @@ class HealthPermissionManager {
             PermissionCacheEntry.fromMap(value as Map<String, dynamic>),
           ),
         );
-        debugPrint('Loaded ${_permissionCache.length} cached permissions');
+        logD('Loaded ${_permissionCache.length} cached permissions');
         // NEW: Verbose per-entry log for diagnostics
         if (kDebugMode) {
           for (final entry in _permissionCache.entries) {
-            debugPrint(
+            logD(
               ' • CACHE LOAD → ${entry.key.name}: granted=${entry.value.isGranted} '
               '| lastChecked=${entry.value.lastChecked.toIso8601String()}',
             );
@@ -537,7 +538,7 @@ class HealthPermissionManager {
         }
       }
     } catch (e) {
-      debugPrint('Error loading permission cache: $e');
+      logD('Error loading permission cache: $e');
       _permissionCache = {};
     }
   }
@@ -550,20 +551,18 @@ class HealthPermissionManager {
         (key, value) => MapEntry(key.name, value.toMap()),
       );
       await prefs.setString(_cacheKey, jsonEncode(cacheMap));
-      debugPrint(
-        'Saved permission cache with ${_permissionCache.length} entries',
-      );
+      logD('Saved permission cache with ${_permissionCache.length} entries');
       // NEW: Verbose per-entry log for diagnostics
       if (kDebugMode) {
         for (final entry in _permissionCache.entries) {
-          debugPrint(
+          logD(
             ' • CACHE SAVE ← ${entry.key.name}: granted=${entry.value.isGranted} '
             '| lastChecked=${entry.value.lastChecked.toIso8601String()}',
           );
         }
       }
     } catch (e) {
-      debugPrint('Error saving permission cache: $e');
+      logD('Error saving permission cache: $e');
     }
   }
 
@@ -575,10 +574,10 @@ class HealthPermissionManager {
 
       if (configJson != null) {
         // Configuration loading would be implemented here
-        debugPrint('Configuration loaded from storage');
+        logD('Configuration loaded from storage');
       }
     } catch (e) {
-      debugPrint('Error loading configuration: $e');
+      logD('Error loading configuration: $e');
     }
   }
 
@@ -588,9 +587,9 @@ class HealthPermissionManager {
       final prefs = await SharedPreferences.getInstance();
       // Configuration saving would be implemented here
       await prefs.setString(_configKey, jsonEncode({}));
-      debugPrint('Configuration saved to storage');
+      logD('Configuration saved to storage');
     } catch (e) {
-      debugPrint('Error saving configuration: $e');
+      logD('Error saving configuration: $e');
     }
   }
 
@@ -598,13 +597,13 @@ class HealthPermissionManager {
   Future<void> clearCache() async {
     _permissionCache.clear();
     await _savePermissionCache();
-    debugPrint('Permission cache cleared');
+    logD('Permission cache cleared');
   }
 
   /// Reset permission denial tracking
   void resetDenialTracking() {
     _repository.resetPermissionDenialTracking();
-    debugPrint('Permission denial tracking reset');
+    logD('Permission denial tracking reset');
   }
 
   /// Dispose resources
@@ -612,7 +611,7 @@ class HealthPermissionManager {
     _periodicCheckTimer?.cancel();
     _deltaStreamController.close();
     _toastStreamController.close();
-    debugPrint('HealthPermissionManager disposed');
+    logD('HealthPermissionManager disposed');
   }
 
   /// Convert custom WearableDataType to the corresponding package HealthDataType
@@ -657,7 +656,7 @@ class HealthPermissionManager {
     try {
       current = await _repository.hasPermissionsRaw(healthTypes, access);
     } catch (e) {
-      debugPrint('Permission pre-check failed: $e');
+      logD('Permission pre-check failed: $e');
     }
 
     final missing = <HealthDataType>[];
@@ -667,12 +666,12 @@ class HealthPermissionManager {
     }
 
     if (missing.isNotEmpty) {
-      debugPrint('Re-requesting missing HK permissions: $missing');
+      logD('Re-requesting missing HK permissions: $missing');
       final ok = await _repository.requestPermissionsRaw(
         missing,
         List<HealthDataAccess>.filled(missing.length, HealthDataAccess.READ),
       );
-      debugPrint('Batch permission request result: $ok');
+      logD('Batch permission request result: $ok');
     }
   }
 }
