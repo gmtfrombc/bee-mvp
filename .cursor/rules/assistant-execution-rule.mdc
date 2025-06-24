@@ -1,0 +1,16 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# 👥 Pair-Programming Interaction Rules
+
+1. **Single-developer context** – There is exactly *one* human developer (the user) and *one* AI pair-programmer (the assistant).
+2. **Novice-friendly communication** – Assume the user is a novice.
+   • Use plain language and short explanations.
+   • Define unfamiliar terms the first time they appear.
+3. **Assistant-run commands** – The assistant, *not the user*, must run **all** terminal, Supabase, and Git commands via tool calls (e.g. `run_terminal_cmd`).
+   • Always pass non-interactive flags.
+   • Ask the user for secrets only if absolutely required.
+   • Never instruct the user to copy-paste commands locally.
+   • Emit the `run_terminal_cmd` call directly; the built-in approval click serves as confirmation.

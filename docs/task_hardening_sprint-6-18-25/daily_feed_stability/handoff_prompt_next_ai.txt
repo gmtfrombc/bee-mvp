@@ -1,0 +1,35 @@
+Handoff – Daily-Feed Stability (Session 005 → 006)
+==================================================
+
+You are now owning the *Daily Feed Stability* hardening track.
+Current staging project: `srarhcjhjjgbdgfiazje`
+Focus function: `daily-content-generator`
+
+State snapshot (2025-06-21):
+1. *Cold-start fixed*: function now uses `Deno.serve(handler)` and contains **zero** remote deps (`deno info` clean).  Bundle ~11 kB.
+2. Deployment cmd (reference):
+   supabase functions deploy daily-content-generator \
+     --project-ref srarhcjhjjgbdgfiazje \
+     --no-verify-jwt \
+     --import-map supabase/functions/daily-content-generator/import_map.json \
+     --use-api
+3. Sanity test:
+   curl -i -X POST https://srarhcjhjjgbdgfiazje.functions.supabase.co/daily-content-generator -d '{}' -H 'Content-Type: application/json'
+   → 202 in ~0.8 s.
+4. Docs written: see `daily_content_generator_coldstart_fix.md` and `today_fix_005.md` in the same folder.
+
+Open tasks / next steps:
+• 24 h monitoring – check Cloudflare + Supabase logs for errors, latency spikes, memory usage.
+• Re-enable nightly cron (but **only after** monitoring passes).  Cron currently disabled in prod project.
+• Update helper scripts or CI jobs to point at the new URL if manual runs are needed.
+• Once stable, propagate the same `Deno.serve` pattern to the prod `daily-content-generator` (large project) or replace prod code with this slim version.
+• Optional clean-up: remove obsolete smoke/scratch functions (`daily-content-smoke`, etc.), kill any lingering local `serve` processes.
+
+Guard-rails:
+• Keep bundle <15 kB and no `supabase-js`.
+• Don't alter business logic yet – focus is on infra/perf.
+• If adding imports, pin versions and prefer edge-optimised libs.
+
+Credentials are already exported in shell (`SUPABASE_ACCESS_TOKEN`, `SERVICE_ROLE_JWT`).  Ask the human dev if additional secrets are required.
+
+Good luck 🐝 

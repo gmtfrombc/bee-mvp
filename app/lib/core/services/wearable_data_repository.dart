@@ -46,6 +46,16 @@ class WearableDataRepository {
   bool _hasBeenDeniedTwice = false;
   int _permissionDenialCount = 0;
 
+  // iOS-only HealthKit permission bridge (returns tri-state int)
+  static const MethodChannel _iosPermissionChannel = MethodChannel(
+    'com.bee.health_permission_status',
+  );
+
+  // iOS-only read probe channel (detects revoked permissions via empty read window)
+  static const MethodChannel _iosReadProbeChannel = MethodChannel(
+    'health_read_probe',
+  );
+
   /// Stream of health data updates
   Stream<List<HealthSample>> get dataStream => _dataStreamController.stream;
 
@@ -318,9 +328,11 @@ class WearableDataRepository {
       );
 
       debugPrint('[Permissions] hasPermissions raw result: $finalHasBool');
-      // Treat an indeterminate (null) response as not yet authorized.
-      final finalHas =
-          finalHasBool == true || (finalHasBool == null && Platform.isIOS);
+      // The Flutter health plugin may return `null` on iOS 17+ even when
+      // permissions are granted OR denied.  We no longer interpret `null`
+      // as authorised; instead we treat it as *unknown* and fall back to
+      // our bridge/probe detection.
+      final finalHas = finalHasBool == true;
       debugPrint('[Permissions] hasPermissions finalHas: $finalHas');
 
       if (success || finalHas) {
@@ -403,15 +415,67 @@ class WearableDataRepository {
         permissions: permissions,
       );
 
-      // Do **not** treat a null result as authorized – it simply means the
-      // underlying HealthKit API couldn't determine status (iOS 17 beta bug).
-      final hasPermissions =
-          hasPermissionsResult == true ||
-          (hasPermissionsResult == null && Platform.isIOS);
+      // NEW verbose diagnostics – capture raw result per invocation
+      if (kDebugMode) {
+        debugPrint(
+          '[Permissions] checkPermissions.types=${types.map((e) => e.name).join(', ')} '
+          'rawResult=$hasPermissionsResult',
+        );
+      }
 
-      return hasPermissions
-          ? HealthPermissionStatus.authorized
-          : HealthPermissionStatus.notDetermined;
+      final hasPermissions = hasPermissionsResult == true;
+
+      if (kDebugMode) {
+        debugPrint('[Permissions] checkPermissions.pluginHas=$hasPermissions');
+      }
+
+      // 1. If plugin confirmed – done.
+      if (hasPermissions) {
+        return HealthPermissionStatus.authorized;
+      }
+
+      // 2. iOS fallback – first consult the native Swift bridge.
+      if (Platform.isIOS) {
+        bool? bridgeAuthorized;
+        bool bridgeHasData = false;
+
+        try {
+          final hkIds = types.map(_toHKIdentifier).toList();
+          final raw = await _iosPermissionChannel.invokeMapMethod<String, bool>(
+            'check',
+            hkIds,
+          );
+
+          if (kDebugMode) {
+            debugPrint('[Permissions] iOS bridge map=$raw');
+          }
+
+          if (raw != null && raw.isNotEmpty) {
+            bridgeHasData = true;
+            bridgeAuthorized = raw.values.any((granted) => granted == true);
+          }
+        } catch (e) {
+          debugPrint('iOS permission bridge failed: $e');
+        }
+
+        if (bridgeHasData && bridgeAuthorized == true) {
+          return HealthPermissionStatus.authorized;
+        }
+
+        // 3. Last resort – lightweight sample probe (covers cases where
+        // bridge indicates no write sharing but read access may still be
+        // available, as Apple doesn't expose read-scopes via the status API)
+        final probeOk = await _iosProbeReadAccess();
+        if (kDebugMode) {
+          debugPrint('[Permissions] iOS read probe result: $probeOk');
+        }
+        return probeOk
+            ? HealthPermissionStatus.authorized
+            : HealthPermissionStatus.notDetermined;
+      }
+
+      // ─ Android & other platforms ────────────────────────────────
+      return HealthPermissionStatus.notDetermined;
     } catch (e) {
       debugPrint('Error checking health permissions: $e');
       return HealthPermissionStatus.denied;
@@ -894,6 +958,77 @@ class WearableDataRepository {
     _backgroundSyncService.dispose();
     _dataStreamController.close();
     _isInitialized = false;
+  }
+
+  /// Request authorization for a batch of HealthKit/Health Connect types
+  Future<bool> requestPermissionsRaw(
+    List<HealthDataType> types,
+    List<HealthDataAccess> access,
+  ) async {
+    try {
+      return await _health.requestAuthorization(types, permissions: access);
+    } catch (e) {
+      debugPrint('Batch permission request failed: $e');
+      return false;
+    }
+  }
+
+  /// Check permission status for given types (returns true if all granted).
+  Future<bool?> hasPermissionsRaw(
+    List<HealthDataType> types,
+    List<HealthDataAccess> access,
+  ) async {
+    try {
+      return await _health.hasPermissions(types, permissions: access);
+    } catch (e) {
+      debugPrint('Permission check failed: $e');
+      return null;
+    }
+  }
+
+  // Map WearableDataType to HK identifier string used by the Swift bridge
+  String _toHKIdentifier(WearableDataType type) {
+    switch (type) {
+      case WearableDataType.steps:
+        return 'HKQuantityTypeIdentifierStepCount';
+      case WearableDataType.heartRate:
+        return 'HKQuantityTypeIdentifierHeartRate';
+      case WearableDataType.sleepDuration:
+        return 'HKCategoryTypeIdentifierSleepAnalysis';
+      case WearableDataType.restingHeartRate:
+        return 'HKQuantityTypeIdentifierRestingHeartRate';
+      case WearableDataType.activeEnergyBurned:
+        return 'HKQuantityTypeIdentifierActiveEnergyBurned';
+      case WearableDataType.heartRateVariability:
+        return 'HKQuantityTypeIdentifierHeartRateVariabilitySDNN';
+      case WearableDataType.weight:
+        return 'HKQuantityTypeIdentifierBodyMass';
+      case WearableDataType.distanceWalking:
+        return 'HKQuantityTypeIdentifierDistanceWalkingRunning';
+      case WearableDataType.flightsClimbed:
+        return 'HKQuantityTypeIdentifierFlightsClimbed';
+      default:
+        return 'HKQuantityTypeIdentifierStepCount';
+    }
+  }
+
+  /// Run a lightweight HealthKit sample query to infer read permission status.
+  /// Returns true when at least one sample exists in the look-back window –
+  /// indicating access is still granted.
+  Future<bool> _iosProbeReadAccess({
+    WearableDataType type = WearableDataType.steps,
+    Duration window = const Duration(hours: 24),
+  }) async {
+    try {
+      final ok = await _iosReadProbeChannel.invokeMethod<bool>('probe', {
+        'id': _toHKIdentifier(type),
+        'interval': window.inSeconds,
+      });
+      return ok == true;
+    } catch (e) {
+      debugPrint('iOS read-probe failed: $e');
+      return false;
+    }
   }
 }
 

@@ -14,6 +14,8 @@ BUNDLE_ID="com.momentumhealth.beemvp"
 VERSION="1.1.0"
 BUILD_NUMBER="2"
 TEAM_ID="U9TVC3GYP2"
+PROD_SUPABASE_URL="https://your-production-supabase-url.com"
+PROD_ANON_KEY="your-production-anon-key"
 
 # Colors for output
 RED='\033[0;31m'
@@ -110,7 +112,11 @@ build_ios() {
     log_info "Building iOS app for TestFlight..."
     
     # Build iOS release
-    flutter build ios --release --no-codesign
+    flutter build ios --release --no-codesign \
+        --dart-define="ENVIRONMENT=production" \
+        --dart-define="SUPABASE_URL=$PROD_SUPABASE_URL" \
+        --dart-define="SUPABASE_ANON_KEY=$PROD_ANON_KEY" \
+        --dart-define="APP_VERSION=$VERSION"
     
     if [[ $? -eq 0 ]]; then
         log_success "iOS build completed successfully"

@@ -10,7 +10,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter/material.dart';
+import 'package:health/health.dart';
 
 import 'wearable_data_models.dart';
 import 'wearable_data_repository.dart';
@@ -120,6 +120,7 @@ class PermissionManagerConfig {
       WearableDataType.steps,
       WearableDataType.heartRate,
       WearableDataType.sleepDuration,
+      WearableDataType.restingHeartRate,
       WearableDataType.activeEnergyBurned,
       WearableDataType.heartRateVariability,
       WearableDataType.weight,
@@ -168,35 +169,38 @@ class HealthPermissionManager {
 
   /// Initialize the permission manager
   Future<bool> initialize({PermissionManagerConfig? config}) async {
+    // Prevent double-initialisation (might be called by multiple providers)
+    if (_isInitialized) return true;
+
     try {
       if (config != null) {
         _config = config;
       }
 
-      // Initialize the wearable data repository
-      final repositoryInitialized = await _repository.initialize();
-      if (!repositoryInitialized) {
+      // 1️⃣ Repository bootstrap (idempotent)
+      final repoOk = await _repository.initialize();
+      if (!repoOk) {
         debugPrint('Failed to initialize WearableDataRepository');
         return false;
       }
 
-      // Load cached permissions
+      // 2️⃣ Mark as initialised *before* any method that calls checkPermissions()
+      _isInitialized = true;
+
+      // 3️⃣ Warm-up caches & verify permissions
       await _loadPermissionCache();
-
-      // Load configuration
+      await _ensurePermissions();
       await _loadConfiguration();
-
-      // Perform initial permission check
       await _performInitialPermissionCheck();
 
-      // Start periodic permission monitoring
+      // 4️⃣ Kick off periodic monitoring
       _startPeriodicMonitoring();
 
-      _isInitialized = true;
       debugPrint('HealthPermissionManager initialized successfully');
       return true;
     } catch (e) {
       debugPrint('Failed to initialize HealthPermissionManager: $e');
+      _isInitialized = false;
       return false;
     }
   }
@@ -219,6 +223,44 @@ class HealthPermissionManager {
     }
 
     final typesToRequest = dataTypes ?? _config.requiredPermissions;
+
+    // -------- Batch request optimisation --------
+    // Convert wearable types to HealthKit types for a single request.
+    try {
+      final healthTypes = typesToRequest.map(_toHealthDataType).toList();
+      final accesses = List<HealthDataAccess>.filled(
+        healthTypes.length,
+        HealthDataAccess.READ,
+      );
+
+      debugPrint('Requesting HK types: $healthTypes');
+
+      final batchOk = await _repository.requestPermissionsRaw(
+        healthTypes,
+        accesses,
+      );
+
+      if (batchOk) {
+        // Mark all as granted and update cache quickly.
+        final now = DateTime.now();
+        for (final dt in typesToRequest) {
+          _permissionCache[dt] = PermissionCacheEntry(
+            dataType: dt,
+            isGranted: true,
+            lastChecked: now,
+            grantedAt: now,
+            deniedAt: null,
+            denialCount: 0,
+          );
+        }
+        await _savePermissionCache();
+        await _checkMissingPermissionsAndNotify();
+        return {for (var t in typesToRequest) t: true};
+      }
+    } catch (e) {
+      debugPrint('Batch permission request skipped/fell back: $e');
+    }
+
     final results = <WearableDataType, bool>{};
     final deltas = <PermissionDelta>[];
 
@@ -362,6 +404,14 @@ class HealthPermissionManager {
       _deltaStreamController.add(deltas);
     }
 
+    // NEW: Emit verbose cache snapshot at end of check
+    if (kDebugMode) {
+      final snapshot = _permissionCache.entries
+          .map((e) => '${e.key.name}:${e.value.isGranted}')
+          .join(', ');
+      debugPrint('checkPermissions final cache → {$snapshot}');
+    }
+
     return results;
   }
 
@@ -417,6 +467,8 @@ class HealthPermissionManager {
         return 'Heart Rate';
       case WearableDataType.sleepDuration:
         return 'Sleep';
+      case WearableDataType.restingHeartRate:
+        return 'Resting Heart Rate';
       case WearableDataType.activeEnergyBurned:
         return 'Active Energy';
       case WearableDataType.distanceWalking:
@@ -474,6 +526,15 @@ class HealthPermissionManager {
           ),
         );
         debugPrint('Loaded ${_permissionCache.length} cached permissions');
+        // NEW: Verbose per-entry log for diagnostics
+        if (kDebugMode) {
+          for (final entry in _permissionCache.entries) {
+            debugPrint(
+              ' • CACHE LOAD → ${entry.key.name}: granted=${entry.value.isGranted} '
+              '| lastChecked=${entry.value.lastChecked.toIso8601String()}',
+            );
+          }
+        }
       }
     } catch (e) {
       debugPrint('Error loading permission cache: $e');
@@ -492,6 +553,15 @@ class HealthPermissionManager {
       debugPrint(
         'Saved permission cache with ${_permissionCache.length} entries',
       );
+      // NEW: Verbose per-entry log for diagnostics
+      if (kDebugMode) {
+        for (final entry in _permissionCache.entries) {
+          debugPrint(
+            ' • CACHE SAVE ← ${entry.key.name}: granted=${entry.value.isGranted} '
+            '| lastChecked=${entry.value.lastChecked.toIso8601String()}',
+          );
+        }
+      }
     } catch (e) {
       debugPrint('Error saving permission cache: $e');
     }
@@ -543,5 +613,66 @@ class HealthPermissionManager {
     _deltaStreamController.close();
     _toastStreamController.close();
     debugPrint('HealthPermissionManager disposed');
+  }
+
+  /// Convert custom WearableDataType to the corresponding package HealthDataType
+  HealthDataType _toHealthDataType(WearableDataType type) {
+    switch (type) {
+      case WearableDataType.steps:
+        return HealthDataType.STEPS;
+      case WearableDataType.heartRate:
+        return HealthDataType.HEART_RATE;
+      case WearableDataType.sleepDuration:
+        return HealthDataType.SLEEP_IN_BED;
+      case WearableDataType.restingHeartRate:
+        return HealthDataType.RESTING_HEART_RATE;
+      case WearableDataType.activeEnergyBurned:
+        return HealthDataType.ACTIVE_ENERGY_BURNED;
+      case WearableDataType.heartRateVariability:
+        return HealthDataType.HEART_RATE_VARIABILITY_SDNN;
+      case WearableDataType.weight:
+        return HealthDataType.WEIGHT;
+      default:
+        return HealthDataType.STEPS;
+    }
+  }
+
+  /// Re-request any missing permissions at runtime (can be called from Settings screen)
+  Future<void> reRequestMissingPermissions() async {
+    if (!_isInitialized) return;
+    await _ensurePermissions();
+  }
+
+  /// Internal helper that checks current permission status and re-requests for any missing types.
+  Future<void> _ensurePermissions() async {
+    final allTypes = _config.requiredPermissions;
+    final healthTypes = allTypes.map(_toHealthDataType).toList();
+
+    final access = List<HealthDataAccess>.filled(
+      healthTypes.length,
+      HealthDataAccess.READ,
+    );
+
+    bool? current;
+    try {
+      current = await _repository.hasPermissionsRaw(healthTypes, access);
+    } catch (e) {
+      debugPrint('Permission pre-check failed: $e');
+    }
+
+    final missing = <HealthDataType>[];
+    if (current != true) {
+      // API returned false or null => at least one permission missing; ask for all
+      missing.addAll(healthTypes);
+    }
+
+    if (missing.isNotEmpty) {
+      debugPrint('Re-requesting missing HK permissions: $missing');
+      final ok = await _repository.requestPermissionsRaw(
+        missing,
+        List<HealthDataAccess>.filled(missing.length, HealthDataAccess.READ),
+      );
+      debugPrint('Batch permission request result: $ok');
+    }
   }
 }
