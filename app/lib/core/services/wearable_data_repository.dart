@@ -320,20 +320,20 @@ class WearableDataRepository {
         permissions: permissions,
       );
 
-      debugPrint('[Permissions] requestAuthorization success: $success');
+      _logPermissions('[Permissions] requestAuthorization success: $success');
 
       final finalHasBool = await _health.hasPermissions(
         healthDataTypes,
         permissions: permissions,
       );
 
-      debugPrint('[Permissions] hasPermissions raw result: $finalHasBool');
+      _logPermissions('[Permissions] hasPermissions raw result: $finalHasBool');
       // The Flutter health plugin may return `null` on iOS 17+ even when
       // permissions are granted OR denied.  We no longer interpret `null`
       // as authorised; instead we treat it as *unknown* and fall back to
       // our bridge/probe detection.
       final finalHas = finalHasBool == true;
-      debugPrint('[Permissions] hasPermissions finalHas: $finalHas');
+      _logPermissions('[Permissions] hasPermissions finalHas: $finalHas');
 
       if (success || finalHas) {
         _permissionDenialCount = 0;
@@ -417,7 +417,7 @@ class WearableDataRepository {
 
       // NEW verbose diagnostics – capture raw result per invocation
       if (kDebugMode) {
-        debugPrint(
+        _logPermissions(
           '[Permissions] checkPermissions.types=${types.map((e) => e.name).join(', ')} '
           'rawResult=$hasPermissionsResult',
         );
@@ -426,7 +426,9 @@ class WearableDataRepository {
       final hasPermissions = hasPermissionsResult == true;
 
       if (kDebugMode) {
-        debugPrint('[Permissions] checkPermissions.pluginHas=$hasPermissions');
+        _logPermissions(
+          '[Permissions] checkPermissions.pluginHas=$hasPermissions',
+        );
       }
 
       // 1. If plugin confirmed – done.
@@ -447,7 +449,7 @@ class WearableDataRepository {
           );
 
           if (kDebugMode) {
-            debugPrint('[Permissions] iOS bridge map=$raw');
+            _logPermissions('[Permissions] iOS bridge map=$raw');
           }
 
           if (raw != null && raw.isNotEmpty) {
@@ -467,7 +469,7 @@ class WearableDataRepository {
         // available, as Apple doesn't expose read-scopes via the status API)
         final probeOk = await _iosProbeReadAccess();
         if (kDebugMode) {
-          debugPrint('[Permissions] iOS read probe result: $probeOk');
+          _logPermissions('[Permissions] iOS read probe result: $probeOk');
         }
         return probeOk
             ? HealthPermissionStatus.authorized
@@ -1061,5 +1063,21 @@ extension WearableDataRepositoryExtensions on WearableDataRepository {
 
     final result = await checkHealthConnectAvailability();
     return result.canResolve;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Permission logging helper
+// ----------------------------------------------------------------------------
+/// Toggle to enable detailed permission diagnostics in console. Set to `true`
+/// only when actively debugging HealthKit / Health Connect permission flows.
+const bool _kVerbosePermissionLogs = false;
+
+/// Wrapper around `debugPrint` that respects [_kVerbosePermissionLogs] and
+/// `kDebugMode`. Ensures noisy permission traces stay silent unless explicitly
+/// enabled.
+void _logPermissions(String message) {
+  if (_kVerbosePermissionLogs && kDebugMode) {
+    debugPrint(message);
   }
 }

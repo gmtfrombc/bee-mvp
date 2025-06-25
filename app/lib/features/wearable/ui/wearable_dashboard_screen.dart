@@ -16,6 +16,8 @@ import 'tiles/active_energy_tile.dart';
 import 'tiles/weight_tile.dart';
 import '../../../core/providers/supabase_provider.dart';
 import '../../../core/mixins/permission_auto_refresh_mixin.dart';
+import '../../../core/providers/health_revocation_provider.dart'
+    show revokedStreamProvider;
 
 /// Wearable Dashboard Screen – shows live health metric tiles with
 /// empty/error/loading states and pull-to-refresh. If permissions are
@@ -45,14 +47,23 @@ class _WearableDashboardScreenState
   Widget build(BuildContext context) {
     final permissionsState = ref.watch(healthPermissionsProvider);
 
+    // Experimental: also surface CTA when the live revocation watcher flag is set.
+    final revokedFlag = ref
+        .watch(revokedStreamProvider)
+        .maybeWhen(data: (v) => v, orElse: () => false);
+
     final bool showCta =
+        revokedFlag ||
         permissionsState.status != HealthPermissionStatus.authorized;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Health Stats')),
       body:
           showCta
-              ? _PermissionCta(permissionsState: permissionsState)
+              ? _PermissionCta(
+                permissionsState: permissionsState,
+                revokedFlag: revokedFlag,
+              )
               : _buildContent(context, ref, permissionsState),
     );
   }
@@ -94,22 +105,34 @@ class _WearableDashboardScreenState
     // Keep order in state so drag-and-drop updates instantly.
     final order = ref.watch(_tileOrderProvider);
 
-    return ReorderableListView.builder(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: EdgeInsets.only(
-        left: ResponsiveService.getResponsivePadding(context).left,
-        right: ResponsiveService.getResponsivePadding(context).right,
-        bottom: ResponsiveService.getResponsivePadding(context).bottom,
-        top: ResponsiveService.getSmallSpacing(context),
+    final vitalsService = ref.read(vitalsNotifierServiceProvider);
+
+    return RefreshIndicator(
+      onRefresh: () async {
+        await vitalsService.refreshVitals();
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Health data refreshed')),
+          );
+        }
+      },
+      child: ReorderableListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: EdgeInsets.only(
+          left: ResponsiveService.getResponsivePadding(context).left,
+          right: ResponsiveService.getResponsivePadding(context).right,
+          bottom: ResponsiveService.getResponsivePadding(context).bottom,
+          top: ResponsiveService.getSmallSpacing(context),
+        ),
+        itemCount: order.length,
+        onReorder: (oldIndex, newIndex) {
+          ref.read(_tileOrderProvider.notifier).reorder(oldIndex, newIndex);
+        },
+        itemBuilder: (context, index) {
+          final type = order[index];
+          return _buildTileItem(context, type, index);
+        },
       ),
-      itemCount: order.length,
-      onReorder: (oldIndex, newIndex) {
-        ref.read(_tileOrderProvider.notifier).reorder(oldIndex, newIndex);
-      },
-      itemBuilder: (context, index) {
-        final type = order[index];
-        return _buildTileItem(context, type, index);
-      },
     );
   }
 
@@ -161,9 +184,13 @@ class _WearableDashboardScreenState
 
 /// Permission Call-To-Action shown when heath data permissions are missing.
 class _PermissionCta extends ConsumerWidget {
-  const _PermissionCta({required this.permissionsState});
+  const _PermissionCta({
+    required this.permissionsState,
+    required this.revokedFlag,
+  });
 
   final HealthPermissionsState permissionsState;
+  final bool revokedFlag;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -172,15 +199,18 @@ class _PermissionCta extends ConsumerWidget {
     final bool isNotDetermined =
         permissionsState.status == HealthPermissionStatus.notDetermined;
 
+    // If live revocation flag is set treat as denied for CTA purposes.
+    final bool effectiveDenied = isDenied || revokedFlag;
+
     // On iOS a denial can be "permanent" when toggled off in Settings. We
     // deep-link the user directly to the Health app sources list in that case.
-    final bool needsSettingsLink = Platform.isIOS && isDenied;
+    final bool needsSettingsLink = Platform.isIOS && effectiveDenied;
 
     final String description;
     final String buttonLabel;
     VoidCallback onPressed;
 
-    if (isNotDetermined) {
+    if (isNotDetermined && !revokedFlag) {
       description =
           'To view your health data, please grant the required permissions.';
       buttonLabel = 'Grant Apple Health Access';
@@ -208,7 +238,10 @@ class _PermissionCta extends ConsumerWidget {
       // Android denial case or unknown; fall back to modal / settings
       description =
           'Health access is currently blocked. Please enable permissions to see your data.';
-      buttonLabel = Platform.isAndroid ? 'Grant Permissions' : 'Open Settings';
+      buttonLabel =
+          Platform.isAndroid
+              ? 'Grant Permissions'
+              : (revokedFlag ? 'Open Health Settings' : 'Open Settings');
       onPressed = () {
         showHealthPermissionsModal(context);
       };

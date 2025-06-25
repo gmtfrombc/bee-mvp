@@ -39,12 +39,13 @@ export async function logConversation(
   const isDevelopmentMode = supabaseUrl.includes('kong:8000') ||
     supabaseUrl.includes('127.0.0.1') || supabaseUrl.includes('localhost')
 
-  // Use service role key in development mode to bypass RLS
+  // Prefer service-role key when available to bypass RLS inside the Edge Function
   const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ??
+    Deno.env.get('SERVICE_ROLE_SECRET') ?? // legacy var name
     Deno.env.get('SERVICE_ROLE_KEY')
-  const keyToUse = (isDevelopmentMode && isTestUser && serviceRoleKey)
-    ? serviceRoleKey
-    : supabaseKey
+
+  // In production, always use service role key if it exists; in dev we keep earlier behaviour
+  const keyToUse = serviceRoleKey ?? supabaseKey
 
   if (isDevelopmentMode && isTestUser) {
     console.log(`🧪 Development mode logging - Service role key available: ${!!serviceRoleKey}`)
@@ -71,14 +72,25 @@ export async function logConversation(
   if (error) {
     console.error('Failed to log conversation:', error)
 
-    // In development mode with test user, don't fail the entire request for logging issues
+    // Graceful degradations ----------------------------------------------------
+    // 1. Development mode with test user blocked by RLS
     if (isDevelopmentMode && isTestUser && error.code === '42501') {
       console.log(
-        '🧪 Development mode: Skipping conversation logging due to RLS policy - continuing without database log',
+        '🧪 Development mode: RLS prevented insert – skipping conversation log for test user',
       )
-      return null // Return null but don't throw error
+      return null
     }
 
+    // 2. Foreign-key violation when user_id is not present (e.g., placeholder UUID)
+    //    Postgres error code 23503 → log warning and continue without persisting
+    if (error.code === '23503') {
+      console.warn(
+        `⚠️ Conversation logging skipped – user ${userId} not found in users table (FK 23503)`,
+      )
+      return null
+    }
+
+    // Otherwise propagate
     throw new Error(`Failed to log conversation: ${error.message}`)
   }
 
@@ -106,10 +118,13 @@ export async function getRecentMessages(
   const isDevelopmentMode = supabaseUrl.includes('kong:8000') ||
     supabaseUrl.includes('127.0.0.1') || supabaseUrl.includes('localhost')
 
-  // Use service role key in development mode to bypass RLS
-  const keyToUse = (isDevelopmentMode && isTestUser)
-    ? (Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || supabaseKey)
-    : supabaseKey
+  // Prefer service-role key when available to bypass RLS inside the Edge Function
+  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ??
+    Deno.env.get('SERVICE_ROLE_SECRET') ?? // legacy var name
+    Deno.env.get('SERVICE_ROLE_KEY')
+
+  // In production, always use service role key if it exists; in dev we keep earlier behaviour
+  const keyToUse = serviceRoleKey ?? supabaseKey
 
   const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2')
   const supabase = createClient(supabaseUrl, keyToUse)

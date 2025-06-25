@@ -172,7 +172,15 @@ class VitalsAggregator {
 
     double maxMinutesInBed = 0;
     double minutesAwake = 0;
-    double minutesStages = 0;
+
+    // Deduplicate using sampleId to avoid double-counting the same segment
+    final Set<String> seenStageSampleIds = <String>{};
+
+    double stageDeepMinutes = 0;
+    double stageLightMinutes = 0;
+    double stageRemMinutes = 0;
+    double stageAsleepMinutes =
+        0; // Apple Health aggregate "Time Asleep" (already summed)
 
     for (final d in _history) {
       if (!d.hasSleep) continue;
@@ -181,22 +189,52 @@ class VitalsAggregator {
 
       final kind = d.metadata['sleepKind']?.toString() ?? 'unknown';
       final minutes = (d.sleepHours ?? 0) * 60;
+      final sampleId = d.metadata['sampleId']?.toString();
 
       if (kind == 'awake') {
         minutesAwake += minutes;
       } else if (kind == 'inBed') {
         if (minutes > maxMinutesInBed) maxMinutesInBed = minutes;
       } else if (kind == 'stage') {
-        minutesStages += minutes;
+        if (sampleId != null && seenStageSampleIds.contains(sampleId)) {
+          continue; // skip duplicate sample fetched in another poll
+        }
+        if (sampleId != null) seenStageSampleIds.add(sampleId);
+
+        final stageType = d.metadata['stageType']?.toString() ?? '';
+        switch (stageType) {
+          case 'sleepDeep':
+            stageDeepMinutes += minutes;
+            break;
+          case 'sleepLight':
+            stageLightMinutes += minutes;
+            break;
+          case 'sleepRem':
+            stageRemMinutes += minutes;
+            break;
+          case 'sleepAsleep':
+            stageAsleepMinutes += minutes;
+            break;
+          default:
+            stageAsleepMinutes +=
+                minutes; // treat unknown stage as asleep aggregate
+        }
       }
+    }
+
+    // Prefer the direct "asleep" aggregate when available (sum of unique samples)
+    double minutesStages;
+    if (stageAsleepMinutes > 0) {
+      minutesStages = stageAsleepMinutes;
+    } else {
+      minutesStages = stageDeepMinutes + stageLightMinutes + stageRemMinutes;
     }
 
     double candidateInBed = maxMinutesInBed - minutesAwake;
     if (candidateInBed < 0) candidateInBed = 0;
-    double candidateStages = minutesStages;
 
-    final restfulMinutes =
-        (candidateInBed > candidateStages) ? candidateInBed : candidateStages;
+    // Decide which metric to use.
+    final restfulMinutes = minutesStages > 0 ? minutesStages : candidateInBed;
 
     if (restfulMinutes <= 0) return;
 
@@ -209,5 +247,7 @@ class VitalsAggregator {
 
     _history.add(aggregated);
     _mergeAndEmit(aggregated);
+
+    // Debug logging removed after validation
   }
 }

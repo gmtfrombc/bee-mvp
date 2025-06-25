@@ -17,6 +17,7 @@ import 'core/providers/theme_provider.dart';
 import 'features/wearable/ui/wearable_dashboard_screen.dart';
 import 'package:app/features/achievements/progress_celebration_widget.dart';
 import 'package:app/features/wearable/ui/health_permissions_state.dart';
+import 'core/providers/vitals_notifier_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -127,6 +128,9 @@ class _AppWrapperState extends ConsumerState<AppWrapper>
     if (state == AppLifecycleState.resumed) {
       // Refresh health permissions when returning to foreground.
       ref.read(healthPermissionsProvider.notifier).refreshPermissions();
+
+      // Trigger a lightweight vitals refresh so sleep/weight stay current.
+      ref.read(vitalsNotifierServiceProvider).refreshVitals();
     }
   }
 

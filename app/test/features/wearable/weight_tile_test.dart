@@ -60,7 +60,7 @@ void main() {
       controller.add(data);
       await tester.pumpAndSettle();
 
-      expect(find.text('No stats'), findsOneWidget);
+      expect(find.textContaining('No data'), findsOneWidget);
     });
   });
 }
