@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/health_permission_provider.dart'
     show healthPermissionManagerProvider;
+import '../providers/health_revocation_provider.dart'
+    show healthRevocationWatcherProvider;
 
 /// Mixin that triggers a fresh permission check every time the app returns to
 /// the foreground and then every 5 minutes while the host widget remains
@@ -66,7 +68,14 @@ mixin PermissionAutoRefreshMixin<T extends ConsumerStatefulWidget>
     // ignore: avoid_catches_without_on_clauses
     try {
       await mgr.checkPermissions(useCache: false);
+      // Update revocation flag if the experimental feature is enabled.
+      // ignore: unused_catch_clause
     } catch (_) {}
+
+    // Even if the check above threw, attempt to sync revocation flag.
+    final watcher = ref.read(healthRevocationWatcherProvider);
+    // ignore: unawaited_futures
+    watcher.evaluateCurrentPermissions();
   }
 
   // ---- WidgetsBindingObserver no-op overrides ----------------------------------
