@@ -140,6 +140,7 @@ export async function processConversation(
     // Log incoming message
     if (system_event === 'momentum_change') {
       await logConversation(
+        '',
         user_id,
         'system',
         `Momentum changed from ${previous_state} to ${momentum_state}`,
@@ -147,7 +148,7 @@ export async function processConversation(
         authToken || undefined,
       )
     } else {
-      await logConversation(user_id, 'user', message, undefined, authToken || undefined)
+      await logConversation('', user_id, 'user', message, undefined, authToken || undefined)
     }
 
     // Historical context and engagement data
@@ -245,6 +246,7 @@ export async function processConversation(
 
     // Log assistant response
     const logId = await logConversation(
+      '',
       user_id,
       'assistant',
       assistantMessage,

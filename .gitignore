@@ -20,6 +20,9 @@ firebase-debug.log
 **/secrets.yaml
 **/secrets.yml
 
+# Local supabase project key dump (contains plaintext JWT)
+proj_keys.json
+
 # Production Deployment Scripts (SECURITY: Contains production secrets)
 bee-prod
 test-deploy

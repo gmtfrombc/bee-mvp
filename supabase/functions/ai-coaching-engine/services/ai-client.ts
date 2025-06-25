@@ -5,7 +5,10 @@
 import { AIMessage } from '../types.ts'
 
 const aiApiKey = Deno.env.get('AI_API_KEY') ?? ''
-const aiModel = Deno.env.get('AI_MODEL') || 'gpt-4o'
+// Prefer env override; otherwise pick a broadly-available default model.
+// "gpt-3.5-turbo" is available on all OpenAI accounts and considerably cheaper
+// while still producing high quality text suited for daily content.
+const aiModel = Deno.env.get('AI_MODEL') || 'gpt-3.5-turbo'
 
 // Default temperature; allow override via AI_TEMPERATURE env var (e.g. 0.4)
 const defaultTemp = parseFloat(Deno.env.get('AI_TEMPERATURE') ?? '0.4')
@@ -57,7 +60,10 @@ export async function callAIAPI(prompt: AIMessage[]): Promise<AIResponse> {
 
   // Optional secondary model – if provided we will attempt a best-effort
   // retry using this model before falling back to the local stub.
-  const fallbackModel = Deno.env.get('AI_FALLBACK_MODEL')?.trim()
+  // If the env var is missing *and* the primary model belongs to GPT-4 family,
+  // automatically fall back to the universally-available "gpt-3.5-turbo".
+  const fallbackModel = (Deno.env.get('AI_FALLBACK_MODEL')?.trim()) ||
+    (aiModel.startsWith('gpt-4') ? 'gpt-3.5-turbo' : undefined)
 
   const apiUrl = aiModel.startsWith('gpt')
     ? 'https://api.openai.com/v1/chat/completions'

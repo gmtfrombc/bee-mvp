@@ -5,17 +5,18 @@
 library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../services/vitals_notifier_service.dart';
+import '../services/vitals/vitals_facade.dart';
 import '../services/wearable_live_service.dart';
 import '../services/wearable_data_repository.dart';
+import '../services/vitals/stream_manager/connection_status.dart';
 import 'supabase_provider.dart';
 
-/// Provider for VitalsNotifierService instance
-final vitalsNotifierServiceProvider = Provider<VitalsNotifierService>((ref) {
+/// Provider for VitalsService instance
+final vitalsNotifierServiceProvider = Provider<VitalsService>((ref) {
   final supabase = ref.watch(supabaseClientProvider);
   final liveService = WearableLiveService(supabase);
   final repository = WearableDataRepository();
-  return VitalsNotifierService(liveService, repository);
+  return VitalsService(liveService: liveService, repository: repository);
 });
 
 /// Provider for vitals data stream
@@ -95,7 +96,7 @@ class VitalsSubscriptionState {
 /// State notifier for vitals subscription management
 class VitalsSubscriptionNotifier
     extends StateNotifier<VitalsSubscriptionState> {
-  final VitalsNotifierService _service;
+  final VitalsService _service;
 
   VitalsSubscriptionNotifier(this._service)
     : super(const VitalsSubscriptionState());

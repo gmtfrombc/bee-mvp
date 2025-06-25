@@ -609,6 +609,7 @@ async function _handleConversation(
     // Log user message first (handle system events differently)
     if (system_event === 'momentum_change') {
       await logConversation(
+        '',
         user_id,
         'system',
         `Momentum changed from ${previous_state} to ${momentum_state}`,
@@ -616,7 +617,7 @@ async function _handleConversation(
         authToken || undefined,
       )
     } else {
-      await logConversation(user_id, 'user', message, undefined, authToken || undefined)
+      await logConversation('', user_id, 'user', message, undefined, authToken || undefined)
     }
 
     // Fetch recent conversation history
@@ -725,6 +726,7 @@ async function _handleConversation(
 
     // Log assistant response
     const conversationLogId = await logConversation(
+      '',
       user_id,
       'assistant',
       assistantMessage,
