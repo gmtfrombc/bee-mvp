@@ -4,7 +4,7 @@ import { getRecentMessages, logConversation } from './response-logger.ts'
 Deno.test('logConversation - skips logging in test environment', async () => {
   Deno.env.set('DENO_TESTING', 'true')
 
-  const result = await logConversation('test-user', 'user', 'Hello world')
+  const result = await logConversation('', 'test-user', 'user', 'Hello world')
 
   assertEquals(result, null)
 

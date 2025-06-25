@@ -42,20 +42,109 @@ class PollingAdapter {
 
   Future<void> _poll() async {
     if (!_active) return;
+    await _performCompositeFetch();
+  }
+
+  Future<void> _performCompositeFetch() async {
     final now = DateTime.now();
-    final start = now.subtract(const Duration(minutes: 5));
+
+    // Ensure repository initialised.
+    if (!repository.isInitialized) {
+      await repository.initialize();
+    }
+
+    // --- 1️⃣ Point-in-time metrics (look-back 5 min) --------------------
+    final pointTypes =
+        repository.config.dataTypes.where((t) {
+          return !t.isCumulative &&
+              t != WearableDataType.weight &&
+              t != WearableDataType.restingHeartRate;
+        }).toList();
+
+    final pointRes = await repository.getHealthData(
+      dataTypes: pointTypes,
+      startTime: now.subtract(const Duration(minutes: 5)),
+      endTime: now,
+    );
+
+    // --- 2️⃣ Cumulative metrics since midnight --------------------------
+    final midnight = DateTime(now.year, now.month, now.day);
+    final cumulativeTypes =
+        repository.config.dataTypes.where((t) => t.isCumulative).toList();
+
+    final cumulRes = await repository.getHealthData(
+      dataTypes: cumulativeTypes,
+      startTime: midnight,
+      endTime: now,
+    );
+
+    // --- 3️⃣ Weight – most recent sample in last 30 days ---------------
+    final weightRes = await repository.getHealthData(
+      dataTypes: [WearableDataType.weight],
+      startTime: now.subtract(const Duration(days: 30)),
+      endTime: now,
+    );
+
+    // Keep only most recent weight sample.
+    HealthSample? latestWeight;
+    if (weightRes.samples.isNotEmpty) {
+      weightRes.samples.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      latestWeight = weightRes.samples.first;
+    }
+
+    // --- 4️⃣ Sleep – previous night 18:00 → now -------------------------
+    final sleepWindowStart = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    ).subtract(const Duration(hours: 6));
+
+    final sleepRes = await repository.getHealthData(
+      dataTypes: [
+        WearableDataType.sleepDuration,
+        WearableDataType.sleepAwake,
+        WearableDataType.sleepAsleep,
+        WearableDataType.sleepDeep,
+        WearableDataType.sleepLight,
+        WearableDataType.sleepRem,
+      ],
+      startTime: sleepWindowStart,
+      endTime: now,
+    );
+
+    // --- 5️⃣ Resting Heart Rate – latest in last 24 h ------------------
+    final rhrRes = await repository.getHealthData(
+      dataTypes: [WearableDataType.restingHeartRate],
+      startTime: now.subtract(const Duration(hours: 24)),
+      endTime: now,
+    );
+
+    HealthSample? latestRhr;
+    if (rhrRes.samples.isNotEmpty) {
+      rhrRes.samples.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      latestRhr = rhrRes.samples.first;
+    }
+
+    // ---------------- Merge & forward ----------------------------------
+    final allSamples = [
+      ...pointRes.samples,
+      ...cumulRes.samples,
+      if (latestWeight != null) latestWeight,
+      if (latestRhr != null) latestRhr,
+      ...sleepRes.samples,
+    ];
+
+    for (final s in allSamples) {
+      final data = _toVitalsData(s);
+      if (data != null) aggregator.add(data);
+    }
+  }
+
+  Future<void> pollOnce() async {
     try {
-      final res = await repository.getHealthData(
-        dataTypes: repository.config.dataTypes,
-        startTime: start,
-        endTime: now,
-      );
-      for (final s in res.samples) {
-        final data = _toVitalsData(s);
-        if (data != null) aggregator.add(data);
-      }
+      await _performCompositeFetch();
     } catch (_) {
-      // swallow for now
+      // snapshot best-effort
     }
   }
 
@@ -115,6 +204,8 @@ class PollingAdapter {
     // Mark sleep kind for aggregator fine-grain logic
     if (sample.type.name.startsWith('sleep')) {
       meta['sleepKind'] = _sleepKindForType(sample.type);
+      meta['stageType'] = sample.type.name; // e.g., sleepDeep, sleepAsleep
+      meta['sampleId'] = sample.id;
     }
 
     return VitalsData(

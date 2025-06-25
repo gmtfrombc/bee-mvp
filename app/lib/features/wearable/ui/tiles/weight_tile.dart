@@ -113,7 +113,7 @@ class _WeightTileState extends ConsumerState<WeightTile> {
         SizedBox(height: ResponsiveService.getTinySpacing(context) * 0.5),
         weight == null
             ? Text(
-              'No stats',
+              'No data (last 30 days)',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
