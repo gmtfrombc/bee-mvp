@@ -3,12 +3,50 @@ import type { PatternSummary } from './personalization/pattern-analysis.ts'
 import type { ConversationLog } from './response-logger.ts'
 import type { SentimentResult } from './sentiment/sentiment-analyzer.ts'
 
+// Pre-bundled momentum templates – importing them guarantees they are included in the bundle
+import risingTemplate from './prompt_templates/rising.ts'
+import steadyTemplate from './prompt_templates/steady.ts'
+import needsCareTemplate from './prompt_templates/needs_care.ts'
+
 // Directory holding momentum-specific conversation templates (bundled with the function)
 const CONVERSATION_TEMPLATE_DIR = 'prompt_templates'
 
 // Local template paths (resolved relative to the function's working dir)
 const SAFETY_TEMPLATE_PATH = `${CONVERSATION_TEMPLATE_DIR}/safety.md`
 const SYSTEM_TEMPLATE_PATH = `${CONVERSATION_TEMPLATE_DIR}/system.md`
+
+// ---------------------------------------------------------------------------
+// Momentum-state templates are loaded from disk at runtime. The files are
+// bundled automatically by the Supabase CLI, so `Deno.readTextFile()` works
+// when given a URL relative to the module.
+// ---------------------------------------------------------------------------
+
+// Attempt to load any bundled .md conversation templates if the glob helper is available
+// Supabase Edge Runtime does not implement import.meta.glob, so guard against missing function.
+const templateModules: Record<string, string> = (() => {
+  // deno-lint-ignore no-explicit-any
+  const metaAny = import.meta as any
+  if (typeof metaAny.glob === 'function') {
+    return metaAny.glob('./prompt_templates/*.md', { eager: true, as: 'raw' }) as Record<
+      string,
+      string
+    >
+  }
+  return {}
+})()
+
+const MOMENTUM_TEMPLATE_MAP: Record<string, string> = {}
+
+for (const [path, raw] of Object.entries(templateModules)) {
+  const filename = path.split('/').pop() || '' // e.g., steady.md
+  const slug = filename.replace(/\.md$/, '') // steady
+  MOMENTUM_TEMPLATE_MAP[slug] = raw.trim()
+}
+
+// Inject templates that are shipped as TypeScript modules
+MOMENTUM_TEMPLATE_MAP['rising'] = risingTemplate.trim()
+MOMENTUM_TEMPLATE_MAP['steady'] = steadyTemplate.trim()
+MOMENTUM_TEMPLATE_MAP['needs_care'] = needsCareTemplate.trim()
 
 // ---------------------------------------------------------------------------
 // Embedded core templates – avoids runtime file reads & bundling issues
@@ -175,14 +213,20 @@ async function loadTemplate(templatePath: string): Promise<string> {
  * Loads a momentum-specific conversation template (YAML or plain text)
  */
 async function loadMomentumConversationTemplate(momentumState: string): Promise<string> {
-  // Convert momentumState to kebab-like slug: "NeedsCare" -> "needs_care", "Needs Care" -> "needs_care"
   const slug = momentumState
     .replace(/([a-z])([A-Z])/g, '$1_$2') // camelCase to snake
     .toLowerCase()
     .replace(/\s+/g, '_')
+
+  // Prefer build-time map (from imported modules) to avoid FS reads
+  if (MOMENTUM_TEMPLATE_MAP[slug]) {
+    return MOMENTUM_TEMPLATE_MAP[slug]
+  }
+
   const candidateFiles = [
     `${CONVERSATION_TEMPLATE_DIR}/${slug}.yaml`,
     `${CONVERSATION_TEMPLATE_DIR}/${slug}.yml`,
+    `${CONVERSATION_TEMPLATE_DIR}/${slug}.md`,
   ]
 
   for (const path of candidateFiles) {
@@ -191,15 +235,25 @@ async function loadMomentumConversationTemplate(momentumState: string): Promise<
       const content = await Deno.readTextFile(fileUrl)
       return content.trim()
     } catch (_) {
-      // continue
+      // continue to next candidate
     }
   }
 
-  // Fallback: empty string if no template found
+  // Fallback if no file found
   console.warn(
-    `⚠️ Conversation template not found for momentum state "${momentumState}" – proceeding without specific template`,
+    `⚠️ Conversation template not found for momentum state "${momentumState}" – using default inline template`,
   )
-  return ''
+
+  const defaultMomentumTemplates: Record<string, string> = {
+    Rising:
+      `# Momentum Template – Rising 🚀\nYou are interacting with a user who is highly engaged and on an upward trajectory. Celebrate their progress succinctly and offer one concrete suggestion to keep the momentum going. Avoid complacency.`,
+    Steady:
+      `# Momentum Template – Steady 🙂\nThe user is maintaining consistent engagement. Acknowledge their steadiness, offer positive reinforcement, and suggest a small challenge or reflection to nudge them toward a "Rising" state.`,
+    NeedsCare:
+      `# Momentum Template – Needs Care 🌱\nThe user's engagement is low. Respond with empathy, highlight one immediate, easy-to-achieve action, and reassure them that small steps matter. Keep the tone supportive and avoid guilt.`,
+  }
+
+  return defaultMomentumTemplates[momentumState as keyof typeof defaultMomentumTemplates] ?? ''
 }
 
 /**
