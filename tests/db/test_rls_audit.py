@@ -501,12 +501,17 @@ class RLSAuditTester:
 
                 passed = after_count == before_count + 1
                 self._log_test_result(
-                    "Audit Log Trigger", passed, f"Count before={before_count}, after={after_count}"
+                    "Audit Log Trigger",
+                    passed,
+                    f"Count before={before_count}, after={after_count}",
                 )
                 return passed
         except Exception as e:
-            self._log_test_result("Audit Log Trigger",
-                                  False, f"Error: {str(e)}")
+            self._log_test_result(
+                "Audit Log Trigger",
+                False,
+                f"Error: {str(e)}",
+            )
             return False
 
     def run_all_tests(self) -> bool:
