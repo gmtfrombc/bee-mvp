@@ -82,12 +82,13 @@ jobs:
 
       # ---------- Database RLS Tests ----------
       - name: Setup PostgreSQL
-        uses: harmon758/postgresql-action@v1
+        uses: ikalnytskyi/action-setup-postgres@v7
         with:
-          postgresql version: '14'
-          postgresql db: 'test'
-          postgresql user: 'postgres'
-          postgresql password: ${{ env.TEST_DB_PASSWORD }}
+          postgres-version: '14'
+          username: 'postgres'
+          password: ${{ env.TEST_DB_PASSWORD }}
+          database: 'test'
+          port: 54322
 
       - name: Install Python dependencies
         run: |
@@ -105,7 +106,7 @@ jobs:
 
       - name: Setup test database schema
         run: |
-          PGPASSWORD=${{ env.TEST_DB_PASSWORD }} psql -h localhost -U postgres -d test -c "
+          PGPASSWORD=${{ env.TEST_DB_PASSWORD }} psql -h localhost -p 54322 -U postgres -d test -c "
           -- Create auth schema and users table to simulate Supabase auth
           CREATE SCHEMA IF NOT EXISTS auth;
           
