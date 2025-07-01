@@ -120,7 +120,7 @@ jobs:
       working-directory: ./app
       run: |
         echo "🎯 Running Coach E2E integration tests..."
-        flutter test integration_test/coach_full_flow_test.dart
+        flutter test -d chrome integration_test/coach_full_flow_test.dart
         echo "✅ Coach E2E tests completed"
 
   coach-edge-function-tests:
@@ -133,13 +133,13 @@ jobs:
       uses: denoland/setup-deno@v1
       with:
         # >=1.44 required for lock.json v5 parsing
-        deno-version: v1.44.2
+        deno-version: v1.46.3
         
     - name: Run Edge Function tests
       working-directory: ./supabase/functions/ai-coaching-engine
       run: |
         echo "🧪 Running AI Coaching Engine tests..."
-        deno test --allow-env --allow-net --coverage=coverage/
+        deno test --allow-env --allow-net --coverage=coverage/ --no-lock
         echo "✅ Edge Function tests completed"
         
     - name: Check Edge Function coverage
@@ -168,7 +168,7 @@ jobs:
     - name: Setup Deno
       uses: denoland/setup-deno@v1
       with:
-        deno-version: v1.44.2
+        deno-version: v1.46.3
         
     - name: Start Supabase local (mock)
       run: |
