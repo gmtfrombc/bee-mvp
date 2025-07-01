@@ -182,13 +182,11 @@ class RLSAuditTester:
                 f"User B sees {user_b_count} own events. Total counts: A={total_count_from_a}, B={total_count_from_b}"
             )
 
-            self._log_test_result("User Isolation (SELECT)",
-                                  isolation_passed, details)
+            self._log_test_result("User Isolation (SELECT)", isolation_passed, details)
             return isolation_passed
 
         except Exception as e:
-            self._log_test_result("User Isolation (SELECT)",
-                                  False, f"Error: {str(e)}")
+            self._log_test_result("User Isolation (SELECT)", False, f"Error: {str(e)}")
             return False
 
     def test_anonymous_access_denied(self):
@@ -211,8 +209,7 @@ class RLSAuditTester:
             return access_denied
 
         except Exception as e:
-            self._log_test_result("Anonymous Access Denied",
-                                  False, f"Error: {str(e)}")
+            self._log_test_result("Anonymous Access Denied", False, f"Error: {str(e)}")
             return False
 
     def test_insert_isolation(self):
@@ -302,13 +299,11 @@ class RLSAuditTester:
                 f"Event created: {authorized_count}, Visible to other user: {visible_to_b}"
             )
 
-            self._log_test_result("Insert Isolation",
-                                  isolation_passed, details)
+            self._log_test_result("Insert Isolation", isolation_passed, details)
             return isolation_passed
 
         except Exception as e:
-            self._log_test_result("Insert Isolation",
-                                  False, f"Error: {str(e)}")
+            self._log_test_result("Insert Isolation", False, f"Error: {str(e)}")
             return False
 
     def test_service_role_access(self):
@@ -344,13 +339,11 @@ class RLSAuditTester:
                 f"Expected at least {expected_total} from users: {user_counts}"
             )
 
-            self._log_test_result("Service Role Access",
-                                  service_access_works, details)
+            self._log_test_result("Service Role Access", service_access_works, details)
             return service_access_works
 
         except Exception as e:
-            self._log_test_result("Service Role Access",
-                                  False, f"Error: {str(e)}")
+            self._log_test_result("Service Role Access", False, f"Error: {str(e)}")
             return False
 
     def test_concurrent_user_sessions(self):
@@ -367,8 +360,7 @@ class RLSAuditTester:
                     for i in range(iterations):
                         conn = self._get_connection(user_id)
                         with conn.cursor() as cur:
-                            cur.execute(
-                                "SELECT COUNT(*) FROM engagement_events")
+                            cur.execute("SELECT COUNT(*) FROM engagement_events")
                             count = cur.fetchone()[0]
                             results[user_name].append(count)
                         conn.close()
@@ -378,12 +370,10 @@ class RLSAuditTester:
 
             # Start concurrent threads
             thread_a = threading.Thread(
-                target=query_user_events, args=(
-                    "user_a", self.test_users["user_a"])
+                target=query_user_events, args=("user_a", self.test_users["user_a"])
             )
             thread_b = threading.Thread(
-                target=query_user_events, args=(
-                    "user_b", self.test_users["user_b"])
+                target=query_user_events, args=("user_b", self.test_users["user_b"])
             )
 
             thread_a.start()
@@ -416,13 +406,11 @@ class RLSAuditTester:
                 f"Errors: {len(results['errors'])}"
             )
 
-            self._log_test_result("Concurrent Sessions",
-                                  concurrent_passed, details)
+            self._log_test_result("Concurrent Sessions", concurrent_passed, details)
             return concurrent_passed
 
         except Exception as e:
-            self._log_test_result("Concurrent Sessions",
-                                  False, f"Error: {str(e)}")
+            self._log_test_result("Concurrent Sessions", False, f"Error: {str(e)}")
             return False
 
     def _ensure_audit_setup(self, conn):
