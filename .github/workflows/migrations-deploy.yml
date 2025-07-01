@@ -1,0 +1,61 @@
+name: Supabase Migrations Deploy
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'supabase/migrations/**'
+      - 'infra/**'
+      - '.github/workflows/migrations-deploy.yml'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_SECRET: ${{ secrets.SUPABASE_SERVICE_ROLE_SECRET }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: v1
+
+      - name: Load Supabase secrets into environment
+        run: |
+          echo "SUPABASE_URL=$SUPABASE_URL" >> $GITHUB_ENV
+          echo "SUPABASE_SERVICE_ROLE_SECRET=$SUPABASE_SERVICE_ROLE_SECRET" >> $GITHUB_ENV
+
+      - name: Create rollback backup
+        run: |
+          mkdir -p backups
+          supabase db dump --output backups/dump_$(date +%s).sql
+
+      - name: Apply pending migrations
+        run: supabase db push --non-interactive
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform init, validate & apply (auto-approve)
+        working-directory: infra
+        run: |
+          terraform init -backend=false
+          terraform validate
+          terraform apply -auto-approve -input=false
+
+      - name: Enforce Supabase password policy
+        run: |
+          supabase auth settings update \
+            --password_min_length 8 \
+            --password_require_special_char true
+
+      - name: Upload backup artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: db-backup
+          path: backups/*.sql
+          retention-days: 14 

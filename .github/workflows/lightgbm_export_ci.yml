@@ -1,0 +1,66 @@
+name: LightGBM TS Export CI
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/export_lightgbm_to_ts.py'
+      - 'scripts/train_lightgbm_model.py'
+      - '.github/workflows/lightgbm_export_ci.yml'
+  push:
+    branches: [ main ]
+
+jobs:
+  export-scorer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # ⚠️ In production this step would train the LightGBM model or download
+      #    the latest artefact from the feature store / experiment tracker.
+      #    For CI dry-runs we bootstrap a *tiny* dummy model so that code-gen
+      #    completes quickly (<2 s).
+      - name: Create minimal dummy LightGBM model
+        run: |
+          python - <<'PY'
+          import lightgbm as lgb
+          import pandas as pd
+          from sklearn.datasets import load_iris
+          import pathlib, json, os
+
+          X, y = load_iris(return_X_y=True)
+          train = lgb.Dataset(X, label=y)
+          params = {
+              "objective": "binary",
+              "metric": ["binary_logloss"],
+              "verbosity": -1,
+              "num_leaves": 8,
+              "learning_rate": 0.1,
+              "num_boost_round": 3,
+          }
+          bst = lgb.train(params, train)
+          model_path = pathlib.Path("/tmp/lightgbm_dummy.txt")
+          bst.save_model(model_path)
+          print(f"Dummy model saved to {model_path}")
+          PY
+
+      - name: Export to TypeScript
+        run: |
+          python scripts/export_lightgbm_to_ts.py \
+            --model /tmp/lightgbm_dummy.txt \
+            --output supabase/functions/ai-coaching-engine/personalization/lightgbm_model.ts
+
+      - name: Upload generated TS model (artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: lightgbm_ts_scorer
+          path: supabase/functions/ai-coaching-engine/personalization/lightgbm_model.ts 

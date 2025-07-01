@@ -14,7 +14,18 @@ FEATURES = [
     "heart_rate",
     "resting_heart_rate",
     "stress_level",
+    "patient_hash",
 ]
+
+
+def _hash_patient_id(pid: str) -> float:
+    """Quick deterministic hash → float 0-1 (matches Deno/TS patientHash)."""
+    if not isinstance(pid, str):
+        pid = str(pid or "")
+    h = 0
+    for ch in pid:
+        h = (h * 31 + ord(ch)) & 0xFFFFFFFF
+    return (h % 1000) / 1000.0
 
 
 def load_ndjson(path: str) -> pd.DataFrame:
@@ -35,6 +46,11 @@ def prepare_data(df: pd.DataFrame) -> pd.DataFrame:
     # Outcome: engaged (1) vs otherwise (0)
     df = df.copy()
     df["label"] = (df["outcome"] == "engaged").astype(int)
+    # Derive patient_hash then fill missing numeric features
+    if "patient_id" in df.columns:
+        df["patient_hash"] = df["patient_id"].apply(_hash_patient_id)
+    else:
+        df["patient_hash"] = 0.0
     # Fill missing numeric features with column mean
     for col in FEATURES:
         if col not in df.columns:

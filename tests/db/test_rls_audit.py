@@ -182,11 +182,13 @@ class RLSAuditTester:
                 f"User B sees {user_b_count} own events. Total counts: A={total_count_from_a}, B={total_count_from_b}"
             )
 
-            self._log_test_result("User Isolation (SELECT)", isolation_passed, details)
+            self._log_test_result("User Isolation (SELECT)",
+                                  isolation_passed, details)
             return isolation_passed
 
         except Exception as e:
-            self._log_test_result("User Isolation (SELECT)", False, f"Error: {str(e)}")
+            self._log_test_result("User Isolation (SELECT)",
+                                  False, f"Error: {str(e)}")
             return False
 
     def test_anonymous_access_denied(self):
@@ -209,7 +211,8 @@ class RLSAuditTester:
             return access_denied
 
         except Exception as e:
-            self._log_test_result("Anonymous Access Denied", False, f"Error: {str(e)}")
+            self._log_test_result("Anonymous Access Denied",
+                                  False, f"Error: {str(e)}")
             return False
 
     def test_insert_isolation(self):
@@ -299,11 +302,13 @@ class RLSAuditTester:
                 f"Event created: {authorized_count}, Visible to other user: {visible_to_b}"
             )
 
-            self._log_test_result("Insert Isolation", isolation_passed, details)
+            self._log_test_result("Insert Isolation",
+                                  isolation_passed, details)
             return isolation_passed
 
         except Exception as e:
-            self._log_test_result("Insert Isolation", False, f"Error: {str(e)}")
+            self._log_test_result("Insert Isolation",
+                                  False, f"Error: {str(e)}")
             return False
 
     def test_service_role_access(self):
@@ -339,11 +344,13 @@ class RLSAuditTester:
                 f"Expected at least {expected_total} from users: {user_counts}"
             )
 
-            self._log_test_result("Service Role Access", service_access_works, details)
+            self._log_test_result("Service Role Access",
+                                  service_access_works, details)
             return service_access_works
 
         except Exception as e:
-            self._log_test_result("Service Role Access", False, f"Error: {str(e)}")
+            self._log_test_result("Service Role Access",
+                                  False, f"Error: {str(e)}")
             return False
 
     def test_concurrent_user_sessions(self):
@@ -360,7 +367,8 @@ class RLSAuditTester:
                     for i in range(iterations):
                         conn = self._get_connection(user_id)
                         with conn.cursor() as cur:
-                            cur.execute("SELECT COUNT(*) FROM engagement_events")
+                            cur.execute(
+                                "SELECT COUNT(*) FROM engagement_events")
                             count = cur.fetchone()[0]
                             results[user_name].append(count)
                         conn.close()
@@ -370,10 +378,12 @@ class RLSAuditTester:
 
             # Start concurrent threads
             thread_a = threading.Thread(
-                target=query_user_events, args=("user_a", self.test_users["user_a"])
+                target=query_user_events, args=(
+                    "user_a", self.test_users["user_a"])
             )
             thread_b = threading.Thread(
-                target=query_user_events, args=("user_b", self.test_users["user_b"])
+                target=query_user_events, args=(
+                    "user_b", self.test_users["user_b"])
             )
 
             thread_a.start()
@@ -406,11 +416,97 @@ class RLSAuditTester:
                 f"Errors: {len(results['errors'])}"
             )
 
-            self._log_test_result("Concurrent Sessions", concurrent_passed, details)
+            self._log_test_result("Concurrent Sessions",
+                                  concurrent_passed, details)
             return concurrent_passed
 
         except Exception as e:
-            self._log_test_result("Concurrent Sessions", False, f"Error: {str(e)}")
+            self._log_test_result("Concurrent Sessions",
+                                  False, f"Error: {str(e)}")
+            return False
+
+    def _ensure_audit_setup(self, conn):
+        """Ensure _shared schema, audit_log table, and audit() function exist for tests"""
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                CREATE SCHEMA IF NOT EXISTS _shared;
+
+                CREATE TABLE IF NOT EXISTS _shared.audit_log (
+                    id BIGSERIAL PRIMARY KEY,
+                    table_name TEXT,
+                    action TEXT,
+                    old_row JSONB,
+                    new_row JSONB,
+                    changed_at TIMESTAMPTZ DEFAULT NOW()
+                );
+
+                CREATE OR REPLACE FUNCTION _shared.audit()
+                RETURNS TRIGGER
+                LANGUAGE plpgsql
+                SECURITY DEFINER
+                SET search_path = public, pg_temp
+                AS $$
+                BEGIN
+                  INSERT INTO _shared.audit_log(table_name, action, old_row, new_row)
+                  VALUES (TG_TABLE_NAME, TG_OP, row_to_json(OLD), row_to_json(NEW));
+                  RETURN COALESCE(NEW, OLD);
+                END;
+                $$;
+                """
+            )
+
+    def test_audit_log_trigger(self):
+        """Test 7: Verify that audit trigger logs changes"""
+        try:
+            conn = self._get_connection()
+            self._ensure_audit_setup(conn)
+            with conn.cursor() as cur:
+                # Create a lightweight table for audit testing
+                cur.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS audit_test (
+                        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                        owner_id UUID NOT NULL
+                    );
+
+                    -- Attach audit trigger if not already present
+                    DO $$
+                    BEGIN
+                      IF NOT EXISTS (
+                        SELECT 1 FROM pg_trigger WHERE tgname = 'audit_test_trigger'
+                      ) THEN
+                        CREATE TRIGGER audit_test_trigger
+                          AFTER INSERT OR UPDATE OR DELETE ON audit_test
+                          FOR EACH ROW EXECUTE PROCEDURE _shared.audit();
+                      END IF;
+                    END$$;
+                    """
+                )
+
+                # Baseline count
+                cur.execute("SELECT COUNT(*) FROM _shared.audit_log;")
+                before_count = cur.fetchone()[0]
+
+                # Perform insert
+                cur.execute(
+                    "INSERT INTO audit_test(owner_id) VALUES (%s) RETURNING id;",
+                    (self.test_users["user_a"],),
+                )
+                _ = cur.fetchone()[0]
+
+                # Fetch after count
+                cur.execute("SELECT COUNT(*) FROM _shared.audit_log;")
+                after_count = cur.fetchone()[0]
+
+                passed = after_count == before_count + 1
+                self._log_test_result(
+                    "Audit Log Trigger", passed, f"Count before={before_count}, after={after_count}"
+                )
+                return passed
+        except Exception as e:
+            self._log_test_result("Audit Log Trigger",
+                                  False, f"Error: {str(e)}")
             return False
 
     def run_all_tests(self) -> bool:
@@ -429,6 +525,7 @@ class RLSAuditTester:
             self.test_insert_isolation,
             self.test_service_role_access,
             self.test_concurrent_user_sessions,
+            self.test_audit_log_trigger,
         ]
 
         passed_tests = 0

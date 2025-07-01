@@ -1,0 +1,24 @@
+{
+  "scriptId": "337",
+  "url": "file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/middleware/request-id.ts",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [{ "startOffset": 0, "endOffset": 1281, "count": 1 }],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "ensureRequestId",
+      "ranges": [
+        { "startOffset": 786, "endOffset": 909, "count": 2 },
+        { "startOffset": 884, "endOffset": 906, "count": 1 }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "withRequestId",
+      "ranges": [{ "startOffset": 1080, "endOffset": 1280, "count": 1 }],
+      "isBlockCoverage": true
+    }
+  ]
+}

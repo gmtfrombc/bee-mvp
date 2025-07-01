@@ -25,3 +25,27 @@ export async function recordLatency(path: string, ms: number): Promise<void> {
     console.warn("[metrics] failed to record latency", err);
   }
 }
+
+/**
+ * Record token usage & cost for an AI call. Writes to table `ai_token_usage`.
+ */
+export async function recordTokenUsage(
+  userId: string,
+  path: string,
+  totalTokens: number,
+  costUsd: number,
+): Promise<void> {
+  if (Deno.env.get("DENO_TESTING") === "true") return;
+  try {
+    const db = await client() as any;
+    await db.from("ai_token_usage").insert({
+      user_id: userId,
+      path,
+      total_tokens: totalTokens,
+      cost_usd: costUsd,
+      captured_at: new Date().toISOString(),
+    });
+  } catch (err) {
+    console.warn("[metrics] failed to record token usage", err);
+  }
+}

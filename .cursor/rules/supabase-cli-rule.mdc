@@ -1,6 +1,6 @@
 ---
-description:
-globs:
+description: 
+globs: supabase/functions/**/*.*
 alwaysApply: false
 ---
 # 🔑 Supabase CLI Execution & Credentials Rule

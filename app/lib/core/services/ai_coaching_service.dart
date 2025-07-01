@@ -116,6 +116,7 @@ class AICoachingService {
             persona: data['persona'] ?? 'supportive',
             responseTimeMs: data['response_time_ms'] ?? 0,
             cacheHit: data['cache_hit'] ?? false,
+            logId: data['conversation_log_id'] as String?,
           );
         } else {
           throw Exception('Unexpected response format from AI coaching engine');
@@ -315,6 +316,7 @@ class AICoachingResponse {
   final int responseTimeMs;
   final bool cacheHit;
   final bool isError;
+  final String? logId;
 
   AICoachingResponse({
     required this.message,
@@ -322,6 +324,7 @@ class AICoachingResponse {
     required this.responseTimeMs,
     required this.cacheHit,
     this.isError = false,
+    this.logId,
   });
 }
 

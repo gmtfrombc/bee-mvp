@@ -1,0 +1,17 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+rule_type: manual
+@new_epic
+---
+# 🚀 Kickoff New Epic
+
+You are beginning a new Epic. Before coding:
+1. Parse the user’s Epic scope and desired outcomes.
+2. Create a milestone/task map: EPIC → Milestones → Tasks
+3. Highlight known dependencies or risks.
+4. Identify which services/components may be reused.
+
+Present this as a plan. Wait for user confirmation before generating any files.

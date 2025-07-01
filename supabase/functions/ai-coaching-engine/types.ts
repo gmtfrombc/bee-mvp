@@ -39,6 +39,7 @@ export interface GenerateResponseResponse {
   persona: string
   response_time_ms: number
   cache_hit: boolean
+  conversation_log_id?: string
   prompt_tokens?: number
   completion_tokens?: number
   total_tokens?: number
