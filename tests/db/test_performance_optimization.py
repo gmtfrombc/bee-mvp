@@ -72,8 +72,7 @@ class TestPerformanceOptimization:
         test_scores = []
         for user_id in test_users:
             for days_back in range(30):
-                score_date = (datetime.now() -
-                              timedelta(days=days_back)).date()
+                score_date = (datetime.now() - timedelta(days=days_back)).date()
                 test_scores.append(
                     {
                         "user_id": user_id,
@@ -107,8 +106,7 @@ class TestPerformanceOptimization:
         test_notifications = []
         for user_id in test_users[:50]:  # Half the users get notifications
             for days_back in range(0, 10, 2):  # Every other day
-                trigger_date = (datetime.now() -
-                                timedelta(days=days_back)).date()
+                trigger_date = (datetime.now() - timedelta(days=days_back)).date()
                 test_notifications.append(
                     {
                         "user_id": user_id,
@@ -136,8 +134,7 @@ class TestPerformanceOptimization:
         test_interventions = []
         for user_id in test_users[:25]:  # Quarter of users get interventions
             for days_back in range(0, 15, 5):  # Every 5 days
-                trigger_date = (datetime.now() -
-                                timedelta(days=days_back)).date()
+                trigger_date = (datetime.now() - timedelta(days=days_back)).date()
                 test_interventions.append(
                     {
                         "user_id": user_id,

@@ -88,8 +88,7 @@ class TestEngagementEventsRLS:
 
                     # Verify postgres is superuser
                     admin_cursor = cls.admin_conn.cursor()
-                    admin_cursor.execute(
-                        "SELECT current_setting('is_superuser')")
+                    admin_cursor.execute("SELECT current_setting('is_superuser')")
                     is_super = admin_cursor.fetchone()[0] == "on"
                     if not is_super:
                         print(
@@ -182,8 +181,7 @@ class TestEngagementEventsRLS:
 
             cls.conn = psycopg2.connect(**connection_params)
             cls.conn.autocommit = True
-            print(
-                f"✅ Connected to PostgreSQL as '{db_user}' on database '{db_name}'")
+            print(f"✅ Connected to PostgreSQL as '{db_user}' on database '{db_name}'")
 
             # Check if connected user is superuser (critical security validation)
             cursor = cls.conn.cursor()
