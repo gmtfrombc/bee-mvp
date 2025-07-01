@@ -143,18 +143,17 @@ jobs:
     - name: Check Edge Function coverage
       working-directory: ./supabase/functions/ai-coaching-engine
       run: |
-        echo "📊 Checking Edge Function coverage..."
+        echo "📊 Generating Edge Function coverage report..."
         rm -f deno.lock || true
-        deno coverage coverage/ --lcov > coverage.lcov
-        
-        # Basic coverage check (Deno coverage is simpler)
-        LINES=$(deno coverage coverage/ | grep "Covered" | wc -l)
-        if [ "$LINES" -eq 0 ]; then
-          echo "❌ No coverage data found"
+        deno coverage coverage/ --lcov --output=coverage.lcov
+
+        # Fail if the LCOV file was not created or is empty
+        if [ ! -s coverage.lcov ]; then
+          echo "❌ Coverage file is empty"
           exit 1
-        else
-          echo "✅ Coverage data generated"
         fi
+
+        echo "✅ Coverage data generated ($(wc -l < coverage.lcov) lines)"
 
   coach-performance-benchmark:
     runs-on: ubuntu-latest
