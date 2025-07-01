@@ -53,7 +53,12 @@ TS_HEADER = """// --------------------------------------------------------------
 def export(model_path: pathlib.Path, output_path: pathlib.Path) -> None:
     """Load a LightGBM model and write a TypeScript scorer file."""
     bst = lgb.Booster(model_file=str(model_path))
-    ts_code = m2c.export_to_typescript(bst)
+    # m2cgen 0.10.x introduced export_to_typescript; older versions only have export_to_javascript
+    if hasattr(m2c, "export_to_typescript"):
+        ts_code = m2c.export_to_typescript(bst)  # type: ignore[attr-defined]
+    else:
+        # Fall back to JS export; TypeScript accepts JS syntax in .ts files.
+        ts_code = m2c.export_to_javascript(bst)  # type: ignore[attr-defined]
 
     # Prepend header & wrap in ESM export for Deno compatibility
     wrapped_code = TS_HEADER + "\n" + ts_code + \
