@@ -32,6 +32,8 @@ jobs:
       # Test database credentials (not sensitive, but keeps GitGuardian happy)
       TEST_DB_PASSWORD: postgres
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_SECRET }}
+      # Default for local VS Code actionlint and GitHub runner. Overridden by `act` when you pass `-e ACT=true`.
+      ACT: "false"
 
     steps:
       - uses: actions/checkout@v4
@@ -162,6 +164,40 @@ jobs:
           );
           
           -- ============================================================
+          -- 🛡️  UNIVERSAL AUDIT SCHEMA (must exist before triggers)   
+          -- ============================================================
+          CREATE SCHEMA IF NOT EXISTS _shared;
+
+          -- Create audit log table (idempotent)
+          CREATE TABLE IF NOT EXISTS _shared.audit_log (
+            id BIGSERIAL PRIMARY KEY,
+            table_name TEXT,
+            action TEXT,
+            old_row JSONB,
+            new_row JSONB,
+            changed_at TIMESTAMPTZ DEFAULT NOW()
+          );
+
+          -- Create or replace audit() trigger function
+          CREATE OR REPLACE FUNCTION _shared.audit()
+          RETURNS TRIGGER
+          LANGUAGE plpgsql
+          SECURITY DEFINER
+          SET search_path = public, pg_temp
+          AS $$
+          BEGIN
+            INSERT INTO _shared.audit_log(table_name, action, old_row, new_row)
+            VALUES (TG_TABLE_NAME, TG_OP, row_to_json(OLD), row_to_json(NEW));
+            RETURN COALESCE(NEW, OLD);
+          END;
+          $$;
+
+          -- Attach universal audit trigger (_shared.audit)
+          CREATE TRIGGER profiles_audit_trigger
+            AFTER INSERT OR UPDATE OR DELETE ON public.profiles
+            FOR EACH ROW EXECUTE FUNCTION _shared.audit();
+          
+          -- ============================================================
           -- ⚙️  PROFILES TABLE (Auth Backend v1)                        
           -- ============================================================
           -- Mirrors Supabase migration in milestone M1.6.1
@@ -170,11 +206,6 @@ jobs:
             onboarding_complete BOOLEAN DEFAULT FALSE,
             updated_at TIMESTAMPTZ DEFAULT NOW()
           );
-          
-          -- Attach universal audit trigger (_shared.audit)
-          CREATE TRIGGER profiles_audit_trigger
-            AFTER INSERT OR UPDATE OR DELETE ON public.profiles
-            FOR EACH ROW EXECUTE FUNCTION _shared.audit();
           
           -- Enable RLS & define owner-only policies
           ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
@@ -296,29 +327,6 @@ jobs:
           SELECT 'Policies created: ' || COUNT(*) 
           FROM pg_policies 
           WHERE tablename = 'engagement_events';
-          
-          -- Setup universal audit schema for tests
-          CREATE SCHEMA IF NOT EXISTS _shared;
-          CREATE TABLE IF NOT EXISTS _shared.audit_log (
-            id BIGSERIAL PRIMARY KEY,
-            table_name TEXT,
-            action TEXT,
-            old_row JSONB,
-            new_row JSONB,
-            changed_at TIMESTAMPTZ DEFAULT NOW()
-          );
-          CREATE OR REPLACE FUNCTION _shared.audit()
-          RETURNS TRIGGER
-          LANGUAGE plpgsql
-          SECURITY DEFINER
-          SET search_path = public, pg_temp
-          AS \$audit\$
-          BEGIN
-            INSERT INTO _shared.audit_log(table_name, action, old_row, new_row)
-            VALUES (TG_TABLE_NAME, TG_OP, row_to_json(OLD), row_to_json(NEW));
-            RETURN COALESCE(NEW, OLD);
-          END;
-          \$audit\$;
           
           -- Show postgres user type for debugging
           SELECT 'postgres user type: ' || 

@@ -44,7 +44,7 @@ Make sure Docker Desktop is running before invoking `act`.
 act push \
   -W .github/workflows/ci.yml \
   -P ubuntu-latest=catthehacker/ubuntu:act-latest \
-  -e ACT=false \
+  --env ACT=false \
   --secret-file .secrets
 ```
 
@@ -54,7 +54,7 @@ Flags explained:
 - `-W` – limit execution to the main workflow file.
 - `-P` – map the `ubuntu-latest` runner to the large pre-built image that has
   most tooling pre-installed.
-- `-e ACT=false` – tells the workflow **not** to short-circuit the heavy
+- `--env ACT=false` – tells the workflow **not** to short-circuit the heavy
   database/test steps guarded with `if: ${{ env.ACT != 'true' }}` so the run
   mirrors GitHub-CI exactly.
 - `--secret-file` – inject the secrets created in step 2.
