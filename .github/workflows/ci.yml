@@ -48,12 +48,14 @@ jobs:
 
       # ---------- Flutter Basic Validation ----------
       - uses: subosito/flutter-action@v2
+        if: env.ACT != 'true'
         with:
           flutter-version: '3.3.2'
           architecture: x64
       
       # Create environment file using new .env.example approach
       - name: Setup Flutter Environment
+        if: env.ACT != 'true'
         working-directory: ./app
         run: |
           echo "🔧 Setting up Flutter environment for basic validation..."
@@ -63,6 +65,7 @@ jobs:
 
       # FIREBASE OPTIONS: Create CI-safe firebase_options.dart
       - name: Create Firebase Options Configuration
+        if: env.ACT != 'true'
         working-directory: ./app
         run: |
           echo "🔧 Creating CI-safe Firebase options configuration"
@@ -70,6 +73,7 @@ jobs:
           echo "✅ CI-safe Firebase options configuration created"
 
       - name: Flutter Dependencies & Basic Validation
+        if: env.ACT != 'true'
         working-directory: ./app
         run: |
           flutter pub get
