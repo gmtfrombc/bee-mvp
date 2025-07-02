@@ -50,6 +50,7 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.3.2'
+          architecture: x64
       
       # Create environment file using new .env.example approach
       - name: Setup Flutter Environment
