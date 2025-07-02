@@ -3,6 +3,8 @@
 > "Think globally, **act** locally" — run the exact GitHub Actions workflow the
 > repo uses without pushing a single commit.
 
+# Hardware: Macbook Air with M3 Apple chip
+
 # NOTE: Run ACT with the following:
 
 act push -W .github/workflows/ci.yml -P
@@ -46,10 +48,17 @@ Make sure Docker Desktop is running before invoking `act`.
 ## 3. Run the full CI workflow
 
 ```bash
-# Runs `.github/workflows/ci.yml` exactly as GitHub does
+# Preferred – wraps all flags for you
+./scripts/run_ci_locally.sh
+```
+
+Advanced: call `act` directly
+
+```bash
 act push \
   -W .github/workflows/ci.yml \
-  -P ubuntu-latest=catthehacker/ubuntu:act-latest \
+  -P ubuntu-latest=ghcr.io/catthehacker/ubuntu:act-22.04 \
+  --container-architecture linux/amd64 \
   --env ACT=false \
   --secret-file .secrets
 ```
@@ -58,12 +67,13 @@ Flags explained:
 
 - `push` – simulate a `push` event (same trigger used in CI).
 - `-W` – limit execution to the main workflow file.
-- `-P` – map the `ubuntu-latest` runner to the large pre-built image that has
-  most tooling pre-installed.
-- `--env ACT=false` – tells the workflow **not** to short-circuit the heavy
-  database/test steps guarded with `if: ${{ env.ACT != 'true' }}` so the run
-  mirrors GitHub-CI exactly.
-- `--secret-file` – inject the secrets created in step 2.
+- `-P` – map `ubuntu-latest` to a runner image matching GitHub's toolchain
+  (**act-22.04**, medium size).
+- `--container-architecture linux/amd64` – some Apple-silicon Macs need this to
+  avoid image-arch mismatch.
+- `--env ACT=false` – ensures heavyweight steps **run** (they are skipped when
+  `ACT=true`).
+- `--secret-file` – inject the secrets created in step&nbsp;2.
 
 ℹ️ The first invocation may take several minutes (image pull + Flutter SDK
 install). Subsequent runs start almost instantly.
@@ -94,6 +104,39 @@ matrix builds).
 | `docker: not found`                  | Start Docker Desktop or install Docker Engine.                                                           |
 | "No such file or directory: flutter" | Ensure you pulled the large image (`-P ...act-latest`).                                                  |
 | PostgreSQL port conflict             | Stop local DB containers, or change `port:` in the workflow and add `-e DB_PORT=...` when running `act`. |
+
+---
+
+## 6. CI parity & Terraform provider gotcha
+
+Both GitHub-CI and local `act` runs now use exactly the same Docker runner image
+(`ghcr.io/catthehacker/ubuntu:act-22.04`) plus identical env/secrets. If
+something fails locally, it **will** fail remotely – and vice-versa.
+
+Most common blocker: **Terraform Supabase provider**
+
+```
+Error: Invalid data source "supabase_project"
+Error: Invalid resource type "supabase_migration"
+```
+
+The upstream provider (v1.x) no longer ships those legacy resources. In this
+repo we stub them out (see `infra/main.tf`) so the `terraform validate` step can
+pass. If you re-enable Supabase migrations, either:
+
+1. Use the Supabase CLI in a separate CI step, or
+2. Replace the removed blocks with supported provider resources (see Supabase
+   docs).
+
+> Tip: Want to iterate on application code but skip the heavy Terraform checks?
+> Run:
+>
+> ```bash
+> SKIP_TF=true ./scripts/run_ci_locally.sh -j build
+> ```
+>
+> …after adding `if: env.SKIP_TF != 'true'` to the Terraform step in the
+> workflow.
 
 ---
 
