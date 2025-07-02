@@ -64,23 +64,3 @@ resource "google_secret_manager_secret" "supabase_service_key" {
 
   depends_on = [google_project_service.secret_manager]
 }
-
-# ---------------------------------------------------------------------------
-# Supabase migration for Auth Profiles (M1.6.1)
-# ---------------------------------------------------------------------------
-
-# Derive the project reference from the Supabase URL and apply the profiles migration.
-
-locals {
-  supabase_project_ref = element(split(".", replace(var.supabase_url, "https://", "")), 0)
-}
-
-data "supabase_project" "current" {
-  project_ref = local.supabase_project_ref
-}
-
-resource "supabase_migration" "auth_profiles" {
-  project_ref   = data.supabase_project.current.id
-  version       = var.supabase_migration_tag
-  migration_sql = file("${path.module}/../supabase/migrations/20240722T1200_v1.6.1_profiles.sql")
-}
