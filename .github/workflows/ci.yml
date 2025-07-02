@@ -49,7 +49,7 @@ jobs:
       # ---------- Flutter Basic Validation ----------
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.32.1'
+          flutter-version: '3.3.2'
       
       # Create environment file using new .env.example approach
       - name: Setup Flutter Environment

@@ -37,7 +37,9 @@ def test_owner_can_insert_and_select_profile():
             )
             # Select back
             cur.execute(
-                "SELECT onboarding_complete FROM public.profiles WHERE id = %s", (user_id,))
+                "SELECT onboarding_complete FROM public.profiles WHERE id = %s",
+                (user_id,),
+            )
             row = cur.fetchone()
             assert row is not None and row[0] is False
     finally:
@@ -59,7 +61,9 @@ def test_stranger_cannot_select_others_profile():
     try:
         with stranger_conn.cursor() as cur:
             cur.execute(
-                "SELECT * FROM public.profiles WHERE id = %s", (owner_id,))
+                "SELECT * FROM public.profiles WHERE id = %s",
+                (owner_id,),
+            )
             data = cur.fetchall()
             assert len(data) == 0
     finally:
