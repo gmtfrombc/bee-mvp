@@ -19,6 +19,7 @@ import { StrategyOptimizer } from '../personalization/strategy-optimizer.ts'
 import { callAIAPI } from './ai-client.ts'
 import { GenerateResponseRequest, GenerateResponseResponse } from '../types.ts'
 import type { AIResponse } from './ai-client.ts'
+import { recordTokenUsage } from '../../_shared/metrics.ts'
 
 // --- Environment / singletons -------------------------------------------------
 
@@ -269,11 +270,26 @@ export async function processConversation(
       }
     }
 
+    // ---- Metrics -------------------------------------------------------
+    if (usage?.total_tokens) {
+      try {
+        await recordTokenUsage(
+          user_id,
+          '/conversation',
+          usage.total_tokens,
+          usage.cost_usd ?? 0,
+        )
+      } catch (_) {
+        // non-critical
+      }
+    }
+
     const payload: GenerateResponseResponse = {
       assistant_message: assistantMessage,
       persona,
       response_time_ms: Date.now() - startTime,
       cache_hit: cacheHit,
+      conversation_log_id: logId ?? undefined,
       prompt_tokens: usage?.prompt_tokens,
       completion_tokens: usage?.completion_tokens,
       total_tokens: usage?.total_tokens,

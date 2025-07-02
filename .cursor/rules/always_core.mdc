@@ -1,0 +1,24 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+rule_type: always
+---
+# 🧠 Core Coding Rules
+- Always plan first: provide a step-by-step **plan** before modifying code. Wait for user approval.
+- Use **Chain-of-Thought reasoning** for complex tasks. Think aloud before executing.
+- Check for existing functions/services/widgets before writing new code. Avoid duplication.
+- Never prompt the user to run terminal commands. Use `--non-interactive` flags if needed.
+- Supabase secrets ENV file lives at `~/.bee_secrets/supabase.env`
+- Use Flutter SDK **3.3.2a** with **Riverpod v2** only.
+- Use `--fatal-warnings`; null-safety is enforced project-wide.
+
+# 🧠 Further Reference
+
+Further reference (open on demand):
+• docs/architecture/bee_mvp_tech_overview.md      – full architecture & SLAs
+• docs/architecture/component_governance.md       – component size & patterns
+• ocs/MVP_ROADMAP/bee_project_plan_mvp_FINAL.md   – MVP roadmap & epics
+
+
