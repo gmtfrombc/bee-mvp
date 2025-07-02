@@ -15,7 +15,7 @@ Requirements:
     pip install psycopg2-binary pytest python-dotenv
 
 Created: 2024-12-01
-Author: BEE Development Team
+Author: BEE Development Team and CURSOR AI
 """
 
 import os

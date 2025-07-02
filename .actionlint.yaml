@@ -1,0 +1,5 @@
+version: 1
+# Custom environment variables available at runtime.
+# Declaring them here silences "Context access might be invalid" warnings from actionlint.
+envs:
+  ACT: string
