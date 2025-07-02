@@ -1,8 +1,4 @@
-/// Tests for HealthDataHttpClient
-///
-/// Following the testing policy: one happy-path test and critical edge-case tests only.
-/// Target ≥85% coverage for core logic.
-library;
+
 
 import 'package:flutter_test/flutter_test.dart';
 

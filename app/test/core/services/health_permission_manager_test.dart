@@ -3,6 +3,7 @@
 /// Simple tests following BEE testing policy:
 /// - One happy-path test and critical edge-case tests only
 /// - Focus on core logic coverage without complex mocking
+///
 library;
 
 import 'package:flutter_test/flutter_test.dart';

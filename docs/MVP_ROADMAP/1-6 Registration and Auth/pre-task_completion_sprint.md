@@ -93,3 +93,44 @@ resource "supabase_migration" "auth_profiles" {
 
 After this sprint, the milestone tasks T1–T5 can be completed with minimal
 friction, enabling 100–200 beta users to register & log in during MVP testing.
+
+Ran tool
+
+Read file: docs/MVP_ROADMAP/1-6 Registration and Auth/M1.6.1_supabase_auth_backend_setup.md
+
+Here’s the step-by-step plan I’ll follow to kick off Milestone 1.6.1 (Supabase Auth Backend) now that your PR is merged:
+
+Step 0 – sync workspace   
+ a. `git checkout main`  
+ b. `git pull origin main`  
+ c. Run the full test suite once to confirm the baseline is green.
+
+Step 1 – create milestone branch  
+ `git checkout -b feat/m1.6.1-auth-backend-setup`
+
+Step 2 – add the real SQL migration  
+ • Fill `supabase/migrations/20240722120000_v1.6.1_profiles.sql` with the table, RLS policies, and audit trigger shown in the milestone doc (idempotent `IF NOT EXISTS`).  
+ • Keep the timestamp identical so ordering remains correct.
+
+Step 3 – Terraform wiring  
+ • Add `variable "supabase_migration_tag"` (already scaffolded).  
+ • Ensure `supabase_migration_tag = "v1.6.1"` is present in `infra/terraform.tfvars` (staging only).
+
+Step 4 – extend database tests  
+ • Update `tests/db/test_rls_audit.py` to assert:  
+   – owner can `SELECT/INSERT` into `profiles`  
+   – stranger cannot  
+   – audit log receives a row after CRUD.
+
+Step 5 – local verification  
+ • `supabase db reset --linked` to apply migrations locally.  
+ • Run all Python and Dart tests.
+
+Step 6 – commit & push  
+ • Push the branch; open a PR against `main`.  
+ • The “migrations-deploy” workflow will apply the migration in staging automatically.
+
+Step 7 – handover  
+ • Once green, we proceed to the Flutter registration UI milestone (M1.6.2).
+
+Let me know if anything should be adjusted; otherwise I’ll start with Step 0.
