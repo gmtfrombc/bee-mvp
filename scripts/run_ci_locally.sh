@@ -31,8 +31,20 @@ fi
 GITHUB_RUNNER_IMAGE="ghcr.io/catthehacker/ubuntu:act-22.04"
 
 # 3️⃣  Execute `act`
+# Select workflow files – default is main CI plus migrations. Set SKIP_MIGRATIONS=true to skip.
+WORKFLOW_FILES=(".github/workflows/ci.yml")
+if [[ "${SKIP_MIGRATIONS:-}" != "true" ]]; then
+  WORKFLOW_FILES+=(".github/workflows/migrations-deploy.yml")
+fi
+
+# Build -W args for act
+WF_ARGS=()
+for wf in "${WORKFLOW_FILES[@]}"; do
+  WF_ARGS+=( -W "$wf" )
+done
+
 act push \
-  -W "$WORKFLOW_FILE" \
+  "${WF_ARGS[@]}" \
   -P ubuntu-latest=${GITHUB_RUNNER_IMAGE} \
   --container-architecture linux/amd64 \
   --env ACT=false \
