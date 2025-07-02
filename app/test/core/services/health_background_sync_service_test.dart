@@ -1,7 +1,4 @@
-/// Tests for HealthBackgroundSyncService
-///
-/// Following the testing policy: one happy-path test and critical edge-case tests only.
-/// Target ≥85% coverage for core logic.
+
 
 import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';

@@ -1,5 +1,7 @@
 /// Unit tests for WearableLiveMetricsService
 /// Following BEE testing policy - essential tests only with ≥85% coverage focus
+///
+library;
 
 import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';

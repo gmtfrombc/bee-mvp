@@ -1,6 +1,8 @@
 /// Simple unit tests for WearableLiveService fallback functionality
 ///
 /// Focused on core fallback behavior for T2.2.2.4
+///
+library;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';

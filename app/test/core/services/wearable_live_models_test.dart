@@ -1,5 +1,4 @@
-/// Tests for Wearable Live Models
-/// Part of Epic 2.2 Task T2.2.2.1
+
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:app/core/services/wearable_live_models.dart';

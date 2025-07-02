@@ -1,13 +1,3 @@
-/// Unit tests for AndroidGarminFeatureFlagService
-///
-/// Following testing policy: one happy-path test and critical edge-case tests
-/// for public service methods that can be tested without complex dependencies.
-///
-/// **Focused Test Coverage**:
-/// - Core feature flag logic
-/// - Data source detection patterns
-/// - Warning cooldown configuration
-
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:app/core/services/android_garmin_feature_flag_service.dart';

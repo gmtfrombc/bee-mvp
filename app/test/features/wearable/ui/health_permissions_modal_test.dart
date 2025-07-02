@@ -4,6 +4,7 @@
 /// - ≥ 85% coverage on core logic, ≤ 5% golden/snapshot files
 /// - Use flutter_test + mocktail
 /// - One happy-path test and critical edge-case tests only
+library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';

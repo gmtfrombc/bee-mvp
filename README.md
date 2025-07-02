@@ -125,6 +125,35 @@ The CI pipeline runs automatically on push and pull requests:
 2. **Terraform Validation** - Infrastructure code validation
 3. **Database RLS Tests** - Row-Level Security verification
 
+### Local CI with `act`
+
+You can run the same GitHub Actions workflow locally using the
+[nektos/act](https://github.com/nektos/act) runner.
+
+```bash
+# One-time prerequisites (macOS / Apple Silicon)
+brew install act               # or `npm i -g act`
+docker pull catthehacker/ubuntu:act-latest   # large runner image
+
+# Create a stub secrets file at repo root (content can be blank)
+printf 'SUPABASE_ACCESS_TOKEN=\nSUPABASE_SERVICE_ROLE_SECRET=\n' > .secrets
+
+# Run the complete CI workflow
+act push \
+  -W .github/workflows/ci.yml \
+  -P ubuntu-latest=catthehacker/ubuntu:act-latest \
+  --container-architecture linux/amd64 \
+  --env ACT=true \
+  --secret-file .secrets
+
+# TIP: add `-j build --step 20` to start from the Terraform step and skip
+# Flutter download for faster iteration.
+```
+
+The workflow detects the `ACT` environment variable and automatically skips
+Flutter and Postgres steps that require heavier containers, giving you a quick
+green/red signal for Terraform, Python lint, and database migrations.
+
 ### Database Migrations
 
 Apply database migrations:
@@ -136,25 +165,25 @@ npx supabase db push
 
 ### Deployment
 
-Deploy to staging/production:
+Deploy to staging or production:
 
 ```bash
 # Deploy infrastructure
 cd infra && terraform apply
 
-# Deploy functions
-cd functions && npm run deploy
-
-# Deploy database changes
+# Deploy Supabase database changes
 cd supabase && npx supabase db push
+
+# Deploy edge functions
+cd supabase/functions && npm run deploy
 ```
 
 ## Contributing
 
-1. Create a feature branch from `main`
-2. Make your changes with appropriate tests
-3. Ensure all tests pass: `pytest tests/db/test_rls.py`
-4. Submit a pull request
+1. Create a feature branch from `main`.
+2. Commit code with accompanying tests (≥ 85 % coverage on logic-heavy modules).
+3. Verify the full CI pipeline or run `act` locally.
+4. Open a pull request and request review.
 
 ## License
 
@@ -162,19 +191,5 @@ cd supabase && npx supabase db push
 
 ---
 
-**For detailed documentation, start with
-[Project Overview](docs/0_Initial_docs/project_overview.md)**
-
-# Momentum App
-
-A Flutter application for tracking personal momentum and progress.
-
-## Build Status
-
-✅ Asset bundle .env issue resolved ✅ Lint issues (print & unused element)
-resolved 🔄 Epic 1.3 CI fixes - import structure and dependency resolution
-improvements in progress
-
-## Developer Docs
-
-- [Supabase CLI setup](docs/supabase_cli_setup.md)
+_For detailed docs start with_
+**[Project Overview](docs/0_Initial_docs/project_overview.md)**
