@@ -8,7 +8,7 @@ DB_CFG = {
     "port": os.getenv("DB_PORT", "54322"),
     "database": os.getenv("DB_NAME", "postgres"),
     "user": os.getenv("DB_USER", "postgres"),
-    "password": os.getenv("DB_PASSWORD", ""),
+    "password": os.getenv("DB_PASSWORD", "postgres"),
 }
 
 
