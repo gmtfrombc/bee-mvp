@@ -184,13 +184,13 @@ jobs:
           LANGUAGE plpgsql
           SECURITY DEFINER
           SET search_path = public, pg_temp
-          AS $$
+          AS \$audit\$
           BEGIN
             INSERT INTO _shared.audit_log(table_name, action, old_row, new_row)
             VALUES (TG_TABLE_NAME, TG_OP, row_to_json(OLD), row_to_json(NEW));
             RETURN COALESCE(NEW, OLD);
           END;
-          $$;
+          \$audit\$;
 
           -- Attach universal audit trigger (_shared.audit)
           CREATE TRIGGER profiles_audit_trigger
