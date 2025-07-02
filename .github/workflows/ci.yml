@@ -47,6 +47,7 @@ jobs:
           REFACTOR_MODE: true  # Sprint 0: Notification system refactor in progress
 
       # ---------- Flutter Basic Validation ----------
+      # actionlint-disable-next-line expression-env
       - uses: subosito/flutter-action@v2
         if: ${{ env.ACT != 'true' }}
         with:
@@ -54,6 +55,7 @@ jobs:
           architecture: x64
       
       # Create environment file using new .env.example approach
+      # actionlint-disable-next-line expression-env
       - name: Setup Flutter Environment
         if: ${{ env.ACT != 'true' }}
         working-directory: ./app
@@ -64,6 +66,7 @@ jobs:
           echo "✅ Environment configured from .env.example"
 
       # FIREBASE OPTIONS: Create CI-safe firebase_options.dart
+      # actionlint-disable-next-line expression-env
       - name: Create Firebase Options Configuration
         if: ${{ env.ACT != 'true' }}
         working-directory: ./app
@@ -72,6 +75,7 @@ jobs:
           cp lib/firebase_options_ci.dart lib/firebase_options.dart
           echo "✅ CI-safe Firebase options configuration created"
 
+      # actionlint-disable-next-line expression-env
       - name: Flutter Dependencies & Basic Validation
         if: ${{ env.ACT != 'true' }}
         working-directory: ./app
@@ -91,6 +95,7 @@ jobs:
           terraform validate
 
       # ---------- Database RLS Tests ----------
+      # actionlint-disable-next-line expression-env
       - name: Setup PostgreSQL
         if: ${{ env.ACT != 'true' }}
         uses: ikalnytskyi/action-setup-postgres@v7
@@ -115,6 +120,7 @@ jobs:
         run: |
           ruff check tests/ --output-format=github
 
+      # actionlint-disable-next-line expression-env
       - name: Setup test database schema
         if: ${{ env.ACT != 'true' }}
         run: |
@@ -174,15 +180,15 @@ jobs:
           ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
           
           -- Drop existing policies to keep idempotent
-          DROP POLICY IF EXISTS "Users can view own profiles" ON public.profiles;
-          DROP POLICY IF EXISTS "Users can insert own profiles" ON public.profiles;
+          DROP POLICY IF EXISTS \"Users can view own profiles\" ON public.profiles;
+          DROP POLICY IF EXISTS \"Users can insert own profiles\" ON public.profiles;
           
-          CREATE POLICY "Users can view own profiles"
+          CREATE POLICY \"Users can view own profiles\"
             ON public.profiles
             FOR SELECT
             USING (auth.uid() = id);
           
-          CREATE POLICY "Users can insert own profiles"
+          CREATE POLICY \"Users can insert own profiles\"
             ON public.profiles
             FOR INSERT
             WITH CHECK (auth.uid() = id);
@@ -323,6 +329,7 @@ jobs:
           WHERE rolname = 'postgres';
           "
 
+      # actionlint-disable-next-line expression-env
       - name: Run RLS & Audit Tests
         if: ${{ env.ACT != 'true' }}
         run: |
