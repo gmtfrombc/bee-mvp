@@ -15,7 +15,25 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Main coach chat screen with message history and input
 class CoachChatScreen extends ConsumerStatefulWidget {
-  const CoachChatScreen({super.key});
+  /// Optional context from Today Feed – if provided the AI coach will receive
+  /// the related article ID and summary so it can tailor the first response.
+  final String? articleId;
+  final String? articleSummary;
+  final String? articleTitle;
+
+  /// Whether to show an explicit back arrow instead of the hamburger menu.
+  /// Used for contexts where the coach screen is launched *on top of* an
+  /// existing view (e.g.
+  /// long-press from Today Feed). For the bottom-nav tab we keep the menu.
+  final bool showBackButton;
+
+  const CoachChatScreen({
+    super.key,
+    this.articleId,
+    this.articleSummary,
+    this.articleTitle,
+    this.showBackButton = false,
+  });
 
   @override
   ConsumerState<CoachChatScreen> createState() => _CoachChatScreenState();
@@ -68,10 +86,23 @@ class _CoachChatScreenState extends ConsumerState<CoachChatScreen> {
   }
 
   void _initializeChat() {
-    // Temporary hard-coded first name; replace with user profile lookup when available
     const firstName = 'Sarah';
 
-    // Rotating greeting messages to avoid a mechanical feel
+    // If user arrived with article context, acknowledge it explicitly to
+    // improve clarity of the feature (tester feedback GC-1 UX).
+    if (widget.articleTitle != null) {
+      _messages.add(
+        ChatMessage(
+          text:
+              "I see you've opened the article \"${widget.articleTitle}\". What questions can I answer for you?",
+          isUser: false,
+          timestamp: DateTime.now(),
+        ),
+      );
+      return;
+    }
+
+    // Default greetings (no article context)
     final greetings = [
       'Hi $firstName! How can I help you today?',
       'Hello $firstName, what\'s on your mind?',
@@ -100,15 +131,21 @@ class _CoachChatScreenState extends ConsumerState<CoachChatScreen> {
       final msgs = await ref.read(conversationMessagesProvider(convoId).future);
       if (!mounted) return;
       setState(() {
-        _messages.addAll(
-          msgs.map(
-            (m) => ChatMessage(
-              text: m.content,
-              isUser: m.isFromUser,
-              timestamp: m.timestamp,
+        if (msgs.isEmpty) {
+          // No stored messages for this conversation – add default greeting so
+          // the chat never feels empty (tester feedback).
+          _initializeChat();
+        } else {
+          _messages.addAll(
+            msgs.map(
+              (m) => ChatMessage(
+                text: m.content,
+                isUser: m.isFromUser,
+                timestamp: m.timestamp,
+              ),
             ),
-          ),
-        );
+          );
+        }
       });
       _scrollToBottom();
     } catch (_) {
@@ -180,7 +217,10 @@ class _CoachChatScreenState extends ConsumerState<CoachChatScreen> {
           final insertRes =
               await client
                   .from('coach_conversations')
-                  .insert({'title': '', 'user_id': client.auth.currentUser?.id})
+                  .insert({
+                    'title': widget.articleTitle ?? '',
+                    'user_id': client.auth.currentUser?.id,
+                  })
                   .select('id')
                   .single();
           conversationId = insertRes['id'] as String?;
@@ -191,7 +231,11 @@ class _CoachChatScreenState extends ConsumerState<CoachChatScreen> {
 
         // If this is the very first user message in the thread, generate title
         final existingUserMsgs = _messages.where((m) => m.isUser).length;
-        if (conversationId != null && existingUserMsgs == 0) {
+        final shouldAutoTitle =
+            widget.articleTitle == null || widget.articleTitle!.isEmpty;
+        if (conversationId != null &&
+            existingUserMsgs == 0 &&
+            shouldAutoTitle) {
           await client
               .from('coach_conversations')
               .update({'title': _makeTitleSnippet(text)})
@@ -231,15 +275,25 @@ class _CoachChatScreenState extends ConsumerState<CoachChatScreen> {
       // Get current momentum state (you can enhance this with real momentum data)
       const momentumState = 'Steady'; // TODO: Get from momentum provider
 
-      // Call real AI coaching service
+      // Build contextual payload for the AI coaching engine. We include the
+      // conversation_id for threading plus optional Today-Feed article context
+      // when available.
+      final Map<String, dynamic> ctx = {};
+      if (conversationId != null) ctx['conversation_id'] = conversationId;
+      if (widget.articleId != null) ctx['article_id'] = widget.articleId;
+      if (widget.articleSummary != null) {
+        ctx['article_summary'] = widget.articleSummary;
+      }
+
       final response = await AICoachingService.instance.generateResponse(
         message: userMessage,
         momentumState: momentumState,
-        context:
-            conversationId == null ? null : {'conversation_id': conversationId},
+        context: ctx.isEmpty ? null : ctx,
       );
 
       if (!mounted) return;
+
+      String? logId = response.logId;
 
       setState(() {
         _isTyping = false;
@@ -252,6 +306,14 @@ class _CoachChatScreenState extends ConsumerState<CoachChatScreen> {
         );
       });
       _scrollToBottom();
+
+      // Prompt user for rating once the response is shown
+      if (logId != null && context.mounted) {
+        final rating = await _showRatingSheet();
+        if (rating != null) {
+          await _submitRating(logId, rating);
+        }
+      }
     } catch (error, stackTrace) {
       _handleGlobalError(error, stackTrace);
       if (mounted) {
@@ -317,7 +379,63 @@ class _CoachChatScreenState extends ConsumerState<CoachChatScreen> {
     }
   }
 
-  // Helper to create a short title from the first user message
+  Future<int?> _showRatingSheet() {
+    final spacing = ResponsiveService.getResponsiveSpacing(context);
+    return showModalBottomSheet<int>(
+      context: context,
+      builder: (ctx) {
+        return Padding(
+          padding: EdgeInsets.all(spacing * 2),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'How helpful was this response?',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              SizedBox(height: spacing * 1.5),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(5, (index) {
+                  final star = index + 1;
+                  return IconButton(
+                    icon: const Icon(Icons.star_border),
+                    onPressed: () {
+                      Navigator.of(ctx).pop(star);
+                    },
+                  );
+                }),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _submitRating(String logId, int rating) async {
+    try {
+      SupabaseClient? client;
+      try {
+        client = ref.read(supabaseClientProvider);
+      } catch (_) {
+        client = null;
+      }
+      if (client == null) return;
+
+      final userId = client.auth.currentUser?.id;
+      if (userId == null) return;
+
+      await client
+          .from('coaching_effectiveness')
+          .update({'user_rating': rating})
+          .eq('conversation_log_id', logId)
+          .eq('user_id', userId);
+    } catch (_) {
+      // Silently ignore for now – can log to Sentry in production
+    }
+  }
+
   String _makeTitleSnippet(String text) {
     final trimmed = text.trim();
     if (trimmed.length <= 40) return trimmed;
@@ -348,18 +466,24 @@ class _CoachChatScreenState extends ConsumerState<CoachChatScreen> {
     return MomentumScaffold(
       title: 'Coach',
       drawer: const ChatHistoryDrawer(),
-      leading: Builder(
-        builder:
-            (context) => IconButton(
-              icon: const Icon(Icons.menu),
-              onPressed: () {
-                // Ensure keyboard is dismissed before opening drawer to avoid it
-                // popping up underneath the overlay.
-                FocusScope.of(context).unfocus();
-                Scaffold.of(context).openDrawer();
-              },
-            ),
-      ),
+      leading:
+          widget.showBackButton
+              ? IconButton(
+                icon: const Icon(Icons.arrow_back),
+                tooltip: 'Back',
+                onPressed: () => Navigator.of(context).pop(),
+              )
+              : Builder(
+                builder:
+                    (drawerCtx) => IconButton(
+                      icon: const Icon(Icons.menu),
+                      tooltip: 'Open chat history',
+                      onPressed: () {
+                        FocusScope.of(drawerCtx).unfocus();
+                        Scaffold.of(drawerCtx).openDrawer();
+                      },
+                    ),
+              ),
       actions: [
         AutoStreakBadge(onTap: () => StreakInfoDialog.show(context)),
         SizedBox(width: ResponsiveService.getSmallSpacing(context)),
@@ -435,51 +559,56 @@ class _CoachChatScreenState extends ConsumerState<CoachChatScreen> {
                 child: Row(
                   children: [
                     Expanded(
-                      child: TextField(
-                        controller: _textController,
-                        decoration: InputDecoration(
-                          hintText: 'Ask your coach...',
-                          hintStyle: TextStyle(
-                            color: AppTheme.getTextTertiary(context),
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(24),
-                            borderSide: BorderSide(
-                              color: AppTheme.getTextTertiary(
-                                context,
-                              ).withValues(alpha: 0.3),
+                      child: Semantics(
+                        label: 'Message input field',
+                        textField: true,
+                        child: TextField(
+                          controller: _textController,
+                          decoration: InputDecoration(
+                            hintText: 'Ask your coach...',
+                            hintStyle: TextStyle(
+                              color: AppTheme.getTextTertiary(context),
                             ),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(24),
-                            borderSide: BorderSide(
-                              color: AppTheme.getTextTertiary(
-                                context,
-                              ).withValues(alpha: 0.3),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(24),
+                              borderSide: BorderSide(
+                                color: AppTheme.getTextTertiary(
+                                  context,
+                                ).withValues(alpha: 0.3),
+                              ),
                             ),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(24),
-                            borderSide: BorderSide(
-                              color: AppTheme.getMomentumColor(
-                                MomentumState.steady,
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(24),
+                              borderSide: BorderSide(
+                                color: AppTheme.getTextTertiary(
+                                  context,
+                                ).withValues(alpha: 0.3),
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(24),
+                              borderSide: BorderSide(
+                                color: AppTheme.getMomentumColor(
+                                  MomentumState.steady,
+                                ),
+                              ),
+                            ),
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: spacing,
+                              vertical: ResponsiveService.getSmallSpacing(
+                                context,
                               ),
                             ),
                           ),
-                          contentPadding: EdgeInsets.symmetric(
-                            horizontal: spacing,
-                            vertical: ResponsiveService.getSmallSpacing(
-                              context,
-                            ),
-                          ),
+                          maxLines: null,
+                          textInputAction: TextInputAction.send,
+                          onSubmitted: (_) => _sendMessage(),
                         ),
-                        maxLines: null,
-                        textInputAction: TextInputAction.send,
-                        onSubmitted: (_) => _sendMessage(),
                       ),
                     ),
                     SizedBox(width: ResponsiveService.getSmallSpacing(context)),
                     IconButton(
+                      tooltip: 'Send message',
                       onPressed: _isRateLimited ? null : _sendMessage,
                       icon: Icon(
                         Icons.send_rounded,

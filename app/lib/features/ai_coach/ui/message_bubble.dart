@@ -86,11 +86,13 @@ class MessageBubble extends StatelessWidget {
             children: [
               Semantics(
                 label: _buildSemanticLabel(displayText, assistantTone),
-                child: Text(
-                  displayText,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: textColor,
-                    height: 1.4,
+                child: ExcludeSemantics(
+                  child: Text(
+                    displayText,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: textColor,
+                      height: 1.4,
+                    ),
                   ),
                 ),
               ),

@@ -19,6 +19,11 @@ on:
       - 'app/lib/**'
       - '.github/workflows/ci.yml'
 
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -82,12 +87,13 @@ jobs:
 
       # ---------- Database RLS Tests ----------
       - name: Setup PostgreSQL
-        uses: harmon758/postgresql-action@v1
+        uses: ikalnytskyi/action-setup-postgres@v7
         with:
-          postgresql version: '14'
-          postgresql db: 'test'
-          postgresql user: 'postgres'
-          postgresql password: ${{ env.TEST_DB_PASSWORD }}
+          postgres-version: '14'
+          username: 'postgres'
+          password: ${{ env.TEST_DB_PASSWORD }}
+          database: 'test'
+          port: 54322
 
       - name: Install Python dependencies
         run: |
@@ -105,7 +111,7 @@ jobs:
 
       - name: Setup test database schema
         run: |
-          PGPASSWORD=${{ env.TEST_DB_PASSWORD }} psql -h localhost -U postgres -d test -c "
+          PGPASSWORD=${{ env.TEST_DB_PASSWORD }} psql -h localhost -p 54322 -U postgres -d test -c "
           -- Create auth schema and users table to simulate Supabase auth
           CREATE SCHEMA IF NOT EXISTS auth;
           
@@ -241,6 +247,29 @@ jobs:
           FROM pg_policies 
           WHERE tablename = 'engagement_events';
           
+          -- Setup universal audit schema for tests
+          CREATE SCHEMA IF NOT EXISTS _shared;
+          CREATE TABLE IF NOT EXISTS _shared.audit_log (
+            id BIGSERIAL PRIMARY KEY,
+            table_name TEXT,
+            action TEXT,
+            old_row JSONB,
+            new_row JSONB,
+            changed_at TIMESTAMPTZ DEFAULT NOW()
+          );
+          CREATE OR REPLACE FUNCTION _shared.audit()
+          RETURNS TRIGGER
+          LANGUAGE plpgsql
+          SECURITY DEFINER
+          SET search_path = public, pg_temp
+          AS \$audit\$
+          BEGIN
+            INSERT INTO _shared.audit_log(table_name, action, old_row, new_row)
+            VALUES (TG_TABLE_NAME, TG_OP, row_to_json(OLD), row_to_json(NEW));
+            RETURN COALESCE(NEW, OLD);
+          END;
+          \$audit\$;
+          
           -- Show postgres user type for debugging
           SELECT 'postgres user type: ' || 
                  CASE WHEN rolsuper THEN 'SUPERUSER (will use rls_test_user)' 
@@ -250,9 +279,9 @@ jobs:
           WHERE rolname = 'postgres';
           "
 
-      - name: Run RLS Tests
+      - name: Run RLS & Audit Tests
         run: |
-          pytest tests/db/test_rls.py -v
+          pytest tests/db/ -q
 
       # ---------- Component Size Audit Report ---------- 
       - name: Generate Component Size Audit Report

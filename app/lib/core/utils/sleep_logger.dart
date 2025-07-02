@@ -5,13 +5,13 @@
 
 library;
 
-const bool kSLEEP_DEBUG = bool.fromEnvironment(
+const bool kSleepDebug = bool.fromEnvironment(
   'SLEEP_DEBUG',
   defaultValue: false,
 );
 
 void sLog(String msg) {
-  if (kSLEEP_DEBUG) {
+  if (kSleepDebug) {
     // Prefix makes it easy to grep: flutter logs | grep 'SLEEPDBG'
     // ignore: avoid_print
     print('SLEEPDBG $msg');

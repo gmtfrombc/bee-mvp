@@ -1,0 +1,19 @@
+---
+description: 
+globs: app/lib/**/*.dart,supabase/functions/**/*.*,docs/**/*.*
+alwaysApply: false
+---
+# Flutter + Supabase Architecture Rules
+- Folder structure
+  • `app/lib/features/{feature}/` – feature modules  
+  • `app/lib/core/` – shared widgets / services / utils  
+  • `supabase/functions/{edge-function}/` – Supabase edge functions  
+  • `docs/` – architecture specs & planning
+
+- Keep layers separate: UI ↔ services ↔ models live in distinct files.
+- **No God Files**: split any file > 300 LOC or mixing layers.
+- Import `responsive_services.dart` + `theme.dart` → never use magic numbers.
+- Flutter SDK **3.3.2a**; null-safety enforced (`--fatal-warnings` in CI).
+- Supabase edge functions must use **SemVer tags**.
+- Tests live in `app/test/` or project-root `test/`; follow ≥ 85 % coverage goal.
+- Follow `analysis_options.yaml` for lint/style consistency.

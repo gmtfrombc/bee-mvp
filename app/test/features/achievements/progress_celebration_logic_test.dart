@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:app/core/theme/app_theme.dart' show MomentumState;
 
 // Re-declare enum for test (matches production semantics)
-enum _MilestoneType { streak7, momentumRiseToSteady }
+enum _MilestoneType { streak7, momentumRiseToSteady, momentumMaster }
 
 void main() {
   group('Progress milestone detection', () {
@@ -28,6 +28,15 @@ void main() {
       final milestone = listener.detect(previousStreak: 5, currentStreak: 6);
       expect(milestone, isNull);
     });
+
+    test('detects Momentum Master (100 points)', () {
+      final listener = TestMilestoneDetector();
+      final milestone = listener.detect(
+        previousPercentage: 90,
+        currentPercentage: 100,
+      );
+      expect(milestone, _MilestoneType.momentumMaster);
+    });
   });
 }
 
@@ -38,6 +47,8 @@ class TestMilestoneDetector {
     int currentStreak = 0,
     MomentumState? previousMomentum,
     MomentumState? currentMomentum,
+    double previousPercentage = 0,
+    double currentPercentage = 0,
   }) {
     // Re-implement minimal logic identical to production for isolation.
     if (previousStreak < 7 && currentStreak >= 7) {
@@ -46,6 +57,9 @@ class TestMilestoneDetector {
     if (previousMomentum == MomentumState.rising &&
         currentMomentum == MomentumState.steady) {
       return _MilestoneType.momentumRiseToSteady;
+    }
+    if (previousPercentage < 100 && currentPercentage >= 100) {
+      return _MilestoneType.momentumMaster;
     }
     return null;
   }

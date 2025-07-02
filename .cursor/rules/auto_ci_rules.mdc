@@ -1,0 +1,23 @@
+---
+description: 
+globs: app/test/**/*.dart,tests/**/*.py,supabase/functions/**/tests/**/*.ts,.github/workflows/*.yml
+alwaysApply: false
+---
+rule_type: auto
+trigger_dirs: [app/test, tests, supabase/functions/tests, .github]
+---
+# CI & Testing Rules
+- CI workflows live in `.github/workflows`
+- Flutter tests live in `app/test/`, use `flutter_test` + `mocktail`
+- Python tests live in `tests/`, use `pytest` with 85% coverage target
+- Deno tests live in `supabase/functions/tests/`, use Supabase test runner
+- Each public function/service must include:
+  - 1 happy-path test
+  - 1 critical edge-case test
+- Maintain **≥85% coverage** on all logic-heavy modules
+- Include tests in pull requests unless explicitly excluded
+- Follow `analysis_options.yaml` and keep code HIPAA-safe
+- Maintain **p95 latency < 1s** and handle **30 req/min/user** burst
+.github
+- Test runners for non-Dart code: pytest for Python, deno test/ts-node for TS
+- Report coverage in:  coverage/lcov.info

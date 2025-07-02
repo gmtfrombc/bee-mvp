@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:app/features/ai_coach/ui/coach_chat_screen.dart';
+import 'package:app/features/ai_coach/ui/coach_chat_screen.dart'
+    show CoachChatScreen, ChatMessage;
 import 'package:app/features/ai_coach/ui/message_bubble.dart';
 import 'package:app/features/ai_coach/ui/coaching_card.dart';
 import 'package:app/core/theme/app_theme.dart';

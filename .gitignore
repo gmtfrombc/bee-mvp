@@ -60,3 +60,8 @@ app/backup/
 # Node modules
 node_modules/
 **/node_modules/
+
+# Coverage reports
+coverage/
+app/coverage/
+supabase/functions/**/coverage/

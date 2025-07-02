@@ -1,0 +1,41 @@
+{
+  "title": "AI Coach – GC-6 Analytics",
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Daily Token Spend (USD)",
+      "datasource": "Postgres",
+      "targets": [
+        {
+          "format": "time_series",
+          "rawSql": "SELECT date_trunc('day', captured_at) AS time, sum(cost_usd) AS value FROM ai_token_usage GROUP BY 1 ORDER BY 1"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "currencyUSD" } }
+    },
+    {
+      "type": "stat",
+      "title": "p95 Latency – /conversation (ms)",
+      "datasource": "Postgres",
+      "targets": [
+        {
+          "rawSql": "SELECT bucket AS time, p95 FROM (SELECT date_trunc('hour', captured_at) AS bucket, percentile_cont(0.95) WITHIN GROUP (ORDER BY latency_ms) AS p95 FROM api_latency WHERE path = '/conversation' GROUP BY 1) sub ORDER BY bucket"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "ms" } }
+    },
+    {
+      "type": "stat",
+      "title": "Helpful-Rate (avg rating)",
+      "datasource": "Postgres",
+      "targets": [
+        {
+          "rawSql": "SELECT day AS time, helpful_rate AS value FROM v_coach_helpful_rate ORDER BY day"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "none", "decimals": 2 } }
+    }
+  ],
+  "refresh": "5m",
+  "time": { "from": "now-30d", "to": "now" }
+} 

@@ -11,7 +11,7 @@ void main() {
     });
 
     test('emits merged snapshot and aggregated steps', () async {
-      final now = DateTime(2025, 6, 25, 9, 0);
+      final now = DateTime.now();
       final later = now.add(const Duration(minutes: 1));
 
       final raw1 = VitalsData(
