@@ -1,7 +1,6 @@
 import os
 import uuid
 import psycopg2
-import json
 
 DB_CFG = {
     "host": os.getenv("DB_HOST", "localhost"),
