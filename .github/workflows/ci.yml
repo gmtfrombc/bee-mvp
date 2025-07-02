@@ -192,7 +192,7 @@ jobs:
           END;
           \$audit\$;
 
-          -- Attach universal audit trigger (_shared.audit)
+          -- Attach universal audit trigger (_shared.audit) AFTER table is created
           CREATE TRIGGER profiles_audit_trigger
             AFTER INSERT OR UPDATE OR DELETE ON public.profiles
             FOR EACH ROW EXECUTE FUNCTION _shared.audit();
