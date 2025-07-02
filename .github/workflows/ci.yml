@@ -48,14 +48,14 @@ jobs:
 
       # ---------- Flutter Basic Validation ----------
       - uses: subosito/flutter-action@v2
-        if: env.ACT != 'true'
+        if: ${{ env.ACT != 'true' }}
         with:
           flutter-version: '3.32.1'
           architecture: x64
       
       # Create environment file using new .env.example approach
       - name: Setup Flutter Environment
-        if: env.ACT != 'true'
+        if: ${{ env.ACT != 'true' }}
         working-directory: ./app
         run: |
           echo "🔧 Setting up Flutter environment for basic validation..."
@@ -65,7 +65,7 @@ jobs:
 
       # FIREBASE OPTIONS: Create CI-safe firebase_options.dart
       - name: Create Firebase Options Configuration
-        if: env.ACT != 'true'
+        if: ${{ env.ACT != 'true' }}
         working-directory: ./app
         run: |
           echo "🔧 Creating CI-safe Firebase options configuration"
@@ -73,7 +73,7 @@ jobs:
           echo "✅ CI-safe Firebase options configuration created"
 
       - name: Flutter Dependencies & Basic Validation
-        if: env.ACT != 'true'
+        if: ${{ env.ACT != 'true' }}
         working-directory: ./app
         run: |
           flutter pub get
@@ -92,7 +92,7 @@ jobs:
 
       # ---------- Database RLS Tests ----------
       - name: Setup PostgreSQL
-        if: env.ACT != 'true'
+        if: ${{ env.ACT != 'true' }}
         uses: ikalnytskyi/action-setup-postgres@v7
         with:
           postgres-version: '14'
@@ -116,7 +116,7 @@ jobs:
           ruff check tests/ --output-format=github
 
       - name: Setup test database schema
-        if: env.ACT != 'true'
+        if: ${{ env.ACT != 'true' }}
         run: |
           PGPASSWORD=${{ env.TEST_DB_PASSWORD }} psql -h localhost -p 54322 -U postgres -d test -c "
           -- Create auth schema and users table to simulate Supabase auth
@@ -287,7 +287,7 @@ jobs:
           "
 
       - name: Run RLS & Audit Tests
-        if: env.ACT != 'true'
+        if: ${{ env.ACT != 'true' }}
         run: |
           pytest tests/db/ -q
 
