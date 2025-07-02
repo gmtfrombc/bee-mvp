@@ -17,10 +17,8 @@ def _get_conn(user_id: str | None = None):
     conn.autocommit = True
     if user_id:
         with conn.cursor() as cur:
-            cur.execute(
-                "SELECT set_config('request.jwt.claims', %s, true)",
-                (json.dumps({"sub": user_id}),),
-            )
+            # Use security-definer helper to set the JWT claims safely
+            cur.execute("SELECT auth.set_uid(%s)", (user_id,))
     return conn
 
 

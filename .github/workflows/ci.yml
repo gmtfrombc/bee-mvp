@@ -141,17 +141,26 @@ jobs:
           );
           
           -- Create auth.uid() function to simulate Supabase auth
-          CREATE OR REPLACE FUNCTION auth.uid() RETURNS UUID AS \$function\$
+           CREATE OR REPLACE FUNCTION auth.uid() RETURNS UUID AS \$function\$
+           BEGIN
+             RETURN NULLIF(
+               current_setting('request.jwt.claims', true)::jsonb->>'sub',
+               ''
+             )::UUID;
+           EXCEPTION
+             WHEN others THEN
+               RETURN NULL;
+           END;
+           \$function\$ LANGUAGE plpgsql SECURITY DEFINER;
+
+          -- Helper to set JWT claims for non-superusers
+          CREATE OR REPLACE FUNCTION auth.set_uid(p_uid UUID) RETURNS VOID AS \$setuid\$
           BEGIN
-            RETURN NULLIF(
-              current_setting('request.jwt.claims', true)::jsonb->>'sub',
-              ''
-            )::UUID;
-          EXCEPTION
-            WHEN others THEN
-              RETURN NULL;
+            PERFORM set_config('request.jwt.claims', json_build_object('sub', p_uid)::text, true);
           END;
-          \$function\$ LANGUAGE plpgsql SECURITY DEFINER;
+          \$setuid\$ LANGUAGE plpgsql SECURITY DEFINER;
+
+          GRANT EXECUTE ON FUNCTION auth.set_uid(UUID) TO PUBLIC;
           
           -- Create engagement_events table matching production schema
           CREATE TABLE IF NOT EXISTS engagement_events (
