@@ -340,6 +340,12 @@ jobs:
       # actionlint-disable-next-line expression-env
       - name: Run RLS & Audit Tests
         if: ${{ env.ACT != 'true' }}
+        env:
+          DB_HOST: localhost
+          DB_PORT: '54322'
+          DB_NAME: test
+          DB_USER: postgres
+          DB_PASSWORD: ${{ env.TEST_DB_PASSWORD }}
         run: |
           pytest tests/db/ -q
 
