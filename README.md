@@ -193,3 +193,10 @@ cd supabase/functions && npm run deploy
 
 _For detailed docs start with_
 **[Project Overview](docs/0_Initial_docs/project_overview.md)**
+
+## Security & Authentication
+
+- Supabase email/password provider **enabled** (see project dashboard).
+- **Password policy**: minimum 8 characters, at least 1 symbol.\
+  This is enforced in Supabase Auth settings rather than in-code; no additional
+  backend logic is required.
