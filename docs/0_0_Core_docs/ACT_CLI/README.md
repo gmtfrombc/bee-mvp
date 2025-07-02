@@ -3,6 +3,12 @@
 > "Think globally, **act** locally" — run the exact GitHub Actions workflow the
 > repo uses without pushing a single commit.
 
+# NOTE: Run ACT with the following:
+
+act push -W .github/workflows/ci.yml -P
+ubuntu-latest=catthehacker/ubuntu:act-latest --env ACT=false --secret-file
+.secrets --container-architecture linux/amd64 -j build
+
 ---
 
 ## 1. Prerequisites
