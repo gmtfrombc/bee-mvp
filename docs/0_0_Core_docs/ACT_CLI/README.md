@@ -138,6 +138,31 @@ pass. If you re-enable Supabase migrations, either:
 > …after adding `if: env.SKIP_TF != 'true'` to the Terraform step in the
 > workflow.
 
+### Testing the Supabase migrations workflow locally
+
+The Supabase DB-migration workflow lives in
+`.github/workflows/migrations-deploy.yml` and defines a single job called
+`deploy`.
+
+Our helper script defaults to the **build** job used by backend & frontend
+tests. To reproduce migration errors you must target the `deploy` job
+explicitly:
+
+```bash
+# Run the deploy workflow and nothing else
+./scripts/run_ci_locally.sh -j deploy
+```
+
+If you want to run **all** jobs (slower) simply omit the `-j` flag.
+
+```bash
+./scripts/run_ci_locally.sh   # build + deploy, identical to GitHub
+```
+
+⚠️ Without the extra `-j deploy` flag, local `act` runs will not touch the
+Supabase CLI step, meaning provider/version errors can slip through. That's why
+the GitHub run failed while our earlier local run (build-only) passed.
+
 ---
 
 Happy **offline-CI**! 🎉

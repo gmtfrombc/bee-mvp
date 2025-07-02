@@ -22,8 +22,6 @@ jobs:
 
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v1
-        with:
-          version: v1
 
       - name: Load Supabase secrets into environment
         run: |
