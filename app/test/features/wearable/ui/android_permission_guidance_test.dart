@@ -1,7 +1,7 @@
-/// Tests for Android Permission Guidance Widget
-///
-/// Focuses on core business logic and essential functionality
-/// following the project's testing policy of ≥85% coverage on core logic.
+// Tests for Android Permission Guidance Widget
+//
+// Focuses on core business logic and essential functionality
+// following the project's testing policy of ≥85% coverage on core logic.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
