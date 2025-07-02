@@ -309,6 +309,7 @@ jobs:
                   GRANT USAGE ON SCHEMA public TO rls_test_user;
                   GRANT SELECT, INSERT, UPDATE, DELETE ON auth.users TO rls_test_user;
                   GRANT SELECT, INSERT, UPDATE, DELETE ON engagement_events TO rls_test_user;
+                  GRANT SELECT, INSERT, UPDATE, DELETE ON public.profiles TO rls_test_user;
                   GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO rls_test_user;
                   GRANT USAGE ON ALL SEQUENCES IN SCHEMA auth TO rls_test_user;
                   
@@ -344,8 +345,8 @@ jobs:
           DB_HOST: localhost
           DB_PORT: '54322'
           DB_NAME: test
-          DB_USER: postgres
-          DB_PASSWORD: ${{ env.TEST_DB_PASSWORD }}
+          DB_USER: rls_test_user
+          DB_PASSWORD: postgres
         run: |
           pytest tests/db/ -q
 
