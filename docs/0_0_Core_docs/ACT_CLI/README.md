@@ -64,34 +64,24 @@ install). Subsequent runs start almost instantly.
 
 ---
 
-## 4. Running only fast Python/DB tests
+## 4. Useful commands
 
-If you just want to iterate on the backend tests and skip Flutter & Terraform
-steps:
+Partial-step execution (`--step`) was removed from `act` in v0.2.x. If you need
+faster feedback, run the single job only:
 
 ```bash
-# Run only the database & Python sections of the job
-act -j build --step 20 \
+act -j build \
   -W .github/workflows/ci.yml \
+  --env ACT=false \
   --secret-file .secrets
 ```
 
-`--step 20` tells `act` to start at step 20 ("Setup PostgreSQL"), bypassing the
-slow early phases. Adjust as needed (`act -l` lists numbered steps).
+That still spins up Flutter & Terraform—but avoids any other jobs (e.g. future
+matrix builds).
 
 ---
 
-## 5. Useful commands
-
-```bash
-act -l                          # list all workflows / jobs detected
-act -j build -n                 # dry-run (no containers executed)
-act workflow_dispatch -l        # list dispatchable workflows
-```
-
----
-
-## 6. Troubleshooting
+## 5. Troubleshooting
 
 | Symptom                              | Fix                                                                                                      |
 | ------------------------------------ | -------------------------------------------------------------------------------------------------------- |
