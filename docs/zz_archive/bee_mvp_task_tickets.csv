@@ -1,0 +1,19 @@
+zEpic,Module,Task Description
+EPIC 1: Action Step Engine,Module 1.1: Weekly Goal Selection,Build hybrid chat + UI for weekly action step selection
+EPIC 1: Action Step Engine,Module 1.1: Weekly Goal Selection,Add validation and formatting logic for action steps
+EPIC 1: Action Step Engine,Module 1.2: Daily Check-ins + Reward Logic,Create daily check-in UI component and reminder logic
+EPIC 1: Action Step Engine,Module 1.2: Daily Check-ins + Reward Logic,Wire reward logic (e.g. confetti trigger) and link to Momentum Score
+EPIC 2: AI Coach Engine,Module 2.1: Feature-Specific Interactions,"Implement AI message triggers for action steps, biometrics, energy score"
+EPIC 2: AI Coach Engine,Module 2.2: General Conversation Thread,Create chat interface for user-initiated conversations
+EPIC 2: AI Coach Engine,Module 2.2: General Conversation Thread,Log chat history with timestamp and sentiment tags
+EPIC 2: AI Coach Engine,Module 2.4: Backend Routing + Safety Layer,Define API endpoints for AI-triggered score updates
+EPIC 2: AI Coach Engine,Module 2.4: Backend Routing + Safety Layer,Add safety validation and hallucination guards for AI requests
+EPIC 3: Engagement & Scoring,Module 3.1: Momentum Score Calculation Engine,Create event weight mapping and score calculation logic
+EPIC 3: Engagement & Scoring,Module 3.1: Momentum Score Calculation Engine,Add engagement event logging endpoints
+EPIC 4: Biometrics,Module 4.1: Manual Entry + Vitality Score UI,"Build UI for weight, BP, glucose manual input"
+EPIC 4: Biometrics,Module 4.1: Manual Entry + Vitality Score UI,Calculate and display Vitality Score from metrics
+EPIC 4: Biometrics,Module 4.2: Biometric Trigger Events (AI Coach),Trigger coach messages based on biometric changes
+EPIC 4: Biometrics,Module 4.2: Biometric Trigger Events (AI Coach),Capture user response and conditionally update Momentum Score
+EPIC 5: Today Feed,Module 5.1: Edge Function + Seed Prompting,Adjust Edge Function to follow 3/3/1 daily content logic
+EPIC 6: Onboarding & Assessment,Module 6.1: Baseline Survey + Coaching Style,Implement onboarding survey UX and logic
+EPIC 6: Onboarding & Assessment,Module 6.3: Medical Intake Survey,Create UI for medical history collection

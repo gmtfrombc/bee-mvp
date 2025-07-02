@@ -1,0 +1,17 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+rule_type: manual
+@retro
+---
+# 🔁 Retro Review Prompt
+
+After completing a task, perform a retrospective:
+1. Did you follow separation of concerns?
+2. Were existing abstractions reused?
+3. Are tests and error handling sufficient?
+4. What could be improved in future iterations?
+
+Return a brief analysis and suggestions.

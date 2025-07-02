@@ -1,29 +1,34 @@
 # BEE Engagement Events - Testing Suite
 
-**Module:** Core Engagement  
-**Milestone:** 1 · Data Backbone  
+**Module:** Core Engagement\
+**Milestone:** 1 · Data Backbone\
 **Task:** 5 - Testing & Validation
 
-This directory contains comprehensive tests for the engagement events logging system, covering database security, performance, and API validation.
+This directory contains comprehensive tests for the engagement events logging
+system, covering database security, performance, and API validation.
 
 ## 📋 Test Overview
 
 ### Task 5.1: Mock Data Generation ✅
+
 - **File:** `supabase/migrations/seed_engagement_events.sql`
 - **Purpose:** Generate realistic test data with multiple event types and users
 - **Coverage:** ~48 events across 3 test users with varied JSONB payloads
 
 ### Task 5.2: RLS Audit Tests ✅
+
 - **File:** `tests/db/test_rls_audit.py`
 - **Purpose:** Verify complete cross-user data isolation
 - **Coverage:** Zero cross-user leakage verification, concurrent session testing
 
 ### Task 5.3: Performance Testing ✅
+
 - **File:** `tests/db/test_performance.py`
 - **Purpose:** Measure database performance and Realtime latency
 - **Coverage:** Concurrent inserts, index effectiveness, large dataset queries
 
 ### Task 5.4: API Validation Tests ✅
+
 - **File:** `tests/api/test_api_validation.py`
 - **Purpose:** Test REST/GraphQL APIs, authentication, and error handling
 - **Coverage:** CRUD operations, unauthorized access, rate limiting
@@ -45,7 +50,7 @@ This directory contains comprehensive tests for the engagement events logging sy
    export DB_NAME=postgres
    export DB_USER=postgres
    export DB_PASSWORD=postgres
-   
+
    # Optional for API tests
    export SUPABASE_URL=http://localhost:54321
    export SUPABASE_ANON_KEY=your_anon_key
@@ -57,7 +62,7 @@ This directory contains comprehensive tests for the engagement events logging sy
    ```bash
    # Apply migrations
    supabase db reset
-   
+
    # Load test data
    psql -h localhost -p 54322 -U postgres -d postgres -f supabase/migrations/seed_engagement_events.sql
    ```
@@ -92,7 +97,9 @@ python tests/api/test_api_validation.py
 **Purpose:** Ensure HIPAA-compliant data isolation
 
 **Tests:**
-1. **Table & RLS Check** - Verify engagement_events table exists with RLS enabled
+
+1. **Table & RLS Check** - Verify engagement_events table exists with RLS
+   enabled
 2. **User Isolation** - Confirm users can only see their own events
 3. **Anonymous Access** - Verify anonymous users have no access
 4. **Insert Isolation** - Test users can only insert their own events
@@ -100,6 +107,7 @@ python tests/api/test_api_validation.py
 6. **Concurrent Sessions** - Test RLS under concurrent user access
 
 **Success Criteria:**
+
 - Zero cross-user data leakage
 - All RLS policies enforced correctly
 - Service role access works for bulk operations
@@ -109,6 +117,7 @@ python tests/api/test_api_validation.py
 **Purpose:** Validate system performance under load
 
 **Tests:**
+
 1. **Single Insert Performance** - Target: <50ms average
 2. **Concurrent Inserts** - 100+ concurrent inserts, >50 inserts/sec
 3. **Index Effectiveness** - Verify EXPLAIN ANALYZE shows index usage
@@ -116,6 +125,7 @@ python tests/api/test_api_validation.py
 5. **Realtime Latency** - Simulate <500ms notification latency
 
 **Success Criteria:**
+
 - Meet all performance targets from PRD
 - Indexes used effectively for common queries
 - System scales under concurrent load
@@ -125,6 +135,7 @@ python tests/api/test_api_validation.py
 **Purpose:** Validate REST and GraphQL API behavior
 
 **Tests:**
+
 1. **REST CRUD Operations** - Test all HTTP methods with authentication
 2. **GraphQL Operations** - Test queries and mutations
 3. **Unauthorized Access** - Verify proper error responses (401/403)
@@ -134,6 +145,7 @@ python tests/api/test_api_validation.py
 7. **Response Formats** - Validate JSON structure and data types
 
 **Success Criteria:**
+
 - All CRUD operations work correctly
 - Proper authentication and authorization
 - Consistent API response formats
@@ -143,7 +155,7 @@ python tests/api/test_api_validation.py
 Each test suite generates detailed JSON reports:
 
 - **RLS Audit:** `tests/db/rls_audit_report_YYYYMMDD_HHMMSS.json`
-- **Performance:** `tests/db/performance_report_YYYYMMDD_HHMMSS.json`  
+- **Performance:** `tests/db/performance_report_YYYYMMDD_HHMMSS.json`
 - **API Validation:** `tests/api/api_validation_report_YYYYMMDD_HHMMSS.json`
 
 ## 🔧 Troubleshooting
@@ -154,7 +166,7 @@ Each test suite generates detailed JSON reports:
    ```bash
    # Check if Supabase is running
    supabase status
-   
+
    # Start local development
    supabase start
    ```
@@ -170,7 +182,7 @@ Each test suite generates detailed JSON reports:
    # Check environment variables
    echo $SUPABASE_URL
    echo $SUPABASE_ANON_KEY
-   
+
    # Generate user JWT token for testing
    # (Use Supabase dashboard or auth endpoint)
    ```
@@ -185,24 +197,24 @@ Each test suite generates detailed JSON reports:
 
 ### Environment Variables Reference
 
-| Variable | Required | Purpose | Default |
-|----------|----------|---------|---------|
-| `DB_HOST` | Yes | Database host | `localhost` |
-| `DB_PORT` | Yes | Database port | `54322` |
-| `DB_NAME` | Yes | Database name | `postgres` |
-| `DB_USER` | Yes | Database user | `postgres` |
-| `DB_PASSWORD` | Yes | Database password | `postgres` |
-| `SUPABASE_URL` | No | Supabase project URL | `http://localhost:54321` |
-| `SUPABASE_ANON_KEY` | No | Anonymous API key | Required for API tests |
-| `USER_JWT_TOKEN` | No | User JWT for testing | Required for user API tests |
-| `SUPABASE_SERVICE_ROLE_KEY` | No | Service role key | Required for service role tests |
+| Variable                    | Required | Purpose              | Default                         |
+| --------------------------- | -------- | -------------------- | ------------------------------- |
+| `DB_HOST`                   | Yes      | Database host        | `localhost`                     |
+| `DB_PORT`                   | Yes      | Database port        | `54322`                         |
+| `DB_NAME`                   | Yes      | Database name        | `postgres`                      |
+| `DB_USER`                   | Yes      | Database user        | `postgres`                      |
+| `DB_PASSWORD`               | Yes      | Database password    | `postgres`                      |
+| `SUPABASE_URL`              | No       | Supabase project URL | `http://localhost:54321`        |
+| `SUPABASE_ANON_KEY`         | No       | Anonymous API key    | Required for API tests          |
+| `USER_JWT_TOKEN`            | No       | User JWT for testing | Required for user API tests     |
+| `SUPABASE_SERVICE_ROLE_KEY` | No       | Service role key     | Required for service role tests |
 
 ## 🎯 Success Metrics
 
 Task 5 is complete when all tests pass:
 
 - ✅ **RLS Audit:** Zero cross-user leakage confirmed
-- ✅ **Performance:** <500ms Realtime latency, >50 inserts/sec throughput  
+- ✅ **Performance:** <500ms Realtime latency, >50 inserts/sec throughput
 - ✅ **API Validation:** All CRUD operations working with proper auth
 
 ## 📚 Related Documentation
@@ -212,7 +224,20 @@ Task 5 is complete when all tests pass:
 - **Prompts:** `docs/1_milestone_1/prompts-engagement-events.md`
 - **Migration:** `supabase/migrations/20241201000000_engagement_events.sql`
 
+## 🚧 Known Limitations / Future Work
+
+- **Skipped DB Performance & RLS Suites:** The heavy database-performance tests
+  (`test_performance_optimization.py`) and the RLS integration suite
+  (`test_rls.py`) are temporarily marked with `@pytest.mark.skip` in CI. They
+  require a seeded `auth.users` table and additional fixtures (non-superuser
+  role, engagement_events schema) that are not yet provisioned by our GitHub
+  Actions workflow.
+
+  **Action Item (Module 2 · Data Integration & Events ⇒ Task 5.x):** Implement a
+  lightweight seed-data generator (or mock fixtures) during pipeline setup, then
+  remove the skip markers to restore full coverage.
+
 ---
 
-**Status:** ✅ Complete  
-**Next:** Proceed to Task 6 (Documentation & Deployment) 
+**Status:** ✅ Complete\
+**Next:** Proceed to Task 6 (Documentation & Deployment)

@@ -202,9 +202,19 @@ class _TodayFeedTileState extends State<TodayFeedTile>
       borderRadius: borderRadius,
       child: GestureDetector(
         onLongPress: () {
-          Navigator.of(
-            context,
-          ).push(MaterialPageRoute(builder: (_) => const CoachChatScreen()));
+          final content = widget.state.content;
+
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder:
+                  (_) => CoachChatScreen(
+                    articleId: content?.id?.toString(),
+                    articleTitle: content?.title,
+                    articleSummary: _buildArticleSummary(content),
+                    showBackButton: true,
+                  ),
+            ),
+          );
         },
         child: Semantics(
           label: _getSemanticLabel(),
@@ -395,5 +405,31 @@ class _TodayFeedTileState extends State<TodayFeedTile>
                   ? "Showing ${fallbackResult.userMessage.toLowerCase()}, double tap to read"
                   : "No content available, double tap to retry",
     );
+  }
+
+  String _buildArticleSummary(TodayFeedContent? content) {
+    if (content == null) return "";
+
+    // Combine the short summary with up to two paragraph elements from the
+    // rich content to give the AI coach enough context while keeping token
+    // cost reasonable.
+    final buffer = StringBuffer();
+    buffer.writeln(content.title);
+    buffer.writeln();
+    buffer.writeln(content.summary);
+
+    final paragraphs =
+        content.fullContent?.elements
+            .where((e) => e.type == RichContentType.paragraph)
+            .take(2)
+            .map((e) => e.text)
+            .toList();
+
+    if (paragraphs != null && paragraphs.isNotEmpty) {
+      buffer.writeln();
+      buffer.writeln(paragraphs.join("\n\n"));
+    }
+
+    return buffer.toString();
   }
 }

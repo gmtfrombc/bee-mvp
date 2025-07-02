@@ -6,6 +6,9 @@
 
 import { assertEquals } from 'https://deno.land/std@0.208.0/assert/mod.ts'
 
+// Ensure test environment flag so isInitialized() returns true
+Deno.env.set('DENO_TESTING', 'true')
+
 // Test helper functions that mirror the core algorithm logic without database calls
 function calculateOptimalFrequency(
   currentFrequency: number,

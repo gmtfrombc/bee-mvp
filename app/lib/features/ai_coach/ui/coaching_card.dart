@@ -28,66 +28,72 @@ class CoachingCard extends StatelessWidget {
             ? AppTheme.getMomentumColor(momentumState!)
             : AppTheme.getMomentumColor(MomentumState.steady);
 
-    return Card(
-      margin: EdgeInsets.symmetric(
-        horizontal: spacing,
-        vertical: ResponsiveService.getSmallSpacing(context),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border(top: BorderSide(color: accentColor, width: 3)),
-          ),
-          child: Padding(
-            padding: EdgeInsets.all(spacing),
-            child: Row(
-              children: [
-                if (icon != null) ...[
-                  Container(
-                    padding: EdgeInsets.all(
-                      ResponsiveService.getSmallSpacing(context),
-                    ),
-                    decoration: BoxDecoration(
-                      color: accentColor.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(icon, color: accentColor, size: 24),
-                  ),
-                  SizedBox(width: spacing),
-                ],
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        title,
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.w600),
+    return Semantics(
+      button: true,
+      label: title,
+      child: Card(
+        margin: EdgeInsets.symmetric(
+          horizontal: spacing,
+          vertical: ResponsiveService.getSmallSpacing(context),
+        ),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border(top: BorderSide(color: accentColor, width: 3)),
+            ),
+            child: Padding(
+              padding: EdgeInsets.all(spacing),
+              child: Row(
+                children: [
+                  if (icon != null) ...[
+                    Container(
+                      padding: EdgeInsets.all(
+                        ResponsiveService.getSmallSpacing(context),
                       ),
-                      SizedBox(
-                        height: ResponsiveService.getTinySpacing(context),
+                      decoration: BoxDecoration(
+                        color: accentColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      Text(
-                        subtitle,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppTheme.getTextSecondary(context),
+                      child: Icon(icon, color: accentColor, size: 24),
+                    ),
+                    SizedBox(width: spacing),
+                  ],
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          title,
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w600),
                         ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
+                        SizedBox(
+                          height: ResponsiveService.getTinySpacing(context),
+                        ),
+                        Text(
+                          subtitle,
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodyMedium?.copyWith(
+                            color: AppTheme.getTextSecondary(context),
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                Icon(
-                  Icons.arrow_forward_ios,
-                  color: AppTheme.getTextTertiary(context),
-                  size: 16,
-                ),
-              ],
+                  Icon(
+                    Icons.arrow_forward_ios,
+                    color: AppTheme.getTextTertiary(context),
+                    size: 16,
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -119,32 +125,36 @@ class CompactCoachingCard extends StatelessWidget {
             ? AppTheme.getMomentumColor(momentumState!)
             : AppTheme.getMomentumColor(MomentumState.steady);
 
-    return Card(
-      margin: EdgeInsets.all(ResponsiveService.getTinySpacing(context)),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: EdgeInsets.all(spacing),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border(left: BorderSide(color: accentColor, width: 3)),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(emoji, style: const TextStyle(fontSize: 20)),
-              SizedBox(width: spacing),
-              Flexible(
-                child: Text(
-                  title,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
-                  maxLines: 2,
+    return Semantics(
+      button: true,
+      label: title,
+      child: Card(
+        margin: EdgeInsets.all(ResponsiveService.getTinySpacing(context)),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: EdgeInsets.all(spacing),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border(left: BorderSide(color: accentColor, width: 3)),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(emoji, style: const TextStyle(fontSize: 20)),
+                SizedBox(width: spacing),
+                Flexible(
+                  child: Text(
+                    title,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
+                    maxLines: 2,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

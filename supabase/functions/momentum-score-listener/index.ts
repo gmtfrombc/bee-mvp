@@ -50,8 +50,19 @@ export default async function handler(req: Request): Promise<Response> {
 
     const previousState = previousRecord?.momentum_state;
 
+    // ====================
+    // Null-safe branch – new users with no previous momentum record
+    // We simply store baseline and exit early to avoid unnecessary coach call
+    // ====================
+    if (!previousState) {
+      console.log(
+        `No previous momentum state for user ${user_id} – treating as baseline only`,
+      );
+      return new Response("OK", { status: 200 });
+    }
+
     // Only trigger if state actually changed
-    if (previousState && previousState !== momentum_state) {
+    if (previousState !== momentum_state) {
       console.log(
         `Momentum state change detected for user ${user_id}: ${previousState} → ${momentum_state}`,
       );
@@ -74,43 +85,59 @@ export default async function handler(req: Request): Promise<Response> {
         return new Response("Service configuration error", { status: 500 });
       }
 
-      // Call AI coaching engine with momentum change event using service role
-      const coachingResponse = await fetch(aiCoachingEngineUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${serviceToken}`,
-          "X-System-Event": "true", // Flag this as a system event
-        },
-        body: JSON.stringify({
-          user_id,
-          message: `momentum_change:${previousState}:${momentum_state}`,
-          momentum_state,
-          system_event: "momentum_change",
-          previous_state: previousState,
-          current_score: final_score,
-        }),
-      });
+      // ------- Fetch AI coaching engine with timeout / abort cleanup -------
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10_000); // 10s safeguard
 
-      if (coachingResponse.ok) {
-        const coachingResult = await coachingResponse.json();
-        console.log(
-          `AI coaching response generated for user ${user_id}:`,
-          coachingResult.assistant_message,
-        );
+      try {
+        const coachingResponse = await fetch(aiCoachingEngineUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${serviceToken}`,
+            "X-System-Event": "true", // Flag this as a system event
+          },
+          body: JSON.stringify({
+            user_id,
+            message: `momentum_change:${previousState}:${momentum_state}`,
+            momentum_state,
+            system_event: "momentum_change",
+            previous_state: previousState,
+            current_score: final_score,
+          }),
+          signal: controller.signal,
+        });
 
-        // Send push notification via NotificationService
-        await sendCoachNudge(
-          user_id,
-          momentum_state,
-          previousState,
-          coachingResult.assistant_message,
-        );
-      } else {
-        console.error(
-          `AI coaching request failed:`,
-          await coachingResponse.text(),
-        );
+        clearTimeout(timeoutId);
+
+        if (coachingResponse.ok) {
+          const coachingResult = await coachingResponse.json();
+          console.log(
+            `AI coaching response generated for user ${user_id}:`,
+            coachingResult.assistant_message,
+          );
+
+          // Send push notification via NotificationService
+          await sendCoachNudge(
+            user_id,
+            momentum_state,
+            previousState,
+            coachingResult.assistant_message,
+          );
+        } else {
+          console.error(
+            `AI coaching request failed:`,
+            await coachingResponse.text(),
+          );
+        }
+      } catch (fetchError) {
+        if (
+          fetchError instanceof DOMException && fetchError.name === "AbortError"
+        ) {
+          console.error("AI coaching fetch aborted after timeout");
+        } else {
+          console.error("Error fetching AI coaching engine:", fetchError);
+        }
       }
     }
 
