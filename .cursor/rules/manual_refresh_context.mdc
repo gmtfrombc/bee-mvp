@@ -1,0 +1,16 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+rule_type: manual
+@refresh
+---
+# 🔄 Refresh Context
+
+You are being asked to **rescan all documentation, architecture, and current file structures**.
+Steps:
+1. Re-read `/docs/bee_mvp_architecture.md` and `/README.md`
+2. Summarize key architectural decisions
+3. Update your internal context with these files
+4. Wait for further instructions

@@ -1,5 +1,6 @@
 // dynamic supabase client import helper
 import { getSupabaseClient as _getSupabaseClient } from './_shared/supabase_client.ts'
+import { generateEmbedding, storeEmbedding } from './embedding.ts'
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!
 const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!
@@ -94,7 +95,17 @@ export async function logConversation(
     throw new Error(`Failed to log conversation: ${error.message}`)
   }
 
-  return data?.id || null
+  const logId = data?.id || null
+
+  // Fire & forget embedding generation (non-blocking)
+  if (logId && content && content.length > 0) {
+    // Do not await to keep response fast
+    generateEmbedding(content)
+      .then((vec) => vec && storeEmbedding(logId, vec))
+      .catch((err) => console.error('[embedding] background error', err))
+  }
+
+  return logId
 }
 
 /**

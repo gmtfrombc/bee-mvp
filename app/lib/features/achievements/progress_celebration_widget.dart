@@ -7,7 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:app/core/theme/app_theme.dart';
 
 /// Simple enum to identify which milestone was triggered.
-enum _MilestoneType { streak7, momentumRiseToSteady }
+enum _MilestoneType { streak7, momentumRiseToSteady, momentumMaster }
 
 /// Displays a small congratulatory card/toast whenever the user hits an
 /// engagement milestone (7-day streak or Momentum *Rising → Steady*).
@@ -28,6 +28,7 @@ class _ProgressCelebrationListenerState
     extends ConsumerState<ProgressCelebrationListener> {
   int _prevStreak = 0;
   MomentumState? _prevMomentumState;
+  double _prevMomentumPercentage = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -55,11 +56,37 @@ class _ProgressCelebrationListenerState
         currentStreak: _prevStreak, // unchanged in this listener
         previousMomentum: previous,
         currentMomentum: next,
+        previousPercentage: _prevMomentumPercentage,
+        currentPercentage: _prevMomentumPercentage, // unchanged here
       );
       if (milestone == _MilestoneType.momentumRiseToSteady) {
         _showCelebration(message: '👏 Momentum is steady! Great progress!');
       }
       _prevMomentumState = next;
+    });
+
+    // Listen to momentum percentage changes to detect "Momentum Master" badge
+    ref.listen<double?>(momentumPercentageProvider, (previous, next) {
+      final prevVal = previous ?? _prevMomentumPercentage;
+      final currVal = next ?? _prevMomentumPercentage;
+
+      final milestone = _detectMilestone(
+        previousStreak: _prevStreak,
+        currentStreak: _prevStreak,
+        previousMomentum: _prevMomentumState,
+        currentMomentum: _prevMomentumState,
+        previousPercentage: prevVal,
+        currentPercentage: currVal,
+      );
+
+      if (milestone == _MilestoneType.momentumMaster) {
+        _showCelebration(
+          message: '🏆 Momentum Master! You reached 100 momentum points!',
+        );
+        _awardMomentumMasterBadge();
+      }
+
+      _prevMomentumPercentage = currVal;
     });
 
     return widget.child;
@@ -70,6 +97,8 @@ class _ProgressCelebrationListenerState
     required int currentStreak,
     required MomentumState? previousMomentum,
     required MomentumState? currentMomentum,
+    double? previousPercentage,
+    double? currentPercentage,
   }) {
     if (previousStreak < 7 && currentStreak >= 7) {
       return _MilestoneType.streak7;
@@ -80,6 +109,11 @@ class _ProgressCelebrationListenerState
       return _MilestoneType.momentumRiseToSteady;
     }
 
+    // Detect crossing 100% momentum (or 100 points) threshold
+    if ((previousPercentage ?? 0) < 100 && (currentPercentage ?? 0) >= 100) {
+      return _MilestoneType.momentumMaster;
+    }
+
     return null;
   }
 
@@ -87,6 +121,21 @@ class _ProgressCelebrationListenerState
     final user = Supabase.instance.client.auth.currentUser;
     if (user != null) {
       await StreakService.incrementSevenDayBadgeCount(user.id);
+    }
+  }
+
+  Future<void> _awardMomentumMasterBadge() async {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user != null) {
+      try {
+        await Supabase.instance.client.rpc(
+          'award_momentum_master_badge',
+          params: {'p_user_id': user.id},
+        );
+      } catch (e) {
+        // If the RPC is missing or fails, silently ignore (will be logged)
+        debugPrint('Error awarding momentum master badge: $e');
+      }
     }
   }
 
