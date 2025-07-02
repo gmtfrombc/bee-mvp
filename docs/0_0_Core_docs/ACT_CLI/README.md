@@ -163,6 +163,13 @@ If you want to run **all** jobs (slower) simply omit the `-j` flag.
 Supabase CLI step, meaning provider/version errors can slip through. That's why
 the GitHub run failed while our earlier local run (build-only) passed.
 
+The helper script now **includes migrations by default**. If you only want the
+fast build/test cycle (no Supabase calls), set:
+
+```bash
+SKIP_MIGRATIONS=true ./scripts/run_ci_locally.sh
+```
+
 ---
 
 Happy **offline-CI**! 🎉
