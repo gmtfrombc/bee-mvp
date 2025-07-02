@@ -64,3 +64,9 @@ resource "google_secret_manager_secret" "supabase_service_key" {
 
   depends_on = [google_project_service.secret_manager]
 }
+
+# ---------------------------------------------------------------------------
+# Supabase migration for Auth Profiles (M1.6.1)
+# ---------------------------------------------------------------------------
+
+# Removed unsupported Supabase data/resource blocks; CI will apply migrations via GitHub Action instead.
