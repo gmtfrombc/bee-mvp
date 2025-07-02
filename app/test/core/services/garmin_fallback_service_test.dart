@@ -1,6 +1,5 @@
 /// Unit tests for GarminFallbackService
 /// Following BEE testing policy: essential tests only, clean output
-library;
 
 import 'package:flutter_test/flutter_test.dart';
 

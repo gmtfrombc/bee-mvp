@@ -1,6 +1,5 @@
 /// Tests for iOS Background Delivery Service
 /// Part of Epic 2.2 Task T2.2.2.2
-library;
 
 import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';

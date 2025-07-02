@@ -2,7 +2,6 @@
 ///
 /// Essential unit tests for T2.2.1.5-4 core business logic.
 /// Following testing policy: ≥85% coverage, essential tests only.
-library;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';

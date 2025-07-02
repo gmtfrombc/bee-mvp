@@ -7,7 +7,6 @@
 /// - Core feature flag logic
 /// - Data source detection patterns
 /// - Warning cooldown configuration
-library;
 
 import 'package:flutter_test/flutter_test.dart';
 
