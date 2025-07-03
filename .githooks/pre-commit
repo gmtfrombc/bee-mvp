@@ -29,8 +29,10 @@ if command -v gitleaks >/dev/null 2>&1; then
 
   # Restore unstaged changes after successful scan
   git stash pop -q
+# If gitleaks is missing, abort the commit (developers must install it)
 else
-  echo "⚠️  Gitleaks not installed; skipping automatic secret scan. See SECURITY.md for setup instructions."
+  echo "❌  Gitleaks is not installed. Install it before committing. See SECURITY.md for instructions."
+  exit 1
 fi
 
 echo "✅ Pre-commit hook completed successfully"

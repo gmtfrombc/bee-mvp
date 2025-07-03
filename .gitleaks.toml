@@ -7,10 +7,22 @@ title = "BEE Momentum Meter Secret Scanner"
 [extend]
 useDefault = true
 
-# Disable some rules that cause false positives in our codebase
-disabledRules = [
-    "generic-api-key",  # Too many false positives in documentation
-]
+# Re-enable generic-api-key for stronger scanning
+# (no disabledRules list – use default ruleset in full)
+
+[[rules]]
+id = "supabase-access-token"
+description = "Supabase Personal Access Token (sbp_ prefix)"
+regex = '''sbp_[A-Za-z0-9]{32,}'''
+secretGroup = 0
+keywords = ["supabase", "sbp_"]
+
+[[rules]]
+id = "gcp-service-account-key"
+description = "GCP Service-Account private_key_id pattern"
+regex = '''"private_key_id"\s*:\s*"[A-Za-z0-9]{40}"'''
+secretGroup = 0
+keywords = ["private_key_id", "gcp"]
 
 # Custom rules specific to our tech stack
 [[rules]]
@@ -128,4 +140,13 @@ regexes = [
     '''.*\$[A-Z_]+.*''',  # Variable references like $SUPABASE_ANON_KEY
     '''.*your_key.*''',   # Placeholder text
     '''.*your_url.*''',   # Placeholder text
+] 
+
+[[allowlists]]
+description = "Allow safe internal constant keys and truncated placeholder tokens"
+stopwords = [
+    "health_permissions_revoked_v1",
+    "health_permissions_granted_v1",
+    "AIzaSyBVVnDyLGb_gkdks8d_V-nkjhLKYuY7890abcdef",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6..."
 ] 
