@@ -13,6 +13,18 @@
 # ------------------------------------------------------
 set -euo pipefail
 
+# 🚦 Default behaviour for local CI runs
+# --------------------------------------
+# Skip the heavy Supabase migrations/terraform job unless the caller
+# explicitly disables skipping (e.g. SKIP_MIGRATIONS=false) or forces it
+# (FORCE_MIGRATIONS=true). This mirrors GitHubʼs behaviour where the
+# deploy job only runs when infra-related paths change.
+
+export SKIP_MIGRATIONS=${SKIP_MIGRATIONS:-true}
+if [[ "${FORCE_MIGRATIONS:-}" == "true" ]]; then
+  SKIP_MIGRATIONS=false
+fi
+
 WORKFLOW_FILE=".github/workflows/ci.yml"
 SECRETS_FILE=".secrets"
 
@@ -55,6 +67,7 @@ SUPABASE_SERVICE_ROLE_SECRET=$SUPABASE_SERVICE_ROLE_SECRET
 SUPABASE_URL=$SUPABASE_URL
 SUPABASE_PROJECT_REF=$SUPABASE_PROJECT_REF
 SUPABASE_DB_PASSWORD=$SUPABASE_DB_PASSWORD
+SKIP_TERRAFORM=${SKIP_TERRAFORM:-true}
 GCP_SA_KEY=${GCP_SA_KEY:-}
 # Optional extras for other CI workflows
 GCS_BUCKET=${GCS_BUCKET:-}
@@ -94,8 +107,16 @@ WORKFLOW_FILES=(
   ".github/workflows/lightgbm_export_ci.yml" # LightGBM TS Export CI
 )
 
-# Add Supabase migrations unless explicitly skipped
-if [[ "${SKIP_MIGRATIONS:-}" != "true" ]]; then
+# By default, skip migrations for faster local runs unless FORCE_MIGRATIONS is true
+if [[ "${FORCE_MIGRATIONS:-}" == "true" ]]; then
+  SKIP_MIGRATIONS=false
+fi
+
+# Export so child processes inherit
+export SKIP_MIGRATIONS=${SKIP_MIGRATIONS:-true}
+
+# Include migrations workflow only when not skipping
+if [[ "${SKIP_MIGRATIONS}" != "true" ]]; then
   WORKFLOW_FILES+=(".github/workflows/migrations-deploy.yml")
 fi
 

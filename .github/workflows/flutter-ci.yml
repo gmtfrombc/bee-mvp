@@ -43,7 +43,7 @@ jobs:
       
     - name: Verify the build
       working-directory: ./app
-      run: flutter analyze
+      run: flutter analyze --fatal-infos --fatal-warnings
       
     - name: Run tests
       working-directory: ./app
