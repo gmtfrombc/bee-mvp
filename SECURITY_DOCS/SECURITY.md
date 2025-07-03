@@ -1,16 +1,20 @@
 # Security Policy - BEE Momentum Meter
 
 ## 🚨 Current Security Status
-**LAST AUDIT:** January 2025  
+
+**LAST AUDIT:** January 2025\
 **CRITICAL ISSUES FOUND:** ✅ Resolved (13 exposed secrets removed)
 
 ## Supported Versions
 
-We maintain the latest `main` branch. Previous versions are not supported for security fixes.
+We maintain the latest `main` branch. Previous versions are not supported for
+security fixes.
 
 ## Reporting a Vulnerability
 
-If you discover a security issue **please DO NOT open a public GitHub issue**. Instead:
+If you discover a security issue **please DO NOT open a public GitHub issue**.
+Instead:
+
 - Send an email to `security@bee-mvp.io`
 - Or reach out to @gmtfr directly with details
 - We will acknowledge your report within 24h and provide a fix timeline
@@ -20,6 +24,7 @@ If you discover a security issue **please DO NOT open a public GitHub issue**. I
 ### ✅ **RECOMMENDED APPROACH (Current)**
 
 **1. Development Setup:**
+
 ```bash
 # Create app/.env file (never committed)
 SUPABASE_URL=https://your-project.supabase.co
@@ -30,6 +35,7 @@ SUPABASE_ANON_KEY=your_anon_key_here
 ```
 
 **2. Production/CI Setup:**
+
 ```bash
 # Use --dart-define flags (secure)
 flutter build apk \
@@ -38,12 +44,14 @@ flutter build apk \
 ```
 
 ### 🏗️ **Architecture Overview**
+
 - **Local Development:** `.env` files (gitignored)
 - **CI/CD:** GitHub Secrets → `--dart-define` flags
 - **Production:** Build-time injection via `--dart-define`
 - **Client Code:** `AppSecrets` class with safe defaults
 
 ### 📁 **File Structure**
+
 ```
 app/
 ├── .env                    # ❌ Never commit (local only)
@@ -57,6 +65,7 @@ app/
 ## 🛡️ **Security Controls**
 
 ### **1. GitLeaks Integration**
+
 ```bash
 # Pre-commit scanning (automatic)
 git commit -m "Your changes"
@@ -67,6 +76,7 @@ gitleaks detect --source . --config .gitleaks.toml
 ```
 
 ### **2. Pre-commit Hooks**
+
 ```bash
 # Setup (one-time)
 git config core.hooksPath .githooks
@@ -78,13 +88,15 @@ git config core.hooksPath .githooks
 ```
 
 ### **3. GitHub Actions Security**
+
 ```yaml
 # Secrets are stored in GitHub Settings → Secrets
 env:
-  SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+   SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
 ```
 
 ### **4. CI/CD Pipeline**
+
 - ✅ Uses GitHub Secrets (not committed values)
 - ✅ Firebase uses placeholder configurations
 - ✅ All sensitive operations use `--dart-define`
@@ -92,18 +104,24 @@ env:
 ## 📋 **Developer Checklist**
 
 ### **Before First Run:**
+
+- [ ] Copy `.secrets.example` to `~/.bee_secrets/supabase.env` and fill in real
+      values (never commit)
 - [ ] Copy `app/.env.example` to `app/.env` (when available)
-- [ ] Add real Supabase credentials to `app/.env`
+- [ ] Ensure `gitleaks` binary is installed locally (pre-commit hook now fails
+      if missing)
 - [ ] Verify `git config core.hooksPath .githooks`
 - [ ] Test: `gitleaks detect --source app/`
 
 ### **Before Each Commit:**
+
 - [ ] Remove any debugging credentials
 - [ ] Run `gitleaks detect --staged`
 - [ ] Verify no `.env` files in `git status`
 - [ ] Check pre-commit hooks are working
 
 ### **Before Production Deploy:**
+
 - [ ] All secrets use `--dart-define` flags
 - [ ] Firebase config contains only placeholders
 - [ ] GitHub Secrets are up to date
@@ -112,6 +130,7 @@ env:
 ## 🔄 **Rotating Compromised Keys**
 
 ### **Immediate Response (if secrets leaked):**
+
 1. **Generate new keys:**
    ```bash
    # Supabase: Dashboard → Settings → API → "Generate new anon key"
@@ -139,6 +158,7 @@ env:
 ## 🚫 **Security Anti-Patterns to Avoid**
 
 ### ❌ **NEVER DO:**
+
 ```dart
 // DON'T hardcode secrets
 const String apiKey = "real_secret_key_here";
@@ -154,6 +174,7 @@ curl -H "Authorization: Bearer sk_live_real_key"
 ```
 
 ### ✅ **DO INSTEAD:**
+
 ```dart
 // Use centralized secrets management
 import '../config/app_secrets.dart';
@@ -170,6 +191,7 @@ flutter run --dart-define="API_KEY=$API_KEY"
 ## 🏢 **GitHub Repository Security**
 
 ### **Required Settings:**
+
 - [ ] **2-factor authentication** for all collaborators
 - [ ] **Branch protection** with mandatory reviews
 - [ ] **Secret scanning & push protection** enabled
@@ -177,6 +199,7 @@ flutter run --dart-define="API_KEY=$API_KEY"
 - [ ] **Code scanning** enabled (CodeQL)
 
 ### **Periodic Tasks:**
+
 ```bash
 # Audit tokens quarterly
 gh secret list
@@ -190,12 +213,14 @@ gh auth status
 ## 📊 **Security Monitoring**
 
 ### **Continuous Monitoring:**
+
 - GitLeaks scans on every commit
 - GitHub Advanced Security alerts
 - Dependabot vulnerability notifications
 - Regular secret rotation (quarterly)
 
 ### **Security Metrics:**
+
 - Secrets exposure incidents: **0 target**
 - Failed GitLeaks scans: **< 5% of commits**
 - Security patches applied: **< 7 days**
@@ -204,19 +229,22 @@ gh auth status
 ## 🆘 **Incident Response**
 
 ### **If Secrets Are Exposed:**
+
 1. **Immediate:** Revoke compromised credentials
-2. **Within 1 hour:** Generate and deploy new credentials  
+2. **Within 1 hour:** Generate and deploy new credentials
 3. **Within 24 hours:** Complete security review
 4. **Within 48 hours:** Post-mortem and process improvements
 
 ### **Emergency Contacts:**
+
 - Security Lead: @gmtfr
 - Email: security@bee-mvp.io
 - Escalation: GitHub security advisory
 
 ---
 
-**Last Updated:** January 2025  
+**Last Updated:** January 2025\
 **Next Review:** April 2025
 
-> 💡 **Remember:** Security is everyone's responsibility. When in doubt, ask for a security review before committing. 
+> 💡 **Remember:** Security is everyone's responsibility. When in doubt, ask for
+> a security review before committing.
