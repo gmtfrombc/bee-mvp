@@ -70,10 +70,15 @@ class AuthNotifier extends AsyncNotifier<User?> {
   Future<void> signUpWithEmail({
     required String email,
     required String password,
+    String? name,
   }) async {
     state = const AsyncValue.loading();
     try {
-      await _authService!.signUpWithEmail(email: email, password: password);
+      await _authService!.signUpWithEmail(
+        email: email,
+        password: password,
+        name: name,
+      );
       state = AsyncValue.data(_authService!.currentUser);
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
@@ -86,6 +91,21 @@ class AuthNotifier extends AsyncNotifier<User?> {
     try {
       await _authService!.signOut();
       state = const AsyncValue.data(null);
+    } catch (error, stackTrace) {
+      state = AsyncValue.error(error, stackTrace);
+    }
+  }
+
+  /// Send password reset email
+  Future<void> sendResetEmail({
+    required String email,
+    String? redirectTo,
+  }) async {
+    state = const AsyncValue.loading();
+    try {
+      await _authService!.sendResetEmail(email: email, redirectTo: redirectTo);
+      // keep current state unchanged; typically we may show snackbar in UI layer
+      state = AsyncValue.data(_authService!.currentUser);
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
     }

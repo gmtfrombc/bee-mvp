@@ -1,7 +1,7 @@
 ### Epic: 1.6 · Registration & Auth
 
 **Module:** Core Mobile Experience\
-**Status:** 🟡 Planned\
+**Status:** 🔵 In Progress
 **Dependencies:** Supabase project & env secrets ✅, Epic 1.11 – Onboarding
 Intake Surveys ⚪
 
@@ -29,11 +29,11 @@ unit/widget test coverage.
 
 ### M1.6.1 · Supabase Auth Backend Setup
 
-| Task | Description                                             | Hours | Status |
-| ---- | ------------------------------------------------------- | ----- | ------ |
-| T1   | Enable email/password provider, enforce password policy | 2h    | 🟡     |
-| T2   | Create `profiles` table referencing `auth.users.id`     | 1h    | 🟡     |
-| T3   | Configure RLS policies & audit triggers                 | 4h    | 🟡     |
+| Task | Description                                             | Hours | Status      |
+| ---- | ------------------------------------------------------- | ----- | ------      |
+| T1   | Enable email/password provider, enforce password policy | 2h    | ✅ Complete |
+| T2   | Create `profiles` table referencing `auth.users.id`     | 1h    | ✅ Complete |
+| T3   | Configure RLS policies & audit triggers                 | 4h    | ✅ Complete |
 
 **Deliverables:** Supabase migration scripts, verified deployment in staging.
 
@@ -50,11 +50,11 @@ verification.
 
 ### M1.6.2 · Flutter Registration & Login UI
 
-| Task | Description                                                  | Hours | Status |
-| ---- | ------------------------------------------------------------ | ----- | ------ |
-| T1   | Build `AuthPage` with Riverpod forms (Name, Email, Password) | 6h    | 🟡     |
-| T2   | Implement `LoginPage` with validation & error states         | 4h    | 🟡     |
-| T3   | Wire forms to Supabase Dart SDK; show snackbar on error      | 2h    | 🟡     |
+| Task | Description                                                  | Hours | Status      |
+| ---- | ------------------------------------------------------------ | ----- | ----------- |
+| T1   | Build `AuthPage` with Riverpod forms (Name, Email, Password) | 6h    | ✅ Complete |
+| T2   | Implement `LoginPage` with validation & error states         | 4h    | ✅ Complete |
+| T3   | Wire forms to Supabase Dart SDK; show snackbar on error      | 2h    | ✅ Complete |
 
 **Acceptance Criteria:**
 

@@ -47,9 +47,14 @@ class AuthService {
   Future<void> signUpWithEmail({
     required String email,
     required String password,
+    String? name,
   }) async {
     try {
-      await _supabase.auth.signUp(email: email, password: password);
+      await _supabase.auth.signUp(
+        email: email,
+        password: password,
+        data: name != null ? {'full_name': name} : null,
+      );
     } catch (e) {
       throw Exception('Failed to sign up: $e');
     }
@@ -66,4 +71,16 @@ class AuthService {
 
   /// Listen to auth state changes
   Stream<AuthState> get authStateChanges => _supabase.auth.onAuthStateChange;
+
+  /// Send password-reset email
+  Future<void> sendResetEmail({
+    required String email,
+    String? redirectTo,
+  }) async {
+    try {
+      await _supabase.auth.resetPasswordForEmail(email, redirectTo: redirectTo);
+    } catch (e) {
+      throw Exception('Failed to send password reset email: $e');
+    }
+  }
 }
