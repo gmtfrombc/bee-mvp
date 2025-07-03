@@ -39,7 +39,7 @@ void main() {
       ).thenAnswer((_) async => testJson);
       when(
         () => mockAuth.setSession(testJson),
-      ).thenAnswer((_) async => Future.value());
+      ).thenAnswer((_) async => AuthResponse(session: null, user: null));
 
       await service.restore();
 

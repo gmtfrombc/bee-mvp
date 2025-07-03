@@ -58,6 +58,7 @@ jobs:
           echo "TF_VAR_gcp_project=$PROJECT_ID" >> $GITHUB_ENV
 
       - name: Setup Terraform
+        if: env.SKIP_TERRAFORM != 'true'
         uses: hashicorp/setup-terraform@v3
 
       - name: Terraform init, validate & apply (auto-approve)
