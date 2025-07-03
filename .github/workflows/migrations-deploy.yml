@@ -15,6 +15,8 @@ jobs:
       SUPABASE_ACCESS_TOKEN: "${{ secrets.SUPABASE_ACCESS_TOKEN }}"
       SUPABASE_PROJECT_URL: "${{ secrets.SUPABASE_URL }}"
       SUPABASE_SERVICE_ROLE_SECRET: "${{ secrets.SUPABASE_SERVICE_ROLE_SECRET }}"
+      SUPABASE_PROJECT_REF: "${{ secrets.SUPABASE_PROJECT_REF }}"
+      SUPABASE_DB_PASSWORD: "${{ secrets.SUPABASE_DB_PASSWORD }}"
       TF_VAR_supabase_url: "${{ secrets.SUPABASE_URL }}"
 
     steps:
@@ -27,19 +29,38 @@ jobs:
         run: |
           echo "SUPABASE_URL=$SUPABASE_PROJECT_URL" >> $GITHUB_ENV
           echo "SUPABASE_SERVICE_ROLE_SECRET=$SUPABASE_SERVICE_ROLE_SECRET" >> $GITHUB_ENV
+          echo "SUPABASE_PROJECT_REF=$SUPABASE_PROJECT_REF" >> $GITHUB_ENV
+          echo "SUPABASE_DB_PASSWORD=$SUPABASE_DB_PASSWORD" >> $GITHUB_ENV
 
-      - name: Create rollback backup
-        run: |
-          mkdir -p backups
-          supabase db dump --output backups/dump_$(date +%s).sql
+      - name: Link Supabase project
+        run: supabase link --project-ref "$SUPABASE_PROJECT_REF"
 
       - name: Apply pending migrations
-        run: supabase db push --non-interactive
+        run: supabase db push --include-all --password "$SUPABASE_DB_PASSWORD"
+
+      - name: Configure Google credentials & set TF_VAR_gcp_project
+        if: env.SKIP_TERRAFORM != 'true'
+        env:
+          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+        run: |
+          sudo apt-get update -y && sudo apt-get install -y jq
+          if [ -n "$GCP_SA_KEY" ]; then
+            echo "$GCP_SA_KEY" | base64 -d > /tmp/sa.json
+            echo "::add-mask::$GCP_SA_KEY"
+            PROJECT_ID=$(cat /tmp/sa.json | jq -r .project_id)
+            echo "GOOGLE_APPLICATION_CREDENTIALS=/tmp/sa.json" >> $GITHUB_ENV
+          else
+            echo "GCP_SA_KEY not provided – using local-test project ID for Terraform.";
+            PROJECT_ID="local-test"
+          fi
+          echo "Using GCP project: $PROJECT_ID"
+          echo "TF_VAR_gcp_project=$PROJECT_ID" >> $GITHUB_ENV
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
       - name: Terraform init, validate & apply (auto-approve)
+        if: env.SKIP_TERRAFORM != 'true'
         working-directory: infra
         run: |
           terraform init -backend=false
@@ -47,14 +68,8 @@ jobs:
           terraform apply -auto-approve -input=false
 
       - name: Enforce Supabase password policy
+        if: env.SKIP_TERRAFORM != 'true'
         run: |
           supabase auth settings update \
             --password_min_length 8 \
-            --password_require_special_char true
-
-      - name: Upload backup artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: db-backup
-          path: backups/*.sql
-          retention-days: 14 
+            --password_require_special_char true 
