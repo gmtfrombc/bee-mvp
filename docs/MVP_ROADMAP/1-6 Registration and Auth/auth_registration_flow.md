@@ -30,7 +30,7 @@ This module will handle secure user account creation, login, authentication stat
 
 ## 🔄 Onboarding Flow
 
-You mentioned onboarding workflows are already designed — this flow assumes user is redirected to onboarding after successful registration/login.
+— this flow assumes user is redirected to onboarding after successful registration/login.
 
 🔁 Flow (after auth):
 	1.	Check if onboarding complete

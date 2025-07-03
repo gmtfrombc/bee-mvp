@@ -6,6 +6,7 @@ import '../../../../core/services/accessibility_service.dart';
 import '../../domain/models/momentum_data.dart';
 import '../providers/momentum_provider.dart';
 import '../providers/momentum_api_provider.dart' as api;
+import '../../../auth/ui/widgets/email_verification_banner.dart';
 
 import '../widgets/momentum_card.dart';
 import '../widgets/weekly_trend_chart.dart';
@@ -78,6 +79,9 @@ class MomentumScreen extends ConsumerWidget {
           children: [
             // Offline banner
             const OfflineBanner(),
+
+            // Email verification banner
+            const EmailVerificationBanner(),
 
             // Main content with responsive layout
             Expanded(
@@ -255,5 +259,3 @@ class _MomentumContent extends ConsumerWidget {
     );
   }
 }
-
-

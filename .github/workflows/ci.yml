@@ -32,11 +32,19 @@ jobs:
       # Test database credentials (not sensitive, but keeps GitGuardian happy)
       TEST_DB_PASSWORD: postgres
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_SECRET }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       # Default for local VS Code actionlint and GitHub runner. Overridden by `act` when you pass `-e ACT=true`.
       ACT: "false"
 
     steps:
       - uses: actions/checkout@v4
+
+      # ---------- Secret Scanner ----------
+      - name: Secret Scan with Gitleaks
+        run: |
+          chmod +x scripts/check_secrets.sh
+          ./scripts/check_secrets.sh
+        working-directory: .
 
       # ---------- Component Size Governance ----------
       - name: Component Size Compliance Check
@@ -431,3 +439,12 @@ jobs:
                 body: commentBody
               });
             }
+
+      # ---------- Supabase Password Policy Check ----------
+      - name: Verify Supabase password policy (≥8 chars & symbol)
+        run: |
+          chmod +x scripts/check_supabase_password_policy.sh
+          ./scripts/check_supabase_password_policy.sh
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ env.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_URL: ${{ env.SUPABASE_URL }}

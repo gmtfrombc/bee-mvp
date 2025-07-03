@@ -10,6 +10,8 @@ import 'core/services/version_service.dart';
 import 'core/providers/supabase_provider.dart';
 import 'features/momentum/presentation/screens/momentum_screen.dart';
 import 'features/ai_coach/ui/coach_chat_screen.dart';
+import 'core/utils/deep_link_service.dart';
+import 'features/auth/ui/password_reset_page.dart';
 import 'features/momentum/presentation/screens/profile_settings_screen.dart';
 import 'features/gamification/ui/rewards_navigator.dart';
 import 'core/notifications/domain/services/notification_preferences_service.dart';
@@ -18,6 +20,11 @@ import 'features/wearable/ui/wearable_dashboard_screen.dart';
 import 'package:app/features/achievements/progress_celebration_widget.dart';
 import 'package:app/features/wearable/ui/health_permissions_state.dart';
 import 'core/providers/vitals_notifier_provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'core/services/auth_session_service.dart';
+
+// Global instance to share across app
+final AuthSessionService authSessionService = AuthSessionService();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,6 +33,14 @@ void main() async {
     // Initialize environment configuration
     await Environment.initialize();
     debugPrint('✅ Environment initialized');
+
+    // Initialize Supabase early so that session restoration can occur before runApp
+    await Supabase.initialize(
+      url: Environment.supabaseUrl,
+      anonKey: Environment.supabaseAnonKey,
+    );
+    await authSessionService.restore();
+    debugPrint('🔑 Session restoration attempt complete');
 
     // Initialize core services
     await _initializeCoreServices();
@@ -115,10 +130,14 @@ class _AppWrapperState extends ConsumerState<AppWrapper>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _initializeApp();
+
+    // Listen for deep-links
+    _setupDeepLinkHandling();
   }
 
   @override
   void dispose() {
+    // Cancel deep-link stream subscription automatically by not storing; uni_links handles.
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -154,6 +173,9 @@ class _AppWrapperState extends ConsumerState<AppWrapper>
       // Initialize Supabase provider
       await ref.read(supabaseProvider.future);
       debugPrint('✅ Supabase connection established');
+
+      // Start listening for token refreshes/sign-out to keep secure storage in sync
+      authSessionService.listen();
     } catch (e) {
       debugPrint('❌ Supabase initialization failed: $e');
       // App can still function with offline features
@@ -168,6 +190,35 @@ class _AppWrapperState extends ConsumerState<AppWrapper>
       debugPrint('✅ Notification action dispatcher initialized');
     } catch (e) {
       debugPrint('❌ Failed to initialize notification dispatcher: $e');
+    }
+  }
+
+  /// Handles incoming deep links to open relevant in-app screens.
+  void _setupDeepLinkHandling() {
+    // Cold-start link
+    DeepLinkService.initialUri().then((uri) {
+      if (uri != null) _handleUri(uri);
+    });
+
+    // Hot links
+    DeepLinkService.stream.listen(
+      _handleUri,
+      onError: (err) {
+        debugPrint('❌ Deep-link error: $err');
+      },
+    );
+  }
+
+  void _handleUri(Uri uri) {
+    if (DeepLinkService.isPasswordReset(uri)) {
+      final token = DeepLinkService.extractAccessToken(uri);
+      if (token != null) {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => PasswordResetPage(accessToken: token),
+          ),
+        );
+      }
     }
   }
 

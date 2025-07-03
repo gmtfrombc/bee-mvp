@@ -14,16 +14,19 @@ create table if not exists public.profiles (
 alter table public.profiles enable row level security;
 
 -- Owner can read own profile
-create policy if not exists "profiles_owner_select"
+drop policy if exists "profiles_owner_select" on public.profiles;
+create policy "profiles_owner_select"
   on public.profiles for select
   using ( auth.uid() = id );
 
 -- Owner can insert own row (first-time profile creation)
-create policy if not exists "profiles_owner_insert"
+drop policy if exists "profiles_owner_insert" on public.profiles;
+create policy "profiles_owner_insert"
   on public.profiles for insert
   with check ( auth.uid() = id );
 
 -- 3️⃣  Audit trigger ---------------------------------------------------------
-create trigger if not exists audit_profiles
+drop trigger if exists audit_profiles on public.profiles;
+create trigger audit_profiles
   after insert or update or delete on public.profiles
   for each row execute procedure _shared.audit(); 

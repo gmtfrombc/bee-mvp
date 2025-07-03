@@ -4,13 +4,23 @@
 > repo uses without pushing a single commit.
 
 # Hardware: Macbook Air with M3 Apple chip
+# Supabase Secrets:located at: ~/.bee_secrets/supabase.env
 
-# NOTE: Run ACT with the following:
+# NOTE: Run ACT from ROOT (BEE-MVP) with the following:
 
-act push -W .github/workflows/ci.yml -P
-ubuntu-latest=catthehacker/ubuntu:act-latest --env ACT=false --secret-file
-.secrets --container-architecture linux/amd64 -j build
+bash scripts/run_ci_locally.sh -j deploy | cat  **NOTE: deploy only**
 
+bash scripts/run_ci_locally.sh  **NOTE: build and deploy**
+
+bash SKIP_MIGRATIONS=true ./scripts/run_ci_locally.sh   **NOTE: skip migrations/deploy**
+
+bash scripts/run_ci_locally.sh -q | tee ci.log  **NOTE: normal red/green run (quiet with failures)**
+
+bash grep -n --color ERROR ci.log | head  **NOTE: when something fails**
+
+bash awk 'NR>=start-30 && NR<=start+30' start=$(grep -n "Supabase" -m1 ci.log | cut -d: -f1) ci.log  **NOTE: if I need more info aroudn a specific error**
+
+bash scripts/run_ci_locally.sh --job flutter-ci --verbose | tee flutter.log  **NOTE: to run a specific 'job' e.g. flutter-ci etc.**
 ---
 
 ## 1. Prerequisites
