@@ -135,8 +135,8 @@ You can run the same GitHub Actions workflow locally using the
 brew install act               # or `npm i -g act`
 docker pull catthehacker/ubuntu:act-latest   # large runner image
 
-# Create a stub secrets file at repo root (content can be blank)
-printf 'SUPABASE_ACCESS_TOKEN=\nSUPABASE_SERVICE_ROLE_SECRET=\n' > .secrets
+# Copy the template secrets file and fill in local placeholders (never commit real values)
+cp .secrets.example .secrets && echo "🔑  Edit .secrets with local placeholders before running act"
 
 # Run the complete CI workflow
 act push \
