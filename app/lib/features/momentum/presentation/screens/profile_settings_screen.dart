@@ -6,6 +6,7 @@ import '../../../../core/providers/theme_provider.dart';
 import '../widgets/adaptive_polling_toggle.dart';
 import '../widgets/health_permission_toggle.dart';
 import '../../../../core/mixins/permission_auto_refresh_mixin.dart';
+import 'package:app/features/settings/ui/mfa_toggle_tile.dart';
 
 /// Screen for managing user profile and app settings
 class ProfileSettingsScreen extends ConsumerStatefulWidget {
@@ -268,6 +269,8 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen>
             const AdaptivePollingToggle(),
             const Divider(),
             const HealthPermissionToggle(),
+            const Divider(),
+            const MfaToggleTile(),
           ],
         ),
       ),

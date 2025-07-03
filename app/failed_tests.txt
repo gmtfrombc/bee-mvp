@@ -1,0 +1,17 @@
+Error checking health permissions: MissingPluginException(No implementation found for method hasPermissions on channel flutter_health)
+Error checking health permissions: MissingPluginException(No implementation found for method hasPermissions on channel flutter_health)
+Error checking health permissions: MissingPluginException(No implementation found for method hasPermissions on channel flutter_health)
+Error checking health permissions: MissingPluginException(No implementation found for method hasPermissions on channel flutter_health)
+Error checking health permissions: MissingPluginException(No implementation found for method hasPermissions on channel flutter_health)
+Error checking health permissions: MissingPluginException(No implementation found for method hasPermissions on channel flutter_health)
+Error checking health permissions: MissingPluginException(No implementation found for method hasPermissions on channel flutter_health)
+00:01 +19: /Users/gmtfr/bee-mvp/bee-mvp/app/test/core/notifications/models/notification_models_test.dart: NotificationAction toMap serializes correctly
+00:01 +20: /Users/gmtfr/bee-mvp/bee-mvp/app/test/core/notifications/models/notification_models_test.dart: NotificationContent toFCMPayload includes expected fields
+00:01 +21: /Users/gmtfr/bee-mvp/bee-mvp/app/test/core/notifications/models/notification_models_test.dart: NotificationContent toLocalNotificationPayload includes expected fields
+00:01 +22: /Users/gmtfr/bee-mvp/bee-mvp/app/test/core/notifications/models/notification_models_test.dart: NotificationData serialization toJson / fromJson symmetry
+00:01 +23: /Users/gmtfr/bee-mvp/bee-mvp/app/test/core/notifications/models/notification_models_test.dart: PendingNotificationAction serialization toJson / fromJson symmetry
+00:01 +24: /Users/gmtfr/bee-mvp/bee-mvp/app/test/core/notifications/models/notification_models_test.dart: NotificationVariant serialization control factory returns correct default variant
+00:01 +25: /Users/gmtfr/bee-mvp/bee-mvp/app/test/core/notifications/models/notification_models_test.dart: NotificationVariant serialization toJson / fromJson symmetry
+00:01 +26: /Users/gmtfr/bee-mvp/bee-mvp/app/test/core/notifications/domain/services/notification_trigger_service_test.dart: Domain NotificationTriggerService Data Classes MomentumData should create MomentumData with all fields
+00:01 +27: /Users/gmtfr/bee-mvp/bee-mvp/app/test/core/notifications/domain/services/notification_trigger_service_test.dart: Domain NotificationTriggerService Data Classes MomentumData should create MomentumData without previous state
+00:01 +28: /Users/gmtfr/bee-mvp/bee-mvp/app/test/core/notifications/domain/services/notification_trigger_service_test.dart: Domain NotificationTriggerService Data Classes MomentumData should convert to JSON correctly

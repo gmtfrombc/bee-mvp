@@ -53,6 +53,14 @@
             <intent-filter>
                 <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
             </intent-filter>
+
+            <!-- Deep-link support -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="myapp"/>
+            </intent-filter>
         </activity>
         
         <!-- Privacy policy activity alias for Android 14+ -->
