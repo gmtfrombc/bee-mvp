@@ -1,4 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../models/profile.dart';
 import 'demo_auth_service.dart';
 
 /// Authentication service for handling user authentication
@@ -81,6 +83,56 @@ class AuthService {
       await _supabase.auth.resetPasswordForEmail(email, redirectTo: redirectTo);
     } catch (e) {
       throw Exception('Failed to send password reset email: $e');
+    }
+  }
+
+  /// Fetch the Supabase profile for a given user ID.
+  Future<Profile?> fetchProfile(String uid) async {
+    try {
+      final data =
+          await _supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', uid)
+              .maybeSingle();
+
+      if (data == null) return null;
+      return Profile.fromMap(data);
+    } catch (e) {
+      throw Exception('Failed to fetch profile: $e');
+    }
+  }
+
+  /// Mark onboarding as complete for the current user.
+  /// Retries twice with exponential backoff on network failure.
+  Future<void> completeOnboarding() async {
+    final uid = currentUser?.id;
+    if (uid == null) {
+      throw Exception('User not authenticated');
+    }
+
+    const maxAttempts = 3;
+    int attempt = 0;
+    int delayMs = 500;
+
+    while (true) {
+      try {
+        await _supabase
+            .from('profiles')
+            .update({'onboarding_complete': true})
+            .eq('id', uid)
+            .maybeSingle();
+        return;
+      } catch (e) {
+        attempt++;
+        if (attempt >= maxAttempts) {
+          throw Exception(
+            'Failed to update onboarding flag after $attempt attempts: $e',
+          );
+        }
+        await Future.delayed(Duration(milliseconds: delayMs));
+        delayMs *= 2;
+      }
     }
   }
 }
