@@ -70,11 +70,11 @@ emulator.
 
 ### M1.6.3 · Password Reset & Email Verification
 
-| Task | Description                                       | Hours | Status |
-| ---- | ------------------------------------------------- | ----- | ------ |
-| T1   | Trigger `supabase.auth.resetPasswordForEmail`     | 1h    | 🟡     |
-| T2   | Deep-link handler to open password-reset screen   | 3h    | 🟡     |
-| T3   | Verification banner removal after confirmed email | 2h    | 🟡     |
+| Task | Description                                       | Hours | Status      |
+| ---- | ------------------------------------------------- | ----- | ----------- |
+| T1   | Trigger `supabase.auth.resetPasswordForEmail`     | 1h    | ✅ Complete |
+| T2   | Deep-link handler to open password-reset screen   | 3h    | ✅ Complete |
+| T3   | Verification banner removal after confirmed email | 2h    | ✅ Complete |
 
 **Acceptance Criteria:**
 
@@ -87,11 +87,11 @@ emulator.
 
 ### M1.6.4 · Session Persistence & Security Hardening
 
-| Task | Description                                                      | Hours | Status |
-| ---- | ---------------------------------------------------------------- | ----- | ------ |
-| T1   | Persist session with `supabase.auth.currentSession` on app start | 2h    | 🟡     |
-| T2   | Implement token-refresh listener                                 | 2h    | 🟡     |
-| T3   | Add MFA toggle placeholder (non-blocking)                        | 1h    | 🟡     |
+| Task | Description                                                      | Hours | Status      |
+| ---- | ---------------------------------------------------------------- | ----- | ----------- |
+| T1   | Persist session with `supabase.auth.currentSession` on app start | 2h    | ✅ Complete |
+| T2   | Implement token-refresh listener                                 | 2h    | ✅ Complete |
+| T3   | Add MFA toggle placeholder (non-blocking)                        | 1h    | ✅ Complete |
 
 **Acceptance Criteria:**
 
@@ -106,11 +106,11 @@ secrets.
 
 ### M1.6.5 · Onboarding Redirect Hook
 
-| Task | Description                                      | Hours | Status |
-| ---- | ------------------------------------------------ | ----- | ------ |
-| T1   | Query `profiles.onboarding_complete` after login | 1h    | 🟡     |
-| T2   | Navigate to Onboarding flow (Epic 1.11) if false | 1h    | 🟡     |
-| T3   | Update flag to true at end of onboarding         | 1h    | 🟡     |
+| Task | Description                                      | Hours | Status      |
+| ---- | ------------------------------------------------ | ----- | ----------- |
+| T1   | Query `profiles.onboarding_complete` after login | 1h    | ✅ Complete |
+| T2   | Navigate to Onboarding flow (Epic 1.11) if false | 1h    | ✅ Complete |
+| T3   | Update flag to true at end of onboarding         | 1h    | ✅ Complete |
 
 **Acceptance Criteria:**
 
