@@ -77,7 +77,7 @@ void main() {
 
       // Tap submit immediately
       await tester.tap(find.text('Create Account'));
-      await tester.pump();
+      await tester.pumpAndSettle();
 
       // Required error should appear three times (Name, Email, Password)
       expect(find.text('Required'), findsNWidgets(3));
@@ -117,7 +117,7 @@ void main() {
 
       // Emit error from stub
       stub.emitError(const AuthException('User already registered'));
-      await tester.pump();
+      await tester.pumpAndSettle();
 
       expect(find.text('Account already exists'), findsWidgets);
     });
@@ -142,7 +142,7 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Log In'));
-      await tester.pump();
+      await tester.pumpAndSettle();
 
       expect(find.text('Required'), findsNWidgets(2));
     });
@@ -172,9 +172,61 @@ void main() {
       await tester.tap(find.text('Log In'));
 
       stub.emitError(const AuthException('Invalid login credentials'));
-      await tester.pump();
+      await tester.pumpAndSettle();
 
       expect(find.text('Incorrect email or password'), findsWidgets);
+    });
+
+    // Add navigation test from LoginPage to AuthPage.
+    testWidgets('navigates to AuthPage when tapping Create one link', (
+      tester,
+    ) async {
+      final stub = _StubAuthNotifier();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            authNotifierProvider.overrideWith(() => stub),
+            challengeProvider.overrideWith((ref) => Stream.value([])),
+          ],
+          child: const MaterialApp(home: LoginPage()),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Tap the TextButton that should push AuthPage.
+      await tester.tap(find.text("Don't have an account? Create one"));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AuthPage), findsOneWidget);
+    });
+  });
+
+  // Add navigation test from AuthPage to LoginPage.
+  group('AuthPage navigation', () {
+    testWidgets('navigates to LoginPage when tapping Log in link', (
+      tester,
+    ) async {
+      final stub = _StubAuthNotifier();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            authNotifierProvider.overrideWith(() => stub),
+            challengeProvider.overrideWith((ref) => Stream.value([])),
+          ],
+          child: const MaterialApp(home: AuthPage()),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Tap the TextButton that should push LoginPage.
+      await tester.tap(find.text('Already have an account? Log in'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(LoginPage), findsOneWidget);
     });
   });
 }

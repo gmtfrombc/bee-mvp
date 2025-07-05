@@ -22,6 +22,7 @@ import 'package:app/features/wearable/ui/health_permissions_state.dart';
 import 'core/providers/vitals_notifier_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/services/auth_session_service.dart';
+import 'core/widgets/launch_controller.dart';
 
 // Global instance to share across app
 final AuthSessionService authSessionService = AuthSessionService();
@@ -282,7 +283,7 @@ class BEEApp extends ConsumerWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: themeMode,
-      home: const AppWrapper(),
+      home: const LaunchController(),
       debugShowCheckedModeBanner: false,
     );
   }
