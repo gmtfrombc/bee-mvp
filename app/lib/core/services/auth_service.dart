@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter/foundation.dart';
 
 import '../models/profile.dart';
 import 'demo_auth_service.dart';
@@ -38,11 +39,7 @@ class AuthService {
     required String email,
     required String password,
   }) async {
-    try {
-      await _supabase.auth.signInWithPassword(email: email, password: password);
-    } catch (e) {
-      throw Exception('Failed to sign in: $e');
-    }
+    await _supabase.auth.signInWithPassword(email: email, password: password);
   }
 
   /// Sign up with email and password
@@ -51,15 +48,16 @@ class AuthService {
     required String password,
     String? name,
   }) async {
-    try {
-      await _supabase.auth.signUp(
-        email: email,
-        password: password,
-        data: name != null ? {'full_name': name} : null,
-      );
-    } catch (e) {
-      throw Exception('Failed to sign up: $e');
-    }
+    final response = await _supabase.auth.signUp(
+      email: email,
+      password: password,
+      data: name != null ? {'full_name': name} : null,
+      emailRedirectTo:
+          'https://storage.googleapis.com/bee-auth-redirect/index.html',
+    );
+
+    // Debug: surface whether Supabase returned a session immediately.
+    debugPrint('🔐 signUp result – session: ${response.session}');
   }
 
   /// Sign out
@@ -117,17 +115,16 @@ class AuthService {
 
     while (true) {
       try {
-        await _supabase
-            .from('profiles')
-            .update({'onboarding_complete': true})
-            .eq('id', uid)
-            .maybeSingle();
+        await _supabase.from('profiles').upsert({
+          'id': uid,
+          'onboarding_complete': true,
+        }, onConflict: 'id');
         return;
       } catch (e) {
         attempt++;
         if (attempt >= maxAttempts) {
           throw Exception(
-            'Failed to update onboarding flag after $attempt attempts: $e',
+            'Failed to upsert onboarding flag after $attempt attempts: $e',
           );
         }
         await Future.delayed(Duration(milliseconds: delayMs));
