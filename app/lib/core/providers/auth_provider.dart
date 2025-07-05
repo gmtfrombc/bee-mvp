@@ -9,8 +9,20 @@ final authServiceProvider = FutureProvider<AuthService>((ref) async {
   return AuthService(supabaseClient);
 });
 
-/// Provider for current user
+/// Stream provider that emits the current signed-in [User] and automatically
+/// updates whenever Supabase fires an [AuthChangeEvent]. This guarantees that
+/// UI listeners (e.g. `LaunchController`) rebuild immediately after e-mail
+/// confirmation, sign-in, sign-out, or token refresh events.
+// This FutureProvider depends on [authStateProvider] so it automatically
+// re-evaluates whenever Supabase emits an auth event (signed in, signed out,
+// token refreshed, etc.). That keeps downstream listeners like
+// `LaunchController` in sync without changing the provider’s original type,
+// preserving test overrides.
 final currentUserProvider = FutureProvider<User?>((ref) async {
+  // Listen to auth state changes – returned value is ignored but establishes
+  // a dependency so this provider refreshes whenever the auth state updates.
+  ref.watch(authStateProvider);
+
   final authService = await ref.watch(authServiceProvider.future);
   return authService.currentUser;
 });

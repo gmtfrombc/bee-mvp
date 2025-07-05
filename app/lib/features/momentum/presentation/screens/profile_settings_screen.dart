@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+// ignore_for_file: unused_element
+
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/providers/theme_provider.dart';
 import '../widgets/adaptive_polling_toggle.dart';
 import '../widgets/health_permission_toggle.dart';
 import '../../../../core/mixins/permission_auto_refresh_mixin.dart';
 import 'package:app/features/settings/ui/mfa_toggle_tile.dart';
+import '../../../../core/widgets/launch_controller.dart';
+import '../../../../core/providers/auth_provider.dart';
 
 /// Screen for managing user profile and app settings
 class ProfileSettingsScreen extends ConsumerStatefulWidget {
@@ -299,51 +303,34 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen>
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-
-            _buildPreferenceItem(
-              context,
-              icon: Icons.help,
-              title: 'Help & Support',
-              subtitle: 'Get help or contact support',
-              onTap: () {
-                // Navigate to help
-              },
-            ),
-
-            const Divider(height: 24),
-
-            _buildPreferenceItem(
-              context,
-              icon: Icons.privacy_tip,
-              title: 'Privacy Policy',
-              subtitle: 'Learn about data usage',
-              onTap: () {
-                // Navigate to privacy policy
-              },
-            ),
-
-            const Divider(height: 24),
-
-            _buildPreferenceItem(
-              context,
-              icon: Icons.description,
-              title: 'Terms of Service',
-              subtitle: 'View terms and conditions',
-              onTap: () {
-                // Navigate to terms
-              },
-            ),
-
-            const Divider(height: 24),
-
-            Center(
-              child: Text(
-                'BEE Momentum Meter v1.0.0',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppTheme.getTextTertiary(context),
-                ),
+            const SizedBox(height: 12),
+            Text(
+              'Version 1.0.0',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: AppTheme.getTextSecondary(context),
               ),
+            ),
+
+            const Divider(height: 24),
+
+            // Log-out button
+            Consumer(
+              builder:
+                  (context, ref, _) => ListTile(
+                    leading: const Icon(Icons.logout),
+                    title: const Text('Log Out'),
+                    onTap: () async {
+                      await ref.read(authNotifierProvider.notifier).signOut();
+                      if (context.mounted) {
+                        Navigator.of(context).pushAndRemoveUntil(
+                          MaterialPageRoute(
+                            builder: (_) => const LaunchController(),
+                          ),
+                          (route) => false,
+                        );
+                      }
+                    },
+                  ),
             ),
           ],
         ),

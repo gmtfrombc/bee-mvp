@@ -72,7 +72,7 @@
 			<string>com.momentumhealth.beemvp</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>myapp</string>
+				<string>bee</string>
 			</array>
 		</dict>
 	</array>

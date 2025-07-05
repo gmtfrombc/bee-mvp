@@ -19,11 +19,13 @@ Help patients develop identity-based, consistent behaviors through weekly mini-g
 
 ## 🤖 UX Flow Recommendation: Hybrid (Chat-Led with Structured Options)
 
-1. **Coach initiates goal-setting** via chat:
+1. **User Inititates goal-setting**via UX widgets on Momentumn Screen
+
+2. **Coach initiates goal-setting** via chat if Action step not set by User when due.
    > “Time to set your weekly action step. Want to keep the same one, bump it up, or try something new?”
 
 2. **User types in a preference or request.**
-   - If vague, AI provides a list of 3–5 curated suggestions.
+   - If vague, AI provides a list of 3–5 curated suggestions based on previous actiion steps (if any and whether successful or abandoned), priorities and goals (from surveys). 
 
 3. **User taps a suggestion or provides own idea.**
    - AI reformats into structured goal:
@@ -113,6 +115,7 @@ Help patients develop identity-based, consistent behaviors through weekly mini-g
 
 - User completing action step => AI Coach response with encouragement (based on user's AI coaching style preference) as well as 'variable reward' approach to avoid a contrived or generic interaction.
 - User can 'turn off' feedback for the coach or reduce the frequency
+- User can 'skip' action step setting if cued by coach and is given the option to be reminded later, skip for the week, or stop the action step feature all together
 ---
 
 ## 🏁 Reward Logic
