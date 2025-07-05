@@ -60,7 +60,8 @@ jobs:
             --output supabase/functions/ai-coaching-engine/personalization/lightgbm_model.ts
 
       - name: Upload generated TS model (artifact)
-        uses: actions/upload-artifact@v4
+        if: ${{ env.SKIP_UPLOAD_ARTIFACTS != 'true' }}
+        uses: actions/upload-artifact@v3
         with:
           name: lightgbm_ts_scorer
           path: supabase/functions/ai-coaching-engine/personalization/lightgbm_model.ts 

@@ -49,8 +49,30 @@ fi
 DEFAULT_SECRETS_SRC="${SUPABASE_SECRETS_SRC:-$HOME/.bee_secrets/supabase.env}"
 if [[ -f "$DEFAULT_SECRETS_SRC" ]]; then
   echo "🔑  Importing Supabase secrets from $DEFAULT_SECRETS_SRC"
+
+  # -----------------------------------------------------------------
+  # SAFER ENV LOADING
+  # -----------------------------------------------------------------
+  # The raw supabase.env may contain comments, blank lines, or stray tokens
+  # (e.g. a JWT on its own line).  Sourcing it verbatim causes Bash errors
+  # like “command not found”.  Instead, we filter for valid KEY=value
+  # assignments, optionally prefixed with `export`, then evaluate only those.
+
+  # shellcheck disable=SC2016,SC1090,SC2046
+  set -a  # export all variables that get declared in this subshell
+  # Revert to plain source now that supabase.env no longer includes stray tokens
   # shellcheck disable=SC1090
   source "$DEFAULT_SECRETS_SRC"
+  set +a
+
+  # -----------------------------------------------------------------
+  # Fallback: some edge cases (e.g., very long base64 strings with odd chars)
+  # may still prevent the above `source` from setting GCP_SA_KEY.  If the
+  # variable is still empty but present in the raw file, extract it manually.
+  if [[ -z "${GCP_SA_KEY:-}" ]]; then
+    GCP_SA_KEY=$(grep -E '^[[:space:]]*(export[[:space:]]+)?GCP_SA_KEY[[:space:]]*=' "$DEFAULT_SECRETS_SRC" | head -n1 | cut -d= -f2- | sed -E 's/^[[:space:]]*//') || true
+    export GCP_SA_KEY
+  fi
 
   # Ensure variables are defined (empty string if missing)
   : "${SUPABASE_ACCESS_TOKEN:=}"
@@ -58,6 +80,24 @@ if [[ -f "$DEFAULT_SECRETS_SRC" ]]; then
   : "${SUPABASE_URL:=}"
   : "${SUPABASE_PROJECT_REF:=}"
   : "${SUPABASE_DB_PASSWORD:=}"
+
+  # Auto-derive project ref from URL when missing
+  if [[ -z "$SUPABASE_PROJECT_REF" && -n "$SUPABASE_URL" ]]; then
+    # Extract subdomain before first dot after protocol
+    SUPABASE_PROJECT_REF=$(echo "$SUPABASE_URL" | sed -E 's#https?://([^.]+)\..*#\1#')
+    export SUPABASE_PROJECT_REF
+    echo "ℹ️  Derived SUPABASE_PROJECT_REF=$SUPABASE_PROJECT_REF from SUPABASE_URL"
+  fi
+
+  # -----------------------------------------------------------------
+  # If critical Supabase vars are missing AND user hasn't explicitly
+  # disabled skipping, auto-skip migrations to avoid CLI failures.
+  if [[ -z "$SUPABASE_PROJECT_REF" || -z "$SUPABASE_ACCESS_TOKEN" || -z "$SUPABASE_DB_PASSWORD" ]]; then
+    if [[ "${FORCE_MIGRATIONS:-}" != "true" ]]; then
+      export SKIP_MIGRATIONS=true
+      echo "⚠️  Missing Supabase credentials – migrations job will be skipped. Use FORCE_MIGRATIONS=true to override."
+    fi
+  fi
 
   # Rewrite the .secrets file with any values we just sourced.
   # IMPORTANT: file lives locally and is git-ignored; real secrets are never committed.
@@ -83,6 +123,14 @@ EOF
   else
     export SKIP_TERRAFORM=false
   fi
+fi
+
+# Debug: echo key vars when verbose flag or FORCE_MIGRATIONS=true
+if [[ "${FORCE_MIGRATIONS:-}" == "true" ]]; then
+  echo "🔍 Supabase vars after loading:"
+  echo "  SUPABASE_PROJECT_REF=$SUPABASE_PROJECT_REF"
+  echo "  SUPABASE_ACCESS_TOKEN length=${#SUPABASE_ACCESS_TOKEN}"
+  echo "  SUPABASE_DB_PASSWORD set? $([ -n "$SUPABASE_DB_PASSWORD" ] && echo yes || echo no)"
 fi
 
 # 1️⃣✅  Auto-skip Supabase migrations when no related files changed
@@ -131,6 +179,7 @@ act push \
   -P ubuntu-latest=${GITHUB_RUNNER_IMAGE} \
   --container-architecture linux/amd64 \
   --env ACT=false \
+  --env SKIP_UPLOAD_ARTIFACTS=true \
   --env SKIP_TERRAFORM=${SKIP_TERRAFORM:-false} \
   --secret-file "$SECRETS_FILE" \
   "$@" 
