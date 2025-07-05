@@ -1,6 +1,6 @@
 ## ✳️ AI Coaching Interactions and Update of Motivation Score
 
-SUMMARY: Any AI coach interaction is assigned a 'score' with regards to motivational status.
+SUMMARY: All AI coach interactions are assessed and if sufficiently detailed are assigned a 'score' with regards to motivational status.
 
 ✅ User Initiated Chat
 	•	When a patient completes a chat, the AI coach assesses word choice, tone, and simiilar characteristics to discern motivational state and degree of extrinsic <=> instrinisc motivation

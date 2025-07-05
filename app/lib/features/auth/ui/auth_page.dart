@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/services/responsive_service.dart';
 import '../../../core/providers/auth_provider.dart';
-import 'package:app/main.dart';
 import '../../../core/utils/auth_error_mapper.dart';
+import 'package:app/core/widgets/launch_controller.dart';
+import 'login_page.dart';
+import 'confirmation_pending_page.dart';
 
 /// Registration screen that captures Name, Email, and Password.
 ///
@@ -26,6 +28,7 @@ class _AuthPageState extends ConsumerState<AuthPage> {
   final _pwdCtrl = TextEditingController();
 
   bool _obscurePwd = true;
+  bool _submitted = false;
 
   @override
   void dispose() {
@@ -41,6 +44,9 @@ class _AuthPageState extends ConsumerState<AuthPage> {
     final name = _nameCtrl.text.trim();
     final email = _emailCtrl.text.trim();
     final password = _pwdCtrl.text.trim();
+
+    // Flag that sign-up was initiated so listener can act on null session.
+    _submitted = true;
 
     await ref
         .read(authNotifierProvider.notifier)
@@ -61,7 +67,16 @@ class _AuthPageState extends ConsumerState<AuthPage> {
       } else if (next.hasValue && next.value != null) {
         // Navigate to Home (AppWrapper) once user is authenticated
         Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const AppWrapper()),
+          MaterialPageRoute(builder: (_) => const LaunchController()),
+          (route) => false,
+        );
+      } else if (next.hasValue && next.value == null && _submitted) {
+        // No session yet → show confirmation pending
+        final email = _emailCtrl.text.trim();
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (_) => ConfirmationPendingPage(email: email),
+          ),
           (route) => false,
         );
       }
@@ -126,6 +141,15 @@ class _AuthPageState extends ConsumerState<AuthPage> {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                         : const Text('Create Account'),
+              ),
+              SizedBox(height: spacing),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(
+                    context,
+                  ).push(MaterialPageRoute(builder: (_) => const LoginPage()));
+                },
+                child: const Text('Already have an account? Log in'),
               ),
               if (authAsync.hasError) ...[
                 SizedBox(height: spacing),

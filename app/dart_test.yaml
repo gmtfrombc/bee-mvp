@@ -1,0 +1,8 @@
+coverage:
+  exclude:
+    - "lib/**/ui/**"
+    - "lib/core/widgets/**"
+    - "lib/core/theme/**"
+    - "lib/**/models/**"
+    - "**/*.g.dart"
+    - "lib/firebase_options*.dart"

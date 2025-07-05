@@ -3,12 +3,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'package:app/features/onboarding/ui/onboarding_screen.dart';
 import 'package:app/core/providers/auth_provider.dart';
 import 'package:app/core/services/auth_service.dart';
+import 'package:app/core/widgets/launch_controller.dart';
 
 class MockAuthService extends Mock implements AuthService {}
 
@@ -22,24 +22,10 @@ void main() {
     final mockAuth = MockAuthService();
     when(() => mockAuth.completeOnboarding()).thenAnswer((_) async {});
 
-    final router = GoRouter(
-      routes: [
-        GoRoute(
-          path: '/',
-          builder: (_, __) => const Scaffold(body: Text('Home')),
-        ),
-        GoRoute(
-          path: '/onboarding',
-          builder: (_, __) => const OnboardingScreen(),
-        ),
-      ],
-      initialLocation: '/onboarding',
-    );
-
     await tester.pumpWidget(
       ProviderScope(
         overrides: [authServiceProvider.overrideWith((ref) async => mockAuth)],
-        child: MaterialApp.router(routerConfig: router),
+        child: const MaterialApp(home: OnboardingScreen()),
       ),
     );
 
@@ -51,6 +37,6 @@ void main() {
 
     // Assert
     verify(() => mockAuth.completeOnboarding()).called(1);
-    expect(router.routeInformationProvider.value.location, '/');
+    expect(find.byType(LaunchController), findsOneWidget);
   });
 }

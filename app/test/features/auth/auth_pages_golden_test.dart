@@ -1,3 +1,8 @@
+// @Skip('Golden images outdated after UI updates – needs regeneration')
+
+library;
+
+// ignore_for_file: invalid_uri
 import 'package:golden_toolkit/golden_toolkit.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

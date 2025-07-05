@@ -3,8 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/services/responsive_service.dart';
 import '../../../core/providers/auth_provider.dart';
-import 'package:app/main.dart';
 import '../../../core/utils/auth_error_mapper.dart';
+import 'package:app/core/widgets/launch_controller.dart';
+import 'auth_page.dart';
 
 /// Login screen for existing users.
 /// Implements validation, loading & error handling.
@@ -54,7 +55,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         ).showSnackBar(SnackBar(content: Text(msg)));
       } else if (next.hasValue && next.value != null) {
         Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const AppWrapper()),
+          MaterialPageRoute(builder: (_) => const LaunchController()),
           (route) => false,
         );
       }
@@ -111,6 +112,15 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                         : const Text('Log In'),
+              ),
+              SizedBox(height: spacing),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(
+                    context,
+                  ).push(MaterialPageRoute(builder: (_) => const AuthPage()));
+                },
+                child: const Text("Don't have an account? Create one"),
               ),
               if (authAsync.hasError) ...[
                 SizedBox(height: spacing),

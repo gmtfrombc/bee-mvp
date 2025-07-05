@@ -5,7 +5,9 @@
 
 ## Overview
 
-The BEE (Behavioral Engagement Engine) Momentum Meter is a patient-facing motivation gauge that replaces traditional "engagement scores" with a friendly, three-state system designed to encourage rather than demotivate users.
+The BEE (Behavioral Engagement Engine) Momentum Meter is a patient-facing
+motivation gauge that replaces traditional "engagement scores" with a friendly,
+three-state system designed to encourage rather than demotivate users.
 
 ## Project Structure
 
@@ -32,12 +34,14 @@ lib/
 ## Features Implemented (T1.1.3.1)
 
 ### ✅ Project Structure Setup
+
 - Clean architecture with feature-based organization
 - Core configuration and theming
 - Domain models for momentum data
 - State management with Riverpod
 
 ### ✅ Dependencies Added
+
 - **State Management**: `flutter_riverpod` for reactive state management
 - **Backend Integration**: `supabase_flutter` for API connectivity
 - **Charts**: `fl_chart` for weekly trend visualization
@@ -45,12 +49,14 @@ lib/
 - **Utilities**: `intl`, `shared_preferences`, `connectivity_plus`
 
 ### ✅ Design System Implementation
+
 - BEE momentum state colors (Rising 🚀, Steady 🙂, Needs Care 🌱)
 - Material Design 3 foundation with custom theming
 - Typography hierarchy optimized for health apps
 - Accessibility-compliant color contrasts
 
 ### ✅ Basic UI Structure
+
 - Main momentum screen with placeholder components
 - Loading states with skeleton screens
 - Error handling with retry functionality
@@ -59,16 +65,19 @@ lib/
 ## Momentum States
 
 ### Rising State 🚀
+
 - **Color**: Green (#4CAF50)
 - **Message**: "You're on fire! Keep up the great momentum!"
 - **Tone**: Celebratory, energetic
 
 ### Steady State 🙂
+
 - **Color**: Blue (#2196F3)
 - **Message**: "You're doing well! Stay consistent!"
 - **Tone**: Encouraging, supportive
 
 ### Needs Care State 🌱
+
 - **Color**: Orange (#FF9800)
 - **Message**: "Let's grow together! Every small step counts!"
 - **Tone**: Nurturing, hopeful
@@ -76,6 +85,7 @@ lib/
 ## Getting Started
 
 ### Prerequisites
+
 - Flutter SDK 3.7.2 or higher
 - Dart SDK
 - iOS Simulator / Android Emulator or physical device
@@ -88,7 +98,8 @@ lib/
    ```
 
 2. **Configure Supabase** (TODO):
-   - Update `lib/core/config/supabase_config.dart` with actual Supabase credentials
+   - Update `lib/core/config/supabase_config.dart` with actual Supabase
+     credentials
    - Replace placeholder URLs and keys
 
 3. **Run the app**:
@@ -109,29 +120,63 @@ flutter test --coverage
 flutter analyze
 ```
 
+### Running in Demo Mode (Optional)
+
+You can bypass the email/password flow and sign in anonymously (useful for UI
+demos) by passing a Dart-define:
+
+```bash
+flutter run --dart-define=DEMO_MODE=true
+```
+
+When `DEMO_MODE` is **true** the app will create an anonymous Supabase session
+on launch; otherwise the regular Registration / Login screens are shown.
+
+### Environment Variables
+
+Create `app/.env` with:
+
+```
+SUPABASE_URL=https://<project-ref>.supabase.co
+SUPABASE_ANON_KEY=<anon-key>
+```
+
+The global secrets file `~/.bee_secrets/supabase.env` can be sourced to populate
+these values automatically:
+
+```bash
+set -a && source ~/.bee_secrets/supabase.env && set +a
+cp ~/.bee_secrets/supabase.env app/.env  # one-time helper
+```
+
 ## Next Steps (Upcoming Tasks)
 
 ### T1.1.3.2: Circular Momentum Gauge (8h)
+
 - Custom painter implementation for circular progress ring
 - State-specific animations and theming
 - Touch interactions and accessibility
 
 ### T1.1.3.3: Momentum Card Component (8h)
+
 - Complete momentum card with gauge integration
 - State transitions and animations
 - Responsive design implementation
 
 ### T1.1.3.4: Weekly Trend Chart (8h)
+
 - fl_chart integration for trend visualization
 - Emoji markers for daily states
 - Interactive chart with touch feedback
 
 ### T1.1.3.5: Quick Stats Cards (6h)
+
 - Lessons, streak, and daily activity cards
 - Dynamic data binding
 - Responsive grid layout
 
 ### T1.1.3.6: Action Buttons (4h)
+
 - State-appropriate action suggestions
 - Navigation integration
 - Accessibility compliance
@@ -139,30 +184,37 @@ flutter analyze
 ## Architecture Decisions
 
 ### State Management
+
 - **Riverpod**: Chosen for its compile-time safety and excellent testing support
 - **AsyncValue**: Used for handling loading, error, and data states
 - **StateNotifier**: Provides immutable state updates
 
 ### Design System
+
 - **Material Design 3**: Modern foundation with custom BEE theming
 - **Accessibility First**: WCAG AA compliance built-in
 - **Responsive Design**: Optimized for 375px-428px mobile screens
 
 ### Performance
-- **Efficient Rebuilds**: Riverpod providers minimize unnecessary widget rebuilds
+
+- **Efficient Rebuilds**: Riverpod providers minimize unnecessary widget
+  rebuilds
 - **Lazy Loading**: Components load data only when needed
 - **Memory Management**: Proper disposal of resources and listeners
 
 ## Configuration
 
 ### Environment Variables (TODO)
+
 Create a `.env` file with:
+
 ```
 SUPABASE_URL=your_supabase_url
 SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
 ### Assets
+
 - `assets/images/`: Image assets for momentum meter
 - `assets/animations/`: Lottie animation files
 - `assets/icons/`: Custom icons and graphics
@@ -182,6 +234,6 @@ Private - BEE Platform Development
 
 ---
 
-**Status**: T1.1.3.1 Complete ✅  
-**Next Task**: T1.1.3.2 - Circular Momentum Gauge Implementation  
+**Status**: T1.1.3.1 Complete ✅\
+**Next Task**: T1.1.3.2 - Circular Momentum Gauge Implementation\
 **Epic Progress**: M1.1.3 - 1/14 tasks complete (7%)
