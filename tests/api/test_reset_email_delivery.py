@@ -43,7 +43,9 @@ def _send_password_reset_email(supabase_url: str, service_key: str, email: str) 
     payload = {"email": email, "redirect_to": "http://localhost/reset"}
     resp = requests.post(url, json=payload, headers=headers, timeout=10)
     assert resp.status_code in (
-        200, 204), f"Unexpected status {resp.status_code}: {resp.text}"
+        200,
+        204,
+    ), f"Unexpected status {resp.status_code}: {resp.text}"
 
 
 def _mail_has_arrived(inbucket_url: str, email: str) -> bool:
