@@ -183,7 +183,9 @@ fi
 # Default minimal image for backend/integration workflows
 DEFAULT_RUNNER_IMAGE="ghcr.io/catthehacker/ubuntu:act-22.04"
 # Flutter-optimised image (contains SDK 3.32.x and Android toolchain)
-FLUTTER_RUNNER_IMAGE="ghcr.io/instrumentisto/flutter:3.32.5-androidsdk35-r0"
+# Align with GitHub CI Flutter version (3.32.1) to minimise golden test diffs
+# Update image tag whenever workflow flutter-version changes.
+FLUTTER_RUNNER_IMAGE="ghcr.io/instrumentisto/flutter:3.32.1-androidsdk35-r0"
 
 if [[ "$JOB_FILTER" == "test" ]]; then
   # Use the heavier but pre-baked Flutter image when only Flutter tests run
@@ -255,3 +257,30 @@ fi
 ACT_CMD+=("$@")
 
 "${ACT_CMD[@]}" 
+
+# =============================================================
+#  🔒 Post-run Guard: detect uncommitted artefacts (e.g., golden
+#  images) created during the test run. If the working tree is no
+#  longer clean, fail the script so the developer notices and
+#  commits the updated files before pushing. This prevents the
+#  remote CI from failing due to missing golden baselines.
+# =============================================================
+
+ACT_EXIT_CODE=$?
+
+# Only perform git cleanliness check when the CI tasks themselves
+# succeeded. If the workflow failed (non-zero exit), we propagate
+# that error code directly.
+if [[ $ACT_EXIT_CODE -eq 0 ]]; then
+  # Check for any unstaged or untracked changes limited to the app/
+  # directory (where Flutter golden files live) to avoid unrelated
+  # local environment noise.
+  if [[ -n "$(git status --porcelain app/ | head -n1)" ]]; then
+    echo "❌  Local CI completed successfully but produced file changes." >&2
+    echo "    Commit or discard these changes (likely updated golden baselines) before pushing." >&2
+    git --no-pager status --short app/ >&2
+    exit 1
+  fi
+fi
+
+exit $ACT_EXIT_CODE 
