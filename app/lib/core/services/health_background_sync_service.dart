@@ -378,8 +378,18 @@ class HealthBackgroundSyncService {
 
   /// Dispose of resources
   void dispose() {
+    // Stop any platform-specific monitoring.
     stopMonitoring();
+
+    // Close the event stream to free resources.
     _eventController.close();
+
+    // TESTING SUPPORT: Reset mutable singleton state so that subsequent
+    // HealthBackgroundSyncService() calls begin from a clean baseline. This
+    // prevents config leakage between tests when the singleton instance is
+    // reused across multiple test cases.
+    _config = HealthBackgroundSyncConfig.defaultConfig;
+    _isActive = false;
   }
 }
 
