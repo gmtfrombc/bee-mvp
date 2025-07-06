@@ -31,7 +31,7 @@ jobs:
           NDJSON_PATH: scripts/jitai_training_sample.ndjson
       - name: Upload artefact (GitHub only)
         if: env.ACT != 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.3.0
         with:
           name: jitai_model_json
           path: jitai_model.json
