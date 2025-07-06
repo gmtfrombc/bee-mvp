@@ -1,5 +1,4 @@
-// @Skip('Golden images outdated after UI updates – needs regeneration')
-
+@Skip('Golden images outdated after UI updates – needs regeneration')
 library;
 
 // ignore_for_file: invalid_uri
