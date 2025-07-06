@@ -32,10 +32,33 @@ jobs:
         cp lib/firebase_options_ci.dart lib/firebase_options.dart
         echo "✅ CI-safe Firebase options configuration created"
         
-    - name: Setup Flutter
+    # -------------------------------------------------
+    # Flutter SDK – GitHub runner vs local ACT runner
+    # -------------------------------------------------
+    # GitHubʼs ubuntu-latest has the actions/toolcache that
+    # subosito/flutter-action relies on.  The lightweight
+    # act-22.04 image used for local runs doesnʼt, so the
+    # action fails early.  We therefore:
+    #   • Keep the action for real CI (env.ACT != 'true')
+    #   • Provide a minimal manual install when ACT == 'true'
+
+    - name: Setup Flutter (GitHub CI)
+      if: ${{ env.ACT != 'true' }}
       uses: subosito/flutter-action@v2
       with:
         flutter-version: '3.32.1'
+
+    - name: Install Flutter SDK (local ACT)
+      if: ${{ env.ACT == 'true' }}
+      run: |
+        set -euo pipefail
+        echo "🔧 Installing Flutter SDK for local ACT run..."
+        sudo apt-get update -y -qq >/dev/null
+        sudo apt-get install -y -qq curl git unzip xz-utils libglu1-mesa openjdk-11-jre-headless >/dev/null
+        # Clone stable channel (fast, cached by Docker layer on second run)
+        git clone --depth 1 --branch 3.32.1 https://github.com/flutter/flutter.git /opt/flutter
+        echo "/opt/flutter/bin" >> "$GITHUB_PATH"
+        /opt/flutter/bin/flutter --version
         
     - name: Get dependencies
       working-directory: ./app
@@ -205,7 +228,7 @@ jobs:
       run: flutter build apk --release
       
     - name: Upload APK
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v4.3.0
       with:
         name: app-release.apk
         path: app/build/app/outputs/flutter-apk/app-release.apk
