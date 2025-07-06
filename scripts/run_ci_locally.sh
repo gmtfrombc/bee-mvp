@@ -21,6 +21,17 @@ set -euo pipefail
 # deploy job only runs when infra-related paths change.
 
 export SKIP_MIGRATIONS=${SKIP_MIGRATIONS:-true}
+# By default we skip artifact uploads for speed.  For workflows where the
+# artefact is the primary output (e.g. LightGBM export) we *must* run the
+# upload step locally to mimic GitHub.  Detect those jobs and disable the
+# skip flag automatically unless the user forces it.
+
+if [[ "${JOB_FILTER:-}" == "export-scorer" || "${JOB_FILTER:-}" == "train-dry-run" ]]; then
+  export SKIP_UPLOAD_ARTIFACTS=${SKIP_UPLOAD_ARTIFACTS:-false}
+else
+  export SKIP_UPLOAD_ARTIFACTS=${SKIP_UPLOAD_ARTIFACTS:-true}
+fi
+
 if [[ "${FORCE_MIGRATIONS:-}" == "true" ]]; then
   SKIP_MIGRATIONS=false
 fi
@@ -202,6 +213,10 @@ if [[ -n "$JOB_FILTER" ]]; then
       ;;
     deploy)
       WORKFLOW_FILES=(".github/workflows/migrations-deploy.yml")
+      ;;
+    train-dry-run)
+      # JITAI Model CI – train-dry-run job
+      WORKFLOW_FILES=(".github/workflows/jitai_model_ci.yml")
       ;;
     *)
       # fallback: keep existing list (acts like original behaviour)
