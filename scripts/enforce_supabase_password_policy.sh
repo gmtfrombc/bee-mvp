@@ -47,11 +47,26 @@ if [[ "$NEED_PATCH" == "true" ]]; then
   echo "⚙️  Updating password policy to min_length=$REQUIRED_MIN_LENGTH, required_characters=$REQUIRED_SYMBOLS…"
   # --argjson expects a raw JSON value (number here), so we must NOT quote the variable
   PATCH_PAYLOAD=$(jq -n --argjson len ${REQUIRED_MIN_LENGTH} --arg req "$REQUIRED_SYMBOLS" '{password_min_length:$len,password_required_characters:$req}')
-  if ! curl -fsS -X PATCH "$API" \
-      -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
-      -H "Content-Type: application/json" \
-      -d "$PATCH_PAYLOAD" >/dev/null; then
-    echo "❌ Failed to PATCH password policy via Management API" >&2
+
+  echo "🔗 PATCH payload:" >&2
+  echo "$PATCH_PAYLOAD" | jq . >&2
+
+  # Perform PATCH and capture both body and status code for debugging
+  HTTP_RESPONSE=$(curl -sS -w "\n%{http_code}" -X PATCH "$API" \
+    -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
+    -H "Content-Type: application/json" \
+    -d "$PATCH_PAYLOAD")
+
+  # Split response and status
+  HTTP_BODY=$(echo "$HTTP_RESPONSE" | sed '$d')
+  HTTP_STATUS=$(echo "$HTTP_RESPONSE" | tail -n1)
+
+  if [[ $HTTP_STATUS -ge 200 && $HTTP_STATUS -lt 300 ]]; then
+    echo "✅ PATCH request succeeded (status $HTTP_STATUS)"
+  else
+    echo "❌ PATCH request failed with status $HTTP_STATUS" >&2
+    echo "Response body:" >&2
+    echo "$HTTP_BODY" | jq . >&2 || echo "$HTTP_BODY" >&2
     exit 1
   fi
 
