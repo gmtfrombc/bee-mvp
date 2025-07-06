@@ -25,7 +25,8 @@ if [[ -z "$PROJECT_REF" ]]; then
   exit 1
 fi
 
-API="https://api.supabase.com/v1/projects/${PROJECT_REF}/auth/config"
+# NOTE: Management API path is /config/auth (not /auth/config)
+API="https://api.supabase.com/v1/projects/${PROJECT_REF}/config/auth"
 
 CONFIG=$(curl -s -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" "$API")
 
@@ -45,11 +46,30 @@ echo "🔍 Current policy: min_length=$CUR_MIN_LENGTH required_characters=$CUR_R
 if [[ "$NEED_PATCH" == "true" ]]; then
   echo "⚙️  Updating password policy to min_length=$REQUIRED_MIN_LENGTH, required_characters=$REQUIRED_SYMBOLS…"
   PATCH_PAYLOAD=$(jq -n --argjson len "$REQUIRED_MIN_LENGTH" --arg req "$REQUIRED_SYMBOLS" '{password_min_length:$len,password_required_characters:$req}')
-  curl -s -X PATCH "$API" \
-    -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
-    -H "Content-Type: application/json" \
-    -d "$PATCH_PAYLOAD" >/dev/null
-  echo "✅ Policy updated."
+  if ! curl -fsS -X PATCH "$API" \
+      -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
+      -H "Content-Type: application/json" \
+      -d "$PATCH_PAYLOAD" >/dev/null; then
+    echo "❌ Failed to PATCH password policy via Management API" >&2
+    exit 1
+  fi
+
+  # Poll the API (max 5 × 2s) until the policy reflects the new values
+  for i in {1..5}; do
+    sleep 2
+    CONFIG=$(curl -s -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" "$API")
+    CUR_MIN_LENGTH=$(echo "$CONFIG" | jq -r '.password_min_length // 0')
+    CUR_REQUIRED_CHARS=$(echo "$CONFIG" | jq -r '.password_required_characters // ""')
+    if (( CUR_MIN_LENGTH >= REQUIRED_MIN_LENGTH )) && [[ "$CUR_REQUIRED_CHARS" == "$REQUIRED_SYMBOLS" ]]; then
+      echo "✅ Policy verified after update."
+      break
+    fi
+    if [[ $i -eq 5 ]]; then
+      echo "❌ Password policy still not updated after retries (min_length=$CUR_MIN_LENGTH, required_characters=$CUR_REQUIRED_CHARS)" >&2
+      exit 1
+    fi
+  done
+  # If we get here, policy has been updated.
 else
   echo "✅ Policy already meets requirements."
 fi
