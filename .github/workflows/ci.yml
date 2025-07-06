@@ -379,7 +379,7 @@ jobs:
         
       - name: Upload Component Size Report
         if: github.event_name == 'pull_request'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.3.0
         with:
           name: component-size-report
           path: component_size_pr_report.md
