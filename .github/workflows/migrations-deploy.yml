@@ -33,14 +33,16 @@ jobs:
           echo "SUPABASE_PROJECT_REF=$SUPABASE_PROJECT_REF" >> $GITHUB_ENV
           echo "SUPABASE_DB_PASSWORD=$SUPABASE_DB_PASSWORD" >> $GITHUB_ENV
 
-      - name: Link Supabase project
+      - name: Link Supabase project (GitHub only)
+        if: env.ACT != 'true'
         run: supabase link --project-ref "$SUPABASE_PROJECT_REF"
 
-      - name: Apply pending migrations
+      - name: Apply pending migrations (GitHub only)
+        if: env.ACT != 'true'
         run: supabase db push --include-all --password "$SUPABASE_DB_PASSWORD"
 
-      - name: Configure Google credentials & set TF_VAR_gcp_project
-        if: env.SKIP_TERRAFORM != 'true'
+      - name: Configure Google credentials & set TF_VAR_gcp_project (GitHub only)
+        if: env.SKIP_TERRAFORM != 'true' && env.ACT != 'true'
         env:
           GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
         run: |
@@ -57,20 +59,20 @@ jobs:
           echo "Using GCP project: $PROJECT_ID"
           echo "TF_VAR_gcp_project=$PROJECT_ID" >> $GITHUB_ENV
 
-      - name: Setup Terraform
-        if: env.SKIP_TERRAFORM != 'true'
+      - name: Setup Terraform (GitHub only)
+        if: env.SKIP_TERRAFORM != 'true' && env.ACT != 'true'
         uses: hashicorp/setup-terraform@v3
 
-      - name: Terraform init, validate & apply (auto-approve)
-        if: env.SKIP_TERRAFORM != 'true'
+      - name: Terraform init, validate & apply (GitHub only)
+        if: env.SKIP_TERRAFORM != 'true' && env.ACT != 'true'
         working-directory: infra
         run: |
           terraform init -backend=false
           terraform validate
           terraform apply -auto-approve -input=false
 
-      - name: Enforce Supabase password policy
-        if: env.SKIP_TERRAFORM != 'true'
+      - name: Enforce Supabase password policy (GitHub only)
+        if: env.SKIP_TERRAFORM != 'true' && env.ACT != 'true'
         run: |
           supabase auth settings update \
             --password_min_length 8 \

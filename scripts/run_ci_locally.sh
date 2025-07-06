@@ -141,9 +141,45 @@ fi
 # the job to run by exporting FORCE_MIGRATIONS=true.
 # Optional: Skip Supabase migrations job manually by exporting SKIP_MIGRATIONS=true before running this script.
 
-# 2️⃣  Pick a runner image. 22.04 is the newest medium-size `act` image currently published.
-# If GitHub moves `ubuntu-latest` to 24.04 we can switch to the heavier full image (`full-24.04`).
-GITHUB_RUNNER_IMAGE="ghcr.io/catthehacker/ubuntu:act-22.04"
+# === ARG PARSING: capture -j/--job early so we can tweak workflow list ===
+JOB_FILTER=""
+PASSTHRU_ARGS=()
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -j|--job)
+      JOB_FILTER="$2"
+      # we will re-append this flag AFTER all -W args later
+      shift 2
+      ;;
+    *)
+      PASSTHRU_ARGS+=("$1")
+      shift
+      ;;
+  esac
+done
+# restore positional params (sans -j) for later pass-through
+if [[ ${#PASSTHRU_ARGS[@]} -gt 0 ]]; then
+  eval set -- "${PASSTHRU_ARGS[@]}"
+else
+  # reset to no positional arguments
+  set --
+fi
+
+# -------------------------------------------------------------------------
+# 2️⃣ Pick a runner image – switch to a Flutter-preinstalled image when the
+#    requested job is the Flutter CI "test" job for dramatically faster runs.
+# -------------------------------------------------------------------------
+# Default minimal image for backend/integration workflows
+DEFAULT_RUNNER_IMAGE="ghcr.io/catthehacker/ubuntu:act-22.04"
+# Flutter-optimised image (contains SDK 3.32.x and Android toolchain)
+FLUTTER_RUNNER_IMAGE="ghcr.io/instrumentisto/flutter:3.32.5-androidsdk35-r0"
+
+if [[ "$JOB_FILTER" == "test" ]]; then
+  # Use the heavier but pre-baked Flutter image when only Flutter tests run
+  GITHUB_RUNNER_IMAGE="${FLUTTER_RUNNER_IMAGE}"
+else
+  GITHUB_RUNNER_IMAGE="${DEFAULT_RUNNER_IMAGE}"
+fi
 
 # 3️⃣  Execute `act`
 # Select workflow files – default is main CI plus migrations. Set SKIP_MIGRATIONS=true to skip.
@@ -154,6 +190,24 @@ WORKFLOW_FILES=(
   ".github/workflows/jitai_model_ci.yml"     # JITAI Model CI
   ".github/workflows/lightgbm_export_ci.yml" # LightGBM TS Export CI
 )
+
+# When a specific job is requested, keep only the workflow likely to contain it
+if [[ -n "$JOB_FILTER" ]]; then
+  case "$JOB_FILTER" in
+    test)
+      WORKFLOW_FILES=(".github/workflows/flutter-ci.yml")
+      ;;
+    build)
+      WORKFLOW_FILES=(".github/workflows/ci.yml")
+      ;;
+    deploy)
+      WORKFLOW_FILES=(".github/workflows/migrations-deploy.yml")
+      ;;
+    *)
+      # fallback: keep existing list (acts like original behaviour)
+      ;;
+  esac
+fi
 
 # By default, skip migrations for faster local runs unless FORCE_MIGRATIONS is true
 if [[ "${FORCE_MIGRATIONS:-}" == "true" ]]; then
@@ -174,12 +228,15 @@ for wf in "${WORKFLOW_FILES[@]}"; do
   WF_ARGS+=( -W "$wf" )
 done
 
-act push \
-  "${WF_ARGS[@]}" \
-  -P ubuntu-latest=${GITHUB_RUNNER_IMAGE} \
-  --container-architecture linux/amd64 \
-  --env ACT=false \
-  --env SKIP_UPLOAD_ARTIFACTS=true \
-  --env SKIP_TERRAFORM=${SKIP_TERRAFORM:-false} \
-  --secret-file "$SECRETS_FILE" \
-  "$@" 
+ACT_CMD=(act push "${WF_ARGS[@]}" -P ubuntu-latest=${GITHUB_RUNNER_IMAGE} --container-architecture linux/amd64 --env ACT=false --env SKIP_UPLOAD_ARTIFACTS=true --env SKIP_TERRAFORM=${SKIP_TERRAFORM:-false} --secret-file "$SECRETS_FILE")
+
+# Re-append the job filter (if any) **after** all -W flags so `act` can
+# correctly match the job once workflows have been loaded.
+if [[ -n "$JOB_FILTER" ]]; then
+  ACT_CMD+=( -j "$JOB_FILTER" )
+fi
+
+# Finally, append any remaining pass-through args supplied by the user
+ACT_CMD+=("$@")
+
+"${ACT_CMD[@]}" 
