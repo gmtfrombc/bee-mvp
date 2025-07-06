@@ -62,7 +62,7 @@ void main() {
   GoldenToolkit.runWithConfiguration(
     () => _main(),
     config: GoldenToolkitConfiguration(
-      enableRealShadows: true,
+      enableRealShadows: false,
       defaultDevices: const [Device.phone, Device.tabletPortrait],
       fileNameFactory: (name) => '../../_goldens/$name.png',
     ),
@@ -70,6 +70,12 @@ void main() {
 }
 
 void _main() {
+  setUpAll(() async {
+    await loadAppFonts();
+    // Ensure deterministic renders across platforms
+    final binding = TestWidgetsFlutterBinding.ensureInitialized();
+    binding.window.devicePixelRatioTestValue = 1.0;
+  });
   testGoldens('Auth & Login Pages', (tester) async {
     final stubAuth = _StubAuthNotifier();
 
