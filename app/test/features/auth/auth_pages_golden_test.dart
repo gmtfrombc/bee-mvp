@@ -72,9 +72,9 @@ void main() {
 void _main() {
   setUpAll(() async {
     await loadAppFonts();
-    // Ensure deterministic renders across platforms
-    final binding = TestWidgetsFlutterBinding.ensureInitialized();
-    binding.window.devicePixelRatioTestValue = 1.0;
+    // Initialize binding to ensure widgets are ready for tests. No need to
+    // override pixel ratio; default 1.0 is deterministic across CI.
+    TestWidgetsFlutterBinding.ensureInitialized();
   });
   testGoldens('Auth & Login Pages', (tester) async {
     final stubAuth = _StubAuthNotifier();
