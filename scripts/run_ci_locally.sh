@@ -272,13 +272,12 @@ ACT_EXIT_CODE=$?
 # succeeded. If the workflow failed (non-zero exit), we propagate
 # that error code directly.
 if [[ $ACT_EXIT_CODE -eq 0 ]]; then
-  # Check for any unstaged or untracked changes limited to the app/
-  # directory (where Flutter golden files live) to avoid unrelated
-  # local environment noise.
-  if [[ -n "$(git status --porcelain app/ | head -n1)" ]]; then
+  # Check for any unstaged or untracked changes in source directories
+  # (Flutter goldens in app/, Python auto-formatting in tests/).
+  if [[ -n "$(git status --porcelain app/ tests/ | head -n1)" ]]; then
     echo "❌  Local CI completed successfully but produced file changes." >&2
     echo "    Commit or discard these changes (likely updated golden baselines) before pushing." >&2
-    git --no-pager status --short app/ >&2
+    git --no-pager status --short app/ tests/ >&2
     exit 1
   fi
 fi
