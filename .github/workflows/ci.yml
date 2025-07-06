@@ -443,7 +443,15 @@ jobs:
               });
             }
 
-      # ---------- Supabase Password Policy Check ----------
+      # ---------- Supabase Password Policy Enforcement & Check ----------
+      - name: Enforce Supabase password policy (auto-fix drift)
+        run: |
+          chmod +x scripts/enforce_supabase_password_policy.sh
+          ./scripts/enforce_supabase_password_policy.sh
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ env.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_URL: ${{ env.SUPABASE_URL }}
+
       - name: Verify Supabase password policy (≥8 chars & symbol)
         run: |
           chmod +x scripts/check_supabase_password_policy.sh
