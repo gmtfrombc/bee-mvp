@@ -48,9 +48,37 @@ REQUIRED_SETTING=$(echo "$CONFIG" | jq -r '.password_required_characters // ""')
 
 echo "🔍 Supabase password_min_length=$MIN_LENGTH password_required_characters=$REQUIRED_SETTING"
 
-if (( MIN_LENGTH < REQUIRED_MIN_LENGTH )) || [[ "$REQUIRED_SETTING" != "$REQUIRED_CHAR" ]]; then
-  echo "❌ Password policy does not meet the required criteria (min length $REQUIRED_MIN_LENGTH & symbol required)."
-  exit 1
+needs_fix=false
+if (( MIN_LENGTH < REQUIRED_MIN_LENGTH )); then
+  needs_fix=true
+fi
+if [[ "$REQUIRED_SETTING" != "$REQUIRED_CHAR" ]]; then
+  needs_fix=true
 fi
 
-echo "✅ Password policy meets requirements." 
+if [[ "$needs_fix" == "true" ]]; then
+  echo "⚠️  Password policy is weaker than required — attempting auto-heal via enforce_supabase_password_policy.sh"
+  DIR="$(cd "$(dirname "$0")" && pwd)"
+  bash "$DIR/enforce_supabase_password_policy.sh"
+
+  # Re-fetch config after enforcement
+  sleep 2
+  CONFIG=$(curl -s -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" "$API")
+  MIN_LENGTH=$(echo "$CONFIG" | jq -r '.password_min_length // 0')
+  if ! [[ "$MIN_LENGTH" =~ ^[0-9]+$ ]]; then
+    MIN_LENGTH=0
+  fi
+  REQUIRED_SETTING=$(echo "$CONFIG" | jq -r '.password_required_characters // ""')
+
+  echo "🔄 Post-heal policy: min_length=$MIN_LENGTH password_required_characters=$REQUIRED_SETTING"
+
+  if (( MIN_LENGTH < REQUIRED_MIN_LENGTH )) || [[ "$REQUIRED_SETTING" != "$REQUIRED_CHAR" ]]; then
+    echo "❌ Password policy still does not meet required criteria after auto-heal. Failing CI."
+    exit 1
+  else
+    echo "✅ Password policy healed successfully."
+    exit 0
+  fi
+else
+  echo "✅ Password policy meets requirements."
+fi 
