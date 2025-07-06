@@ -45,7 +45,8 @@ echo "🔍 Current policy: min_length=$CUR_MIN_LENGTH required_characters=$CUR_R
 
 if [[ "$NEED_PATCH" == "true" ]]; then
   echo "⚙️  Updating password policy to min_length=$REQUIRED_MIN_LENGTH, required_characters=$REQUIRED_SYMBOLS…"
-  PATCH_PAYLOAD=$(jq -n --argjson len "$REQUIRED_MIN_LENGTH" --arg req "$REQUIRED_SYMBOLS" '{password_min_length:$len,password_required_characters:$req}')
+  # --argjson expects a raw JSON value (number here), so we must NOT quote the variable
+  PATCH_PAYLOAD=$(jq -n --argjson len ${REQUIRED_MIN_LENGTH} --arg req "$REQUIRED_SYMBOLS" '{password_min_length:$len,password_required_characters:$req}')
   if ! curl -fsS -X PATCH "$API" \
       -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
       -H "Content-Type: application/json" \
