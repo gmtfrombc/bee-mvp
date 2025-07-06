@@ -37,8 +37,19 @@ fi
 
 CONFIG=$(curl -s -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" "$API")
 
-MIN_LENGTH=$(echo "$CONFIG" | jq -r '.password_min_length')
-REQUIRE_SPECIAL=$(echo "$CONFIG" | jq -r '.password_require_special_char')
+MIN_LENGTH=$(echo "$CONFIG" | jq -r '.password_min_length // 0')
+# Ensure numeric; fallback to 0 when not a number
+if ! [[ "$MIN_LENGTH" =~ ^[0-9]+$ ]]; then
+  MIN_LENGTH=0
+fi
+
+# Use jq to coalesce to false when null
+REQUIRE_SPECIAL=$(echo "$CONFIG" | jq -r '.password_require_special_char // false')
+
+# Normalise to lowercase string "true"/"false"
+REQUIRE_SPECIAL=$(echo "$REQUIRE_SPECIAL" | tr '[:upper:]' '[:lower:]')
+
+# REQUIRE_SYMBOL is already lowercase 'true'
 
 echo "🔍 Supabase password_min_length=$MIN_LENGTH require_special_char=$REQUIRE_SPECIAL"
 
