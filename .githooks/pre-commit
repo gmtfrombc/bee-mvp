@@ -50,3 +50,14 @@ if [[ -n "$staged_py_files" ]]; then
 fi
 
 echo "✅ Python formatting verified by Black"
+
+# 4. Run Ruff linter on staged Python files to catch unused imports, etc.
+if [[ -n "$staged_py_files" ]]; then
+  echo "🧐  Running Ruff lint on staged files..."
+  if ! ruff check $staged_py_files; then
+    echo "❌  Ruff detected lint issues. Please fix or run 'ruff check --fix'. Commit aborted."
+    exit 1
+  fi
+fi
+
+echo "✅ Ruff lint passed"
