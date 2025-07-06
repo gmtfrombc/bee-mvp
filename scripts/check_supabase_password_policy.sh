@@ -12,7 +12,7 @@
 set -euo pipefail
 
 REQUIRED_MIN_LENGTH=8
-REQUIRE_SYMBOL=true
+REQUIRED_CHAR="symbols"
 
 if [[ -z "${SUPABASE_ACCESS_TOKEN:-}" || -z "${SUPABASE_URL:-}" ]]; then
   echo "⚠️  SUPABASE_ACCESS_TOKEN or SUPABASE_URL not set — skipping password-policy check."
@@ -43,17 +43,12 @@ if ! [[ "$MIN_LENGTH" =~ ^[0-9]+$ ]]; then
   MIN_LENGTH=0
 fi
 
-# Use jq to coalesce to false when null
-REQUIRE_SPECIAL=$(echo "$CONFIG" | jq -r '.password_require_special_char // false')
+# Fetch required characters setting (string like "symbols", "numbers", etc.)
+REQUIRED_SETTING=$(echo "$CONFIG" | jq -r '.password_required_characters // ""')
 
-# Normalise to lowercase string "true"/"false"
-REQUIRE_SPECIAL=$(echo "$REQUIRE_SPECIAL" | tr '[:upper:]' '[:lower:]')
+echo "🔍 Supabase password_min_length=$MIN_LENGTH password_required_characters=$REQUIRED_SETTING"
 
-# REQUIRE_SYMBOL is already lowercase 'true'
-
-echo "🔍 Supabase password_min_length=$MIN_LENGTH require_special_char=$REQUIRE_SPECIAL"
-
-if (( MIN_LENGTH < REQUIRED_MIN_LENGTH )) || [[ "$REQUIRE_SPECIAL" != "$REQUIRE_SYMBOL" ]]; then
+if (( MIN_LENGTH < REQUIRED_MIN_LENGTH )) || [[ "$REQUIRED_SETTING" != "$REQUIRED_CHAR" ]]; then
   echo "❌ Password policy does not meet the required criteria (min length $REQUIRED_MIN_LENGTH & symbol required)."
   exit 1
 fi
