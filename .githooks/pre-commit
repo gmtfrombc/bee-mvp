@@ -36,3 +36,17 @@ else
 fi
 
 echo "✅ Pre-commit hook completed successfully"
+
+# 3. Run Black on staged Python files to ensure formatting consistency
+#    This prevents CI failures where Black formatting passes locally but fails remotely.
+
+staged_py_files=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.py$' || true)
+if [[ -n "$staged_py_files" ]]; then
+  echo "🎨  Checking Python formatting with Black..."
+  if ! black --check $staged_py_files; then
+    echo "❌  Black found formatting issues. Please run 'black <files>' and restage. Commit aborted."
+    exit 1
+  fi
+fi
+
+echo "✅ Python formatting verified by Black"
