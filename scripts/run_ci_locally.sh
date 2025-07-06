@@ -92,6 +92,14 @@ if [[ -f "$DEFAULT_SECRETS_SRC" ]]; then
   : "${SUPABASE_PROJECT_REF:=}"
   : "${SUPABASE_DB_PASSWORD:=}"
 
+  # Fail-fast when critical Supabase vars are missing so that
+  # the password-policy enforcement path runs locally exactly
+  # as it does on GitHub CI.
+  if [[ -z "$SUPABASE_ACCESS_TOKEN" || -z "$SUPABASE_URL" ]]; then
+    echo "❌  SUPABASE_ACCESS_TOKEN and/or SUPABASE_URL missing. Local CI cannot continue – add them to $DEFAULT_SECRETS_SRC (see docs)." >&2
+    exit 1
+  fi
+
   # Auto-derive project ref from URL when missing
   if [[ -z "$SUPABASE_PROJECT_REF" && -n "$SUPABASE_URL" ]]; then
     # Extract subdomain before first dot after protocol
