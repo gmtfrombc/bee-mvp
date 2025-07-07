@@ -12,21 +12,28 @@ set -euo pipefail
 
 REQUIRED_MIN_LENGTH=8
 
-# Map human-friendly requirement labels → Supabase enum strings expected by Management API
-# Supported labels we might care about
-#   symbols        -> letters_numbers_symbols
-#   numbers        -> numbers
-#   alphanumeric   -> letters_numbers
-#   none / empty   -> none
+# Define literal sets accepted by Supabase Management API (source: API error response)
+LETTERS_SET="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+ALPHANUMERIC_SET="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+FULL_SYMBOL_SET="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=[]{};'\":|<>?,./`~"
+
+# Map human-friendly requirement labels → exact literal sets expected by Management API
+#   symbols        -> $FULL_SYMBOL_SET
+#   letters        -> $LETTERS_SET
+#   alphanumeric   -> $ALPHANUMERIC_SET
+#   none           -> none
 HUMAN_REQUIRED="symbols"
 case "$HUMAN_REQUIRED" in
-  symbols)        REQUIRED_ENUM="letters_numbers_symbols" ;;
-  numbers)        REQUIRED_ENUM="numbers" ;;
+  symbols)        REQUIRED_ENUM="$FULL_SYMBOL_SET" ;;
+  letters)        REQUIRED_ENUM="$LETTERS_SET" ;;
   alphanumeric|letters_numbers)
-                  REQUIRED_ENUM="letters_numbers" ;;
+                  REQUIRED_ENUM="$ALPHANUMERIC_SET" ;;
+  numbers)        REQUIRED_ENUM="0123456789" ;;
   none|"")      REQUIRED_ENUM="none" ;;
   *)              REQUIRED_ENUM="$HUMAN_REQUIRED" ;;
 esac
+
+echo "🔧 Resolved human label '$HUMAN_REQUIRED' → literal set: $REQUIRED_ENUM"
 
 if [[ -z "${SUPABASE_ACCESS_TOKEN:-}" || -z "${SUPABASE_URL:-}" ]]; then
   echo "⚠️  SUPABASE_ACCESS_TOKEN or SUPABASE_URL not set — cannot enforce password policy. Exiting 1." >&2
@@ -65,6 +72,7 @@ if [[ "$NEED_PATCH" == "true" ]]; then
 
   echo "🔗 PATCH payload:" >&2
   echo "$PATCH_PAYLOAD" | jq . >&2
+  echo "🔗 curl -X PATCH $API -d '$PATCH_PAYLOAD'" >&2
 
   # Perform PATCH and capture both body and status code for debugging
   HTTP_RESPONSE=$(curl -sS -w "\n%{http_code}" -X PATCH "$API" \
