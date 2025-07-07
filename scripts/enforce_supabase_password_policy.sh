@@ -18,17 +18,11 @@ LETTERS_UPPER="ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 NUMBERS="0123456789"
 SYMBOLS="!@#$%^&*()_+-=[]{};'\\\":|<>?,./\`~"
 
-# Enumerations expected by Supabase API
-# 1) lower+upper, numbers            → "$LETTERS_LOWER$LETTERS_UPPER:$NUMBERS"
-# 2) lower, upper, numbers            → "$LETTERS_LOWER:$LETTERS_UPPER:$NUMBERS"
-# 3) lower, upper, numbers, symbols   → "$LETTERS_LOWER:$LETTERS_UPPER:$NUMBERS:$SYMBOLS"
-
-ALPHANUMERIC_SET="$LETTERS_LOWER$LETTERS_UPPER:$NUMBERS"
-ALPHANUMERIC_SPLIT="$LETTERS_LOWER:$LETTERS_UPPER:$NUMBERS"
-FULL_SYMBOL_SET="$LETTERS_LOWER:$LETTERS_UPPER:$NUMBERS:$SYMBOLS"
-
-# Default letters set (lower + upper) using split variant
-LETTERS_SET="$LETTERS_LOWER:$LETTERS_UPPER"
+# Exact enum literals accepted by Supabase Management API
+ALPHANUMERIC_SET="$LETTERS_LOWER$LETTERS_UPPER:$NUMBERS" # combined lower+upper then numbers
+LETTERS_SET="$LETTERS_LOWER:$LETTERS_UPPER"              # split lower:upper
+# Full enum with symbols (MUST match exactly)
+FULL_SYMBOL_SET="abcdefghijklmnopqrstuvwxyz:ABCDEFGHIJKLMNOPQRSTUVWXYZ:0123456789:!@#$%^&*()_+-=[]{};'\\\":|<>?,./\`~"
 
 # Map human-friendly requirement labels → exact literal sets expected by Management API
 #   symbols        -> $FULL_SYMBOL_SET
