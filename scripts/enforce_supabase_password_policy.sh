@@ -101,9 +101,9 @@ if [[ "$NEED_PATCH" == "true" ]]; then
     exit 1
   fi
 
-  # Retry re-fetching config up to 5 times with backoff
-  for attempt in {1..5}; do
-    sleep $((attempt * 2))
+  # Retry re-fetching config up to 10 times with fixed 2s backoff
+  for attempt in {1..10}; do
+    sleep 2
     CONFIG=$(curl -s -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" "$API")
     CUR_MIN_LENGTH=$(echo "$CONFIG" | jq -r '.password_min_length // 0')
     CUR_REQUIRED_CHARS=$(echo "$CONFIG" | jq -r '.password_required_characters // ""')
@@ -112,7 +112,7 @@ if [[ "$NEED_PATCH" == "true" ]]; then
       echo "✅ Post-heal policy verified."
       break
     fi
-    if [[ $attempt -eq 5 ]]; then
+    if [[ $attempt -eq 10 ]]; then
       echo "❌ Password policy still not updated after retries (min_length=$CUR_MIN_LENGTH, required_characters=$CUR_REQUIRED_CHARS, expected=$REQUIRED_ENUM)" >&2
       exit 1
     fi
