@@ -22,7 +22,7 @@ SYMBOLS="!@#$%^&*()_+-=[]{};'\\\":|<>?,./\`~"
 ALPHANUMERIC_SET="$LETTERS_LOWER$LETTERS_UPPER:$NUMBERS" # combined lower+upper then numbers
 LETTERS_SET="$LETTERS_LOWER:$LETTERS_UPPER"              # split lower:upper
 # Full enum with symbols (MUST match exactly)
-FULL_SYMBOL_SET=$'abcdefghijklmnopqrstuvwxyz:ABCDEFGHIJKLMNOPQRSTUVWXYZ:0123456789:!@#$%^&*()_+-=[]{};\'\\\\:\\"|<>?,./`~'
+FULL_SYMBOL_SET=$'abcdefghijklmnopqrstuvwxyz:ABCDEFGHIJKLMNOPQRSTUVWXYZ:0123456789:!@#$%^&*()_+-=[]{};\'\\\\:"|<>?,./`~'
 
 # Map human-friendly requirement labels → exact literal sets expected by Management API
 #   symbols        -> $FULL_SYMBOL_SET
