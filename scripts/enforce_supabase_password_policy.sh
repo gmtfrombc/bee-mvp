@@ -13,10 +13,22 @@ set -euo pipefail
 REQUIRED_MIN_LENGTH=8
 
 # Define literal sets accepted by Supabase Management API (source: API error response)
-LETTERS_SET="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-ALPHANUMERIC_SET="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-# Note: use backslash to escape literal backslash and backtick inside double quotes
-FULL_SYMBOL_SET="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=[]{};'\\\":|<>?,./\`~"
+LETTERS_LOWER="abcdefghijklmnopqrstuvwxyz"
+LETTERS_UPPER="ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+NUMBERS="0123456789"
+SYMBOLS="!@#$%^&*()_+-=[]{};'\\\":|<>?,./\`~"
+
+# Enumerations expected by Supabase API
+# 1) lower+upper, numbers            → "$LETTERS_LOWER$LETTERS_UPPER:$NUMBERS"
+# 2) lower, upper, numbers            → "$LETTERS_LOWER:$LETTERS_UPPER:$NUMBERS"
+# 3) lower, upper, numbers, symbols   → "$LETTERS_LOWER:$LETTERS_UPPER:$NUMBERS:$SYMBOLS"
+
+ALPHANUMERIC_SET="$LETTERS_LOWER$LETTERS_UPPER:$NUMBERS"
+ALPHANUMERIC_SPLIT="$LETTERS_LOWER:$LETTERS_UPPER:$NUMBERS"
+FULL_SYMBOL_SET="$LETTERS_LOWER:$LETTERS_UPPER:$NUMBERS:$SYMBOLS"
+
+# Default letters set (lower + upper) using split variant
+LETTERS_SET="$LETTERS_LOWER:$LETTERS_UPPER"
 
 # Map human-friendly requirement labels → exact literal sets expected by Management API
 #   symbols        -> $FULL_SYMBOL_SET
@@ -35,6 +47,7 @@ case "$HUMAN_REQUIRED" in
 esac
 
 echo "🔧 Resolved human label '$HUMAN_REQUIRED' → literal set: $REQUIRED_ENUM"
+echo "🔧 Enum literal (hex): $(echo -n "$REQUIRED_ENUM" | xxd -p)"
 
 if [[ -z "${SUPABASE_ACCESS_TOKEN:-}" || -z "${SUPABASE_URL:-}" ]]; then
   echo "⚠️  SUPABASE_ACCESS_TOKEN or SUPABASE_URL not set — cannot enforce password policy. Exiting 1." >&2
