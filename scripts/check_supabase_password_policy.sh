@@ -20,7 +20,7 @@ NUMBERS="0123456789"
 SYMBOLS="!@#$%^&*()_+-=[]{};'\\\":|<>?,./\`~"
 
 ALPHANUMERIC_SET="$LETTERS_LOWER$LETTERS_UPPER:$NUMBERS"
-FULL_SYMBOL_SET=$'abcdefghijklmnopqrstuvwxyz:ABCDEFGHIJKLMNOPQRSTUVWXYZ:0123456789:!@#$%^&*()_+-=[]{};\'\\\\:\\"|<>?,./`~'
+FULL_SYMBOL_SET=$'abcdefghijklmnopqrstuvwxyz:ABCDEFGHIJKLMNOPQRSTUVWXYZ:0123456789:!@#$%^&*()_+-=[]{};\'\\\\:"|<>?,./`~'
 LETTERS_SET="$LETTERS_LOWER:$LETTERS_UPPER"
 
 # Map human-friendly label to literal set
@@ -105,4 +105,4 @@ if [[ "$needs_fix" == "true" ]]; then
   fi
 else
   echo "✅ Password policy meets requirements."
-fi 
+fi
