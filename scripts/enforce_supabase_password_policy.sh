@@ -15,7 +15,8 @@ REQUIRED_MIN_LENGTH=8
 # Define literal sets accepted by Supabase Management API (source: API error response)
 LETTERS_SET="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 ALPHANUMERIC_SET="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-FULL_SYMBOL_SET="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=[]{};'\":|<>?,./`~"
+# Note: use backslash to escape literal backslash and backtick inside double quotes
+FULL_SYMBOL_SET="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=[]{};'\\\":|<>?,./\`~"
 
 # Map human-friendly requirement labels → exact literal sets expected by Management API
 #   symbols        -> $FULL_SYMBOL_SET
