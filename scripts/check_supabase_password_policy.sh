@@ -14,9 +14,14 @@ set -euo pipefail
 REQUIRED_MIN_LENGTH=8
 
 # Define literal sets accepted by Supabase Management API (source: API error response)
-LETTERS_SET="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-ALPHANUMERIC_SET="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-FULL_SYMBOL_SET="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=[]{};'\\\":|<>?,./\`~"
+LETTERS_LOWER="abcdefghijklmnopqrstuvwxyz"
+LETTERS_UPPER="ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+NUMBERS="0123456789"
+SYMBOLS="!@#$%^&*()_+-=[]{};'\\\":|<>?,./\`~"
+
+ALPHANUMERIC_SET="$LETTERS_LOWER$LETTERS_UPPER:$NUMBERS"
+FULL_SYMBOL_SET="$LETTERS_LOWER:$LETTERS_UPPER:$NUMBERS:$SYMBOLS"
+LETTERS_SET="$LETTERS_LOWER:$LETTERS_UPPER"
 
 # Map human-friendly label to literal set
 HUMAN_REQUIRED="symbols"
@@ -31,6 +36,7 @@ case "$HUMAN_REQUIRED" in
 esac
 
 echo "🔧 Resolved human label '$HUMAN_REQUIRED' → literal set: $REQUIRED_ENUM"
+echo "🔧 Enum literal (hex): $(echo -n "$REQUIRED_ENUM" | xxd -p)"
 
 if [[ -z "${SUPABASE_ACCESS_TOKEN:-}" || -z "${SUPABASE_URL:-}" ]]; then
   echo "⚠️  SUPABASE_ACCESS_TOKEN or SUPABASE_URL not set — skipping password-policy check."
