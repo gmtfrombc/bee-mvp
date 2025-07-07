@@ -22,7 +22,7 @@ SYMBOLS="!@#$%^&*()_+-=[]{};'\\\":|<>?,./\`~"
 ALPHANUMERIC_SET="$LETTERS_LOWER$LETTERS_UPPER:$NUMBERS" # combined lower+upper then numbers
 LETTERS_SET="$LETTERS_LOWER:$LETTERS_UPPER"              # split lower:upper
 # Full enum with symbols (MUST match exactly)
-FULL_SYMBOL_SET="abcdefghijklmnopqrstuvwxyz:ABCDEFGHIJKLMNOPQRSTUVWXYZ:0123456789:!@#$%^&*()_+-=[]{};'\\\":|<>?,./\`~"
+FULL_SYMBOL_SET="abcdefghijklmnopqrstuvwxyz:ABCDEFGHIJKLMNOPQRSTUVWXYZ:0123456789:!@#$%^&*()_+-=[]{};'\\:\"|<>?,./\`~"
 
 # Map human-friendly requirement labels → exact literal sets expected by Management API
 #   symbols        -> $FULL_SYMBOL_SET
@@ -76,9 +76,9 @@ echo "🔍 Current policy: min_length=$CUR_MIN_LENGTH required_characters=$CUR_R
 if [[ "$NEED_PATCH" == "true" ]]; then
   echo "⚙️  Updating password policy to min_length=$REQUIRED_MIN_LENGTH, required_characters=$REQUIRED_ENUM…"
   # --argjson expects a raw JSON value (number here), so we must NOT quote the variable
-  PATCH_PAYLOAD=$(jq -n --argjson len ${REQUIRED_MIN_LENGTH} --arg req "$REQUIRED_ENUM" '{password_min_length:$len,password_required_characters:$req}')
+  PATCH_PAYLOAD=$(jq -n --arg ml "$REQUIRED_MIN_LENGTH" --arg rc "$REQUIRED_ENUM" '{password_min_length: ($ml|tonumber), password_required_characters: $rc}')
 
-  echo "🔗 PATCH payload:" >&2
+  echo "Final PATCH payload:" >&2
   echo "$PATCH_PAYLOAD" | jq . >&2
   echo "🔗 curl -X PATCH $API -d '$PATCH_PAYLOAD'" >&2
 
