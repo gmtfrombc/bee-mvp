@@ -101,20 +101,18 @@ if [[ "$NEED_PATCH" == "true" ]]; then
     exit 1
   fi
 
-  # Poll the API (max 5 × 2s) until the policy reflects the new values
-  for i in {1..5}; do
-    sleep 2
+  # Retry re-fetching config up to 5 times with backoff
+  for attempt in {1..5}; do
+    sleep $((attempt * 2))
     CONFIG=$(curl -s -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" "$API")
-    echo "🔁 Raw post-heal CONFIG JSON:"
-    echo "$CONFIG" | jq .
     CUR_MIN_LENGTH=$(echo "$CONFIG" | jq -r '.password_min_length // 0')
     CUR_REQUIRED_CHARS=$(echo "$CONFIG" | jq -r '.password_required_characters // ""')
-    echo "🔍 Post-heal: expecting required_characters=$REQUIRED_ENUM"
+    echo "🔁 Retry #$attempt — min_length=$CUR_MIN_LENGTH, required_chars='$CUR_REQUIRED_CHARS'"
     if (( CUR_MIN_LENGTH >= REQUIRED_MIN_LENGTH )) && [[ "$CUR_REQUIRED_CHARS" == "$REQUIRED_ENUM" ]]; then
-      echo "✅ Policy verified after update."
+      echo "✅ Post-heal policy verified."
       break
     fi
-    if [[ $i -eq 5 ]]; then
+    if [[ $attempt -eq 5 ]]; then
       echo "❌ Password policy still not updated after retries (min_length=$CUR_MIN_LENGTH, required_characters=$CUR_REQUIRED_CHARS, expected=$REQUIRED_ENUM)" >&2
       exit 1
     fi
@@ -124,4 +122,4 @@ else
   echo "✅ Policy already meets requirements."
 fi
 
-exit 0 
+exit 0
