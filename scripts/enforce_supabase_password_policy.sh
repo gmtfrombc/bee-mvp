@@ -11,7 +11,22 @@
 set -euo pipefail
 
 REQUIRED_MIN_LENGTH=8
-REQUIRED_SYMBOLS="symbols"  # Supabase requires string literal
+
+# Map human-friendly requirement labels → Supabase enum strings expected by Management API
+# Supported labels we might care about
+#   symbols        -> letters_numbers_symbols
+#   numbers        -> numbers
+#   alphanumeric   -> letters_numbers
+#   none / empty   -> none
+HUMAN_REQUIRED="symbols"
+case "$HUMAN_REQUIRED" in
+  symbols)        REQUIRED_ENUM="letters_numbers_symbols" ;;
+  numbers)        REQUIRED_ENUM="numbers" ;;
+  alphanumeric|letters_numbers)
+                  REQUIRED_ENUM="letters_numbers" ;;
+  none|"")      REQUIRED_ENUM="none" ;;
+  *)              REQUIRED_ENUM="$HUMAN_REQUIRED" ;;
+esac
 
 if [[ -z "${SUPABASE_ACCESS_TOKEN:-}" || -z "${SUPABASE_URL:-}" ]]; then
   echo "⚠️  SUPABASE_ACCESS_TOKEN or SUPABASE_URL not set — cannot enforce password policy. Exiting 1." >&2
@@ -37,16 +52,16 @@ NEED_PATCH=false
 if (( CUR_MIN_LENGTH < REQUIRED_MIN_LENGTH )); then
   NEED_PATCH=true
 fi
-if [[ "$CUR_REQUIRED_CHARS" != "$REQUIRED_SYMBOLS" ]]; then
+if [[ "$CUR_REQUIRED_CHARS" != "$REQUIRED_ENUM" ]]; then
   NEED_PATCH=true
 fi
 
-echo "🔍 Current policy: min_length=$CUR_MIN_LENGTH required_characters=$CUR_REQUIRED_CHARS"
+echo "🔍 Current policy: min_length=$CUR_MIN_LENGTH required_characters=$CUR_REQUIRED_CHARS (desired=$REQUIRED_ENUM)"
 
 if [[ "$NEED_PATCH" == "true" ]]; then
-  echo "⚙️  Updating password policy to min_length=$REQUIRED_MIN_LENGTH, required_characters=$REQUIRED_SYMBOLS…"
+  echo "⚙️  Updating password policy to min_length=$REQUIRED_MIN_LENGTH, required_characters=$REQUIRED_ENUM…"
   # --argjson expects a raw JSON value (number here), so we must NOT quote the variable
-  PATCH_PAYLOAD=$(jq -n --argjson len ${REQUIRED_MIN_LENGTH} --arg req "$REQUIRED_SYMBOLS" '{password_min_length:$len,password_required_characters:$req}')
+  PATCH_PAYLOAD=$(jq -n --argjson len ${REQUIRED_MIN_LENGTH} --arg req "$REQUIRED_ENUM" '{password_min_length:$len,password_required_characters:$req}')
 
   echo "🔗 PATCH payload:" >&2
   echo "$PATCH_PAYLOAD" | jq . >&2
@@ -76,12 +91,12 @@ if [[ "$NEED_PATCH" == "true" ]]; then
     CONFIG=$(curl -s -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" "$API")
     CUR_MIN_LENGTH=$(echo "$CONFIG" | jq -r '.password_min_length // 0')
     CUR_REQUIRED_CHARS=$(echo "$CONFIG" | jq -r '.password_required_characters // ""')
-    if (( CUR_MIN_LENGTH >= REQUIRED_MIN_LENGTH )) && [[ "$CUR_REQUIRED_CHARS" == "$REQUIRED_SYMBOLS" ]]; then
+    if (( CUR_MIN_LENGTH >= REQUIRED_MIN_LENGTH )) && [[ "$CUR_REQUIRED_CHARS" == "$REQUIRED_ENUM" ]]; then
       echo "✅ Policy verified after update."
       break
     fi
     if [[ $i -eq 5 ]]; then
-      echo "❌ Password policy still not updated after retries (min_length=$CUR_MIN_LENGTH, required_characters=$CUR_REQUIRED_CHARS)" >&2
+      echo "❌ Password policy still not updated after retries (min_length=$CUR_MIN_LENGTH, required_characters=$CUR_REQUIRED_CHARS, expected=$REQUIRED_ENUM)" >&2
       exit 1
     fi
   done

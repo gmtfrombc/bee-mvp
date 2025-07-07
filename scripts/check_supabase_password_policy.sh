@@ -12,7 +12,17 @@
 set -euo pipefail
 
 REQUIRED_MIN_LENGTH=8
-REQUIRED_CHAR="symbols"
+
+# Map human-friendly label to Supabase enum string
+HUMAN_REQUIRED="symbols"
+case "$HUMAN_REQUIRED" in
+  symbols)        REQUIRED_ENUM="letters_numbers_symbols" ;;
+  numbers)        REQUIRED_ENUM="numbers" ;;
+  alphanumeric|letters_numbers)
+                  REQUIRED_ENUM="letters_numbers" ;;
+  none|"")      REQUIRED_ENUM="none" ;;
+  *)              REQUIRED_ENUM="$HUMAN_REQUIRED" ;;
+esac
 
 if [[ -z "${SUPABASE_ACCESS_TOKEN:-}" || -z "${SUPABASE_URL:-}" ]]; then
   echo "⚠️  SUPABASE_ACCESS_TOKEN or SUPABASE_URL not set — skipping password-policy check."
@@ -52,7 +62,7 @@ needs_fix=false
 if (( MIN_LENGTH < REQUIRED_MIN_LENGTH )); then
   needs_fix=true
 fi
-if [[ "$REQUIRED_SETTING" != "$REQUIRED_CHAR" ]]; then
+if [[ "$REQUIRED_SETTING" != "$REQUIRED_ENUM" ]]; then
   needs_fix=true
 fi
 
@@ -72,7 +82,7 @@ if [[ "$needs_fix" == "true" ]]; then
 
   echo "🔄 Post-heal policy: min_length=$MIN_LENGTH password_required_characters=$REQUIRED_SETTING"
 
-  if (( MIN_LENGTH < REQUIRED_MIN_LENGTH )) || [[ "$REQUIRED_SETTING" != "$REQUIRED_CHAR" ]]; then
+  if (( MIN_LENGTH < REQUIRED_MIN_LENGTH )) || [[ "$REQUIRED_SETTING" != "$REQUIRED_ENUM" ]]; then
     echo "❌ Password policy still does not meet required criteria after auto-heal. Failing CI."
     exit 1
   else
