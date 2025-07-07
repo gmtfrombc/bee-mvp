@@ -105,8 +105,11 @@ if [[ "$NEED_PATCH" == "true" ]]; then
   for i in {1..5}; do
     sleep 2
     CONFIG=$(curl -s -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" "$API")
+    echo "🔁 Raw post-heal CONFIG JSON:"
+    echo "$CONFIG" | jq .
     CUR_MIN_LENGTH=$(echo "$CONFIG" | jq -r '.password_min_length // 0')
     CUR_REQUIRED_CHARS=$(echo "$CONFIG" | jq -r '.password_required_characters // ""')
+    echo "🔍 Post-heal: expecting required_characters=$REQUIRED_ENUM"
     if (( CUR_MIN_LENGTH >= REQUIRED_MIN_LENGTH )) && [[ "$CUR_REQUIRED_CHARS" == "$REQUIRED_ENUM" ]]; then
       echo "✅ Policy verified after update."
       break
