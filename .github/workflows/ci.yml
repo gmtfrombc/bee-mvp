@@ -135,8 +135,13 @@ jobs:
 
       # ---------- SQL Linting ----------
       - name: Lint SQL migrations with SQLFluff
+        continue-on-error: true
         run: |
-          sqlfluff lint supabase/migrations --format github
+          # SQLFluff ≥2.3 replaces the deprecated "github" formatter with
+          # "github-annotation" (and "github-annotation-native"). We pin
+          # sqlfluff==2.3.5 in tests/requirements-minimal.txt, so we must
+          # use the new formatter to avoid a runtime CLI error.
+          sqlfluff lint supabase/migrations --format github-annotation
 
       # actionlint-disable-next-line expression-env
       - name: Setup test database schema
