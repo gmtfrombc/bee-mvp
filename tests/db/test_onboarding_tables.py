@@ -2,7 +2,8 @@ import os
 import subprocess
 from pathlib import Path
 
-import psycopg2
+# Import real module to bypass conftest patching
+import psycopg2 as _real_psycopg2
 import pytest
 
 import uuid
@@ -59,8 +60,8 @@ def test_onboarding_schema_and_security(tmp_path):
         with open(path, "r", encoding="utf-8") as sql_file:
             _psql(sql_file.read())
 
-    # 2️⃣  Connect via psycopg2 for assertions
-    conn = psycopg2.connect(
+    # 2️⃣  Connect via real psycopg2 for assertions
+    conn = _real_psycopg2.connect(
         host=DB_CFG["host"],
         port=DB_CFG["port"],
         dbname=DB_CFG["database"],
@@ -174,7 +175,7 @@ def test_rls_denies_cross_user_access(tmp_path):
     )
 
     # Connect as rls_tester (subject to RLS)
-    conn = psycopg2.connect(
+    conn = _real_psycopg2.connect(
         host=DB_CFG["host"],
         port=DB_CFG["port"],
         dbname=DB_CFG["database"],
@@ -212,7 +213,7 @@ def test_audit_trigger_logs_changes(tmp_path):
             _psql(sql_file.read())
 
     # Establish superuser connection to bypass RLS for setup/testing
-    conn = psycopg2.connect(
+    conn = _real_psycopg2.connect(
         host=DB_CFG["host"],
         port=DB_CFG["port"],
         dbname=DB_CFG["database"],

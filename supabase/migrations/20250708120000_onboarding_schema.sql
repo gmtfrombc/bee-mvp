@@ -1,15 +1,24 @@
+-- 0️⃣  Extensions -----------------------------------------------------------
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
 -- 20250708120000_onboarding_schema.sql
 -- Pre-Milestone Mini-Sprint: Onboarding Schema & RLS
 -- Creates medical_history, biometrics, energy_rating_schedule enum & table
 -- Adds RLS policies and shared audit triggers
 
 -- 1️⃣  Enum -----------------------------------------------------------------
-create type if not exists public.energy_rating_schedule as enum (
-  'morning',
-  'afternoon',
-  'evening',
-  'night'
-);
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_type WHERE typname = 'energy_rating_schedule'
+  ) THEN
+    CREATE TYPE public.energy_rating_schedule AS ENUM (
+      'morning',
+      'afternoon',
+      'evening',
+      'night'
+    );
+  END IF;
+END$$;
 
 -- 2️⃣  Tables ---------------------------------------------------------------
 create table if not exists public.medical_history (
