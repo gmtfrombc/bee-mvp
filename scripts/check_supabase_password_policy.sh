@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2155,SC2086
 # check_supabase_password_policy.sh — Fails CI if the project's Auth password policy is weaker than specified.
 # Requirements:
 # • SUPABASE_ACCESS_TOKEN – Personal Access Token with project admin scope (set in CI secrets)
