@@ -133,6 +133,11 @@ jobs:
         run: |
           ruff check tests/ --output-format=github
 
+      # ---------- SQL Linting ----------
+      - name: Lint SQL migrations with SQLFluff
+        run: |
+          sqlfluff lint supabase/migrations --format github
+
       # actionlint-disable-next-line expression-env
       - name: Setup test database schema
         if: ${{ env.ACT != 'true' }}
@@ -369,6 +374,20 @@ jobs:
           DB_PASSWORD: postgres
         run: |
           pytest tests/db/ -q
+
+      # actionlint-disable-next-line expression-env
+      - name: Verify Onboarding Migration Rollback
+        if: ${{ env.ACT != 'true' }}
+        env:
+          DB_HOST: localhost
+          DB_PORT: '54322'
+          DB_NAME: test
+          DB_USER: postgres
+          DB_PASSWORD: postgres
+        run: |
+          echo "🔄 Verifying onboarding migration rollback..."
+          pytest tests/db/test_migration_rollback.py -q
+          echo "✅ Rollback verification complete"
 
       # ---------- Component Size Audit Report ---------- 
       - name: Generate Component Size Audit Report
