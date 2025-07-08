@@ -29,3 +29,17 @@ subprojects {
 tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
 }
+
+subprojects {
+    // Workaround for uni_links <1.0 lacking AGP 8 namespace
+    if (name == "uni_links") {
+        afterEvaluate {
+            extensions.findByName("android")?.let { ext ->
+                (ext as? com.android.build.gradle.LibraryExtension)?.apply {
+                    namespace = "name.avioli.unilinks"
+                    println("🔧 Applied namespace workaround for uni_links -> $namespace")
+                }
+            }
+        }
+    }
+}
