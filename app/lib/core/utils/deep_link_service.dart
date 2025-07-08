@@ -1,6 +1,8 @@
 import 'dart:async';
 
-import 'package:uni_links/uni_links.dart';
+import 'package:app_links/app_links.dart';
+
+final _appLinks = AppLinks();
 
 /// Centralised deep-link utilities used across the app.
 ///
@@ -11,12 +13,14 @@ class DeepLinkService {
   DeepLinkService._();
 
   /// Continuous stream of incoming URIs.
-  static Stream<Uri> get stream => uriLinkStream.cast<Uri>();
+  static Stream<Uri> get stream => _appLinks.uriLinkStream
+      .where((Uri? uri) => uri != null)
+      .map((uri) => uri);
 
   /// Retrieves the URI that launched the app, if any.
   static Future<Uri?> initialUri() async {
     try {
-      return await getInitialUri();
+      return await _appLinks.getInitialAppLink();
     } on FormatException {
       // Malformed URI – ignore.
       return null;
