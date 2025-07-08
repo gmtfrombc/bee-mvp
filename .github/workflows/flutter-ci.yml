@@ -9,6 +9,8 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      ACT: 'false'  # CI default; the local `act` runner overwrites this
     
     steps:
     - uses: actions/checkout@v4
@@ -123,6 +125,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       NEEDS_REAL_FIREBASE: false  # Set to 'true' when integration tests or Play Store deployment needed
+      ACT: 'false'  # CI default; the local `act` runner overwrites this
     
     steps:
     - uses: actions/checkout@v4
