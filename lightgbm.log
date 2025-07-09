@@ -1,0 +1,47 @@
+🔑  Importing Supabase secrets from /Users/gmtfr/.bee_secrets/supabase.env
+✅  .secrets updated from local env file (placeholders remain for any missing vars)
+[LightGBM TS Export CI/export-scorer] ⭐ Run Set up job
+[LightGBM TS Export CI/export-scorer] 🚀  Start image=ghcr.io/catthehacker/ubuntu:act-22.04
+[LightGBM TS Export CI/export-scorer]   🐳  docker pull image=ghcr.io/catthehacker/ubuntu:act-22.04 platform=linux/amd64 username= forcePull=***
+[LightGBM TS Export CI/export-scorer]   🐳  docker create image=ghcr.io/catthehacker/ubuntu:act-22.04 platform=linux/amd64 entrypoint=["tail" "-f" "/dev/null"] cmd=[] network="host"
+[LightGBM TS Export CI/export-scorer]   🐳  docker run image=ghcr.io/catthehacker/ubuntu:act-22.04 platform=linux/amd64 entrypoint=["tail" "-f" "/dev/null"] cmd=[] network="host"
+[LightGBM TS Export CI/export-scorer]   🐳  docker exec cmd=[node --no-warnings -e console.log(process.execPath)] user= workdir=
+[LightGBM TS Export CI/export-scorer]   ✅  Success - Set up job
+[LightGBM TS Export CI/export-scorer]   ☁  git clone 'https://github.com/actions/setup-python' # ref=v4
+[LightGBM TS Export CI/export-scorer]   ☁  git clone 'https://github.com/actions/upload-artifact' # ref=v3
+[LightGBM TS Export CI/export-scorer] ⭐ Run Main actions/checkout@v3
+[LightGBM TS Export CI/export-scorer]   🐳  docker cp src=/Users/gmtfr/bee-mvp/bee-mvp/. dst=/Users/gmtfr/bee-mvp/bee-mvp
+[LightGBM TS Export CI/export-scorer]   ✅  Success - Main actions/checkout@v3 [1.169193958s]
+[LightGBM TS Export CI/export-scorer] ⭐ Run Main Setup Python 3.11
+[LightGBM TS Export CI/export-scorer]   🐳  docker cp src=/Users/gmtfr/.cache/act/actions-setup-python@v4/ dst=/var/run/act/actions/actions-setup-python@v4/
+[LightGBM TS Export CI/export-scorer]   🐳  docker exec cmd=[/opt/acttoolcache/node/18.20.8/x64/bin/node /var/run/act/actions/actions-setup-python@v4/dist/setup/index.js] user= workdir=
+[LightGBM TS Export CI/export-scorer]   ❓  ::group::Installed versions
+[LightGBM TS Export CI/export-scorer]   ❓  ::endgroup::
+[LightGBM TS Export CI/export-scorer]   ❓ add-matcher /run/act/actions/actions-setup-python@v4/.github/python.json
+[LightGBM TS Export CI/export-scorer]   ✅  Success - Main Setup Python 3.11 [1.096033875s]
+[LightGBM TS Export CI/export-scorer]   ⚙  ::set-env:: pythonLocation=/opt/hostedtoolcache/Python/3.11.13/x64
+[LightGBM TS Export CI/export-scorer]   ⚙  ::set-env:: PKG_CONFIG_PATH=/opt/hostedtoolcache/Python/3.11.13/x64/lib/pkgconfig
+[LightGBM TS Export CI/export-scorer]   ⚙  ::set-env:: Python_ROOT_DIR=/opt/hostedtoolcache/Python/3.11.13/x64
+[LightGBM TS Export CI/export-scorer]   ⚙  ::set-env:: Python2_ROOT_DIR=/opt/hostedtoolcache/Python/3.11.13/x64
+[LightGBM TS Export CI/export-scorer]   ⚙  ::set-env:: Python3_ROOT_DIR=/opt/hostedtoolcache/Python/3.11.13/x64
+[LightGBM TS Export CI/export-scorer]   ⚙  ::set-env:: LD_LIBRARY_PATH=/opt/hostedtoolcache/Python/3.11.13/x64/lib
+[LightGBM TS Export CI/export-scorer]   ⚙  ::set-output:: python-version=3.11.13
+[LightGBM TS Export CI/export-scorer]   ⚙  ::set-output:: python-path=/opt/hostedtoolcache/Python/3.11.13/x64/bin/python
+[LightGBM TS Export CI/export-scorer]   ⚙  ::add-path:: /opt/hostedtoolcache/Python/3.11.13/x64
+[LightGBM TS Export CI/export-scorer]   ⚙  ::add-path:: /opt/hostedtoolcache/Python/3.11.13/x64/bin
+[LightGBM TS Export CI/export-scorer] ⭐ Run Main Install dependencies
+[LightGBM TS Export CI/export-scorer]   🐳  docker exec cmd=[bash -e /var/run/act/workflow/2] user= workdir=
+[LightGBM TS Export CI/export-scorer]   ✅  Success - Main Install dependencies [1.540335959s]
+[LightGBM TS Export CI/export-scorer] ⭐ Run Main Create minimal dummy LightGBM model
+[LightGBM TS Export CI/export-scorer]   🐳  docker exec cmd=[bash -e /var/run/act/workflow/3] user= workdir=
+[LightGBM TS Export CI/export-scorer]   ✅  Success - Main Create minimal dummy LightGBM model [1.491113458s]
+[LightGBM TS Export CI/export-scorer] ⭐ Run Main Export to TypeScript
+[LightGBM TS Export CI/export-scorer]   🐳  docker exec cmd=[bash -e /var/run/act/workflow/4] user= workdir=
+[LightGBM TS Export CI/export-scorer]   ✅  Success - Main Export to TypeScript [1.370103833s]
+[LightGBM TS Export CI/export-scorer] ⭐ Run Post Setup Python 3.11
+[LightGBM TS Export CI/export-scorer]   🐳  docker exec cmd=[/opt/acttoolcache/node/18.20.8/x64/bin/node /var/run/act/actions/actions-setup-python@v4/dist/cache-save/index.js] user= workdir=
+[LightGBM TS Export CI/export-scorer]   ✅  Success - Post Setup Python 3.11 [580.181458ms]
+[LightGBM TS Export CI/export-scorer] ⭐ Run Complete job
+[LightGBM TS Export CI/export-scorer] Cleaning up container for job export-scorer
+[LightGBM TS Export CI/export-scorer]   ✅  Success - Complete job
+[LightGBM TS Export CI/export-scorer] 🏁  Job succeeded

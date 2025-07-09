@@ -1,0 +1,19 @@
+Resetting local database...
+Recreating database...
+Initialising schema...
+Seeding globals from roles.sql...
+Skipping migration seed_engagement_events.sql... (file name must match pattern "<timestamp>_name.sql")
+Skipping migration test_rls_engagement_events.sql... (file name must match pattern "<timestamp>_name.sql")
+Applying migration 20240715211000_enable_rls_for_daily_engagement_scores.sql...
+ERROR: relation "public.daily_engagement_scores" does not exist (SQLSTATE 42P01)
+At statement: 0                                                                 
+-- =================================================================            
+-- Enable RLS and Add Policies for Daily Engagement Scores                      
+-- =================================================================            
+-- This migration secures the daily_engagement_scores table by                  
+-- enabling Row Level Security and adding policies that ensure                  
+-- users can only access their own data.                                        
+-- =================================================================            
+                                                                                
+ALTER TABLE public.daily_engagement_scores ENABLE ROW LEVEL SECURITY            
+Try rerunning the command with --debug to troubleshoot the error.

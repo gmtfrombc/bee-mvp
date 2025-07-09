@@ -68,3 +68,6 @@ supabase/functions/**/coverage/
 
 # Local Act/CI secrets file (contains runtime tokens, never commit)
 .secrets
+
+# CI debug/build logs
+*.log

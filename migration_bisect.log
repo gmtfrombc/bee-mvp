@@ -1,0 +1,3 @@
+Applying supabase/migrations/20240715211000_enable_rls_for_daily_engagement_scores.sql
+psql:supabase/migrations/20240715211000_enable_rls_for_daily_engagement_scores.sql:9: ERROR:  relation "public.daily_engagement_scores" does not exist
+BAD: supabase/migrations/20240715211000_enable_rls_for_daily_engagement_scores.sql

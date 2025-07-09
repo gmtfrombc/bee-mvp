@@ -1,0 +1,36 @@
+{
+  "onboarding_q10_prompt": "On a scale of 1 to 5 (5 being highest importance), select the importance of each to you",
+  "@onboarding_q10_prompt": {
+    "description": "Question 10 prompt – importance selection"
+  },
+
+  "onboarding_q11_prompt": "On a scale of 1 to 5 (5 being most ready) select how ready you are to make meaningful changes?",
+  "@onboarding_q11_prompt": {
+    "description": "Question 11 prompt – readiness to change"
+  },
+
+  "onboarding_q12_prompt": "On a scale of 1 to 5 (5 being most confident) how confident are you that you can stick with changes you start?",
+  "@onboarding_q12_prompt": {
+    "description": "Question 12 prompt – confidence level"
+  },
+
+  "onboarding_q13_prompt": "Which statement best describes why you want to make changes right now?",
+  "@onboarding_q13_prompt": {
+    "description": "Question 13 prompt – motivation reason"
+  },
+
+  "onboarding_q14_prompt": "If you reach your health goals, what will be most satisfying?",
+  "@onboarding_q14_prompt": {
+    "description": "Question 14 prompt – satisfaction outcome"
+  },
+
+  "onboarding_q15_prompt": "When I face a challenge, I usually…",
+  "@onboarding_q15_prompt": {
+    "description": "Question 15 prompt – coping mechanism"
+  },
+
+  "onboarding_q16_prompt": "How do you want your coach to support you?",
+  "@onboarding_q16_prompt": {
+    "description": "Question 16 prompt – coach support style"
+  }
+} 
