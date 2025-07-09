@@ -30,15 +30,15 @@ Home screen thereafter.
 
 ## 🏁 Milestone Breakdown
 
-### M1.11.1 · Supabase Schema & RLS 🟡 Planned
+### M1.11.1 · Supabase Schema & RLS ✅ Complete
 
-| Task | Description                                                  | Hours | Status |
-| ---- | ------------------------------------------------------------ | ----- | ------ |
-| T1   | Create `onboarding_responses` table (user FK, JSONB answers) | 2h    | 🟡     |
-| T2   | Create `medical_history` & `biometrics` tables               | 2h    | 🟡     |
-| T3   | Add `energy_rating_schedule` enum + table                    | 1h    | 🟡     |
-| T4   | Write RLS policies & `shared_audit` triggers                 | 3h    | 🟡     |
-| T5   | Migration tests in CI (`pytest` SQL)                         | 1h    | 🟡     |
+| Task | Description                                                  | Hours | Status      |
+| ---- | ------------------------------------------------------------ | ----- | ----------- |
+| T1   | Create `onboarding_responses` table (user FK, JSONB answers) | 2h    | ✅ Complete |
+| T2   | Create `medical_history` & `biometrics` tables               | 2h    | ✅ Complete |
+| T3   | Add `energy_rating_schedule` enum + table                    | 1h    | ✅ Complete |
+| T4   | Write RLS policies & `shared_audit` triggers                 | 3h    | ✅ Complete |
+| T5   | Migration tests in CI (`pytest` SQL)                         | 1h    | ✅ Complete |
 
 **Acceptance Criteria:**
 
@@ -49,14 +49,14 @@ Home screen thereafter.
 
 ---
 
-### M1.11.2 · UI – Sections 1–2 (About You, Preferences) 🟡 Planned
+### M1.11.2 · UI – Sections 1–2 (About You, Preferences) ✅ Complete
 
-| Task | Description                                      | Hours | Status |
-| ---- | ------------------------------------------------ | ----- | ------ |
-| T1   | Build Riverpod `OnboardingController` state      | 3h    | 🟡     |
-| T2   | Create `AboutYouPage` form widgets               | 4h    | 🟡     |
-| T3   | Create `PreferencesPage` w/ multi-select chips   | 4h    | 🟡     |
-| T4   | Validation & responsive layout (tablet & mobile) | 2h    | 🟡     |
+| Task | Description                                      | Hours | Status      |
+| ---- | ------------------------------------------------ | ----- | ----------- |
+| T1   | Build Riverpod `OnboardingController` state      | 3h    | ✅ Complete |
+| T2   | Create `AboutYouPage` form widgets               | 4h    | ✅ Complete |
+| T3   | Create `PreferencesPage` w/ multi-select chips   | 4h    | ✅ Complete |
+| T4   | Validation & responsive layout (tablet & mobile) | 2h    | ✅ Complete |
 
 **Acceptance Criteria:**
 

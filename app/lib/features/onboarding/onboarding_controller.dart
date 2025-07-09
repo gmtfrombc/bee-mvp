@@ -22,6 +22,14 @@ class OnboardingController extends StateNotifier<OnboardingDraft> {
     state = state.copyWith(culture: culture);
   }
 
+  void updateReadinessLevel(int? level) {
+    state = state.copyWith(readinessLevel: level);
+  }
+
+  void updateMindsetType(String? type) {
+    state = state.copyWith(mindsetType: type);
+  }
+
   // -------------------------------------------------------------------------
   // Preferences handling
   // -------------------------------------------------------------------------
