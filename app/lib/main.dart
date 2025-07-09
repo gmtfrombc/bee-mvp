@@ -23,6 +23,7 @@ import 'core/providers/vitals_notifier_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/services/auth_session_service.dart';
 import 'core/widgets/launch_controller.dart';
+import 'package:app/core/navigation/routes.dart';
 
 // Global instance to share across app
 final AuthSessionService authSessionService = AuthSessionService();
@@ -278,12 +279,12 @@ class BEEApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
 
-    return MaterialApp(
+    return MaterialApp.router(
       title: 'BEE Momentum Meter',
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: themeMode,
-      home: const LaunchController(),
+      routerConfig: appRouter,
       debugShowCheckedModeBanner: false,
     );
   }

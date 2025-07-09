@@ -7,6 +7,7 @@ Your job is to transform each Milestone listed in an Epic-level document into it
 ## 1️⃣ Inputs you will receive
 • The Epic-level markdown file (e.g. `docs/MVP_ROADMAP/tasks/epic_1-6_registration_and_auth.md`).  
 • The standard coding & architecture rules that already exist in the repo.
+- Architecture rules in `.cursor/rules/`
 
 ## 2️⃣ Output files to create
 Create **one markdown file per Milestone**, placed inside the Epic’s folder:
@@ -44,7 +45,9 @@ Model the depth of detail on `docs/zz_archive/1_2_Epic_Today_Feed/tasks-today-fe
 
 5. **Milestone Deliverables** – bullet list of concrete artifacts (code, migrations, Figma, etc.).
 
-6. **Implementation Details** – enough depth for an AI coder to generate code without further prompting. Include:  
+6. **Implementation Details** – enough depth for an AI coder to generate code without further prompting.  
+   - Review and apply rules in `.cursor/rules/`, including architecture, component sizing, naming, and import rules.
+   - If existing implementation exists or partially fulfills this milestone, reference it clearly and describe whether to extend, refactor, or leave untouched.
    • File paths / class or function names expected.  
    • DB DDL snippets or API contracts as needed.  
    • Non-obvious edge cases, performance budgets, security rules.  
