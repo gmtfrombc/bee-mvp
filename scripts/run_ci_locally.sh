@@ -15,7 +15,7 @@ set -euo pipefail
 
 # 🚦 Default behaviour for local CI runs
 # --------------------------------------
-FLUTTER_VERSION="3.3.2"
+FLUTTER_VERSION="3.32.1"
 
 # Skip the heavy Supabase migrations/terraform job unless the caller
 # explicitly disables skipping (e.g. SKIP_MIGRATIONS=false) or forces it
