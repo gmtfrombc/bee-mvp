@@ -20,13 +20,11 @@ class _FakeAnalyticsService extends AnalyticsService {
 void main() {
   group('WeightTile', () {
     late StreamController<VitalsData> controller;
-    final SupabaseClient dummyClient = SupabaseClient(
-      'https://localhost',
-      'anon-key',
-    );
+    late SupabaseClient dummyClient;
 
     setUp(() {
       controller = StreamController<VitalsData>.broadcast();
+      dummyClient = SupabaseClient('https://localhost', 'anon-key');
     });
 
     tearDown(() async {
