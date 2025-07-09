@@ -16,6 +16,41 @@ set -euo pipefail
 # 🚦 Default behaviour for local CI runs
 # --------------------------------------
 FLUTTER_VERSION="3.32.1"
+# Supabase CLI version expected by remote GitHub CI. Keep this in sync with
+# .github/workflows/migrations-deploy.yml and other workflows.
+PINNED_SUPABASE_CLI_VERSION="2.30.4"
+
+# -------------------------------------------------------------
+# Install the pinned Supabase CLI version locally when it is
+# either missing or does not match the pinned version. The binary
+# is placed in a throw-away tmpdir that is prepended to PATH so
+# it never pollutes the user’s global install. No sudo required.
+# -------------------------------------------------------------
+install_supabase_cli() {
+  local os arch url tmpdir
+
+  # Determine target OS
+  case "$(uname -s)" in
+    Linux*)   os="linux" ;;
+    Darwin*)  os="darwin" ;;
+    *) echo "❌  Unsupported OS for automatic Supabase CLI install" >&2; return 1 ;;
+  esac
+
+  # Determine architecture
+  case "$(uname -m)" in
+    x86_64|amd64) arch="amd64" ;;
+    arm64|aarch64) arch="arm64" ;;
+    *) echo "❌  Unsupported architecture for automatic Supabase CLI install" >&2; return 1 ;;
+  esac
+
+  url="https://github.com/supabase/cli/releases/download/v${PINNED_SUPABASE_CLI_VERSION}/supabase_${os}_${arch}.tar.gz"
+  echo "⬇️  Downloading Supabase CLI v${PINNED_SUPABASE_CLI_VERSION} (${os}/${arch})…"
+  tmpdir="$(mktemp -d)"
+  curl -sSL "$url" | tar -xz -C "$tmpdir" || { echo "❌  Failed to download Supabase CLI" >&2; return 1; }
+
+  export PATH="$tmpdir:$PATH"
+  echo "✅  Supabase CLI installed to $tmpdir"
+}
 
 # Skip the heavy Supabase migrations/terraform job unless the caller
 # explicitly disables skipping (e.g. SKIP_MIGRATIONS=false) or forces it
@@ -250,33 +285,13 @@ fi
 # Pre-flight credentials check – ensure we can link to the Supabase project locally.
 # -----------------------------------------------------------------------------
 if [[ "${SKIP_MIGRATIONS}" != "true" ]]; then
-  if ! command -v supabase >/dev/null 2>&1; then
-    echo "❌  Supabase CLI not found in PATH – install it with: brew install supabase" >&2
-    exit 1
-  fi
-  
-  # Version compatibility check
-  EXPECTED_VERSION="2.30.4"
-  ACTUAL_VERSION=$(supabase --version 2>/dev/null | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+' || echo "unknown")
-  echo "🔍  Checking Supabase CLI version compatibility..."
-  echo "    Expected: $EXPECTED_VERSION"
-  echo "    Actual:   $ACTUAL_VERSION"
-  
-  if [ "$ACTUAL_VERSION" != "$EXPECTED_VERSION" ]; then
-    echo "⚠️  WARNING: Supabase CLI version mismatch!"
-    echo "   Your version: $ACTUAL_VERSION"
-    echo "   Expected:     $EXPECTED_VERSION"
-    echo "   This may cause unexpected behavior. Consider running:"
-    echo "   brew upgrade supabase  # or npm install supabase@1.83.7"
-    echo ""
-    echo "   Continue anyway? [y/N]"
-    read -r response
-    if [[ ! "$response" =~ ^[Yy]$ ]]; then
-      echo "❌  Aborting due to version mismatch."
-      exit 1
-    fi
+  # Ensure the pinned Supabase CLI version is available in PATH
+  ACTUAL_VERSION="$(command -v supabase >/dev/null 2>&1 && supabase --version 2>/dev/null | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+' || echo 'none')"
+  if [[ "$ACTUAL_VERSION" != "$PINNED_SUPABASE_CLI_VERSION" ]]; then
+    echo "🔍  Supabase CLI version mismatch (found $ACTUAL_VERSION, expected $PINNED_SUPABASE_CLI_VERSION). Installing correct version…"
+    install_supabase_cli || { echo "❌  Unable to install required Supabase CLI" >&2; exit 1; }
   else
-    echo "✅  Supabase CLI version matches expected version"
+    echo "✅  Supabase CLI v$ACTUAL_VERSION already present"
   fi
   
   echo "🔗  Verifying Supabase credentials via 'supabase link'…"
