@@ -25,3 +25,26 @@ drop trigger if exists onboarding_user_autocreate on public.onboarding_responses
 create trigger onboarding_user_autocreate
   before insert on public.onboarding_responses
   for each row execute function public.ensure_user_exists(); 
+
+-- Ensure pgcrypto extension is available for gen_random_uuid()
+create extension if not exists pgcrypto;
+
+-- 3️⃣  Row-Level Security ---------------------------------------------------
+alter table public.onboarding_responses enable row level security;
+
+drop policy if exists onboarding_responses_owner_select on public.onboarding_responses;
+create policy onboarding_responses_owner_select
+  on public.onboarding_responses for select
+  using (auth.uid() = user_id);
+
+drop policy if exists onboarding_responses_owner_crud on public.onboarding_responses;
+create policy onboarding_responses_owner_crud
+  on public.onboarding_responses for all
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+-- 4️⃣  Audit Trigger ---------------------------------------------------------
+drop trigger if exists audit_onboarding_responses on public.onboarding_responses;
+create trigger audit_onboarding_responses
+  after insert or update or delete on public.onboarding_responses
+  for each row execute procedure _shared.audit(); 
