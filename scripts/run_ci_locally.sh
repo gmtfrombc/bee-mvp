@@ -255,14 +255,18 @@ if [[ "${SKIP_MIGRATIONS}" != "true" ]]; then
     exit 1
   fi
   echo "🔗  Verifying Supabase credentials via 'supabase link'…"
-  # Suppress verbose CLI output; failures will still bubble up.
-  supabase link --project-ref "$SUPABASE_PROJECT_REF" \
-               --password "$SUPABASE_DB_PASSWORD" \
-               --debug \
-               >/dev/null 2>&1 || {
-    echo "❌  supabase link failed – check SUPABASE_* secrets before running CI." >&2
-    exit 1
-  }
+  # Try linking with access token first (preferred method)
+  if ! supabase link --project-ref "$SUPABASE_PROJECT_REF" --create-client >/dev/null 2>&1; then
+    echo "    • Access token method failed, trying with password..."
+    # Suppress verbose CLI output; failures will still bubble up.
+    supabase link --project-ref "$SUPABASE_PROJECT_REF" \
+                 --password "$SUPABASE_DB_PASSWORD" \
+                 --debug \
+                 >/dev/null 2>&1 || {
+      echo "❌  supabase link failed – check SUPABASE_* secrets before running CI." >&2
+      exit 1
+    }
+  fi
   echo "✅  Supabase credentials verified."
 fi
 

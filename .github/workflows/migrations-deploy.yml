@@ -38,11 +38,21 @@ jobs:
 
       - name: Link Supabase project (GitHub only)
         if: env.ACT != 'true'
-        run: supabase link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
+        run: |
+          # Try linking with access token first (preferred method)
+          if ! supabase link --project-ref "$SUPABASE_PROJECT_REF" --create-client; then
+            echo "Failed to link with access token, trying with password..."
+            supabase link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
+          fi
 
       - name: Apply pending migrations (GitHub only)
         if: env.ACT != 'true'
-        run: supabase db push --include-all --password "$SUPABASE_DB_PASSWORD"
+        run: |
+          # Apply migrations with proper error handling
+          if ! supabase db push --include-all; then
+            echo "Failed to push migrations without password, trying with password..."
+            supabase db push --include-all --password "$SUPABASE_DB_PASSWORD"
+          fi
 
       - name: Configure Google credentials & set TF_VAR_gcp_project (GitHub only)
         if: env.SKIP_TERRAFORM != 'true' && env.ACT != 'true'
