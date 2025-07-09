@@ -151,6 +151,9 @@ jobs:
           -- Create auth schema and users table to simulate Supabase auth
           CREATE SCHEMA IF NOT EXISTS auth;
           
+          -- Ensure pgcrypto extension for gen_random_uuid()
+          CREATE EXTENSION IF NOT EXISTS pgcrypto;
+          
           -- Create auth.users table (simplified version for testing)
           CREATE TABLE IF NOT EXISTS auth.users (
             id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
