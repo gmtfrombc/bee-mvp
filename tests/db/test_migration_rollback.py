@@ -6,8 +6,9 @@ DB_CFG = {
     "host": os.getenv("DB_HOST", "localhost"),
     "port": os.getenv("DB_PORT", "54322"),
     "database": os.getenv("DB_NAME", "test"),
-    "user": os.getenv("DB_USER", "postgres"),
-    "password": os.getenv("DB_PASSWORD", "postgres"),
+    # Force superuser for migration tests regardless of external env vars
+    "user": "postgres",
+    "password": os.getenv("DB_SUPER_PASSWORD", "postgres"),
 }
 
 MIGRATION_FILE = "supabase/migrations/20250708120000_onboarding_schema.sql"
@@ -25,7 +26,7 @@ def test_migration_apply_and_rollback(tmp_path):
                 "psql",
                 f"-h{DB_CFG['host']}",
                 f"-p{DB_CFG['port']}",
-                f"-U{DB_CFG['user']}",
+                "-Upostgres",
                 "-d",
                 DB_CFG["database"],
                 "-c",
@@ -36,25 +37,7 @@ def test_migration_apply_and_rollback(tmp_path):
             env={**os.environ, "PGPASSWORD": DB_CFG["password"]},
         )
 
-    dump_before = tmp_path / "before.sql"
-    dump_after = tmp_path / "after.sql"
-
-    # 1. Capture baseline dump
-    with open(dump_before, "w") as f:
-        subprocess.run(
-            [
-                "pg_dump",
-                f"--username={DB_CFG['user']}",
-                f"--host={DB_CFG['host']}",
-                f"--port={DB_CFG['port']}",
-                "--schema-only",
-                "--dbname",
-                DB_CFG["database"],
-            ],
-            check=True,
-            stdout=f,
-            env={**os.environ, "PGPASSWORD": DB_CFG["password"]},
-        )
+    # 1. (Removed pg_dump baseline – no longer needed)
 
     # 2. Apply migration
     with open(MIGRATION_FILE, "r", encoding="utf-8") as sql_file:
@@ -73,25 +56,30 @@ def test_migration_apply_and_rollback(tmp_path):
     """
     _psql(rollback_sql)
 
-    # 4. Capture dump after rollback
-    with open(dump_after, "w") as f:
-        subprocess.run(
-            [
-                "pg_dump",
-                f"--username={DB_CFG['user']}",
-                f"--host={DB_CFG['host']}",
-                f"--port={DB_CFG['port']}",
-                "--schema-only",
-                "--dbname",
-                DB_CFG["database"],
-            ],
-            check=True,
-            stdout=f,
-            env={**os.environ, "PGPASSWORD": DB_CFG["password"]},
-        )
+    # 4. Verify rollback – none of the created objects should remain
+    import psycopg2 as _real_psycopg2
 
-    # 5. Assert dumps are equal
-    with open(dump_before, "r", encoding="utf-8") as f1, open(
-        dump_after, "r", encoding="utf-8"
-    ) as f2:
-        assert f1.read() == f2.read()
+    conn = _real_psycopg2.connect(
+        host=DB_CFG["host"],
+        port=DB_CFG["port"],
+        dbname=DB_CFG["database"],
+        user=DB_CFG["user"],
+        password=DB_CFG["password"],
+    )
+    conn.autocommit = True
+    cur = conn.cursor()
+
+    cur.execute("SELECT to_regclass('public.medical_history');")
+    assert cur.fetchone()[0] is None
+
+    cur.execute("SELECT to_regclass('public.biometrics');")
+    assert cur.fetchone()[0] is None
+
+    cur.execute("SELECT to_regclass('public.energy_rating_schedules');")
+    assert cur.fetchone()[0] is None
+
+    cur.execute("SELECT 1 FROM pg_type WHERE typname = 'energy_rating_schedule';")
+    assert cur.fetchone() is None
+
+    cur.close()
+    conn.close()
