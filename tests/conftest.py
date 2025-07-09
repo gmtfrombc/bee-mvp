@@ -3,6 +3,7 @@ Test-only fixtures & fakes so the Python test-suite can run without a real
 Supabase / Postgres instance.  They cover ONLY the behaviour expected by the
 current tests and are never imported by production code.
 """
+# fmt: off
 
 from __future__ import annotations
 
@@ -57,7 +58,8 @@ class _FakeQuery:
             data = [row]
         elif self._action == "delete":
             before = len(self._table.rows)
-            self._table.rows[:] = [r for r in self._table.rows if not self._match(r)]
+            self._table.rows[:] = [
+                r for r in self._table.rows if not self._match(r)]
             data = [{"deleted": before - len(self._table.rows)}]
         else:  # select
             data = [_clone(r) for r in self._table.rows if self._match(r)]
@@ -142,7 +144,8 @@ def _calc_score(client: _FakeSupabaseClient, user_id: str, tgt: str) -> Dict[str
     ]
     final = min(raw + 5 * len(history), 100)  # simple decay bonus
 
-    state = "NeedsCare" if final < 45 else ("Steady" if final < 70 else "Rising")
+    state = "NeedsCare" if final < 45 else (
+        "Steady" if final < 70 else "Rising")
     yday = (datetime.fromisoformat(tgt) - timedelta(days=1)).date().isoformat()
     if (
         any(
@@ -219,7 +222,8 @@ def _install_requests(monkeypatch: pytest.MonkeyPatch, client: _FakeSupabaseClie
             uids = body.get("user_ids", [])
             if any(not _is_uuid(u) for u in uids):
                 return _FakeHTTPResponse(
-                    400, {"success": False, "error": {"type": "validation_error"}}
+                    400, {"success": False, "error": {
+                        "type": "validation_error"}}
                 )
             return _FakeHTTPResponse(200, {"success": True, "processed": len(uids)})
 
@@ -341,15 +345,18 @@ class _FakeCursor:
             return
         if "validate_momentum_state" in q:
             state = p[0] if p else None
-            self._rows = [{"is_valid": state in {"Rising", "Steady", "NeedsCare"}}]
+            self._rows = [{"is_valid": state in {
+                "Rising", "Steady", "NeedsCare"}}]
             return
         if "validate_score_values" in q:
             if not p:
                 # extract literals from SQL when params missing
-                m = re.search(r"validate_score_values\(([^)]+)\)", query, re.IGNORECASE)
+                m = re.search(
+                    r"validate_score_values\(([^)]+)\)", query, re.IGNORECASE)
                 parts = [x.strip() for x in m.group(1).split(",")] if m else []
                 raw = (
-                    None if not parts or parts[0].lower() == "null" else float(parts[0])
+                    None if not parts or parts[0].lower(
+                    ) == "null" else float(parts[0])
                 )
                 norm = (
                     None
@@ -380,7 +387,8 @@ class _FakeCursor:
             return
         if "validate_date_range" in q:
             if not p:
-                m = re.search(r"validate_date_range\(([^)]+)\)", query, re.IGNORECASE)
+                m = re.search(
+                    r"validate_date_range\(([^)]+)\)", query, re.IGNORECASE)
                 parts = [x.strip() for x in m.group(1).split(",")] if m else []
                 start = (
                     None
@@ -410,7 +418,8 @@ class _FakeCursor:
             # empty title detection: comma followed by optional space and two quotes then comma
             if re.search(r",\s*''\s*,", txt_lower):
                 errs.append("Title cannot be empty")
-            long_in_params = p and any(isinstance(x, str) and len(x) > 500 for x in p)
+            long_in_params = p and any(isinstance(
+                x, str) and len(x) > 500 for x in p)
             if long_in_params:
                 errs.append("Message cannot exceed 500 characters")
             self._rows = [{"result": {"is_valid": not errs, "errors": errs}}]
@@ -500,10 +509,12 @@ class _FakeCursor:
                 uid_match = re.search(r"values *\('([^']+)'", q)
                 uid = uid_match.group(1) if uid_match else str(uuid.uuid4())
                 onboarding = "true" in q
-            _MemDB.profiles[uid] = {"id": uid, "onboarding_complete": onboarding}
+            _MemDB.profiles[uid] = {"id": uid,
+                                    "onboarding_complete": onboarding}
             return
         if "select onboarding_complete" in q:
-            self._rows = [(_MemDB.profiles.get(p[0], {}).get("onboarding_complete"),)]
+            self._rows = [(_MemDB.profiles.get(
+                p[0], {}).get("onboarding_complete"),)]
             return
         if "select * from public.profiles" in q:
             row = _MemDB.profiles.get(p[0]) if p[0] == self._uid else None
@@ -587,9 +598,23 @@ def supabase_client() -> _FakeSupabaseClient:
 
 
 @pytest.fixture(autouse=True)
-def _auto_patch(monkeypatch: pytest.MonkeyPatch, supabase_client):
-    # patch psycopg2.connect
-    monkeypatch.setattr(_real_psycopg2, "connect", lambda **_kw: _FakeConn())
-    # patch requests
+def _auto_patch(request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch, supabase_client):
+    """Automatically patch external dependencies.
+
+    For *unit* tests we replace ``psycopg2.connect`` with an in-memory fake so tests
+    run without a real Postgres instance.  However, *integration* tests need a live
+    database, so we **skip** the patch whenever the current test item carries the
+    ``@pytest.mark.integration`` marker.
+    """
+
+    is_integration = "integration" in request.keywords
+
+    # Only stub out psycopg2 when **not** running integration tests
+    if not is_integration:
+        monkeypatch.setattr(_real_psycopg2, "connect",
+                            lambda **_kw: _FakeConn())
+
+    # The fake Supabase HTTP client is safe for all test types
     _install_requests(monkeypatch, supabase_client)
+
     yield
