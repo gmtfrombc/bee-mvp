@@ -19,7 +19,7 @@ jobs:
   coach-flutter-tests:
     runs-on: ubuntu-latest
     env:
-      FLUTTER_VERSION: '3.3.2'
+      FLUTTER_VERSION: '3.32.1'
     
     steps:
     - uses: actions/checkout@v4
@@ -95,7 +95,7 @@ jobs:
   coach-e2e-tests:
     runs-on: ubuntu-latest
     env:
-      FLUTTER_VERSION: '3.3.2'
+      FLUTTER_VERSION: '3.32.1'
     needs: coach-flutter-tests
     
     steps:
@@ -127,7 +127,7 @@ jobs:
   coach-edge-function-tests:
     runs-on: ubuntu-latest
     env:
-      FLUTTER_VERSION: '3.3.2'
+      FLUTTER_VERSION: '3.32.1'
     
     steps:
     - uses: actions/checkout@v4
@@ -164,7 +164,7 @@ jobs:
   coach-performance-benchmark:
     runs-on: ubuntu-latest
     env:
-      FLUTTER_VERSION: '3.3.2'
+      FLUTTER_VERSION: '3.32.1'
     needs: coach-edge-function-tests
     if: github.event_name == 'pull_request'
     
@@ -197,7 +197,7 @@ jobs:
   coach-accessibility-check:
     runs-on: ubuntu-latest
     env:
-      FLUTTER_VERSION: '3.3.2'
+      FLUTTER_VERSION: '3.32.1'
     
     steps:
     - uses: actions/checkout@v4

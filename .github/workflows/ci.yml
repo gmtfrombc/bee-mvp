@@ -36,7 +36,7 @@ jobs:
       # Default for local VS Code actionlint and GitHub runner. Overridden by `act` when you pass `-e ACT=true`.
       ACT: "false"
       SKIP_TERRAFORM: "true"
-      FLUTTER_VERSION: '3.3.2'
+      FLUTTER_VERSION: '3.32.1'
 
     steps:
       - uses: actions/checkout@v4
