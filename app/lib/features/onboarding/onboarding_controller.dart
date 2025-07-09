@@ -26,6 +26,10 @@ class OnboardingController extends StateNotifier<OnboardingDraft> {
     state = state.copyWith(readinessLevel: level);
   }
 
+  void updateConfidenceLevel(int? level) {
+    state = state.copyWith(confidenceLevel: level);
+  }
+
   void updateMindsetType(String? type) {
     state = state.copyWith(mindsetType: type);
   }
@@ -52,6 +56,27 @@ class OnboardingController extends StateNotifier<OnboardingDraft> {
   }
 
   // -------------------------------------------------------------------------
+  // Priorities handling (Q10)
+  // -------------------------------------------------------------------------
+
+  /// Toggle a priority key (e.g. "nutrition") in the list, respecting max 2.
+  void togglePriority(String key) {
+    final priorities = List<String>.from(state.priorities);
+    if (priorities.contains(key)) {
+      priorities.remove(key);
+    } else {
+      if (priorities.length >= 2) return; // Q10 allows max 2 selections
+      priorities.add(key);
+    }
+    state = state.copyWith(priorities: priorities);
+  }
+
+  /// Replace priorities list entirely – caller ensures constraints.
+  void setPriorities(List<String> keys) {
+    state = state.copyWith(priorities: List<String>.from(keys));
+  }
+
+  // -------------------------------------------------------------------------
   // Validation helpers
   // -------------------------------------------------------------------------
 
@@ -61,6 +86,11 @@ class OnboardingController extends StateNotifier<OnboardingDraft> {
       state.dateOfBirth != null && (state.gender ?? '').isNotEmpty;
 
   bool get isStep2Complete => state.preferences.isNotEmpty;
+
+  bool get isReadinessComplete =>
+      state.priorities.isNotEmpty &&
+      state.readinessLevel != null &&
+      state.confidenceLevel != null;
 }
 
 /// Global provider for widgets to watch and mutate onboarding draft.
