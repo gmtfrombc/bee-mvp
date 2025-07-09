@@ -5,10 +5,9 @@ class OnboardingDraft {
   final String? gender; // "male", "female", "non_binary", etc.
   final String? culture; // Free-text 64 chars max
   final List<String> preferences; // "activity", "nutrition", etc.
-  final List<String>
-  priorities; // Q10: Top 1-2 priorities from health categories
-  final int? readinessLevel; // Q11: 1–5 Likert scale score
-  final int? confidenceLevel; // Q12: 1–5 Likert scale score
+  final List<String> priorities; // Q10: Top 1-2 priorities
+  final int? readinessLevel; // Q11: 1–5 Likert scale
+  final int? confidenceLevel; // Q12: 1–5 Likert score
   final String? mindsetType; // e.g. "growth", "fixed"
   // Section 4 – Mindset & Motivation (Q13–15)
   final String? motivationReason; // Q13

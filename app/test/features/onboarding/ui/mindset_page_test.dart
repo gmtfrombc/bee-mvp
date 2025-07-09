@@ -20,8 +20,8 @@ void main() {
     });
 
     Widget createTestWidget() {
-      return ProviderScope(
-        parent: container,
+      return UncontrolledProviderScope(
+        container: container,
         child: const MaterialApp(
           localizationsDelegates: [
             S.delegate,
@@ -50,11 +50,21 @@ void main() {
       final controller = container.read(onboardingControllerProvider.notifier);
 
       // Tap first option of each section
-      await tester.tap(find.byKey(const ValueKey('feel_better_radio')).first);
-      await tester.tap(find.byKey(const ValueKey('proud_radio')).first);
-      await tester.tap(find.byKey(const ValueKey('keep_going_radio')).first);
-      await tester.tap(find.byKey(const ValueKey('right_hand_radio')).first);
-      await tester.pump();
+      Future<void> scrollAndTap(String key) async {
+        final finder = find.byKey(ValueKey(key));
+        await tester.scrollUntilVisible(
+          finder,
+          500.0,
+          scrollable: find.byType(Scrollable),
+        );
+        await tester.tap(finder);
+        await tester.pump();
+      }
+
+      await scrollAndTap('feel_better_radio');
+      await scrollAndTap('proud_radio');
+      await scrollAndTap('keep_going_radio');
+      await scrollAndTap('right_hand_radio');
 
       expect(controller.state.motivationReason, 'feel_better');
       expect(controller.state.satisfactionOutcome, 'proud');
