@@ -254,6 +254,31 @@ if [[ "${SKIP_MIGRATIONS}" != "true" ]]; then
     echo "❌  Supabase CLI not found in PATH – install it with: brew install supabase" >&2
     exit 1
   fi
+  
+  # Version compatibility check
+  EXPECTED_VERSION="2.30.4"
+  ACTUAL_VERSION=$(supabase --version 2>/dev/null | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+' || echo "unknown")
+  echo "🔍  Checking Supabase CLI version compatibility..."
+  echo "    Expected: $EXPECTED_VERSION"
+  echo "    Actual:   $ACTUAL_VERSION"
+  
+  if [ "$ACTUAL_VERSION" != "$EXPECTED_VERSION" ]; then
+    echo "⚠️  WARNING: Supabase CLI version mismatch!"
+    echo "   Your version: $ACTUAL_VERSION"
+    echo "   Expected:     $EXPECTED_VERSION"
+    echo "   This may cause unexpected behavior. Consider running:"
+    echo "   brew upgrade supabase  # or npm install supabase@1.83.7"
+    echo ""
+    echo "   Continue anyway? [y/N]"
+    read -r response
+    if [[ ! "$response" =~ ^[Yy]$ ]]; then
+      echo "❌  Aborting due to version mismatch."
+      exit 1
+    fi
+  else
+    echo "✅  Supabase CLI version matches expected version"
+  fi
+  
   echo "🔗  Verifying Supabase credentials via 'supabase link'…"
   # Try linking with access token first (preferred method)
   if ! supabase link --project-ref "$SUPABASE_PROJECT_REF" --create-client >/dev/null 2>&1; then
