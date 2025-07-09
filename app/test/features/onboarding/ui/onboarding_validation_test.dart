@@ -6,7 +6,6 @@ import 'package:app/core/navigation/routes.dart';
 import 'package:app/features/onboarding/ui/about_you_page.dart';
 import 'package:app/features/onboarding/ui/preferences_page.dart';
 import 'package:app/features/onboarding/onboarding_controller.dart';
-import 'package:app/features/onboarding/models/onboarding_draft.dart';
 
 void main() {
   group('Onboarding validation – DOB age limits', () {

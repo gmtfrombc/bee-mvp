@@ -1,3 +1,4 @@
+# actionlint-disable shellcheck
 name: Supabase Migrations Deploy
 
 on:
@@ -19,6 +20,7 @@ jobs:
       SUPABASE_DB_PASSWORD: "${{ secrets.SUPABASE_DB_PASSWORD }}"
       SKIP_TERRAFORM: "${{ secrets.SKIP_TERRAFORM }}"
       TF_VAR_supabase_url: "${{ secrets.SUPABASE_URL }}"
+      ACT: 'false'  # CI default; the local `act` runner overwrites this
 
     steps:
       - uses: actions/checkout@v4
@@ -27,6 +29,7 @@ jobs:
         uses: supabase/setup-cli@v1
 
       - name: Load Supabase secrets into environment
+        # actionlint-disable-next-line shellcheck
         run: |
           echo "SUPABASE_URL=$SUPABASE_PROJECT_URL" >> $GITHUB_ENV
           echo "SUPABASE_SERVICE_ROLE_SECRET=$SUPABASE_SERVICE_ROLE_SECRET" >> $GITHUB_ENV
@@ -45,6 +48,7 @@ jobs:
         if: env.SKIP_TERRAFORM != 'true' && env.ACT != 'true'
         env:
           GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+        # actionlint-disable-next-line shellcheck
         run: |
           sudo apt-get update -y && sudo apt-get install -y jq
           if [ -n "$GCP_SA_KEY" ]; then
@@ -66,6 +70,7 @@ jobs:
       - name: Terraform init, validate & apply (GitHub only)
         if: env.SKIP_TERRAFORM != 'true' && env.ACT != 'true'
         working-directory: infra
+        # actionlint-disable-next-line shellcheck
         run: |
           terraform init -backend=false
           terraform validate

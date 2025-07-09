@@ -6,7 +6,6 @@ import 'package:app/core/navigation/routes.dart';
 
 import '../../../core/services/responsive_service.dart';
 import '../onboarding_controller.dart';
-import 'preferences_page.dart';
 import '../../../core/mixins/input_validator.dart';
 
 /// First onboarding page collecting basic demographic information.
