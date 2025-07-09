@@ -44,6 +44,7 @@ def test_migration_apply_and_rollback(tmp_path):
         subprocess.run(
             [
                 "pg_dump",
+                f"--username={DB_CFG['user']}",
                 f"--host={DB_CFG['host']}",
                 f"--port={DB_CFG['port']}",
                 "--schema-only",
@@ -60,8 +61,7 @@ def test_migration_apply_and_rollback(tmp_path):
         _psql(sql_file.read())
 
     # 3. Roll back by dropping created objects (simplified)
-    rollback_sql = """
-    drop trigger if exists audit_medical_history on public.medical_history cascade;
+    rollback_sql = """drop trigger if exists audit_medical_history on public.medical_history cascade;
     drop trigger if exists audit_biometrics on public.biometrics cascade;
     drop trigger if exists audit_energy_rating_schedules on public.energy_rating_schedules cascade;
 
@@ -78,6 +78,7 @@ def test_migration_apply_and_rollback(tmp_path):
         subprocess.run(
             [
                 "pg_dump",
+                f"--username={DB_CFG['user']}",
                 f"--host={DB_CFG['host']}",
                 f"--port={DB_CFG['port']}",
                 "--schema-only",
