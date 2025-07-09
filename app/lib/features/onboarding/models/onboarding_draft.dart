@@ -10,6 +10,10 @@ class OnboardingDraft {
   final int? readinessLevel; // Q11: 1–5 Likert scale score
   final int? confidenceLevel; // Q12: 1–5 Likert scale score
   final String? mindsetType; // e.g. "growth", "fixed"
+  // Section 4 – Mindset & Motivation (Q13–15)
+  final String? motivationReason; // Q13
+  final String? satisfactionOutcome; // Q14
+  final String? challengeResponse; // Q15
 
   const OnboardingDraft({
     this.dateOfBirth,
@@ -20,6 +24,9 @@ class OnboardingDraft {
     this.readinessLevel,
     this.confidenceLevel,
     this.mindsetType,
+    this.motivationReason,
+    this.satisfactionOutcome,
+    this.challengeResponse,
   });
 
   OnboardingDraft copyWith({
@@ -31,6 +38,9 @@ class OnboardingDraft {
     int? readinessLevel,
     int? confidenceLevel,
     String? mindsetType,
+    String? motivationReason,
+    String? satisfactionOutcome,
+    String? challengeResponse,
   }) {
     return OnboardingDraft(
       dateOfBirth: dateOfBirth ?? this.dateOfBirth,
@@ -41,6 +51,9 @@ class OnboardingDraft {
       readinessLevel: readinessLevel ?? this.readinessLevel,
       confidenceLevel: confidenceLevel ?? this.confidenceLevel,
       mindsetType: mindsetType ?? this.mindsetType,
+      motivationReason: motivationReason ?? this.motivationReason,
+      satisfactionOutcome: satisfactionOutcome ?? this.satisfactionOutcome,
+      challengeResponse: challengeResponse ?? this.challengeResponse,
     );
   }
 
@@ -59,6 +72,9 @@ class OnboardingDraft {
       readinessLevel: json['readinessLevel'] as int?,
       confidenceLevel: json['confidenceLevel'] as int?,
       mindsetType: json['mindsetType'] as String?,
+      motivationReason: json['motivationReason'] as String?,
+      satisfactionOutcome: json['satisfactionOutcome'] as String?,
+      challengeResponse: json['challengeResponse'] as String?,
     );
   }
 
@@ -71,6 +87,9 @@ class OnboardingDraft {
     'readinessLevel': readinessLevel,
     'confidenceLevel': confidenceLevel,
     'mindsetType': mindsetType,
+    'motivationReason': motivationReason,
+    'satisfactionOutcome': satisfactionOutcome,
+    'challengeResponse': challengeResponse,
   };
 
   @override
@@ -84,7 +103,10 @@ class OnboardingDraft {
         listEquals(priorities, other.priorities) &&
         readinessLevel == other.readinessLevel &&
         confidenceLevel == other.confidenceLevel &&
-        mindsetType == other.mindsetType;
+        mindsetType == other.mindsetType &&
+        motivationReason == other.motivationReason &&
+        satisfactionOutcome == other.satisfactionOutcome &&
+        challengeResponse == other.challengeResponse;
   }
 
   @override
@@ -97,6 +119,9 @@ class OnboardingDraft {
     readinessLevel,
     confidenceLevel,
     mindsetType,
+    motivationReason,
+    satisfactionOutcome,
+    challengeResponse,
   );
 
   bool get isValid {

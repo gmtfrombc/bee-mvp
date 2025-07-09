@@ -34,6 +34,22 @@ class OnboardingController extends StateNotifier<OnboardingDraft> {
     state = state.copyWith(mindsetType: type);
   }
 
+  // ---------------------------------------------------------------------
+  // Mindset & Motivation updates (Section 4)
+  // ---------------------------------------------------------------------
+
+  void updateMotivationReason(String? reason) {
+    state = state.copyWith(motivationReason: reason);
+  }
+
+  void updateSatisfactionOutcome(String? outcome) {
+    state = state.copyWith(satisfactionOutcome: outcome);
+  }
+
+  void updateChallengeResponse(String? response) {
+    state = state.copyWith(challengeResponse: response);
+  }
+
   // -------------------------------------------------------------------------
   // Preferences handling
   // -------------------------------------------------------------------------
@@ -91,6 +107,12 @@ class OnboardingController extends StateNotifier<OnboardingDraft> {
       state.priorities.isNotEmpty &&
       state.readinessLevel != null &&
       state.confidenceLevel != null;
+
+  bool get isMindsetComplete =>
+      state.motivationReason != null &&
+      state.satisfactionOutcome != null &&
+      state.challengeResponse != null &&
+      state.mindsetType != null;
 }
 
 /// Global provider for widgets to watch and mutate onboarding draft.

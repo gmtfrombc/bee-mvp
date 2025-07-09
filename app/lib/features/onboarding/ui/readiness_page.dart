@@ -6,6 +6,7 @@ import '../../../core/widgets/likert_selector.dart';
 import '../../../l10n/s.dart';
 import '../models/onboarding_draft.dart';
 import '../onboarding_controller.dart';
+import 'mindset_page.dart';
 
 /// Onboarding step for readiness and confidence assessment (Q10-12).
 ///
@@ -172,7 +173,9 @@ class ReadinessPage extends ConsumerWidget {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Readiness assessment saved!')),
                 );
-                // TODO: Navigate to next step (MindsetPage)
+                Navigator.of(
+                  context,
+                ).push(MaterialPageRoute(builder: (_) => const MindsetPage()));
               }
               : null,
       child: const Text('Continue'),
