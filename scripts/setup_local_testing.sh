@@ -122,7 +122,7 @@ setup_flutter() {
     fi
 
     # Enforce Flutter version consistency
-    REQUIRED_FLUTTER_VERSION="3.3.2"
+    REQUIRED_FLUTTER_VERSION="3.32.1"
     INSTALLED_VERSION=$(flutter --version 2>/dev/null | head -n1 | awk '{print $2}')
     if [[ "$INSTALLED_VERSION" != "$REQUIRED_FLUTTER_VERSION"* ]]; then
         log_error "Flutter $REQUIRED_FLUTTER_VERSION required but $INSTALLED_VERSION found."
