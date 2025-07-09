@@ -1,0 +1,5 @@
+🔑  Importing Supabase secrets from /Users/gmtfr/.bee_secrets/supabase.env
+✅  .secrets updated from local env file (placeholders remain for any missing vars)
+[Flutter CI/test] ⭐ Run Set up job
+[Flutter CI/test] 🚀  Start image=ghcr.io/instrumentisto/flutter:3.32.5-androidsdk35-r0
+[Flutter CI/test]   🐳  docker pull image=ghcr.io/instrumentisto/flutter:3.32.5-androidsdk35-r0 platform=linux/amd64 username= forcePull=***

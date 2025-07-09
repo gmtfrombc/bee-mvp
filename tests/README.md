@@ -241,3 +241,64 @@ Task 5 is complete when all tests pass:
 
 **Status:** ✅ Complete\
 **Next:** Proceed to Task 6 (Documentation & Deployment)
+
+## 📐 UI Latency Measurement – LikertSelector (Onboarding)
+
+### Purpose
+
+Verify that selecting an option in the LikertSelector completes in **< 50 ms
+(p95)** on target devices (Pixel 4 & iPhone 11). This ensures instant feedback
+to the user and meets UX performance SLAs.
+
+### Measurement Method
+
+1. **Integration Test**
+   (`app/test/integration/likert_selector_latency_test.dart`)
+   - Uses `integration_test` + `flutter_test` with `traceAction` to record a
+     performance timeline while executing a `tester.tap` on each radio option.
+   - Extracts `frameBuildTimeMillis` & `frameRasterizerTimeMillis` from the
+     `TimelineSummary`.
+   - Fails the test if **max** build or raster time > 50 ms.
+2. **Manual Bench** (optional)
+   - Run the test on physical devices with:\
+     `flutter test integration_test/likert_selector_latency_test.dart --profile --trace-startup`
+   - Inspect generated summary `build/summary.json` for frame timings.
+
+### Pass/Fail Criteria
+
+| Metric                            | Target  |
+| --------------------------------- | ------- |
+| `frameBuildTimeMillis (p95)`      | < 50 ms |
+| `frameRasterizerTimeMillis (p95)` | < 8 ms  |
+
+### Sample Integration Test Snippet
+
+```dart
+import 'package:integration_test/integration_test.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:app/main.dart' as app;
+
+void main() {
+  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+
+  testWidgets('LikertSelector tap latency <50ms', (tester) async {
+    await app.main();
+    await tester.pumpAndSettle();
+
+    final summary = await tester.traceAction(() async {
+      final option = find.byKey(const ValueKey('likert_option_3'));
+      await tester.tap(option);
+      await tester.pumpAndSettle();
+    });
+
+    expect(summary.summaryJson!['frameBuildTimeMillis']['p95'] as num < 50, isTrue);
+  });
+}
+```
+
+### CI Hook
+
+The test will run in profile mode on GitHub Actions “mobile-integ” job. Failures
+block merge.
+
+---

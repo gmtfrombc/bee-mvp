@@ -1,0 +1,636 @@
+[Coach Epic CI/coach-edge-function-tests] ⭐ Run Set up job
+[Coach Epic CI/coach-edge-function-tests] 🚀  Start image=ghcr.io/catthehacker/ubuntu:act-22.04
+[Coach Epic CI/coach-edge-function-tests]   🐳  docker pull image=ghcr.io/catthehacker/ubuntu:act-22.04 platform=linux/amd64 username= forcePull=***
+[Coach Epic CI/coach-edge-function-tests]   🐳  docker create image=ghcr.io/catthehacker/ubuntu:act-22.04 platform=linux/amd64 entrypoint=["tail" "-f" "/dev/null"] cmd=[] network="host"
+[Coach Epic CI/coach-edge-function-tests]   🐳  docker run image=ghcr.io/catthehacker/ubuntu:act-22.04 platform=linux/amd64 entrypoint=["tail" "-f" "/dev/null"] cmd=[] network="host"
+[Coach Epic CI/coach-edge-function-tests]   🐳  docker exec cmd=[node --no-warnings -e console.log(process.execPath)] user= workdir=
+[Coach Epic CI/coach-edge-function-tests]   ✅  Success - Set up job
+[Coach Epic CI/coach-edge-function-tests]   ☁  git clone 'https://github.com/denoland/setup-deno' # ref=v1
+[Coach Epic CI/coach-edge-function-tests] ⭐ Run Main actions/checkout@v4
+[Coach Epic CI/coach-edge-function-tests]   🐳  docker cp src=/Users/gmtfr/bee-mvp/bee-mvp/. dst=/Users/gmtfr/bee-mvp/bee-mvp
+[Coach Epic CI/coach-edge-function-tests]   ✅  Success - Main actions/checkout@v4 [1.229866208s]
+[Coach Epic CI/coach-edge-function-tests] ⭐ Run Main Setup Deno
+[Coach Epic CI/coach-edge-function-tests]   🐳  docker cp src=/Users/gmtfr/.cache/act/denoland-setup-deno@v1/ dst=/var/run/act/actions/denoland-setup-deno@v1/
+[Coach Epic CI/coach-edge-function-tests]   🐳  docker exec cmd=[/opt/acttoolcache/node/18.20.8/x64/bin/node /var/run/act/actions/denoland-setup-deno@v1/main.mjs] user= workdir=
+[Coach Epic CI/coach-edge-function-tests]   | Going to install stable version 1.46.3.
+[Coach Epic CI/coach-edge-function-tests]   | Downloading Deno from https://github.com/denoland/deno/releases/download/v1.46.3/deno-x86_64-unknown-linux-gnu.zip.
+[Coach Epic CI/coach-edge-function-tests]   | [command]/usr/bin/unzip -o -q /tmp/90fec92f-079b-483e-b4c2-f81b1657fbd9
+[Coach Epic CI/coach-edge-function-tests]   | Cached Deno to /opt/hostedtoolcache/deno/1.46.3/x64.
+[Coach Epic CI/coach-edge-function-tests]   | Installation complete.
+[Coach Epic CI/coach-edge-function-tests]   ✅  Success - Main Setup Deno [16.024025792s]
+[Coach Epic CI/coach-edge-function-tests]   ⚙  ::set-output:: deno-version=1.46.3
+[Coach Epic CI/coach-edge-function-tests]   ⚙  ::set-output:: is-canary=false
+[Coach Epic CI/coach-edge-function-tests]   ⚙  ::set-output:: release-channel=stable
+[Coach Epic CI/coach-edge-function-tests]   ⚙  ::add-path:: /opt/hostedtoolcache/deno/1.46.3/x64
+[Coach Epic CI/coach-edge-function-tests]   ⚙  ::add-path:: /root/.deno/bin
+[Coach Epic CI/coach-edge-function-tests] ⭐ Run Main Run Edge Function tests
+[Coach Epic CI/coach-edge-function-tests]   🐳  docker exec cmd=[bash -e /var/run/act/workflow/2] user= workdir=./supabase/functions/ai-coaching-engine
+[Coach Epic CI/coach-edge-function-tests]   | 🧪 Running AI Coaching Engine tests...
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.168.0/testing/asserts.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.208.0/assert/mod.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.196.0/testing/asserts.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.168.0/testing/bdd.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.168.0/fmt/colors.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.168.0/testing/_diff.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.168.0/testing/_format.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.208.0/assert/assert_almost_equals.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.208.0/assert/assert_array_includes.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.208.0/assert/assert_equals.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.208.0/assert/assert_exists.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.208.0/assert/assert_false.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.208.0/assert/assert_greater_or_equal.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.208.0/assert/assert_greater.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.208.0/assert/assert_instance_of.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.208.0/assert/assert_is_error.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.208.0/assert/assert_less_or_equal.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.208.0/assert/assert_less.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.208.0/assert/assert_match.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.208.0/assert/assert_not_equals.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.208.0/assert/assert_not_instance_of.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.208.0/assert/assert_not_match.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.208.0/assert/assert_not_strict_equals.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.208.0/assert/assert_object_match.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.208.0/assert/assert_rejects.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.208.0/assert/assert_strict_equals.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.208.0/assert/assert_string_includes.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.208.0/assert/assert_throws.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.208.0/assert/assert.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.208.0/assert/assertion_error.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.208.0/assert/equal.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.208.0/assert/fail.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.208.0/assert/unimplemented.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.208.0/assert/unreachable.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.196.0/assert/mod.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.168.0/testing/_test_suite.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://jsr.io/@std/http/meta.json
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.208.0/assert/_format.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.208.0/fmt/colors.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.208.0/assert/_diff.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.208.0/assert/_constants.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.196.0/assert/assert_almost_equals.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.196.0/assert/assert_array_includes.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.196.0/assert/assert_equals.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.196.0/assert/assert_exists.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.196.0/assert/assert_false.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.196.0/assert/assert_instance_of.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.196.0/assert/assert_is_error.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.196.0/assert/assert_match.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.196.0/assert/assert_not_equals.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.196.0/assert/assert_not_instance_of.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.196.0/assert/assert_not_match.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.196.0/assert/assert_not_strict_equals.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.196.0/assert/assert_object_match.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.196.0/assert/assert_rejects.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.196.0/assert/assert_strict_equals.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.196.0/assert/assert_string_includes.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.196.0/assert/assert_throws.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.196.0/assert/assert.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.196.0/assert/assertion_error.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.196.0/assert/equal.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.196.0/assert/fail.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.196.0/assert/unimplemented.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.196.0/assert/unreachable.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.196.0/assert/_format.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.196.0/fmt/colors.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.196.0/_util/diff.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://deno.land/std@0.196.0/assert/_constants.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://jsr.io/@std/http/1.0.19_meta.json
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/supabase-js@2
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/supabase-js@2.50.3
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/auth-js@2.70.0/denonext/auth-js.mjs
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/functions-js@2.4.5/denonext/functions-js.mjs
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/node-fetch@2.6.15/denonext/node-fetch.mjs
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/postgrest-js@1.19.4/denonext/postgrest-js.mjs
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/realtime-js@2.11.15/denonext/realtime-js.mjs
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/storage-js@2.7.1/denonext/storage-js.mjs
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/supabase-js@2.50.3/denonext/supabase-js.mjs
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/supabase-js@2.50.3/dist/module/index.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/node-fetch@^2.6.14?target=denonext
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/whatwg-url@^5.0.0?target=denonext
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/isows@^1.0.7?target=denonext
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/node-fetch@^2.6.13?target=denonext
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/supabase-js@2.50.3/dist/module/SupabaseClient.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/supabase-js@2.50.3/dist/module/lib/types.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/auth-js@2.70.0/dist/module/index.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/postgrest-js@1.19.4/dist/cjs/index.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/functions-js@2.4.5/dist/module/index.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/realtime-js@2.11.15/dist/module/index.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/node-fetch@2.6.15?target=denonext
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/whatwg-url@5.0.0?target=denonext
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/isows@1.0.7?target=denonext
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/storage-js@2.7.1/dist/module/index.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/supabase-js@2.50.3/dist/module/lib/SupabaseAuthClient.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/auth-js@2.70.0/dist/module/GoTrueAdminApi.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/auth-js@2.70.0/dist/module/GoTrueClient.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/auth-js@2.70.0/dist/module/AuthAdminApi.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/auth-js@2.70.0/dist/module/AuthClient.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/auth-js@2.70.0/dist/module/lib/types.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/auth-js@2.70.0/dist/module/lib/errors.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/auth-js@2.70.0/dist/module/lib/locks.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/postgrest-js@1.19.4/dist/cjs/PostgrestClient.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/postgrest-js@1.19.4/dist/cjs/PostgrestQueryBuilder.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/postgrest-js@1.19.4/dist/cjs/PostgrestFilterBuilder.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/postgrest-js@1.19.4/dist/cjs/PostgrestTransformBuilder.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/postgrest-js@1.19.4/dist/cjs/PostgrestBuilder.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/postgrest-js@1.19.4/dist/cjs/PostgrestError.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/postgrest-js@1.19.4/dist/cjs/types.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/postgrest-js@1.19.4/dist/cjs/select-query-parser/result.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/functions-js@2.4.5/dist/module/FunctionsClient.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/functions-js@2.4.5/dist/module/types.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/realtime-js@2.11.15/dist/module/RealtimeClient.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/realtime-js@2.11.15/dist/module/RealtimeChannel.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/realtime-js@2.11.15/dist/module/RealtimePresence.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/tr46@~0.0.3?target=denonext
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/webidl-conversions@^3.0.0?target=denonext
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/whatwg-url@5.0.0/denonext/whatwg-url.mjs
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/isows@1.0.7/denonext/isows.mjs
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/isows@1.0.7/_types/native.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/storage-js@2.7.1/dist/module/StorageClient.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/storage-js@2.7.1/dist/module/lib/types.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/storage-js@2.7.1/dist/module/lib/errors.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/auth-js@2.70.0/dist/module/lib/fetch.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/auth-js@2.70.0/dist/module/lib/helpers.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@solana/wallet-standard-features@1.3.0/lib/types/index.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/auth-js@2.70.0/dist/module/lib/error-codes.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/postgrest-js@1.19.4/dist/cjs/select-query-parser/utils.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/postgrest-js@1.19.4/dist/cjs/select-query-parser/types.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/postgrest-js@1.19.4/dist/cjs/select-query-parser/parser.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/realtime-js@2.11.15/dist/module/lib/constants.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/realtime-js@2.11.15/dist/module/lib/serializer.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/realtime-js@2.11.15/dist/module/lib/timer.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/realtime-js@2.11.15/dist/module/lib/push.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@types/phoenix@1.6.6/index.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/tr46@0.0.3?target=denonext
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/webidl-conversions@3.0.1?target=denonext
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/storage-js@2.7.1/dist/module/packages/StorageFileApi.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/storage-js@2.7.1/dist/module/packages/StorageBucketApi.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@supabase/storage-js@2.7.1/dist/module/lib/fetch.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@wallet-standard/base@1.1.0/lib/types/index.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@solana/wallet-standard-features@1.3.0/lib/types/signAndSendTransaction.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@solana/wallet-standard-features@1.3.0/lib/types/signIn.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@solana/wallet-standard-features@1.3.0/lib/types/signMessage.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@solana/wallet-standard-features@1.3.0/lib/types/signTransaction.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@solana/wallet-standard-features@1.3.0/lib/types/signAndSendAllTransactions.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/tr46@0.0.3/denonext/tr46.mjs
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/webidl-conversions@3.0.1/denonext/webidl-conversions.mjs
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@wallet-standard/base@1.1.0/lib/types/bytes.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@wallet-standard/base@1.1.0/lib/types/identifier.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@wallet-standard/base@1.1.0/lib/types/wallet.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://esm.sh/@wallet-standard/base@1.1.0/lib/types/window.d.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://jsr.io/@std/http/1.0.19/unstable_route.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://registry.npmjs.org/@types/node
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mDownload[0m https://registry.npmjs.org/@types/node/-/node-18.16.19.tgz
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mCheck[0m file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/daily-content.test.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mCheck[0m file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/middleware/cache.test.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mCheck[0m file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/middleware/rate-limit.test.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mCheck[0m file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/middleware/request-id.test.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mCheck[0m file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/middleware/safety/red_flag_negative_cases.test.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mCheck[0m file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/middleware/safety/safety.test.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mCheck[0m file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/mod.simple.test.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mCheck[0m file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/mod.test.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mCheck[0m file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/mod.utility.test.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mCheck[0m file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/mod_momentum_event.test.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mCheck[0m file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/parse_fallback.test.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mCheck[0m file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/personalization/coaching-personas.test.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mCheck[0m file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/personalization/cross-patient-patterns.test.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mCheck[0m file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/personalization/effectiveness-tracker.integration.test.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mCheck[0m file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/personalization/effectiveness-tracker.test.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mCheck[0m file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/personalization/frequency-optimizer.integration.test.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mCheck[0m file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/personalization/frequency-optimizer.test.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mCheck[0m file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/personalization/lightgbm_model.test.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mCheck[0m file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/personalization/pattern-analysis.test.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mCheck[0m file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/personalization/strategy-optimizer.test.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mCheck[0m file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/prompt-builder-sentiment.test.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mCheck[0m file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/prompt-builder.test.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mCheck[0m file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/response-logger.test.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mCheck[0m file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/safety/content-safety-validator.test.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mCheck[0m file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/sentiment/sentiment-analyzer.test.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mCheck[0m file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/services/engagement-data.test.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mCheck[0m file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/tests/jitai-controller.integration.test.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mCheck[0m file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/tests/jitai-engine.test.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mCheck[0m file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/tests/predictive-trigger-model.test.ts
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mCheck[0m file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/tests/wearable-summary.client.test.ts
+[Coach Epic CI/coach-edge-function-tests]   | Unsupported compiler options in "file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/deno.json".
+[Coach Epic CI/coach-edge-function-tests]   |   The following options were ignored:
+[Coach Epic CI/coach-edge-function-tests]   |     skipLibCheck
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m------- pre-test output -------[0m
+[Coach Epic CI/coach-edge-function-tests]   | 🔑 Service role key present: no
+[Coach Epic CI/coach-edge-function-tests]   | 🤖 AI model selected: gpt-4o
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m----- pre-test output end -----[0m
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245mrunning 5 tests from ./daily-content.test.ts[0m
+[Coach Epic CI/coach-edge-function-tests]   | Daily Content Generation - topic rotation works deterministically ... [0m[32mok[0m [0m[38;5;245m(4ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | Daily Content Generation - builds valid prompts for all topics ... [0m[32mok[0m [0m[38;5;245m(34ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | Daily Content Generation - parses valid AI responses correctly ... [0m[32mok[0m [0m[38;5;245m(1ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | Daily Content Generation - handles malformed AI responses gracefully ...
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m------- output -------[0m
+[Coach Epic CI/coach-edge-function-tests]   | ⚠️  Error parsing AI content response (fallback will repair): SyntaxError: Unexpected token 'o', "not json at all" is not valid JSON
+[Coach Epic CI/coach-edge-function-tests]   |     at JSON.parse (<anonymous>)
+[Coach Epic CI/coach-edge-function-tests]   |     at parseAIContentResponse (file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/services/daily-content.service.ts:88:30)
+[Coach Epic CI/coach-edge-function-tests]   |     at file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/daily-content.test.ts:81:24
+[Coach Epic CI/coach-edge-function-tests]   |     at innerWrapped (ext:cli/40_test.js:191:11)
+[Coach Epic CI/coach-edge-function-tests]   |     at exitSanitizer (ext:cli/40_test.js:107:33)
+[Coach Epic CI/coach-edge-function-tests]   |     at outerWrapped (ext:cli/40_test.js:134:20)
+[Coach Epic CI/coach-edge-function-tests]   | ⚠️  Error parsing AI content response (fallback will repair): Error: Missing required fields in AI response
+[Coach Epic CI/coach-edge-function-tests]   |     at parseAIContentResponse (file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/services/daily-content.service.ts:91:13)
+[Coach Epic CI/coach-edge-function-tests]   |     at file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/daily-content.test.ts:81:24
+[Coach Epic CI/coach-edge-function-tests]   |     at innerWrapped (ext:cli/40_test.js:191:11)
+[Coach Epic CI/coach-edge-function-tests]   |     at exitSanitizer (ext:cli/40_test.js:107:33)
+[Coach Epic CI/coach-edge-function-tests]   |     at outerWrapped (ext:cli/40_test.js:134:20)
+[Coach Epic CI/coach-edge-function-tests]   | ⚠️  Error parsing AI content response (fallback will repair): Error: Missing required fields in AI response
+[Coach Epic CI/coach-edge-function-tests]   |     at parseAIContentResponse (file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/services/daily-content.service.ts:91:13)
+[Coach Epic CI/coach-edge-function-tests]   |     at file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/daily-content.test.ts:81:24
+[Coach Epic CI/coach-edge-function-tests]   |     at innerWrapped (ext:cli/40_test.js:191:11)
+[Coach Epic CI/coach-edge-function-tests]   |     at exitSanitizer (ext:cli/40_test.js:107:33)
+[Coach Epic CI/coach-edge-function-tests]   |     at outerWrapped (ext:cli/40_test.js:134:20)
+[Coach Epic CI/coach-edge-function-tests]   | ⚠️  Error parsing AI content response (fallback will repair): Error: Missing required fields in AI response
+[Coach Epic CI/coach-edge-function-tests]   |     at parseAIContentResponse (file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/services/daily-content.service.ts:91:13)
+[Coach Epic CI/coach-edge-function-tests]   |     at file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/daily-content.test.ts:81:24
+[Coach Epic CI/coach-edge-function-tests]   |     at innerWrapped (ext:cli/40_test.js:191:11)
+[Coach Epic CI/coach-edge-function-tests]   |     at exitSanitizer (ext:cli/40_test.js:107:33)
+[Coach Epic CI/coach-edge-function-tests]   |     at outerWrapped (ext:cli/40_test.js:134:20)
+[Coach Epic CI/coach-edge-function-tests]   | ⚠️  Error parsing AI content response (fallback will repair): SyntaxError: Unexpected end of JSON input
+[Coach Epic CI/coach-edge-function-tests]   |     at JSON.parse (<anonymous>)
+[Coach Epic CI/coach-edge-function-tests]   |     at parseAIContentResponse (file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/services/daily-content.service.ts:88:30)
+[Coach Epic CI/coach-edge-function-tests]   |     at file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/daily-content.test.ts:81:24
+[Coach Epic CI/coach-edge-function-tests]   |     at innerWrapped (ext:cli/40_test.js:191:11)
+[Coach Epic CI/coach-edge-function-tests]   |     at exitSanitizer (ext:cli/40_test.js:107:33)
+[Coach Epic CI/coach-edge-function-tests]   |     at outerWrapped (ext:cli/40_test.js:134:20)
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m----- output end -----[0m
+[Coach Epic CI/coach-edge-function-tests]   | Daily Content Generation - handles malformed AI responses gracefully ... [0m[32mok[0m [0m[38;5;245m(10ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | Daily Content Generation - enforces content length limits ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245mrunning 8 tests from ./middleware/cache.test.ts[0m
+[Coach Epic CI/coach-edge-function-tests]   | cache - generateCacheKey creates consistent SHA-256 hash ... [0m[32mok[0m [0m[38;5;245m(5ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | cache - miss returns null when no cached value ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | cache - hit/miss logic with memory fallback ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | cache - TTL expiration works correctly ... [0m[32mok[0m [0m[38;5;245m(1s)[0m
+[Coach Epic CI/coach-edge-function-tests]   | cache - disabled when CACHE_ENABLED=false ... [0m[32mok[0m [0m[38;5;245m(2ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | cache - memory cleanup on large cache sizes ... [0m[32mok[0m [0m[38;5;245m(13ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | cache - integration test with realistic coaching scenario ... [0m[32mok[0m [0m[38;5;245m(2ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | cache - telemetry integration for monitoring ... [0m[32mok[0m [0m[38;5;245m(12ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245mrunning 9 tests from ./middleware/rate-limit.test.ts[0m
+[Coach Epic CI/coach-edge-function-tests]   | rate-limit - allows requests under limit ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | rate-limit - blocks 6th request in window ... [0m[32mok[0m [0m[38;5;245m(1ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | rate-limit - different users have separate limits ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | rate-limit - sliding window resets over time ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | rate-limit - getRateLimitStatus returns correct info ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | rate-limit - RateLimitError includes retryAfter ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | rate-limit - uses environment variable for max requests ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | rate-limit - handles malformed environment variables gracefully ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | rate-limit - cleanup ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245mrunning 3 tests from ./middleware/request-id.test.ts[0m
+[Coach Epic CI/coach-edge-function-tests]   | ensureRequestId returns existing header when present ... [0m[32mok[0m [0m[38;5;245m(2ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | ensureRequestId generates uuid when header missing ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | withRequestId attaches header to response ... [0m[32mok[0m [0m[38;5;245m(2ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245mrunning 1 test from ./middleware/safety/red_flag_negative_cases.test.ts[0m
+[Coach Epic CI/coach-edge-function-tests]   | Red Flag Detection – Extended Negative Cases ... [0m[32mok[0m [0m[38;5;245m(7ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245mrunning 8 tests from ./middleware/safety/safety.test.ts[0m
+[Coach Epic CI/coach-edge-function-tests]   | Red Flag Detection - Self Harm Positive Cases ... [0m[32mok[0m [0m[38;5;245m(1ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | Red Flag Detection - Violence Positive Cases ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | Red Flag Detection - Emergency Positive Cases ... [0m[32mok[0m [0m[38;5;245m(1ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | Red Flag Detection - PHI Request Positive Cases ... [0m[32mok[0m [0m[38;5;245m(1ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | Red Flag Detection - Clean Input Negative Cases ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | Red Flag Detection - Edge Cases ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | Red Flag Detection - False Positive Prevention ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | Red Flag Detection - Multiple Flags Priority ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m------- post-test output -------[0m
+[Coach Epic CI/coach-edge-function-tests]   | 🧪 Test environment: skipping Supabase client initialization in EngagementDataService
+[Coach Epic CI/coach-edge-function-tests]   | 🔑 Service role key present: no
+[Coach Epic CI/coach-edge-function-tests]   | 🤖 AI model selected: gpt-4o
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m----- post-test output end -----[0m
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245mrunning 1 test from ./mod.simple.test.ts[0m
+[Coach Epic CI/coach-edge-function-tests]   | AI Coaching Engine Basic Tests ...
+[Coach Epic CI/coach-edge-function-tests]   |   should handle CORS OPTIONS request ...
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m------- post-test output -------[0m
+[Coach Epic CI/coach-edge-function-tests]   | 📍 global incoming path= /generate-response
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m----- post-test output end -----[0m
+[Coach Epic CI/coach-edge-function-tests]   |   should handle CORS OPTIONS request ... [0m[32mok[0m [0m[38;5;245m(2ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   |   should reject non-POST requests ...
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m------- post-test output -------[0m
+[Coach Epic CI/coach-edge-function-tests]   | 📍 global incoming path= /generate-response
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m----- post-test output end -----[0m
+[Coach Epic CI/coach-edge-function-tests]   |   should reject non-POST requests ... [0m[32mok[0m [0m[38;5;245m(54ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   |   should return 400 for missing request body ...
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m------- post-test output -------[0m
+[Coach Epic CI/coach-edge-function-tests]   | 📍 global incoming path= /generate-response
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m----- post-test output end -----[0m
+[Coach Epic CI/coach-edge-function-tests]   |   should return 400 for missing request body ... [0m[32mok[0m [0m[38;5;245m(9ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   |   should return 401 for missing authorization ...
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m------- post-test output -------[0m
+[Coach Epic CI/coach-edge-function-tests]   | 📍 global incoming path= /generate-response
+[Coach Epic CI/coach-edge-function-tests]   | logCoachInteraction skipped – missing env vars
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m----- post-test output end -----[0m
+[Coach Epic CI/coach-edge-function-tests]   |   should return 401 for missing authorization ... [0m[32mok[0m [0m[38;5;245m(17ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | AI Coaching Engine Basic Tests ... [0m[32mok[0m [0m[38;5;245m(84ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m------- post-test output -------[0m
+[Coach Epic CI/coach-edge-function-tests]   | 🧪 Test environment: skipping Supabase client initialization in EngagementDataService
+[Coach Epic CI/coach-edge-function-tests]   | 🔑 Service role key present: no
+[Coach Epic CI/coach-edge-function-tests]   | 🤖 AI model selected: claude-3-haiku-20240307
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m----- post-test output end -----[0m
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245mrunning 1 test from ./mod.test.ts[0m
+[Coach Epic CI/coach-edge-function-tests]   | AI Coaching Engine Handler ...
+[Coach Epic CI/coach-edge-function-tests]   |   should handle valid coaching request and return structured JSON ...
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m------- post-test output -------[0m
+[Coach Epic CI/coach-edge-function-tests]   | 📍 global incoming path= /generate-response
+[Coach Epic CI/coach-edge-function-tests]   | 🧪 Test environment: skipping conversation logging for user test-user-id
+[Coach Epic CI/coach-edge-function-tests]   | 🧪 Test environment: returning empty conversation history for user test-user-id
+[Coach Epic CI/coach-edge-function-tests]   | Supabase client not initialized, returning fallback events
+[Coach Epic CI/coach-edge-function-tests]   | 🧪 Test environment: skipping conversation logging for user test-user-id
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m----- post-test output end -----[0m
+[Coach Epic CI/coach-edge-function-tests]   |   should handle valid coaching request and return structured JSON ... [0m[32mok[0m [0m[38;5;245m(13ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   |   should return 400 for missing required fields ...
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m------- post-test output -------[0m
+[Coach Epic CI/coach-edge-function-tests]   | 📍 global incoming path= /generate-response
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m----- post-test output end -----[0m
+[Coach Epic CI/coach-edge-function-tests]   |   should return 400 for missing required fields ... [0m[32mok[0m [0m[38;5;245m(2ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   |   should return 401 for missing authorization ...
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m------- post-test output -------[0m
+[Coach Epic CI/coach-edge-function-tests]   | 📍 global incoming path= /generate-response
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m----- post-test output end -----[0m
+[Coach Epic CI/coach-edge-function-tests]   |   should return 401 for missing authorization ... [0m[32mok[0m [0m[38;5;245m(4ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   |   should handle OPTIONS request for CORS ...
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m------- post-test output -------[0m
+[Coach Epic CI/coach-edge-function-tests]   | 📍 global incoming path= /generate-response
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m----- post-test output end -----[0m
+[Coach Epic CI/coach-edge-function-tests]   |   should handle OPTIONS request for CORS ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | AI Coaching Engine Handler ... [0m[32mok[0m [0m[38;5;245m(21ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245mrunning 6 tests from ./mod.utility.test.ts[0m
+[Coach Epic CI/coach-edge-function-tests]   | chooseTopicForDate - rotates topics deterministically ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | parseAIContentResponse - parses valid JSON correctly ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | parseAIContentResponse - handles invalid JSON with fallback ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | calculateContentConfidence - scores high for quality content ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | calculateContentConfidence - scores lower for poor content ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | calculateContentConfidence - detects topic keywords correctly ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m------- post-test output -------[0m
+[Coach Epic CI/coach-edge-function-tests]   | 🔑 Service role key present: no
+[Coach Epic CI/coach-edge-function-tests]   | 🤖 AI model selected: claude-3-haiku-20240307
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m----- post-test output end -----[0m
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245mrunning 5 tests from ./mod_momentum_event.test.ts[0m
+[Coach Epic CI/coach-edge-function-tests]   | ai-coaching-engine: handles momentum change system event ...
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m------- post-test output -------[0m
+[Coach Epic CI/coach-edge-function-tests]   | 📍 global incoming path= /
+[Coach Epic CI/coach-edge-function-tests]   | 🧪 Test environment: skipping conversation logging for user 00000000-0000-0000-0000-000000000001
+[Coach Epic CI/coach-edge-function-tests]   | 🧪 Test environment: returning empty conversation history for user 00000000-0000-0000-0000-000000000001
+[Coach Epic CI/coach-edge-function-tests]   | Supabase client not initialized, returning fallback events
+[Coach Epic CI/coach-edge-function-tests]   | 🧪 Test environment: skipping conversation logging for user 00000000-0000-0000-0000-000000000001
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m----- post-test output end -----[0m
+[Coach Epic CI/coach-edge-function-tests]   | ai-coaching-engine: handles momentum change system event ... [0m[32mok[0m [0m[38;5;245m(7ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | ai-coaching-engine: bypasses rate limit for momentum change events ...
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m------- post-test output -------[0m
+[Coach Epic CI/coach-edge-function-tests]   | 📍 global incoming path= /
+[Coach Epic CI/coach-edge-function-tests]   | 🧪 Test environment: skipping conversation logging for user 00000000-0000-0000-0000-000000000001
+[Coach Epic CI/coach-edge-function-tests]   | 🧪 Test environment: returning empty conversation history for user 00000000-0000-0000-0000-000000000001
+[Coach Epic CI/coach-edge-function-tests]   | Supabase client not initialized, returning fallback events
+[Coach Epic CI/coach-edge-function-tests]   | 🧪 Test environment: skipping conversation logging for user 00000000-0000-0000-0000-000000000001
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m----- post-test output end -----[0m
+[Coach Epic CI/coach-edge-function-tests]   | ai-coaching-engine: bypasses rate limit for momentum change events ... [0m[32mok[0m [0m[38;5;245m(4ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | ai-coaching-engine: handles regular user messages with rate limiting ...
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m------- post-test output -------[0m
+[Coach Epic CI/coach-edge-function-tests]   | 📍 global incoming path= /
+[Coach Epic CI/coach-edge-function-tests]   | 🧪 Test environment: skipping conversation logging for user 00000000-0000-0000-0000-000000000001
+[Coach Epic CI/coach-edge-function-tests]   | 🧪 Test environment: returning empty conversation history for user 00000000-0000-0000-0000-000000000001
+[Coach Epic CI/coach-edge-function-tests]   | Supabase client not initialized, returning fallback events
+[Coach Epic CI/coach-edge-function-tests]   | 🧪 Test environment: skipping conversation logging for user 00000000-0000-0000-0000-000000000001
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m----- post-test output end -----[0m
+[Coach Epic CI/coach-edge-function-tests]   | ai-coaching-engine: handles regular user messages with rate limiting ... [0m[32mok[0m [0m[38;5;245m(2ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | ai-coaching-engine: validates required fields ...
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m------- post-test output -------[0m
+[Coach Epic CI/coach-edge-function-tests]   | 📍 global incoming path= /
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m----- post-test output end -----[0m
+[Coach Epic CI/coach-edge-function-tests]   | ai-coaching-engine: validates required fields ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | ai-coaching-engine: handles CORS preflight requests ...
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m------- post-test output -------[0m
+[Coach Epic CI/coach-edge-function-tests]   | 📍 global incoming path= /
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m----- post-test output end -----[0m
+[Coach Epic CI/coach-edge-function-tests]   | ai-coaching-engine: handles CORS preflight requests ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m------- post-test output -------[0m
+[Coach Epic CI/coach-edge-function-tests]   | 🧪 Test environment: skipping Supabase client initialization in EngagementDataService
+[Coach Epic CI/coach-edge-function-tests]   | 🔑 Service role key present: yes
+[Coach Epic CI/coach-edge-function-tests]   | 🤖 AI model selected: claude-3-haiku-20240307
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m----- post-test output end -----[0m
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245mrunning 1 test from ./parse_fallback.test.ts[0m
+[Coach Epic CI/coach-edge-function-tests]   | parseAIContentResponse – cleans up malformed first-line bracket ... [0m[32mok[0m [0m[38;5;245m(1ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245mrunning 5 tests from ./personalization/coaching-personas.test.ts[0m
+[Coach Epic CI/coach-edge-function-tests]   | CoachingPersonas - high volatility gets supportive persona ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | CoachingPersonas - NeedsCare momentum gets supportive persona ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | CoachingPersonas - Rising momentum with low volatility gets challenging ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | CoachingPersonas - persona descriptions are returned ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | CoachingPersonas - validates momentum states correctly ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245mrunning 7 tests from ./personalization/cross-patient-patterns.test.ts[0m
+[Coach Epic CI/coach-edge-function-tests]   | CrossPatientPatternsService - Happy Path: Aggregate effectiveness patterns with sufficient data ... [0m[32mok[0m [0m[38;5;245m(1ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | CrossPatientPatternsService - Privacy Edge Case: Insufficient data returns null ...
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m------- post-test output -------[0m
+[Coach Epic CI/coach-edge-function-tests]   | Insufficient data for privacy-safe aggregation (minimum 5 users required)
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m----- post-test output end -----[0m
+[Coach Epic CI/coach-edge-function-tests]   | CrossPatientPatternsService - Privacy Edge Case: Insufficient data returns null ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | CrossPatientPatternsService - Error Handling: Database error returns null ...
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m------- post-test output -------[0m
+[Coach Epic CI/coach-edge-function-tests]   | Error aggregating effectiveness patterns: Error: Mock database error
+[Coach Epic CI/coach-edge-function-tests]   |     at MockSupabaseClient.mockQuery (file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/personalization/cross-patient-patterns.test.ts:58:35)
+[Coach Epic CI/coach-edge-function-tests]   |     at Object.eq (file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/personalization/cross-patient-patterns.test.ts:34:58)
+[Coach Epic CI/coach-edge-function-tests]   |     at CrossPatientPatternsService.aggregateEffectivenessPatterns (file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/personalization/cross-patient-patterns.ts:74:23)
+[Coach Epic CI/coach-edge-function-tests]   |     at file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/personalization/cross-patient-patterns.test.ts:159:32
+[Coach Epic CI/coach-edge-function-tests]   |     at innerWrapped (ext:cli/40_test.js:191:11)
+[Coach Epic CI/coach-edge-function-tests]   |     at exitSanitizer (ext:cli/40_test.js:107:33)
+[Coach Epic CI/coach-edge-function-tests]   |     at outerWrapped (ext:cli/40_test.js:134:20)
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m----- post-test output end -----[0m
+[Coach Epic CI/coach-edge-function-tests]   | CrossPatientPatternsService - Error Handling: Database error returns null ... [0m[32mok[0m [0m[38;5;245m(1ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | CrossPatientPatternsService - Engagement Patterns: Returns null when engagement_events table missing ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | CrossPatientPatternsService - Store Pattern Aggregate: Happy path ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | CrossPatientPatternsService - Weekly Aggregation: Full process with mixed results ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | CrossPatientPatternsService - Generate Insights: Empty patterns returns empty array ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245mrunning 2 tests from ./personalization/effectiveness-tracker.integration.test.ts[0m
+[Coach Epic CI/coach-edge-function-tests]   | EffectivenessTracker.analyzeUserEffectiveness returns defaults for new users ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | EffectivenessTracker.analyzeUserEffectiveness ranks persona with highest score ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245mrunning 5 tests from ./personalization/effectiveness-tracker.test.ts[0m
+[Coach Epic CI/coach-edge-function-tests]   | EffectivenessTracker - analyzes effectiveness with no data returns defaults ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | EffectivenessTracker - calculates metrics for positive data ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | EffectivenessTracker - calculatePersonaEffectiveness logic ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | EffectivenessTracker - determineRecommendedPersona logic ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | EffectivenessTracker - calculateResponseRate logic ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245mrunning 2 tests from ./personalization/frequency-optimizer.integration.test.ts[0m
+[Coach Epic CI/coach-edge-function-tests]   | FrequencyOptimizer.ensureReasonableSpacing enforces ≥3-hour gaps ... [0m[32mok[0m [0m[38;5;245m(1ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | FrequencyOptimizer.optimizeInterventionTiming falls back to defaults with insufficient data ...
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m------- post-test output -------[0m
+[Coach Epic CI/coach-edge-function-tests]   | Error optimizing timing: TypeError: Cannot read properties of undefined (reading 'supabase')
+[Coach Epic CI/coach-edge-function-tests]   |     at optimizeInterventionTiming (file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/personalization/frequency-optimizer.ts:215:57)
+[Coach Epic CI/coach-edge-function-tests]   |     at file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/personalization/frequency-optimizer.integration.test.ts:66:23
+[Coach Epic CI/coach-edge-function-tests]   |     at innerWrapped (ext:cli/40_test.js:191:11)
+[Coach Epic CI/coach-edge-function-tests]   |     at exitSanitizer (ext:cli/40_test.js:107:33)
+[Coach Epic CI/coach-edge-function-tests]   |     at outerWrapped (ext:cli/40_test.js:134:20)
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m----- post-test output end -----[0m
+[Coach Epic CI/coach-edge-function-tests]   | FrequencyOptimizer.optimizeInterventionTiming falls back to defaults with insufficient data ... [0m[32mok[0m [0m[38;5;245m(1ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m------- post-test output -------[0m
+[Coach Epic CI/coach-edge-function-tests]   | ✅ FrequencyOptimizer algorithm tests completed
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m----- post-test output end -----[0m
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245mrunning 8 tests from ./personalization/frequency-optimizer.test.ts[0m
+[Coach Epic CI/coach-edge-function-tests]   | FrequencyOptimizer algorithm - happy path high engagement ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | FrequencyOptimizer algorithm - edge case low engagement ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | FrequencyOptimizer algorithm - edge case responsive but unsatisfied ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | FrequencyOptimizer hour spacing - ensure reasonable gaps ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | FrequencyOptimizer algorithm - frequency limits respected ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | FrequencyOptimizer class - can be instantiated without database ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | FrequencyOptimizer - calculateOptimalFrequency matches internal logic ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | FrequencyOptimizer - default preferences structure is valid ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245mrunning 3 tests from ./personalization/lightgbm_model.test.ts[0m
+[Coach Epic CI/coach-edge-function-tests]   | predictLightGBM returns high probability for risky snapshot ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | scoreFromSnapshot handles nulls ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | feature vector builder returns expected length ... [0m[32mok[0m [0m[38;5;245m(1ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245mrunning 3 tests from ./personalization/pattern-analysis.test.ts[0m
+[Coach Epic CI/coach-edge-function-tests]   | analyzeEngagement - returns default pattern for empty events ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | analyzeEngagement - detects morning engagement peak ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | analyzeEngagement - calculates high engagement frequency ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245mrunning 3 tests from ./personalization/strategy-optimizer.test.ts[0m
+[Coach Epic CI/coach-edge-function-tests]   | StrategyOptimizer - selects supportive persona for users needing care ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | StrategyOptimizer - adjusts intervention frequency based on engagement ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | StrategyOptimizer - selects gentle tonality for low ratings ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245mrunning 7 tests from ./prompt-builder-sentiment.test.ts[0m
+[Coach Epic CI/coach-edge-function-tests]   | Prompt Builder - Positive sentiment integration ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | Prompt Builder - Negative sentiment integration ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | Prompt Builder - Neutral sentiment integration ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | Prompt Builder - No sentiment provided ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | Prompt Builder - Borderline positive sentiment ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | Prompt Builder - Borderline negative sentiment ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | Cleanup - Restore original readTextFile ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245mrunning 1 test from ./prompt-builder.test.ts[0m
+[Coach Epic CI/coach-edge-function-tests]   | Prompt Builder ...
+[Coach Epic CI/coach-edge-function-tests]   |   should inject persona tokens correctly ... [0m[32mok[0m [0m[38;5;245m(1ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   |   should include conversation history correctly ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   |   should filter out system messages from conversation history ... [0m[32mok[0m [0m[38;5;245m(1ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   |   should format engagement summary with no peaks ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   |   should format engagement summary with multiple peaks ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | Prompt Builder ... [0m[32mok[0m [0m[38;5;245m(4ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245mrunning 2 tests from ./response-logger.test.ts[0m
+[Coach Epic CI/coach-edge-function-tests]   | logConversation - skips logging in test environment ...
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m------- post-test output -------[0m
+[Coach Epic CI/coach-edge-function-tests]   | 🧪 Test environment: skipping conversation logging for user test-user
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m----- post-test output end -----[0m
+[Coach Epic CI/coach-edge-function-tests]   | logConversation - skips logging in test environment ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | getRecentMessages - returns empty array in test environment ...
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m------- post-test output -------[0m
+[Coach Epic CI/coach-edge-function-tests]   | 🧪 Test environment: returning empty conversation history for user test-user
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m----- post-test output end -----[0m
+[Coach Epic CI/coach-edge-function-tests]   | getRecentMessages - returns empty array in test environment ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245mrunning 3 tests from ./safety/content-safety-validator.test.ts[0m
+[Coach Epic CI/coach-edge-function-tests]   | ContentSafetyValidator - validates safe content ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | ContentSafetyValidator - flags medical red flags ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | ContentSafetyValidator - flags dangerous nutrition advice ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245mrunning 13 tests from ./sentiment/sentiment-analyzer.test.ts[0m
+[Coach Epic CI/coach-edge-function-tests]   | Sentiment analysis - positive text ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | Sentiment analysis - negative text ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | Sentiment analysis - neutral text ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | Sentiment analysis - negation handling ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | Sentiment Analyzer - Positive sentiment detection ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | Sentiment Analyzer - Negative sentiment detection ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | Sentiment Analyzer - Neutral sentiment detection ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | Sentiment Analyzer - Strong positive with intensifiers ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | Sentiment Analyzer - Strong negative with intensifiers ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | Sentiment Analyzer - Punctuation impact ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | Sentiment Analyzer - Score bounds ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | Sentiment Analyzer - Empty text handling ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | Sentiment Analyzer - Mixed sentiment ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245mrunning 4 tests from ./services/engagement-data.test.ts[0m
+[Coach Epic CI/coach-edge-function-tests]   | EngagementDataService - returns fallback in test environment ...
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m------- post-test output -------[0m
+[Coach Epic CI/coach-edge-function-tests]   | 🧪 Test environment: skipping Supabase client initialization in EngagementDataService
+[Coach Epic CI/coach-edge-function-tests]   | Supabase client not initialized, returning fallback events
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m----- post-test output end -----[0m
+[Coach Epic CI/coach-edge-function-tests]   | EngagementDataService - returns fallback in test environment ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | EngagementDataService - maps event types correctly ...
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m------- post-test output -------[0m
+[Coach Epic CI/coach-edge-function-tests]   | 🧪 Test environment: skipping Supabase client initialization in EngagementDataService
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m----- post-test output end -----[0m
+[Coach Epic CI/coach-edge-function-tests]   | EngagementDataService - maps event types correctly ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | EngagementDataService - healthCheck returns false without client ...
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m------- post-test output -------[0m
+[Coach Epic CI/coach-edge-function-tests]   | 🧪 Test environment: skipping Supabase client initialization in EngagementDataService
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m----- post-test output end -----[0m
+[Coach Epic CI/coach-edge-function-tests]   | EngagementDataService - healthCheck returns false without client ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | EngagementDataService - validates event types correctly ...
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m------- post-test output -------[0m
+[Coach Epic CI/coach-edge-function-tests]   | 🧪 Test environment: skipping Supabase client initialization in EngagementDataService
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m----- post-test output end -----[0m
+[Coach Epic CI/coach-edge-function-tests]   | EngagementDataService - validates event types correctly ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245mrunning 1 test from ./tests/jitai-controller.integration.test.ts[0m
+[Coach Epic CI/coach-edge-function-tests]   | jitaiController enqueues push notification ...
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m------- post-test output -------[0m
+[Coach Epic CI/coach-edge-function-tests]   | [summary] sleep score failed TypeError: Invalid URL: '/wearable-summary-api/daily-sleep-score?user_id=user-int&date=2025-07-06'
+[Coach Epic CI/coach-edge-function-tests]   |     at getSerialization (ext:deno_url/00_url.js:98:11)
+[Coach Epic CI/coach-edge-function-tests]   |     at new URL (ext:deno_url/00_url.js:405:27)
+[Coach Epic CI/coach-edge-function-tests]   |     at new Request (ext:deno_fetch/23_request.js:329:25)
+[Coach Epic CI/coach-edge-function-tests]   |     at ext:deno_fetch/26_fetch.js:320:27
+[Coach Epic CI/coach-edge-function-tests]   |     at new Promise (<anonymous>)
+[Coach Epic CI/coach-edge-function-tests]   |     at fetch (ext:deno_fetch/26_fetch.js:316:18)
+[Coach Epic CI/coach-edge-function-tests]   |     at getDailySleepScore (file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/services/wearable-summary.client.ts:7:23)
+[Coach Epic CI/coach-edge-function-tests]   |     at jitaiController (file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/routes/jitai.controller.ts:32:7)
+[Coach Epic CI/coach-edge-function-tests]   |     at async file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/tests/jitai-controller.integration.test.ts:15:15
+[Coach Epic CI/coach-edge-function-tests]   |     at async innerWrapped (ext:cli/40_test.js:191:5)
+[Coach Epic CI/coach-edge-function-tests]   | [summary] avg HR failed TypeError: Invalid URL: '/wearable-summary-api/rolling-hr?user_id=user-int&minutes=60'
+[Coach Epic CI/coach-edge-function-tests]   |     at getSerialization (ext:deno_url/00_url.js:98:11)
+[Coach Epic CI/coach-edge-function-tests]   |     at new URL (ext:deno_url/00_url.js:405:27)
+[Coach Epic CI/coach-edge-function-tests]   |     at new Request (ext:deno_fetch/23_request.js:329:25)
+[Coach Epic CI/coach-edge-function-tests]   |     at ext:deno_fetch/26_fetch.js:320:27
+[Coach Epic CI/coach-edge-function-tests]   |     at new Promise (<anonymous>)
+[Coach Epic CI/coach-edge-function-tests]   |     at fetch (ext:deno_fetch/26_fetch.js:316:18)
+[Coach Epic CI/coach-edge-function-tests]   |     at getRollingAvgHR (file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/services/wearable-summary.client.ts:20:23)
+[Coach Epic CI/coach-edge-function-tests]   |     at jitaiController (file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/routes/jitai.controller.ts:33:7)
+[Coach Epic CI/coach-edge-function-tests]   |     at async file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/tests/jitai-controller.integration.test.ts:15:15
+[Coach Epic CI/coach-edge-function-tests]   |     at async innerWrapped (ext:cli/40_test.js:191:5)
+[Coach Epic CI/coach-edge-function-tests]   | JITAI event: { userId: "user-int", source: "rules", triggersCount: 1 }
+[Coach Epic CI/coach-edge-function-tests]   | [JITAI-Push] Would enqueue push for user-int: [
+[Coach Epic CI/coach-edge-function-tests]   |   {
+[Coach Epic CI/coach-edge-function-tests]   |     id: "sleep_hygiene-1751763871949-0",
+[Coach Epic CI/coach-edge-function-tests]   |     type: "sleep_hygiene",
+[Coach Epic CI/coach-edge-function-tests]   |     message: "Try winding down earlier tonight to boost tomorrow's energy."
+[Coach Epic CI/coach-edge-function-tests]   |   }
+[Coach Epic CI/coach-edge-function-tests]   | ]
+[Coach Epic CI/coach-edge-function-tests]   | [JITAI-Outcome] user-int sleep_hygiene-1751763871949-0 delivered
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m----- post-test output end -----[0m
+[Coach Epic CI/coach-edge-function-tests]   | jitaiController enqueues push notification ... [0m[32mok[0m [0m[38;5;245m(7ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245mrunning 1 test from ./tests/jitai-engine.test.ts[0m
+[Coach Epic CI/coach-edge-function-tests]   | evaluateJITAITriggers returns trigger for high stress ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245mrunning 1 test from ./tests/predictive-trigger-model.test.ts[0m
+[Coach Epic CI/coach-edge-function-tests]   | predictTriggers falls back to rules when no model URL ... [0m[32mok[0m [0m[38;5;245m(0ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245mrunning 1 test from ./tests/wearable-summary.client.test.ts[0m
+[Coach Epic CI/coach-edge-function-tests]   | summary client returns null when endpoint unreachable ...
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m------- post-test output -------[0m
+[Coach Epic CI/coach-edge-function-tests]   | [summary] sleep score failed TypeError: Invalid URL: '/wearable-summary-api/daily-sleep-score?user_id=user-x&date=2025-07-06'
+[Coach Epic CI/coach-edge-function-tests]   |     at getSerialization (ext:deno_url/00_url.js:98:11)
+[Coach Epic CI/coach-edge-function-tests]   |     at new URL (ext:deno_url/00_url.js:405:27)
+[Coach Epic CI/coach-edge-function-tests]   |     at new Request (ext:deno_fetch/23_request.js:329:25)
+[Coach Epic CI/coach-edge-function-tests]   |     at ext:deno_fetch/26_fetch.js:320:27
+[Coach Epic CI/coach-edge-function-tests]   |     at new Promise (<anonymous>)
+[Coach Epic CI/coach-edge-function-tests]   |     at fetch (ext:deno_fetch/26_fetch.js:316:18)
+[Coach Epic CI/coach-edge-function-tests]   |     at getDailySleepScore (file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/services/wearable-summary.client.ts:7:23)
+[Coach Epic CI/coach-edge-function-tests]   |     at file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/tests/wearable-summary.client.test.ts:4:23
+[Coach Epic CI/coach-edge-function-tests]   |     at innerWrapped (ext:cli/40_test.js:191:11)
+[Coach Epic CI/coach-edge-function-tests]   |     at exitSanitizer (ext:cli/40_test.js:107:33)
+[Coach Epic CI/coach-edge-function-tests]   | [summary] avg HR failed TypeError: Invalid URL: '/wearable-summary-api/rolling-hr?user_id=user-x&minutes=60'
+[Coach Epic CI/coach-edge-function-tests]   |     at getSerialization (ext:deno_url/00_url.js:98:11)
+[Coach Epic CI/coach-edge-function-tests]   |     at new URL (ext:deno_url/00_url.js:405:27)
+[Coach Epic CI/coach-edge-function-tests]   |     at new Request (ext:deno_fetch/23_request.js:329:25)
+[Coach Epic CI/coach-edge-function-tests]   |     at ext:deno_fetch/26_fetch.js:320:27
+[Coach Epic CI/coach-edge-function-tests]   |     at new Promise (<anonymous>)
+[Coach Epic CI/coach-edge-function-tests]   |     at fetch (ext:deno_fetch/26_fetch.js:316:18)
+[Coach Epic CI/coach-edge-function-tests]   |     at getRollingAvgHR (file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/services/wearable-summary.client.ts:20:23)
+[Coach Epic CI/coach-edge-function-tests]   |     at file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/tests/wearable-summary.client.test.ts:6:20
+[Coach Epic CI/coach-edge-function-tests]   |     at async innerWrapped (ext:cli/40_test.js:191:5)
+[Coach Epic CI/coach-edge-function-tests]   |     at async exitSanitizer (ext:cli/40_test.js:107:27)
+[Coach Epic CI/coach-edge-function-tests]   | [0m[38;5;245m----- post-test output end -----[0m
+[Coach Epic CI/coach-edge-function-tests]   | summary client returns null when endpoint unreachable ... [0m[32mok[0m [0m[38;5;245m(2ms)[0m
+[Coach Epic CI/coach-edge-function-tests]   | 
+[Coach Epic CI/coach-edge-function-tests]   | [0m[32mok[0m | 120 passed (13 steps) | 0 failed [0m[38;5;245m(4s)[0m
+[Coach Epic CI/coach-edge-function-tests]   | 
+[Coach Epic CI/coach-edge-function-tests]   | ✅ Edge Function tests completed
+[Coach Epic CI/coach-edge-function-tests]   ✅  Success - Main Run Edge Function tests [9.970393541s]
+[Coach Epic CI/coach-edge-function-tests] ⭐ Run Main Check Edge Function coverage
+[Coach Epic CI/coach-edge-function-tests]   🐳  docker exec cmd=[bash -e /var/run/act/workflow/3] user= workdir=./supabase/functions/ai-coaching-engine
+[Coach Epic CI/coach-edge-function-tests]   | 📊 Generating Edge Function coverage report...
+[Coach Epic CI/coach-edge-function-tests]   | Unsupported compiler options in "file:///Users/gmtfr/bee-mvp/bee-mvp/supabase/functions/ai-coaching-engine/deno.json".
+[Coach Epic CI/coach-edge-function-tests]   |   The following options were ignored:
+[Coach Epic CI/coach-edge-function-tests]   |     skipLibCheck
+[Coach Epic CI/coach-edge-function-tests]   | ✅ Coverage data generated (6118 lines)
+[Coach Epic CI/coach-edge-function-tests]   ✅  Success - Main Check Edge Function coverage [415.906083ms]
+[Coach Epic CI/coach-edge-function-tests] ⭐ Run Complete job
+[Coach Epic CI/coach-edge-function-tests] Cleaning up container for job coach-edge-function-tests
+[Coach Epic CI/coach-edge-function-tests]   ✅  Success - Complete job
+[Coach Epic CI/coach-edge-function-tests] 🏁  Job succeeded

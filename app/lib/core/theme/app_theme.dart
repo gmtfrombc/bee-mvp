@@ -21,6 +21,8 @@ class AppTheme {
   static const Color surfacePrimary = Color(0xFFFFFFFF);
   static const Color surfaceSecondary = Color(0xFFF5F5F5);
   static const Color surfaceTertiary = Color(0xFFFAFAFA);
+  // Surface Variant (light shading for elements needing subtle separation)
+  static const Color surfaceVariant = Color(0xFFE8E8E8);
 
   static const Color textPrimary = Color(0xFF212121);
   static const Color textSecondary = Color(0xFF757575);
@@ -30,6 +32,8 @@ class AppTheme {
   static const Color darkSurfacePrimary = Color(0xFF121212);
   static const Color darkSurfaceSecondary = Color(0xFF1E1E1E);
   static const Color darkSurfaceTertiary = Color(0xFF2A2A2A);
+  // Surface Variant Dark
+  static const Color darkSurfaceVariant = Color(0xFF242424);
 
   static const Color darkTextPrimary = Color(0xFFFFFFFF);
   static const Color darkTextSecondary = Color(0xFFB3B3B3);
@@ -59,7 +63,7 @@ class AppTheme {
         onSecondary: Colors.white,
         onTertiary: Colors.white,
         onSurface: textPrimary,
-      ),
+      ).copyWith(surfaceContainerHighest: surfaceVariant),
 
       // Typography
       textTheme: _buildTextTheme(Brightness.light),
@@ -128,7 +132,7 @@ class AppTheme {
         onSecondary: Colors.black,
         onTertiary: Colors.black,
         onSurface: darkTextPrimary,
-      ),
+      ).copyWith(surfaceContainerHighest: darkSurfaceVariant),
 
       // Typography
       textTheme: _buildTextTheme(Brightness.dark),
@@ -321,6 +325,13 @@ class AppTheme {
     return Theme.of(context).brightness == Brightness.dark
         ? darkSurfaceTertiary
         : surfaceTertiary;
+  }
+
+  /// Get the appropriate surface variant color for current theme
+  static Color getSurfaceVariant(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark
+        ? darkSurfaceVariant
+        : surfaceVariant;
   }
 
   /// Get the appropriate background color for momentum gauge

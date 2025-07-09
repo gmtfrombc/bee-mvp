@@ -10,6 +10,10 @@ void main() {
       expect(theme.colorScheme.primary, AppTheme.momentumRising);
       expect(theme.colorScheme.secondary, AppTheme.momentumSteady);
       expect(theme.colorScheme.tertiary, AppTheme.momentumCare);
+      expect(
+        theme.colorScheme.surfaceContainerHighest,
+        AppTheme.surfaceVariant,
+      );
       expect(theme.scaffoldBackgroundColor, AppTheme.surfaceSecondary);
     });
 
@@ -19,6 +23,10 @@ void main() {
       expect(theme.colorScheme.primary, AppTheme.momentumRisingLight);
       expect(theme.colorScheme.secondary, AppTheme.momentumSteadyLight);
       expect(theme.colorScheme.tertiary, AppTheme.momentumCareLight);
+      expect(
+        theme.colorScheme.surfaceContainerHighest,
+        AppTheme.darkSurfaceVariant,
+      );
       expect(theme.scaffoldBackgroundColor, AppTheme.darkSurfaceSecondary);
     });
 

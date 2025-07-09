@@ -1,0 +1,31 @@
+[Supabase Migrations Deploy/deploy] ⭐ Run Set up job
+[Supabase Migrations Deploy/deploy] 🚀  Start image=ghcr.io/catthehacker/ubuntu:act-22.04
+[Supabase Migrations Deploy/deploy]   🐳  docker pull image=ghcr.io/catthehacker/ubuntu:act-22.04 platform=linux/amd64 username= forcePull=***
+[Supabase Migrations Deploy/deploy]   🐳  docker create image=ghcr.io/catthehacker/ubuntu:act-22.04 platform=linux/amd64 entrypoint=["tail" "-f" "/dev/null"] cmd=[] network="host"
+[Supabase Migrations Deploy/deploy]   🐳  docker run image=ghcr.io/catthehacker/ubuntu:act-22.04 platform=linux/amd64 entrypoint=["tail" "-f" "/dev/null"] cmd=[] network="host"
+[Supabase Migrations Deploy/deploy]   🐳  docker exec cmd=[node --no-warnings -e console.log(process.execPath)] user= workdir=
+[Supabase Migrations Deploy/deploy]   ✅  Success - Set up job
+[Supabase Migrations Deploy/deploy]   ☁  git clone 'https://github.com/supabase/setup-cli' # ref=v1
+[Supabase Migrations Deploy/deploy]   ☁  git clone 'https://github.com/hashicorp/setup-terraform' # ref=v3
+[Supabase Migrations Deploy/deploy] ⭐ Run Main actions/checkout@v4
+[Supabase Migrations Deploy/deploy]   🐳  docker cp src=/Users/gmtfr/bee-mvp/bee-mvp/. dst=/Users/gmtfr/bee-mvp/bee-mvp
+[Supabase Migrations Deploy/deploy]   ✅  Success - Main actions/checkout@v4 [1.191001583s]
+[Supabase Migrations Deploy/deploy] ⭐ Run Main Setup Supabase CLI
+[Supabase Migrations Deploy/deploy]   🐳  docker cp src=/Users/gmtfr/.cache/act/supabase-setup-cli@v1/ dst=/var/run/act/actions/supabase-setup-cli@v1/
+[Supabase Migrations Deploy/deploy]   🐳  docker exec cmd=[/opt/acttoolcache/node/18.20.8/x64/bin/node /var/run/act/actions/supabase-setup-cli@v1/dist/index.js] user= workdir=
+[Supabase Migrations Deploy/deploy]   | [command]/usr/bin/tar xz --warning=no-unknown-keyword --overwrite -C /tmp/21f45aa3-be96-41de-a1f0-b328f5c05e30 -f /tmp/9c1fac15-f89f-4f3a-8c03-2e37b4a15f20
+[Supabase Migrations Deploy/deploy]   ✅  Success - Main Setup Supabase CLI [5.866721792s]
+[Supabase Migrations Deploy/deploy]   ⚙  ::set-env:: SUPABASE_INTERNAL_IMAGE_REGISTRY=ghcr.io
+[Supabase Migrations Deploy/deploy]   ⚙  ::set-output:: version=2.20.3
+[Supabase Migrations Deploy/deploy]   ⚙  ::add-path:: /tmp/21f45aa3-be96-41de-a1f0-b328f5c05e30
+[Supabase Migrations Deploy/deploy] ⭐ Run Main Load Supabase secrets into environment
+[Supabase Migrations Deploy/deploy]   🐳  docker exec cmd=[bash -e /var/run/act/workflow/2] user= workdir=
+[Supabase Migrations Deploy/deploy]   ✅  Success - Main Load Supabase secrets into environment [102.255875ms]
+[Supabase Migrations Deploy/deploy]   ⚙  ::set-env:: SUPABASE_URL=***
+[Supabase Migrations Deploy/deploy]   ⚙  ::set-env:: SUPABASE_SERVICE_ROLE_SECRET=
+[Supabase Migrations Deploy/deploy]   ⚙  ::set-env:: SUPABASE_PROJECT_REF=***
+[Supabase Migrations Deploy/deploy]   ⚙  ::set-env:: SUPABASE_DB_PASSWORD=***
+[Supabase Migrations Deploy/deploy] ⭐ Run Complete job
+[Supabase Migrations Deploy/deploy] Cleaning up container for job deploy
+[Supabase Migrations Deploy/deploy]   ✅  Success - Complete job
+[Supabase Migrations Deploy/deploy] 🏁  Job succeeded
