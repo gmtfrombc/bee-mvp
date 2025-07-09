@@ -41,24 +41,27 @@ class CoachDashboardTimeSelector extends StatelessWidget {
         ),
         border: Border.all(color: Colors.grey[200]!),
       ),
-      child: Row(
-        children: [
-          Icon(
-            Icons.date_range,
-            color: AppTheme.momentumRising,
-            size: ResponsiveService.getIconSize(context),
-          ),
-          SizedBox(width: ResponsiveService.getMediumSpacing(context)),
-          Text(
-            'Time Range:',
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: 16 * ResponsiveService.getFontSizeMultiplier(context),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            Icon(
+              Icons.date_range,
+              color: AppTheme.momentumRising,
+              size: ResponsiveService.getIconSize(context),
             ),
-          ),
-          SizedBox(width: ResponsiveService.getResponsiveSpacing(context)),
-          Expanded(child: _buildSegmentedButton(context)),
-        ],
+            SizedBox(width: ResponsiveService.getMediumSpacing(context)),
+            Text(
+              'Time Range:',
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 16 * ResponsiveService.getFontSizeMultiplier(context),
+              ),
+            ),
+            SizedBox(width: ResponsiveService.getResponsiveSpacing(context)),
+            _buildSegmentedButton(context),
+          ],
+        ),
       ),
     );
   }
