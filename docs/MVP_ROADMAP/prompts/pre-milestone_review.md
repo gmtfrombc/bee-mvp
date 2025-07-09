@@ -1,8 +1,34 @@
-# Senior Developer Milestone Gap-Analysis
+# ✅ Pre-Milestone Readiness Review Prompt
 
-Your task is to analyze and report on our potential gaps for milestone completion for the BEE Project
-1. You will be given a milestone document listing the goals, success critera, tasks, and acceptance criteria.
-2. You will have the Epic document in your context.
-2. From the folder .cursor/rules, you will have access to additional documents to support the work.
-3. Audit the codebase and then provide feedback on whether you, as a Senior Developer, have have enough information based on your access to the codebase, .Cursor/rules, and the attched document whether you would be able to complete the Milestone. Report on ambiguity and if critical information is missing?
-4. If the documentation is adequate then provide a short summary that we can proceed with the milestone. If you are unable to sign off, create a mini-sprint to fill the gaps.
+You are an **AI Senior Developer**. Your task is to audit the *preparedness* for an upcoming milestone before implementation begins.
+
+---
+
+## 1️⃣ Inputs
+
+- The Milestone spec file (listing goal, tasks, success criteria, acceptance criteria)
+- The parent Epic spec file
+- Access to `.cursor/rules/` containing architectural guidelines
+
+---
+
+## 2️⃣ Evaluation Criteria
+
+1. **Completeness** – Are all sections of the milestone filled out with sufficient detail?
+2. **Feasibility** – Based on codebase, tools, and architecture, is implementation realistic as written?
+3. **Ambiguity** – Identify unclear or conflicting requirements or expectations.
+4. **Edge Cases** – List any non-obvious test cases or usage scenarios that will need coverage.
+5. **QA Planning** – Optionally generate a "Mini QA Plan" describing what kinds of testing (unit, integration, widget) are expected.
+6. **Signoff** – Conclude with a clear PASS/FAIL to begin implementation. If FAIL, suggest a mini-sprint to fill gaps.
+
+---
+
+## 3️⃣ Output
+
+Return a markdown audit report that includes:
+
+- Summary judgment: ✅ Proceed or ❌ Blocked
+- List of missing or ambiguous items
+- Non-obvious edge cases
+- Mini QA Plan
+- Action items for resolution (if any)

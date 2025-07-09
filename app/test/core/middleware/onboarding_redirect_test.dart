@@ -8,6 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:app/core/middleware/onboarding_redirect.dart';
 import 'package:app/core/services/auth_service.dart';
 import 'package:app/core/models/profile.dart';
+import 'package:app/core/navigation/routes.dart';
 
 class MockAuthService extends Mock implements AuthService {}
 
@@ -48,7 +49,7 @@ void main() {
 
       await redirect.maybeRedirect(user);
 
-      verify(() => router.go('/onboarding')).called(1);
+      verify(() => router.go(kOnboardingStep1Route)).called(1);
     });
 
     test('does not redirect when onboarding already complete', () async {
@@ -62,7 +63,7 @@ void main() {
 
       await redirect.maybeRedirect(user);
 
-      verifyNever(() => router.go('/onboarding'));
+      verifyNever(() => router.go(kOnboardingStep1Route));
     });
 
     test('redirects when profile is null', () async {
@@ -72,7 +73,7 @@ void main() {
 
       await redirect.maybeRedirect(user);
 
-      verify(() => router.go('/onboarding')).called(1);
+      verify(() => router.go(kOnboardingStep1Route)).called(1);
     });
 
     test('redirects when fetchProfile throws', () async {
@@ -82,7 +83,7 @@ void main() {
 
       await redirect.maybeRedirect(user);
 
-      verify(() => router.go('/onboarding')).called(1);
+      verify(() => router.go(kOnboardingStep1Route)).called(1);
     });
   });
 }

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 // removed go_router dependency
 
 import '../../../core/providers/auth_provider.dart';
+import '../../../core/services/responsive_service.dart';
 import 'package:app/core/widgets/launch_controller.dart';
 
 /// Simple single-page onboarding screen.
@@ -17,7 +18,7 @@ class OnboardingScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    const spacing = 24.0; // Uses ResponsiveService normally, but keep simple.
+    final spacing = ResponsiveService.getLargeSpacing(context);
 
     final authServiceAsync = ref.watch(authServiceProvider);
 
@@ -35,7 +36,9 @@ class OnboardingScreen extends ConsumerWidget {
             appBar: AppBar(title: const Text('Onboarding')),
             body: Center(
               child: Padding(
-                padding: const EdgeInsets.all(32),
+                padding: EdgeInsets.all(
+                  ResponsiveService.getExtraLargeSpacing(context),
+                ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -43,7 +46,7 @@ class OnboardingScreen extends ConsumerWidget {
                       'Welcome to the onboarding flow!\nTap below when you\'re ready.',
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: spacing),
+                    SizedBox(height: spacing),
                     ElevatedButton(
                       onPressed: () async {
                         await authService.completeOnboarding();
