@@ -21,8 +21,8 @@ void main() {
     });
 
     Widget createTestWidget() {
-      return ProviderScope(
-        parent: container,
+      return UncontrolledProviderScope(
+        container: container,
         child: const MaterialApp(
           localizationsDelegates: [
             S.delegate,
@@ -153,11 +153,11 @@ void main() {
       );
     });
 
-        testWidgets('continue button shows snackbar when pressed', (tester) async {
+    testWidgets('continue button shows snackbar when pressed', (tester) async {
       await tester.pumpWidget(createTestWidget());
 
       final controller = container.read(onboardingControllerProvider.notifier);
-      
+
       // Complete all required fields
       controller.togglePriority('nutrition');
       controller.updateReadinessLevel(4);
@@ -166,7 +166,7 @@ void main() {
 
       // Scroll to make continue button visible
       await tester.scrollUntilVisible(
-        find.byKey(const ValueKey('continue_button')), 
+        find.byKey(const ValueKey('continue_button')),
         500.0,
         scrollable: find.byType(Scrollable),
       );

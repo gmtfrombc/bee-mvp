@@ -219,7 +219,7 @@ class _LikertOption extends StatelessWidget {
         isSelected ? colorScheme.onPrimary : colorScheme.onSurface;
 
     return Semantics(
-      label: 'Option $value',
+      label: 'Rating $value of 5',
       value: isSelected ? 'Selected' : 'Not selected',
       button: true,
       selected: isSelected,

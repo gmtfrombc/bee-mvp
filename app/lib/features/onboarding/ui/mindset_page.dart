@@ -17,7 +17,6 @@ class MindsetPage extends ConsumerWidget {
     final controller = ref.watch(onboardingControllerProvider.notifier);
     final draft = ref.watch(onboardingControllerProvider);
     final spacing = ResponsiveService.getMediumSpacing(context);
-    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Mindset & Motivation')),
