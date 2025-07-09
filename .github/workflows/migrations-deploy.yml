@@ -27,6 +27,23 @@ jobs:
 
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v1
+        with:
+          version: 2.30.4  # Update to v2 CLI which supports --create-client
+
+      - name: Verify Supabase CLI version compatibility
+        run: |
+          EXPECTED_VERSION="2.30.4"
+          ACTUAL_VERSION=$(supabase --version | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+')
+          echo "Expected Supabase CLI version: $EXPECTED_VERSION"
+          echo "Actual Supabase CLI version: $ACTUAL_VERSION"
+          if [ "$ACTUAL_VERSION" != "$EXPECTED_VERSION" ]; then
+            echo "⚠️  WARNING: Supabase CLI version mismatch!"
+            echo "   Expected: $EXPECTED_VERSION"
+            echo "   Actual:   $ACTUAL_VERSION"
+            echo "   This may cause unexpected behavior. Consider updating the pinned version."
+          else
+            echo "✅ Supabase CLI version matches expected version"
+          fi
 
       - name: Load Supabase secrets into environment
         # actionlint-disable-next-line shellcheck
