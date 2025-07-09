@@ -14,8 +14,9 @@ DB_CFG = {
     "host": os.getenv("DB_HOST", "localhost"),
     "port": os.getenv("DB_PORT", "54322"),
     "database": os.getenv("DB_NAME", "test"),
-    "user": os.getenv("DB_USER", "postgres"),
-    "password": os.getenv("DB_PASSWORD", "postgres"),
+    # Always apply migrations using superuser to avoid privilege errors
+    "user": "postgres",
+    "password": os.getenv("DB_SUPER_PASSWORD", "postgres"),
 }
 
 # Ordered list of onboarding-related migration files to apply in this test suite
