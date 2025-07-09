@@ -33,6 +33,7 @@ the MVP roadmap into a standalone engineering-task specification.
 • Name the file `docs/MVP_ROADMAP/tasks/epic_{id}_{slug}.md` (e.g.,
 `epic_1-3_adaptive_ai_coach.md`).\
 • Paste the document into chat when finished.
+• Ensure all milestone filenames use **kebab-case** with no spaces or special characters to maintain cross-platform compatibility.
 
 ---
 
@@ -45,6 +46,8 @@ the MVP roadmap into a standalone engineering-task specification.
 **Module:** Core Mobile Experience\
 **Status:** ✅ COMPLETE\
 **Dependencies:** Epic 2.1 – Engagement Events Logging ✅
+- ⚠️ Explicitly flag cross-epic dependencies in the *Epic Overview*  
+- 🧱 Ensure filenames for all milestones use **kebab-case**
 
 ---
 
@@ -52,6 +55,8 @@ the MVP roadmap into a standalone engineering-task specification.
 
 **Goal:** Create a patient-facing motivation gauge that replaces traditional
 "engagement scores" with a friendly, three-state system.
+
+**Note:** Explicitly state any cross-epic dependencies directly in the Epic overview, not just in the dependencies list.
 
 **Success Criteria:**
 
