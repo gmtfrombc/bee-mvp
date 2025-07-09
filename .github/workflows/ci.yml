@@ -36,6 +36,7 @@ jobs:
       # Default for local VS Code actionlint and GitHub runner. Overridden by `act` when you pass `-e ACT=true`.
       ACT: "false"
       SKIP_TERRAFORM: "true"
+      FLUTTER_VERSION: '3.3.2'
 
     steps:
       - uses: actions/checkout@v4
@@ -62,7 +63,7 @@ jobs:
       - uses: subosito/flutter-action@v2
         if: ${{ env.ACT != 'true' }}
         with:
-          flutter-version: '3.32.1'
+          flutter-version: '${{ env.FLUTTER_VERSION }}'
           architecture: x64
       
       # Create environment file using new .env.example approach

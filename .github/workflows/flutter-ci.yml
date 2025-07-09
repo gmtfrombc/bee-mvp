@@ -11,6 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       ACT: 'false'  # CI default; the local `act` runner overwrites this
+      FLUTTER_VERSION: '3.3.2'  # Single source of truth for Flutter SDK
     
     steps:
     - uses: actions/checkout@v4
@@ -48,7 +49,7 @@ jobs:
       if: ${{ env.ACT != 'true' }}
       uses: subosito/flutter-action@v2
       with:
-        flutter-version: '3.32.1'
+        flutter-version: '${{ env.FLUTTER_VERSION }}'
 
     - name: Install Flutter SDK (local ACT)
       if: ${{ env.ACT == 'true' }}
@@ -58,7 +59,7 @@ jobs:
         sudo apt-get update -y -qq >/dev/null
         sudo apt-get install -y -qq curl git unzip xz-utils libglu1-mesa openjdk-11-jre-headless >/dev/null
         # Clone stable channel (fast, cached by Docker layer on second run)
-        git clone --depth 1 --branch 3.32.1 https://github.com/flutter/flutter.git /opt/flutter
+        git clone --depth 1 --branch ${FLUTTER_VERSION} https://github.com/flutter/flutter.git /opt/flutter
         echo "/opt/flutter/bin" >> "$GITHUB_PATH"
         /opt/flutter/bin/flutter --version
         
@@ -126,6 +127,7 @@ jobs:
     env:
       NEEDS_REAL_FIREBASE: false  # Set to 'true' when integration tests or Play Store deployment needed
       ACT: 'false'  # CI default; the local `act` runner overwrites this
+      FLUTTER_VERSION: '3.3.2'  # Single source of truth for Flutter SDK
     
     steps:
     - uses: actions/checkout@v4
@@ -220,7 +222,7 @@ jobs:
     - name: Setup Flutter
       uses: subosito/flutter-action@v2
       with:
-        flutter-version: '3.32.1'
+        flutter-version: '${{ env.FLUTTER_VERSION }}'
         
     - name: Get dependencies
       working-directory: ./app
@@ -252,6 +254,7 @@ jobs:
     runs-on: macos-latest
     env:
       NEEDS_REAL_FIREBASE: false  # Set to 'true' when integration tests or TestFlight deployment needed
+      FLUTTER_VERSION: '3.3.2'  # Single source of truth for Flutter SDK
     
     steps:
     - uses: actions/checkout@v4
@@ -337,7 +340,7 @@ jobs:
     - name: Setup Flutter
       uses: subosito/flutter-action@v2
       with:
-        flutter-version: '3.32.1'
+        flutter-version: '${{ env.FLUTTER_VERSION }}'
         
     - name: Get dependencies
       working-directory: ./app
