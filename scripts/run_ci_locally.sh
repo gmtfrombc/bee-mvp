@@ -247,6 +247,25 @@ if [[ "${SKIP_MIGRATIONS}" != "true" ]]; then
   WORKFLOW_FILES+=(".github/workflows/migrations-deploy.yml")
 fi
 
+# Pre-flight credentials check – ensure we can link to the Supabase project locally.
+# -----------------------------------------------------------------------------
+if [[ "${SKIP_MIGRATIONS}" != "true" ]]; then
+  if ! command -v supabase >/dev/null 2>&1; then
+    echo "❌  Supabase CLI not found in PATH – install it with: brew install supabase" >&2
+    exit 1
+  fi
+  echo "🔗  Verifying Supabase credentials via 'supabase link'…"
+  # Suppress verbose CLI output; failures will still bubble up.
+  supabase link --project-ref "$SUPABASE_PROJECT_REF" \
+               --password "$SUPABASE_DB_PASSWORD" \
+               --debug \
+               >/dev/null 2>&1 || {
+    echo "❌  supabase link failed – check SUPABASE_* secrets before running CI." >&2
+    exit 1
+  }
+  echo "✅  Supabase credentials verified."
+fi
+
 # Build -W args for act
 WF_ARGS=()
 for wf in "${WORKFLOW_FILES[@]}"; do
