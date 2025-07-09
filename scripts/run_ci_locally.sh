@@ -15,6 +15,8 @@ set -euo pipefail
 
 # 🚦 Default behaviour for local CI runs
 # --------------------------------------
+FLUTTER_VERSION="3.3.2"
+
 # Skip the heavy Supabase migrations/terraform job unless the caller
 # explicitly disables skipping (e.g. SKIP_MIGRATIONS=false) or forces it
 # (FORCE_MIGRATIONS=true). This mirrors GitHubʼs behaviour where the
@@ -190,10 +192,8 @@ fi
 # -------------------------------------------------------------------------
 # Default minimal image for backend/integration workflows
 DEFAULT_RUNNER_IMAGE="ghcr.io/catthehacker/ubuntu:act-22.04"
-# Flutter-optimised image (contains SDK 3.32.x and Android toolchain)
-# Align with GitHub CI Flutter version (3.32.1) to minimise golden test diffs
-# Update image tag whenever workflow flutter-version changes.
-FLUTTER_RUNNER_IMAGE="ghcr.io/instrumentisto/flutter:3.32.1-androidsdk35-r0"
+# Flutter-optimised image (contains SDK $FLUTTER_VERSION and Android toolchain)
+FLUTTER_RUNNER_IMAGE="ghcr.io/instrumentisto/flutter:${FLUTTER_VERSION}-androidsdk35-r0"
 
 if [[ "$JOB_FILTER" == "test" ]]; then
   # Use the heavier but pre-baked Flutter image when only Flutter tests run
