@@ -32,5 +32,68 @@
   "onboarding_q16_prompt": "How do you want your coach to support you?",
   "@onboarding_q16_prompt": {
     "description": "Question 16 prompt – coach support style"
-  }
-} 
+  },
+
+  "onboarding_medical_weight_label": "Current weight (lb)",
+  "@onboarding_medical_weight_label": {
+    "description": "Label for weight input (pounds)"
+  },
+
+  "onboarding_medical_height_ft_label": "Height (ft)",
+  "@onboarding_medical_height_ft_label": {
+    "description": "Label for height feet input"
+  },
+
+  "onboarding_medical_height_in_label": "Height (in)",
+  "@onboarding_medical_height_in_label": {
+    "description": "Label for height inches input"
+  },
+
+  "onboarding_medical_bp_systolic_label": "Blood pressure systolic (top)",
+  "@onboarding_medical_bp_systolic_label": {
+    "description": "Label for systolic blood pressure input"
+  },
+
+  "onboarding_medical_bp_diastolic_label": "Blood pressure diastolic (bottom)",
+  "@onboarding_medical_bp_diastolic_label": {
+    "description": "Label for diastolic blood pressure input"
+  },
+
+  "onboarding_medical_history_helper": "This information is private and used only to personalize your coaching.",
+  "@onboarding_medical_history_helper": {
+    "description": "Helper text shown at bottom of medical history page"
+  },
+
+  "onboarding_goal_setup_helper": "Set a realistic, measurable goal to track your progress.",
+  "@onboarding_goal_setup_helper": {
+    "description": "Helper text shown on goal setup page"
+  },
+
+  "onboarding_med_condition_prediabetes": "Prediabetes or insulin resistance",
+  "onboarding_med_condition_type2_diabetes": "Type 2 diabetes",
+  "onboarding_med_condition_hypertension": "High blood pressure (hypertension)",
+  "onboarding_med_condition_high_cholesterol": "High cholesterol",
+  "onboarding_med_condition_high_triglycerides": "High triglycerides",
+  "onboarding_med_condition_obesity": "Obesity",
+  "onboarding_med_condition_pcos": "Polycystic Ovary Syndrome (PCOS)",
+  "onboarding_med_condition_fatty_liver": "Fatty liver (NAFLD)",
+  "onboarding_med_condition_cardiovascular_disease": "Cardiovascular disease",
+  "onboarding_med_condition_stroke_tia": "Stroke or TIA",
+  "onboarding_med_condition_anxiety": "Anxiety",
+  "onboarding_med_condition_depression": "Depression",
+  "onboarding_med_condition_ptsd": "PTSD or trauma-related condition",
+  "onboarding_med_condition_bipolar": "Bipolar disorder",
+  "onboarding_med_condition_adhd": "ADHD",
+  "onboarding_med_condition_binge_eating": "Binge eating",
+  "onboarding_med_condition_restrictive_eating": "Restrictive eating / chronic dieting",
+  "onboarding_med_condition_bulimia": "Bulimia or purging behaviors",
+  "onboarding_med_condition_anorexia": "Anorexia or extremely low weight",
+  "onboarding_med_condition_thyroid_disorder": "Thyroid disorder",
+  "onboarding_med_condition_sleep_apnea": "Sleep apnea",
+  "onboarding_med_condition_chronic_fatigue": "Chronic fatigue syndrome",
+  "onboarding_med_condition_gerd": "GERD or acid reflux",
+  "onboarding_med_condition_chronic_pain": "Chronic pain / fibromyalgia",
+  "onboarding_med_condition_arthritis": "Arthritis",
+  "onboarding_med_condition_none": "None of the above"
+
+}
