@@ -4,6 +4,8 @@ import '../../features/onboarding/models/onboarding_draft.dart';
 /// Service that converts onboarding survey answers (Q13, Q14, Q16)
 /// into a [MotivationType] classification based on the rules
 /// defined in docs/MVP_ROADMAP/1-11 Onboarding/Onboarding_Survey_Scoring.md.
+/// See the **Developer Key Mapping** section of that document for the authoritative
+/// radio-value → score table used by the lookup helpers below.
 ///
 /// Each answer choice maps to an integer score. The sum of the
 /// three scores is then mapped onto a MotivationType.
