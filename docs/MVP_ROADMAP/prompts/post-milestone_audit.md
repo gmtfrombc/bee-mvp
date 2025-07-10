@@ -50,31 +50,38 @@ Produce a clean markdown QA report with:
 3. Missing or incomplete deliverables
 4. Code smells or architectural violations
 5. Recommended remediation tasks
-6. Use the file @M1.11.1_post-milestone_mini-sprint.md as your template for the document and place in the folder: docs/MVP_ROADMAP/1-11 Onboarding/Milestones, Tasks, and Epic Docs/post-milestone mini-sprints/
-
+6. Use the file @M1.11.1_post-milestone_mini-sprint.md as your template for the
+   document and place in the folder: docs/MVP_ROADMAP/1-11
+   Onboarding/Milestones, Tasks, and Epic Docs/post-milestone mini-sprints/
 
 ---
 
 ## 🔄 Developer Wrap-Up Playbook (run _after_ audit ✅ PASS)
 
-1. **Sync with `main` & run health-check**
+0. **Verify clean working tree on feature branch**
    ```bash
-   git checkout main && git pull --ff-only
+   git status --porcelain  # should output nothing
+   ```
+   If not clean, commit or discard before proceeding.
+
+1. **Run final health-check on the feature branch**
+   ```bash
    flutter analyze --fatal-infos
-   flutter test
+   flutter test --no-pub
    ```
-2. **Rebase feature branch, push, open PR**
+   CI must already be green locally before continuing.
+
+2. **Rebase onto latest `main` & re-run tests**
    ```bash
-   git checkout feature/<milestone-code>
-   git rebase main
-   git push --force-with-lease
-   gh pr create --title "<milestone> complete" --base main --head feature/<milestone-code>
+   scripts/dev_wrapup.sh <milestone-code>
    ```
-3. **Merge PR after CI passes & delete branch** (GitHub’s “Delete branch”
-   button).
-4. **Prune local refs**
-   ```bash
-   git checkout main && git pull --ff-only
-   git fetch --prune
-   ```
+   The helper script performs: • `git fetch origin && git rebase origin/main` •
+   `flutter analyze --fatal-infos` & `flutter test` again •
+   `git push --force-with-lease` • Opens (or updates) PR via
+   `gh pr create --web`.
+
+3. **Merge PR after CI passes** (squash or merge-commit per repo policy) and let
+   GitHub delete the branch.
+4. **Prune local refs & pull `main`** – the helper script prompts this when PR
+   is merged.
 5. **Start next milestone** – follow the _Developer Kick-Off Playbook_.

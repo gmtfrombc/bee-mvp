@@ -44,25 +44,19 @@ Return a markdown audit report that includes:
 
 ## 🧭 Developer Kick-Off Playbook (run _after_ review ✅ PASS)
 
-1. **Cut a fresh branch from up-to-date `main`**
+0. **Verify clean working tree** – automation expects no local edits.
    ```bash
-   git checkout main && git pull --ff-only
-   git checkout -b feature/<milestone-code>
+   git status --porcelain  # should output nothing
    ```
-2. **Bootstrap planning docs** – copy the "pre-milestone mini-sprint" template,
-   fill goal, tasks, success criteria, then commit.
-3. **Push & open a _draft_ PR immediately** so CI runs from day one
+   If not clean, commit or discard before proceeding.
+
+1. **Cut a fresh branch from up-to-date `main`** (runs non-interactive)
    ```bash
-   git push -u origin feature/<milestone-code>
-   gh pr create --title "WIP: <milestone> onboarding" --base main --head feature/<milestone-code> --draft
+   scripts/dev_kickoff.sh <milestone-code>
    ```
-4. **Develop iteratively** • Run `flutter analyze` + unit tests locally before
-   each push.\
-   • Re-sync daily:
-   ```bash
-   git fetch origin
-   git rebase origin/main
-   ```
-5. **Keep milestone doc current** – update task ✅ status, add resources, notes.
-6. **When all acceptance criteria are met** ➜ proceed to the _Post-Milestone
-   Audit_ prompt.
+   The helper script performs: • `git checkout main && git pull --ff-only` •
+   `git checkout -b feature/<milestone-code>` • Initial commit of planning docs
+   (if present) • Push + open draft PR via `gh pr create`.
+
+2–5. _Unchanged steps remain as automation inside the script; see inline
+comments._
