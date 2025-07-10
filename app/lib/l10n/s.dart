@@ -134,6 +134,204 @@ abstract class S {
   /// In en, this message translates to:
   /// **'How do you want your coach to support you?'**
   String get onboarding_q16_prompt;
+
+  /// Label for weight input (pounds)
+  ///
+  /// In en, this message translates to:
+  /// **'Current weight (lb)'**
+  String get onboarding_medical_weight_label;
+
+  /// Label for height feet input
+  ///
+  /// In en, this message translates to:
+  /// **'Height (ft)'**
+  String get onboarding_medical_height_ft_label;
+
+  /// Label for height inches input
+  ///
+  /// In en, this message translates to:
+  /// **'Height (in)'**
+  String get onboarding_medical_height_in_label;
+
+  /// Label for systolic blood pressure input
+  ///
+  /// In en, this message translates to:
+  /// **'Blood pressure systolic (top)'**
+  String get onboarding_medical_bp_systolic_label;
+
+  /// Label for diastolic blood pressure input
+  ///
+  /// In en, this message translates to:
+  /// **'Blood pressure diastolic (bottom)'**
+  String get onboarding_medical_bp_diastolic_label;
+
+  /// Helper text shown at bottom of medical history page
+  ///
+  /// In en, this message translates to:
+  /// **'This information is private and used only to personalize your coaching.'**
+  String get onboarding_medical_history_helper;
+
+  /// Helper text shown on goal setup page
+  ///
+  /// In en, this message translates to:
+  /// **'Set a realistic, measurable goal to track your progress.'**
+  String get onboarding_goal_setup_helper;
+
+  /// No description provided for @onboarding_med_condition_prediabetes.
+  ///
+  /// In en, this message translates to:
+  /// **'Prediabetes or insulin resistance'**
+  String get onboarding_med_condition_prediabetes;
+
+  /// No description provided for @onboarding_med_condition_type2_diabetes.
+  ///
+  /// In en, this message translates to:
+  /// **'Type 2 diabetes'**
+  String get onboarding_med_condition_type2_diabetes;
+
+  /// No description provided for @onboarding_med_condition_hypertension.
+  ///
+  /// In en, this message translates to:
+  /// **'High blood pressure (hypertension)'**
+  String get onboarding_med_condition_hypertension;
+
+  /// No description provided for @onboarding_med_condition_high_cholesterol.
+  ///
+  /// In en, this message translates to:
+  /// **'High cholesterol'**
+  String get onboarding_med_condition_high_cholesterol;
+
+  /// No description provided for @onboarding_med_condition_high_triglycerides.
+  ///
+  /// In en, this message translates to:
+  /// **'High triglycerides'**
+  String get onboarding_med_condition_high_triglycerides;
+
+  /// No description provided for @onboarding_med_condition_obesity.
+  ///
+  /// In en, this message translates to:
+  /// **'Obesity'**
+  String get onboarding_med_condition_obesity;
+
+  /// No description provided for @onboarding_med_condition_pcos.
+  ///
+  /// In en, this message translates to:
+  /// **'Polycystic Ovary Syndrome (PCOS)'**
+  String get onboarding_med_condition_pcos;
+
+  /// No description provided for @onboarding_med_condition_fatty_liver.
+  ///
+  /// In en, this message translates to:
+  /// **'Fatty liver (NAFLD)'**
+  String get onboarding_med_condition_fatty_liver;
+
+  /// No description provided for @onboarding_med_condition_cardiovascular_disease.
+  ///
+  /// In en, this message translates to:
+  /// **'Cardiovascular disease'**
+  String get onboarding_med_condition_cardiovascular_disease;
+
+  /// No description provided for @onboarding_med_condition_stroke_tia.
+  ///
+  /// In en, this message translates to:
+  /// **'Stroke or TIA'**
+  String get onboarding_med_condition_stroke_tia;
+
+  /// No description provided for @onboarding_med_condition_anxiety.
+  ///
+  /// In en, this message translates to:
+  /// **'Anxiety'**
+  String get onboarding_med_condition_anxiety;
+
+  /// No description provided for @onboarding_med_condition_depression.
+  ///
+  /// In en, this message translates to:
+  /// **'Depression'**
+  String get onboarding_med_condition_depression;
+
+  /// No description provided for @onboarding_med_condition_ptsd.
+  ///
+  /// In en, this message translates to:
+  /// **'PTSD or trauma-related condition'**
+  String get onboarding_med_condition_ptsd;
+
+  /// No description provided for @onboarding_med_condition_bipolar.
+  ///
+  /// In en, this message translates to:
+  /// **'Bipolar disorder'**
+  String get onboarding_med_condition_bipolar;
+
+  /// No description provided for @onboarding_med_condition_adhd.
+  ///
+  /// In en, this message translates to:
+  /// **'ADHD'**
+  String get onboarding_med_condition_adhd;
+
+  /// No description provided for @onboarding_med_condition_binge_eating.
+  ///
+  /// In en, this message translates to:
+  /// **'Binge eating'**
+  String get onboarding_med_condition_binge_eating;
+
+  /// No description provided for @onboarding_med_condition_restrictive_eating.
+  ///
+  /// In en, this message translates to:
+  /// **'Restrictive eating / chronic dieting'**
+  String get onboarding_med_condition_restrictive_eating;
+
+  /// No description provided for @onboarding_med_condition_bulimia.
+  ///
+  /// In en, this message translates to:
+  /// **'Bulimia or purging behaviors'**
+  String get onboarding_med_condition_bulimia;
+
+  /// No description provided for @onboarding_med_condition_anorexia.
+  ///
+  /// In en, this message translates to:
+  /// **'Anorexia or extremely low weight'**
+  String get onboarding_med_condition_anorexia;
+
+  /// No description provided for @onboarding_med_condition_thyroid_disorder.
+  ///
+  /// In en, this message translates to:
+  /// **'Thyroid disorder'**
+  String get onboarding_med_condition_thyroid_disorder;
+
+  /// No description provided for @onboarding_med_condition_sleep_apnea.
+  ///
+  /// In en, this message translates to:
+  /// **'Sleep apnea'**
+  String get onboarding_med_condition_sleep_apnea;
+
+  /// No description provided for @onboarding_med_condition_chronic_fatigue.
+  ///
+  /// In en, this message translates to:
+  /// **'Chronic fatigue syndrome'**
+  String get onboarding_med_condition_chronic_fatigue;
+
+  /// No description provided for @onboarding_med_condition_gerd.
+  ///
+  /// In en, this message translates to:
+  /// **'GERD or acid reflux'**
+  String get onboarding_med_condition_gerd;
+
+  /// No description provided for @onboarding_med_condition_chronic_pain.
+  ///
+  /// In en, this message translates to:
+  /// **'Chronic pain / fibromyalgia'**
+  String get onboarding_med_condition_chronic_pain;
+
+  /// No description provided for @onboarding_med_condition_arthritis.
+  ///
+  /// In en, this message translates to:
+  /// **'Arthritis'**
+  String get onboarding_med_condition_arthritis;
+
+  /// No description provided for @onboarding_med_condition_none.
+  ///
+  /// In en, this message translates to:
+  /// **'None of the above'**
+  String get onboarding_med_condition_none;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {
