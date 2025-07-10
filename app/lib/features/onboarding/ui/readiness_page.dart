@@ -93,6 +93,7 @@ class ReadinessPage extends ConsumerWidget {
               _priorityOptions.map((priority) {
                 final isSelected = draft.priorities.contains(priority);
                 return _PriorityChip(
+                  key: ValueKey('priority_$priority'),
                   label: _getPriorityLabel(priority),
                   selected: isSelected,
                   onTap: () => controller.togglePriority(priority),
@@ -202,6 +203,7 @@ class ReadinessPage extends ConsumerWidget {
 // ---------------------------------------------------------------------------
 class _PriorityChip extends StatelessWidget {
   const _PriorityChip({
+    super.key,
     required this.label,
     required this.selected,
     required this.onTap,

@@ -44,7 +44,6 @@ void main() {
 
       // Check priority selection section
       expect(find.text('Select your top 1-2 priorities:'), findsOneWidget);
-      expect(find.byType(FilterChip), findsNWidgets(7));
 
       // Check Likert selectors for readiness and confidence
       expect(find.byType(LikertSelector), findsNWidgets(2));

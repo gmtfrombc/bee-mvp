@@ -83,6 +83,32 @@ act -j test \
 _Why `ACT=true`?_: skips the heavy `subosito/flutter-action` and uses the
 lightweight manual install steps we added for local runs.
 
+#### 3.2.1 Quick one-off Flutter test (instrumentisto image)
+
+Need to run **a single Flutter widget / accessibility test** in the **same
+Docker image** that GitHub uses—without spinning up the full `act` workflow? Use
+the snippet below.
+
+```bash
+# Run from repository root – mounts code read-only so local files stay clean
+docker run --rm -i \
+  -v "$PWD":/workspace:ro \
+  -v "$HOME/.pub-cache":/root/.pub-cache \
+  -w /tmp instrumentisto/flutter:3.32.1-androidsdk35-r0 \
+  bash -c 'set -e; cp -r /workspace /tmp/build; cd /tmp/build/app; \
+           flutter clean; flutter pub get; \
+           flutter test test/features/onboarding/ui/accessibility_readiness_mindset_test.dart \
+             --plain-name "ReadinessPage meets a11y guidelines"'
+```
+
+Key points:
+
+- `cp -r /workspace /tmp/build` copies the repo into a **writable** temp dir so
+  the analyzer cache and `.dart_tool` files don’t pollute your host checkout
+  (avoids the “pubspec.yaml missing / files turn red” issue).
+- Mounting your local **pub-cache** vastly speeds up dependency resolution.
+- Adjust the test path / `--plain-name` filter as needed for other one-off runs.
+
 ### 3.2 Coach Epic CI (`coach-edge-function-tests` job)
 
 _This workflow validates the AI-coach Deno edge function. No Flutter tooling is
