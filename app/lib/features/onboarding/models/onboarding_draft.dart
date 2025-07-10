@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import '../../../core/models/medical_history.dart';
 
 class OnboardingDraft {
   final DateTime? dateOfBirth;
@@ -14,6 +15,15 @@ class OnboardingDraft {
   final String? satisfactionOutcome; // Q14
   final String? challengeResponse; // Q15
 
+  // Section 5 – Goal Setup & Section 6 – Medical History
+  final int? weightLb;
+  final int? heightFt;
+  final int? heightIn;
+  final int? bpSystolic;
+  final int? bpDiastolic;
+  final List<MedicalCondition> medicalConditions; // Checkbox selections
+  final String? goalTarget; // e.g. "Lose 10 lb" or numeric target as string
+
   const OnboardingDraft({
     this.dateOfBirth,
     this.gender,
@@ -26,6 +36,13 @@ class OnboardingDraft {
     this.motivationReason,
     this.satisfactionOutcome,
     this.challengeResponse,
+    this.weightLb,
+    this.heightFt,
+    this.heightIn,
+    this.bpSystolic,
+    this.bpDiastolic,
+    this.medicalConditions = const [],
+    this.goalTarget,
   });
 
   OnboardingDraft copyWith({
@@ -40,6 +57,13 @@ class OnboardingDraft {
     String? motivationReason,
     String? satisfactionOutcome,
     String? challengeResponse,
+    int? weightLb,
+    int? heightFt,
+    int? heightIn,
+    int? bpSystolic,
+    int? bpDiastolic,
+    List<MedicalCondition>? medicalConditions,
+    String? goalTarget,
   }) {
     return OnboardingDraft(
       dateOfBirth: dateOfBirth ?? this.dateOfBirth,
@@ -53,6 +77,13 @@ class OnboardingDraft {
       motivationReason: motivationReason ?? this.motivationReason,
       satisfactionOutcome: satisfactionOutcome ?? this.satisfactionOutcome,
       challengeResponse: challengeResponse ?? this.challengeResponse,
+      weightLb: weightLb ?? this.weightLb,
+      heightFt: heightFt ?? this.heightFt,
+      heightIn: heightIn ?? this.heightIn,
+      bpSystolic: bpSystolic ?? this.bpSystolic,
+      bpDiastolic: bpDiastolic ?? this.bpDiastolic,
+      medicalConditions: medicalConditions ?? this.medicalConditions,
+      goalTarget: goalTarget ?? this.goalTarget,
     );
   }
 
@@ -74,6 +105,17 @@ class OnboardingDraft {
       motivationReason: json['motivationReason'] as String?,
       satisfactionOutcome: json['satisfactionOutcome'] as String?,
       challengeResponse: json['challengeResponse'] as String?,
+      weightLb: json['weightLb'] as int?,
+      heightFt: json['heightFt'] as int?,
+      heightIn: json['heightIn'] as int?,
+      bpSystolic: json['bpSystolic'] as int?,
+      bpDiastolic: json['bpDiastolic'] as int?,
+      medicalConditions:
+          (json['medicalConditions'] as List<dynamic>?)
+              ?.map((e) => MedicalCondition.values.byName(e as String))
+              .toList() ??
+          const [],
+      goalTarget: json['goalTarget'] as String?,
     );
   }
 
@@ -89,6 +131,13 @@ class OnboardingDraft {
     'motivationReason': motivationReason,
     'satisfactionOutcome': satisfactionOutcome,
     'challengeResponse': challengeResponse,
+    'weightLb': weightLb,
+    'heightFt': heightFt,
+    'heightIn': heightIn,
+    'bpSystolic': bpSystolic,
+    'bpDiastolic': bpDiastolic,
+    'medicalConditions': medicalConditions.map((e) => e.name).toList(),
+    'goalTarget': goalTarget,
   };
 
   @override
@@ -105,7 +154,14 @@ class OnboardingDraft {
         mindsetType == other.mindsetType &&
         motivationReason == other.motivationReason &&
         satisfactionOutcome == other.satisfactionOutcome &&
-        challengeResponse == other.challengeResponse;
+        challengeResponse == other.challengeResponse &&
+        weightLb == other.weightLb &&
+        heightFt == other.heightFt &&
+        heightIn == other.heightIn &&
+        bpSystolic == other.bpSystolic &&
+        bpDiastolic == other.bpDiastolic &&
+        listEquals(medicalConditions, other.medicalConditions) &&
+        goalTarget == other.goalTarget;
   }
 
   @override
@@ -121,6 +177,13 @@ class OnboardingDraft {
     motivationReason,
     satisfactionOutcome,
     challengeResponse,
+    weightLb,
+    heightFt,
+    heightIn,
+    bpSystolic,
+    bpDiastolic,
+    Object.hashAll(medicalConditions),
+    goalTarget,
   );
 
   bool get isValid {
