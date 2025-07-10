@@ -103,7 +103,7 @@ class ReadinessPage extends ConsumerWidget {
                     controller.togglePriority(priority);
                   },
                   backgroundColor: theme.colorScheme.surfaceContainerHighest,
-                  selectedColor: theme.colorScheme.primary.withOpacity(0.12),
+                  selectedColor: theme.colorScheme.primary.withValues(alpha: 0.12),
                   checkmarkColor: theme.colorScheme.primary,
                 );
               }).toList(),
