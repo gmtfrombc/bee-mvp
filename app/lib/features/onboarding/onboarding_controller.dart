@@ -1,10 +1,42 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'models/onboarding_draft.dart';
+import '../../core/models/medical_history.dart';
+import 'dart:async';
+import '../../core/services/onboarding_draft_storage_service.dart';
+import 'dart:io' show Platform;
 
 /// Manages the mutable onboarding draft across multi-step onboarding flow.
 class OnboardingController extends StateNotifier<OnboardingDraft> {
-  OnboardingController() : super(const OnboardingDraft());
+  OnboardingController() : super(const OnboardingDraft()) {
+    _initPersistence();
+  }
+
+  final _storage = OnboardingDraftStorageService();
+  Timer? _autosaveTimer;
+
+  void _initPersistence() {
+    // Restore asynchronously.
+    _storage.loadDraft().then((saved) {
+      if (saved != null) {
+        state = saved;
+      }
+    });
+
+    // Skip autosave in test environment to avoid pending timers.
+    final isFlutterTest = Platform.environment.containsKey('FLUTTER_TEST');
+    if (!isFlutterTest) {
+      _autosaveTimer = Timer.periodic(const Duration(seconds: 5), (_) async {
+        await _storage.saveDraft(state);
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _autosaveTimer?.cancel();
+    super.dispose();
+  }
 
   // -------------------------------------------------------------------------
   // Field updates
@@ -91,6 +123,32 @@ class OnboardingController extends StateNotifier<OnboardingDraft> {
   void setPriorities(List<String> keys) {
     state = state.copyWith(priorities: List<String>.from(keys));
   }
+
+  void updateGoalTarget(String? target) {
+    state = state.copyWith(goalTarget: target);
+  }
+
+  // ---------------------------------------------------------------------
+  // Medical History (Section 6)
+  // ---------------------------------------------------------------------
+
+  /// Toggle a [MedicalCondition] in the list of selected conditions.
+  void toggleMedicalCondition(MedicalCondition condition) {
+    final conditions = List<MedicalCondition>.from(state.medicalConditions);
+    if (conditions.contains(condition)) {
+      conditions.remove(condition);
+    } else {
+      conditions.add(condition);
+    }
+    state = state.copyWith(medicalConditions: conditions);
+  }
+
+  bool get isMedicalHistoryComplete => state.medicalConditions.isNotEmpty;
+
+  // ---------------------------------------------------------------------
+  // Goal Setup completion (Section 5)
+  // ---------------------------------------------------------------------
+  bool get isGoalSetupComplete => (state.goalTarget ?? '').isNotEmpty;
 
   // -------------------------------------------------------------------------
   // Validation helpers
