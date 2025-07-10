@@ -94,14 +94,16 @@ class ReadinessPage extends ConsumerWidget {
                 final isSelected = draft.priorities.contains(priority);
                 return FilterChip(
                   key: ValueKey('priority_$priority'),
-                  label: Text(_getPriorityLabel(priority)),
+                  label: Text(
+                    _getPriorityLabel(priority),
+                    style: TextStyle(color: theme.colorScheme.onSurface),
+                  ),
                   selected: isSelected,
                   onSelected: (selected) {
                     controller.togglePriority(priority);
                   },
-                  selectedColor: theme.colorScheme.primary.withValues(
-                    alpha: 0.2,
-                  ),
+                  backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                  selectedColor: theme.colorScheme.primary.withOpacity(0.12),
                   checkmarkColor: theme.colorScheme.primary,
                 );
               }).toList(),

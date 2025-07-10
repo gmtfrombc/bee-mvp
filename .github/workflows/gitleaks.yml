@@ -14,4 +14,6 @@ jobs:
           fetch-depth: 0
       - uses: gitleaks/gitleaks-action@v2
         with:
-          fail: true 
+          fail: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
