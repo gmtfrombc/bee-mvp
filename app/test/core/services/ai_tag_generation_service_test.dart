@@ -43,5 +43,26 @@ void main() {
       );
       expect(tags.coachStyle, CoachStyle.unsure);
     });
+
+    test('maps readiness 4 to high', () {
+      final tags = AiTagGenerationService.generateFromDraft(
+        const OnboardingDraft(readinessLevel: 4),
+      );
+      expect(tags.readinessLevel, ReadinessLevel.high);
+    });
+
+    test('maps coachStyle cheerleader correctly', () {
+      final tags = AiTagGenerationService.generateFromDraft(
+        const OnboardingDraft(mindsetType: 'cheerleader'),
+      );
+      expect(tags.coachStyle, CoachStyle.cheerleader);
+    });
+
+    test('maps coachStyle drill_sergeant correctly', () {
+      final tags = AiTagGenerationService.generateFromDraft(
+        const OnboardingDraft(mindsetType: 'drill_sergeant'),
+      );
+      expect(tags.coachStyle, CoachStyle.drillSergeant);
+    });
   });
 }
