@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/services/responsive_service.dart';
 import '../onboarding_controller.dart';
+import 'medical_history_page.dart';
 
 /// Onboarding step for users to specify their main outcome goal.
 ///
@@ -74,7 +75,11 @@ class _GoalSetupPageState extends ConsumerState<GoalSetupPage> {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('Goal saved!')),
                           );
-                          // TODO: Navigate to MedicalHistoryPage when available.
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const MedicalHistoryPage(),
+                            ),
+                          );
                         }
                         : null,
                 child: const Text('Continue'),

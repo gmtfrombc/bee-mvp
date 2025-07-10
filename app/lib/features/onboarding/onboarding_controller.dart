@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'models/onboarding_draft.dart';
+import '../../core/models/medical_history.dart';
 
 /// Manages the mutable onboarding draft across multi-step onboarding flow.
 class OnboardingController extends StateNotifier<OnboardingDraft> {
@@ -95,6 +96,23 @@ class OnboardingController extends StateNotifier<OnboardingDraft> {
   void updateGoalTarget(String? target) {
     state = state.copyWith(goalTarget: target);
   }
+
+  // ---------------------------------------------------------------------
+  // Medical History (Section 6)
+  // ---------------------------------------------------------------------
+
+  /// Toggle a [MedicalCondition] in the list of selected conditions.
+  void toggleMedicalCondition(MedicalCondition condition) {
+    final conditions = List<MedicalCondition>.from(state.medicalConditions);
+    if (conditions.contains(condition)) {
+      conditions.remove(condition);
+    } else {
+      conditions.add(condition);
+    }
+    state = state.copyWith(medicalConditions: conditions);
+  }
+
+  bool get isMedicalHistoryComplete => state.medicalConditions.isNotEmpty;
 
   // ---------------------------------------------------------------------
   // Goal Setup completion (Section 5)
