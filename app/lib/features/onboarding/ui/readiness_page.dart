@@ -96,14 +96,21 @@ class ReadinessPage extends ConsumerWidget {
                   key: ValueKey('priority_$priority'),
                   label: Text(
                     _getPriorityLabel(priority),
-                    style: TextStyle(color: theme.colorScheme.onSurface),
+                    style: TextStyle(
+                      color:
+                          isSelected
+                              ? theme.colorScheme.onPrimary
+                              : theme.colorScheme.onSurface,
+                    ),
                   ),
                   selected: isSelected,
                   onSelected: (selected) {
                     controller.togglePriority(priority);
                   },
                   backgroundColor: theme.colorScheme.surfaceContainerHighest,
-                  selectedColor: theme.colorScheme.primary.withValues(alpha: 0.12),
+                  selectedColor: theme.colorScheme.primary.withValues(
+                    alpha: 0.12,
+                  ),
                   checkmarkColor: theme.colorScheme.primary,
                 );
               }).toList(),
