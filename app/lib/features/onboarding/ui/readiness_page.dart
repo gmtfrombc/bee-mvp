@@ -92,26 +92,10 @@ class ReadinessPage extends ConsumerWidget {
           children:
               _priorityOptions.map((priority) {
                 final isSelected = draft.priorities.contains(priority);
-                return FilterChip(
-                  key: ValueKey('priority_$priority'),
-                  label: Text(
-                    _getPriorityLabel(priority),
-                    style: TextStyle(
-                      color:
-                          isSelected
-                              ? theme.colorScheme.onPrimary
-                              : theme.colorScheme.onSurface,
-                    ),
-                  ),
+                return _PriorityChip(
+                  label: _getPriorityLabel(priority),
                   selected: isSelected,
-                  onSelected: (selected) {
-                    controller.togglePriority(priority);
-                  },
-                  backgroundColor: theme.colorScheme.surfaceContainerHighest,
-                  selectedColor: theme.colorScheme.primary.withValues(
-                    alpha: 0.12,
-                  ),
-                  checkmarkColor: theme.colorScheme.primary,
+                  onTap: () => controller.togglePriority(priority),
                 );
               }).toList(),
         ),
@@ -210,5 +194,62 @@ class ReadinessPage extends ConsumerWidget {
       default:
         return priority;
     }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Private reusable PriorityChip widget (high-contrast guaranteed)
+// ---------------------------------------------------------------------------
+class _PriorityChip extends StatelessWidget {
+  const _PriorityChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    final background =
+        selected
+            ? colorScheme.primary.withValues(alpha: 0.12)
+            : colorScheme.surfaceContainerHighest;
+
+    final textColor = selected ? colorScheme.onPrimary : colorScheme.onSurface;
+
+    return Semantics(
+      label: label,
+      button: true,
+      selected: selected,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          decoration: BoxDecoration(
+            color: background,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: selected ? colorScheme.primary : background,
+              width: 2,
+            ),
+          ),
+          child: Text(
+            label,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: textColor,
+              fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
