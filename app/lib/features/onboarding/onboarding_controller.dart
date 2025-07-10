@@ -92,6 +92,15 @@ class OnboardingController extends StateNotifier<OnboardingDraft> {
     state = state.copyWith(priorities: List<String>.from(keys));
   }
 
+  void updateGoalTarget(String? target) {
+    state = state.copyWith(goalTarget: target);
+  }
+
+  // ---------------------------------------------------------------------
+  // Goal Setup completion (Section 5)
+  // ---------------------------------------------------------------------
+  bool get isGoalSetupComplete => (state.goalTarget ?? '').isNotEmpty;
+
   // -------------------------------------------------------------------------
   // Validation helpers
   // -------------------------------------------------------------------------
