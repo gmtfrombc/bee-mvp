@@ -74,6 +74,14 @@ jobs:
     - name: Run tests
       working-directory: ./app
       run: flutter test --coverage
+
+    # -----------------------------------------------------------------
+    # Performance benchmark – ensures MotivationScoringService cold-start
+    # remains below 50 ms. Fails the build if the expectation is not met.
+    # -----------------------------------------------------------------
+    - name: Run performance benchmark
+      working-directory: ./app
+      run: flutter test test/performance/motivation_scoring_benchmark_test.dart
       
     - name: Check coverage threshold
       working-directory: ./app

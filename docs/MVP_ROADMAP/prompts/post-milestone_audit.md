@@ -58,30 +58,15 @@ Produce a clean markdown QA report with:
 
 ## 🔄 Developer Wrap-Up Playbook (run _after_ audit ✅ PASS)
 
-0. **Verify clean working tree on feature branch**
-   ```bash
-   git status --porcelain  # should output nothing
-   ```
-   If not clean, commit or discard before proceeding.
+## To complete the wrap up milestone process for <CURRENT_MILESTONE>, do the following:
 
-1. **Run final health-check on the feature branch**
-   ```bash
-   flutter analyze --fatal-infos
-   flutter test --no-pub
-   ```
-   CI must already be green locally before continuing.
-
-2. **Rebase onto latest `main` & re-run tests**
-   ```bash
-   scripts/dev_wrapup.sh <milestone-code>
-   ```
-   The helper script performs: • `git fetch origin && git rebase origin/main` •
-   `flutter analyze --fatal-infos` & `flutter test` again •
-   `git push --force-with-lease` • Opens (or updates) PR via
-   `gh pr create --web`.
-
-3. **Merge PR after CI passes** (squash or merge-commit per repo policy) and let
-   GitHub delete the branch.
-4. **Prune local refs & pull `main`** – the helper script prompts this when PR
-   is merged.
-5. **Start next milestone** – follow the _Developer Kick-Off Playbook_.
+1. Ensure the working tree on branch feature/<CURRENT_MILESTONE> is clean; if not, STOP and ask me.
+2. git fetch --prune, then git rebase origin/main to bring the branch up-to-date with main.
+3. Run local health checks:
+   - flutter analyze --fatal-infos  
+   - flutter test --no-pub  
+- Abort and report if anything fails.
+4. Push the rebased branch (git push --force-with-lease).
+5. If a PR already exists, convert it from draft to ready for review. Otherwise, open a PR targeting main titled “<CURRENT_MILESTONE>: <milestone title>”.
+6. Report the PR URL and confirm all CI checks have started.
+7. Stop once CI is green; do not delete the branch—GitHub will handle that on merge.”

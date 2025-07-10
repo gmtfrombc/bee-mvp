@@ -20,6 +20,10 @@ incrementally so the original 60 % bar can be re-established.
 | T5 | Configure Codecov “patch” status so PRs cannot decrease coverage on modified lines                          |       | pending |
 | T6 | Raise CI threshold to 45 %, 50 %, 55 %, 60 % in successive PRs as coverage improves                         |       | pending |
 
+**Note:** CI performance latency threshold (<50 ms) was added separately in
+milestone M1.11.5 (task R1) and is **already enforced**. Coverage tasks above
+remain the focus of this sprint.
+
 ## Definition of Done
 
 • All tasks T1-T6 completed.\

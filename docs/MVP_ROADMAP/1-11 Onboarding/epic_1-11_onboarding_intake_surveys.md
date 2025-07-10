@@ -113,7 +113,7 @@ validation.
 | ---- | ------------------------------------------------------------------------- | ----- | ------ |
 | T1   | Translate scoring rules (@Onboarding_Survey_Scoring.md) into Dart service | 3h    | 🟡     |
 | T2   | Generate `motivation_type`, `readiness_level`, `coach_style` tags         | 2h    | 🟡     |
-| T3   | Unit tests covering all score ranges (branch ≥ 95 %)                      | 2h    | 🟡     |
+| T3   | Unit tests covering all score ranges (branch ≥ 95 %)                      | 2h    | ✅     |
 | T4   | Edge-function stub to sync tags to `coach_memory`                         | 3h    | 🟡     |
 
 **Acceptance Criteria:**

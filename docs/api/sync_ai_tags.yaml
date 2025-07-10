@@ -1,0 +1,54 @@
+paths:
+  /sync-ai-tags:
+    post:
+      summary: Persist AI motivation readiness tags for user
+      tags:
+        - onboarding
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AiTagsPayload"
+      responses:
+        "200":
+          description: Tags saved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+        "400":
+          description: Validation error – missing fields or bad values
+        "401":
+          description: Unauthorized – user JWT invalid
+        "409":
+          description: Duplicate submission ignored (idempotent)
+        "500":
+          description: Unexpected server error
+components:
+  schemas:
+    AiTagsPayload:
+      type: object
+      required:
+        - user_id
+        - motivation_type
+        - readiness_level
+        - coach_style
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          example: "4b18f6f1-7bde-49ee-9d27-a9e9bd6b82c3"
+        motivation_type:
+          type: string
+          enum: [Internal, Mixed, External, Unclear]
+        readiness_level:
+          type: string
+          enum: [Low, Moderate, High]
+        coach_style:
+          type: string
+          enum: [RH, Cheerleader, DS, Unsure]

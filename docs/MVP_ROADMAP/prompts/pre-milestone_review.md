@@ -42,21 +42,12 @@ Return a markdown audit report that includes:
 
 ---
 
-## 🧭 Developer Kick-Off Playbook (run _after_ review ✅ PASS)
+## 🧭 Developer Kick-Off Playbook
 
-0. **Verify clean working tree** – automation expects no local edits.
-   ```bash
-   git status --porcelain  # should output nothing
-   ```
-   If not clean, commit or discard before proceeding.
+## To kick off milestone <CURRENT_MILESTONE> follow these steps:
 
-1. **Cut a fresh branch from up-to-date `main`** (runs non-interactive)
-   ```bash
-   scripts/dev_kickoff.sh <milestone-code>
-   ```
-   The helper script performs: • `git checkout main && git pull --ff-only` •
-   `git checkout -b feature/<milestone-code>` • Initial commit of planning docs
-   (if present) • Push + open draft PR via `gh pr create`.
-
-2–5. _Unchanged steps remain as automation inside the script; see inline
-comments._
+- Verify the working tree is clean—if there are local changes, STOP and ask me.
+- git fetch --prune, then git checkout main && git pull --ff-only to ensure we’re on the latest origin/main.
+- Create and switch to branch feature/<CURRENT_MILESTONE>, add any pre-milestone planning docs already in the repo (if present), commit with message docs: add planning docs for <CURRENT_MILESTONE>.
+- git push -u origin feature/<CURRENT_MILESTONE> and open a draft PR targeting main titled “<CURRENT_MILESTONE>: <milestone title>”.
+- No stashing, no additional scripts. Report the PR URL when done.”
