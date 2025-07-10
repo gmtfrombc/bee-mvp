@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# Delegates commit message validation to shared script
+"$(git rev-parse --show-toplevel)"/scripts/hooks/commit-msg-check.sh "$1" 
