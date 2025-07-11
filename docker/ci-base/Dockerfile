@@ -3,7 +3,7 @@ FROM ubuntu:24.04
 
 LABEL maintainer="bee-mvp CI" description="Unified toolchain image for GitHub Actions and local act runs"
 
-ARG FLUTTER_VERSION=3.32.1
+ARG FLUTTER_VERSION=3.22.2
 ARG NODE_VERSION=20.9.0
 ARG DENO_VERSION=2.3.5
 ARG GITLEAKS_VERSION=8.18.2
@@ -35,19 +35,22 @@ RUN mkdir -p /opt && \
     curl -L https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_${FLUTTER_VERSION}-stable.tar.xz -o /tmp/flutter.tar.xz && \
     tar -xJf /tmp/flutter.tar.xz -C /opt && \
     rm /tmp/flutter.tar.xz && \
-    flutter --version
+    # Fix "dubious ownership" and ensure write perms for root build user
+    git config --global --add safe.directory /opt/flutter && \
+    chmod -R a+w /opt/flutter
 
 # ---------------- Supabase CLI ----------------
-RUN npm install -g supabase
+RUN curl -L https://github.com/supabase/cli/releases/latest/download/supabase_linux_amd64.tar.gz \
+      -o /tmp/supabase.tar.gz && \
+    tar -xzf /tmp/supabase.tar.gz -C /usr/local/bin supabase && \
+    rm /tmp/supabase.tar.gz && \
+    supabase --version
 
 # ---------------- Gitleaks ----------------
 RUN curl -L https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz -o /tmp/gitleaks.tar.gz && \
     tar -xzf /tmp/gitleaks.tar.gz -C /usr/local/bin gitleaks && \
     rm /tmp/gitleaks.tar.gz && \
     gitleaks version
-
-# Pre-cache Flutter artifacts to speed up CI
-RUN flutter precache
 
 WORKDIR /workspace
 
