@@ -68,12 +68,10 @@ jobs:
 
       # ---------- Flutter Basic Validation ----------
       # actionlint-disable-next-line expression-env
-      - uses: subosito/flutter-action@v2
+      - name: Skip Flutter setup (preinstalled)
         if: ${{ env.ACT != 'true' }}
-        with:
-          flutter-version: '${{ env.FLUTTER_VERSION }}'
-          architecture: x64
-      
+        run: echo "Flutter SDK preinstalled in container – skipping setup."
+
       # Create environment file using new .env.example approach
       # actionlint-disable-next-line expression-env
       - name: Setup Flutter Environment

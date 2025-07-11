@@ -39,11 +39,9 @@ jobs:
         cp lib/firebase_options_ci.dart lib/firebase_options.dart
         echo "✅ CI-safe Firebase options configuration created"
         
-    - name: Setup Flutter
-      uses: subosito/flutter-action@v2
-      with:
-        flutter-version: '${{ env.FLUTTER_VERSION }}'
-        
+    - name: Skip Flutter setup (preinstalled)
+      run: echo "Flutter SDK preinstalled in container – skipping setup."
+      
     - name: Get dependencies
       working-directory: ./app
       run: flutter pub get
@@ -113,11 +111,9 @@ jobs:
       run: |
         cp lib/firebase_options_ci.dart lib/firebase_options.dart
         
-    - name: Setup Flutter
-      uses: subosito/flutter-action@v2
-      with:
-        flutter-version: '${{ env.FLUTTER_VERSION }}'
-        
+    - name: Skip Flutter setup (preinstalled)
+      run: echo "Flutter SDK preinstalled in container – skipping setup."
+      
     - name: Get dependencies
       working-directory: ./app
       run: flutter pub get
@@ -207,11 +203,9 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Setup Flutter
-      uses: subosito/flutter-action@v2
-      with:
-        flutter-version: '${{ env.FLUTTER_VERSION }}'
-        
+    - name: Skip Flutter setup (preinstalled)
+      run: echo "Flutter SDK preinstalled in container – skipping setup."
+      
     - name: Get dependencies
       working-directory: ./app
       run: flutter pub get

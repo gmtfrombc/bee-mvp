@@ -12,7 +12,7 @@ jobs:
     container: ghcr.io/gmtfrombc/ci-base:latest
     env:
       ACT: 'false'  # CI default; the local `act` runner overwrites this
-      FLUTTER_VERSION: '3.30.1'  # Single source of truth for Flutter SDK
+      FLUTTER_VERSION: '3.30.0'  # Single source of truth for Flutter SDK
     
     steps:
     - uses: actions/checkout@v4
@@ -46,11 +46,9 @@ jobs:
     #   • Keep the action for real CI (env.ACT != 'true')
     #   • Provide a minimal manual install when ACT == 'true'
 
-    - name: Setup Flutter (GitHub CI)
+    - name: Skip Flutter setup (preinstalled)
       if: ${{ env.ACT != 'true' }}
-      uses: subosito/flutter-action@v2
-      with:
-        flutter-version: '${{ env.FLUTTER_VERSION }}'
+      run: echo "Flutter SDK preinstalled in container – skipping setup."
 
     - name: Install Flutter SDK (local ACT)
       if: ${{ env.ACT == 'true' }}
@@ -59,11 +57,10 @@ jobs:
         echo "🔧 Installing Flutter SDK for local ACT run..."
         sudo apt-get update -y -qq >/dev/null
         sudo apt-get install -y -qq curl git unzip xz-utils libglu1-mesa openjdk-11-jre-headless >/dev/null
-        # Clone stable channel (fast, cached by Docker layer on second run)
         git clone --depth 1 --branch ${FLUTTER_VERSION} https://github.com/flutter/flutter.git /opt/flutter
         echo "/opt/flutter/bin" >> "$GITHUB_PATH"
         /opt/flutter/bin/flutter --version
-        
+
     - name: Get dependencies
       working-directory: ./app
       run: flutter pub get
@@ -137,7 +134,7 @@ jobs:
     env:
       NEEDS_REAL_FIREBASE: false  # Set to 'true' when integration tests or Play Store deployment needed
       ACT: 'false'  # CI default; the local `act` runner overwrites this
-      FLUTTER_VERSION: '3.30.1'  # Single source of truth for Flutter SDK
+      FLUTTER_VERSION: '3.30.0'  # Single source of truth for Flutter SDK
     
     steps:
     - uses: actions/checkout@v4
@@ -229,11 +226,9 @@ jobs:
           echo "✅ CI-safe Firebase configuration created"
         fi
         
-    - name: Setup Flutter
-      uses: subosito/flutter-action@v2
-      with:
-        flutter-version: '${{ env.FLUTTER_VERSION }}'
-        
+    - name: Skip Flutter setup (preinstalled)
+      run: echo "Flutter SDK preinstalled in container – skipping setup."
+
     - name: Get dependencies
       working-directory: ./app
       run: flutter pub get
@@ -264,7 +259,7 @@ jobs:
     runs-on: macos-latest
     env:
       NEEDS_REAL_FIREBASE: false  # Set to 'true' when integration tests or TestFlight deployment needed
-      FLUTTER_VERSION: '3.30.1'  # Single source of truth for Flutter SDK
+      FLUTTER_VERSION: '3.30.0'  # Single source of truth for Flutter SDK
     
     steps:
     - uses: actions/checkout@v4
