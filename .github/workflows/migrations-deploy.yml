@@ -53,6 +53,12 @@ jobs:
           echo "SUPABASE_PROJECT_REF=$SUPABASE_PROJECT_REF" >> $GITHUB_ENV
           echo "SUPABASE_DB_PASSWORD=$SUPABASE_DB_PASSWORD" >> $GITHUB_ENV
 
+      - name: Debug Supabase env vars (temporary)
+        if: env.ACT != 'true'
+        run: |
+          echo "🔍 Debug: SUPABASE_PROJECT_REF length=${#SUPABASE_PROJECT_REF}"
+          echo "🔍 Debug: SUPABASE_PROJECT_URL set? $([ -n "$SUPABASE_PROJECT_URL" ] && echo yes || echo no)"
+
       - name: Link Supabase project (GitHub only)
         if: env.ACT != 'true'
         run: |
