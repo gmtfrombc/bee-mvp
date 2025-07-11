@@ -5,7 +5,7 @@ import 'package:app/core/providers/auth_provider.dart';
 import 'package:app/core/providers/supabase_provider.dart';
 // LaunchController is navigated to internally; no direct reference needed.
 import 'package:app/features/auth/ui/confirmation_pending_page.dart';
-import 'package:app/features/onboarding/ui/onboarding_screen.dart';
+import 'package:app/features/onboarding/ui/about_you_page.dart';
 import 'package:app/features/auth/ui/registration_success_page.dart';
 import 'package:app/core/services/auth_service.dart';
 import 'package:flutter/material.dart';
@@ -71,7 +71,7 @@ void main() {
     await tester.tap(find.text("I'm ready"));
     await tester.pumpAndSettle();
 
-    expect(find.byType(OnboardingScreen), findsOneWidget);
+    expect(find.byType(AboutYouPage), findsOneWidget);
 
     await controller.close();
   });
