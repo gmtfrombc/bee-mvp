@@ -32,11 +32,9 @@ RUN curl -fsSL https://deno.land/x/install/install.sh | sh -s v${DENO_VERSION} &
     deno --version
 
 # ---------------- Flutter ----------------
-RUN mkdir -p /opt && \
-    curl -L https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_${FLUTTER_VERSION}-stable.tar.xz -o /tmp/flutter.tar.xz && \
-    tar -xJf /tmp/flutter.tar.xz -C /opt && \
-    rm /tmp/flutter.tar.xz && \
-    # Fix "dubious ownership" and ensure write perms for root build user
+# Use shallow git clone of the desired Flutter tag instead of unavailable SDK archive.
+RUN git clone --depth 1 --branch ${FLUTTER_VERSION} https://github.com/flutter/flutter.git /opt/flutter && \
+    # Fix "dubious ownership" warning and ensure write perms for root build user
     git config --global --add safe.directory /opt/flutter && \
     chmod -R a+w /opt/flutter
 
