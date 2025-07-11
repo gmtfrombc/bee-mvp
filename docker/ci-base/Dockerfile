@@ -3,7 +3,7 @@ FROM ubuntu:24.04
 
 LABEL maintainer="bee-mvp CI" description="Unified toolchain image for GitHub Actions and local act runs"
 
-ARG FLUTTER_VERSION=3.22.2
+ARG FLUTTER_VERSION=3.30.1
 ARG NODE_VERSION=20.9.0
 ARG DENO_VERSION=2.3.5
 ARG GITLEAKS_VERSION=8.18.2
