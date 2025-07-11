@@ -56,7 +56,7 @@ jobs:
       - name: Debug Supabase env vars (temporary)
         if: env.ACT != 'true'
         run: |
-          echo "🔍 Debug: SUPABASE_PROJECT_REF length=${#SUPABASE_PROJECT_REF}"
+          echo "🔍 Debug: [attempt 2] SUPABASE_PROJECT_REF length=${#SUPABASE_PROJECT_REF}"
           echo "🔍 Debug: SUPABASE_PROJECT_URL set? $([ -n "$SUPABASE_PROJECT_URL" ] && echo yes || echo no)"
 
       - name: Link Supabase project (GitHub only)
