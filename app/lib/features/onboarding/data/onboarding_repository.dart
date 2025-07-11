@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/providers/supabase_provider.dart';
 import '../models/onboarding_draft.dart';
 import '../../../core/services/onboarding_draft_storage_service.dart';
+import 'onboarding_serializer.dart';
 
 /// Exception thrown when onboarding submission fails.
 class OnboardingSubmissionException implements Exception {
@@ -44,7 +45,7 @@ class OnboardingRepository {
     // Build RPC params (omit nulls for optional tags)
     final params = <String, dynamic>{
       'p_user_id': user.id,
-      'p_answers': draft.toJson(),
+      'p_answers': OnboardingSerializer.toJson(draft),
       if (motivationType != null) 'p_motivation_type': motivationType,
       if (readinessLevel != null) 'p_readiness_level': readinessLevel,
       if (coachStyle != null) 'p_coach_style': coachStyle,
