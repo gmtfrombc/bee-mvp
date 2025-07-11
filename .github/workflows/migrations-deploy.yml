@@ -108,4 +108,4 @@ jobs:
         run: |
           supabase auth settings update \
             --password_min_length 8 \
-            --password_require_special_char true 
+            --password_require_special_char true \n# ci: trigger run 2025-07-11T02:46:08Z
