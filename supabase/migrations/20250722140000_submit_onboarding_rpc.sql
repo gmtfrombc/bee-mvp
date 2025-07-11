@@ -63,6 +63,14 @@ end;
 $$;
 
 -- 2️⃣  Permissions ---------------------------------------------------------
+-- Ensure role exists (local CI containers may not have it)
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'authenticated') THEN
+    CREATE ROLE authenticated;
+  END IF;
+END$$;
+
 -- Allow authenticated users to execute their own submission
 grant execute on function public.submit_onboarding(uuid, jsonb, text, text, text) to authenticated;
 
