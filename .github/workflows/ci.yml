@@ -37,9 +37,16 @@ jobs:
       ACT: "false"
       SKIP_TERRAFORM: "true"
       FLUTTER_VERSION: '3.32.1'
+      NODE_VERSION: '20.9.0'
 
     steps:
       - uses: actions/checkout@v4
+
+      # ---------- Node Toolchain ----------
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '${{ env.NODE_VERSION }}'
 
       # ---------- Secret Scanner ----------
       - name: Secret Scan with Gitleaks

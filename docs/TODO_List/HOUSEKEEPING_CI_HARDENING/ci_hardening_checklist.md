@@ -19,11 +19,11 @@
 
 ## ☑️ Phase 1 – Lock the Toolchain
 
-| #   | Task                                                                                                                            | Acceptance                                               | Status     |
-| --- | ------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- | ---------- |
-| 1.1 | Add versions to `/tools/versions.yml` & `asdf` or similar                                                                       | Pin Flutter, Go, Node, Python, Deno                      | 🟡 Planned |
-| 1.2 | Update **`setup-*`** actions in every workflow:<br>`actions/setup-go@v5`, `subosito/flutter-action@v2`, `actions/setup-node@v4` | Explicit `go-version`, `flutter-version`, `node-version` | 🟡 Planned |
-| 1.3 | Commit lockfiles (`go.sum`, `package-lock.json`, etc.)                                                                          | Prevent implicit upgrades                                | 🟡 Planned |
+| #   | Task                                                                                                     | Acceptance                                 | Status      |
+| --- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------ | ----------- |
+| 1.1 | Add versions to `/tools/versions.yml` & `asdf` or similar                                                | Pin Flutter, Node, Python, Deno            | ✅ Complete |
+| 1.2 | Update **`setup-*`** actions in every workflow:<br>`subosito/flutter-action@v2`, `actions/setup-node@v4` | Explicit `flutter-version`, `node-version` | ✅ Complete |
+| 1.3 | Commit lockfiles (`go.sum`, `package-lock.json`, etc.)                                                   | Prevent implicit upgrades                  | ✅ Complete |
 
 ---
 
