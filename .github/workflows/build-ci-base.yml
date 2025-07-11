@@ -5,6 +5,10 @@ on:
     paths:
       - 'docker/ci-base/**'
       - '.github/workflows/build-ci-base.yml'
+  pull_request:
+    paths:
+      - 'docker/ci-base/**'
+      - '.github/workflows/build-ci-base.yml'
   workflow_dispatch:
 
 permissions:
