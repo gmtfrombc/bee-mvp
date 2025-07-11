@@ -36,6 +36,6 @@ jobs:
           context: .
           file: docker/ci-base/Dockerfile
           push: true
-          tags: ghcr.io/bee/ci-base:latest
+          tags: ghcr.io/gmtfrombc/ci-base:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max 

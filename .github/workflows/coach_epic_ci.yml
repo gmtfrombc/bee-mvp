@@ -18,7 +18,7 @@ on:
 jobs:
   coach-flutter-tests:
     runs-on: ubuntu-latest
-    container: ghcr.io/bee/ci-base:latest
+    container: ghcr.io/gmtfrombc/ci-base:latest
     env:
       FLUTTER_VERSION: '3.22.2'
     
@@ -95,7 +95,7 @@ jobs:
 
   coach-e2e-tests:
     runs-on: ubuntu-latest
-    container: ghcr.io/bee/ci-base:latest
+    container: ghcr.io/gmtfrombc/ci-base:latest
     env:
       FLUTTER_VERSION: '3.22.2'
     needs: coach-flutter-tests
@@ -128,7 +128,7 @@ jobs:
 
   coach-edge-function-tests:
     runs-on: ubuntu-latest
-    container: ghcr.io/bee/ci-base:latest
+    container: ghcr.io/gmtfrombc/ci-base:latest
     env:
       FLUTTER_VERSION: '3.22.2'
     
@@ -166,7 +166,7 @@ jobs:
 
   coach-performance-benchmark:
     runs-on: ubuntu-latest
-    container: ghcr.io/bee/ci-base:latest
+    container: ghcr.io/gmtfrombc/ci-base:latest
     env:
       FLUTTER_VERSION: '3.22.2'
     needs: coach-edge-function-tests
@@ -200,7 +200,7 @@ jobs:
 
   coach-accessibility-check:
     runs-on: ubuntu-latest
-    container: ghcr.io/bee/ci-base:latest
+    container: ghcr.io/gmtfrombc/ci-base:latest
     env:
       FLUTTER_VERSION: '3.22.2'
     

@@ -27,7 +27,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: ghcr.io/bee/ci-base:latest
+    container: ghcr.io/gmtfrombc/ci-base:latest
     env:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       # Test database credentials (not sensitive, but keeps GitGuardian happy)
