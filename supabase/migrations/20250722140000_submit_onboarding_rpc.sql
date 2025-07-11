@@ -1,9 +1,10 @@
 -- 20250722140000_submit_onboarding_rpc.sql
 -- Milestone M1.11.6 · Action C1
--- DRAFT: Implements submit_onboarding RPC (transactional multi-insert + flag)
--- NOTE: This file is a draft and should be reviewed before running in prod.
+-- FINAL: Implements submit_onboarding RPC (transactional multi-insert + flag)
 
 begin;
+
+drop function if exists public.submit_onboarding(uuid, jsonb, text, text, text);
 
 -- 1️⃣  Function -------------------------------------------------------------
 create or replace function public.submit_onboarding(
