@@ -9,6 +9,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    container: ghcr.io/bee/ci-base:latest
     env:
       ACT: 'false'  # CI default; the local `act` runner overwrites this
       FLUTTER_VERSION: '3.32.1'  # Single source of truth for Flutter SDK
@@ -132,6 +133,7 @@ jobs:
   build-android:
     needs: test
     runs-on: ubuntu-latest
+    container: ghcr.io/bee/ci-base:latest
     env:
       NEEDS_REAL_FIREBASE: false  # Set to 'true' when integration tests or Play Store deployment needed
       ACT: 'false'  # CI default; the local `act` runner overwrites this

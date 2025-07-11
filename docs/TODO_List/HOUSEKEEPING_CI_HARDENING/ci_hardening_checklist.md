@@ -29,12 +29,12 @@
 
 ## ☑️ Phase 2 – Build a Unified CI Docker Image
 
-| #                                               | Task                                                                                                                                                                  | Acceptance                               | Status     |
-| ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- | ---------- |
-| 2.1                                             | Create `docker/ci-base/Dockerfile` that installs:<br>- Flutter SDK<br>- Go & gitleaks<br>- Python 3.12 & pytest<br>- Deno<br>- Supabase CLI<br>- `jq`, `bash`, `make` | Image builds locally with `docker build` | 🟡 Planned |
-| 2.2                                             | Push image to GHCR:`ghcr.io/bee/ci-base:latest`                                                                                                                       | Visible in repo packages                 | 🟡 Planned |
-| 2.3                                             | Replace `runs-on: ubuntu-latest` with: <br>`container:                                                                                                                |                                          |            |
-| image: ghcr.io/bee/ci-base:latest` in every job | CI uses identical environment                                                                                                                                         | 🟡 Planned                               |            |
+| #                                               | Task                                                                                                                                                                  | Acceptance                               | Status      |
+| ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- | ----------- |
+| 2.1                                             | Create `docker/ci-base/Dockerfile` that installs:<br>- Flutter SDK<br>- Go & gitleaks<br>- Python 3.12 & pytest<br>- Deno<br>- Supabase CLI<br>- `jq`, `bash`, `make` | Image builds locally with `docker build` | ✅ Complete |
+| 2.2                                             | Push image to GHCR:`ghcr.io/bee/ci-base:latest`                                                                                                                       | Visible in repo packages                 | ✅ Complete |
+| 2.3                                             | Replace `runs-on: ubuntu-latest` with: <br>`container:                                                                                                                |                                          |             |
+| image: ghcr.io/bee/ci-base:latest` in every job | CI uses identical environment                                                                                                                                         | ✅ Complete                              |             |
 
 ---
 

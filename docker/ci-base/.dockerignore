@@ -1,0 +1,7 @@
+# Ignore VCS
+.git
+# Node artifacts
+node_modules
+# Build outputs
+build
+coverage 
