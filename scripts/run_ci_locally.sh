@@ -90,6 +90,7 @@ GCP_SA_KEY=
 # Optional extras for other CI workflows
 GCS_BUCKET=
 SUPABASE_PROJECT_ID=
+GITHUB_TOKEN=
 EOF
 fi
 
@@ -168,6 +169,7 @@ GCP_SA_KEY=${GCP_SA_KEY:-}
 # Optional extras for other CI workflows
 GCS_BUCKET=${GCS_BUCKET:-}
 SUPABASE_PROJECT_ID=${SUPABASE_PROJECT_ID:-}
+GITHUB_TOKEN=${GITHUB_TOKEN:-}
 EOF
 
   echo "✅  .secrets updated from local env file (placeholders remain for any missing vars)"
@@ -296,7 +298,7 @@ if [[ "${SKIP_MIGRATIONS}" != "true" ]]; then
   
   echo "🔗  Verifying Supabase credentials via 'supabase link'…"
   # Try linking with access token first (preferred method)
-  if ! supabase link --project-ref "$SUPABASE_PROJECT_REF" --create-client >/dev/null 2>&1; then
+  if ! supabase link --project-ref "$SUPABASE_PROJECT_REF" >/dev/null 2>&1; then
     echo "    • Access token method failed, trying with password..."
     # Suppress verbose CLI output; failures will still bubble up.
     supabase link --project-ref "$SUPABASE_PROJECT_REF" \
@@ -316,7 +318,7 @@ for wf in "${WORKFLOW_FILES[@]}"; do
   WF_ARGS+=( -W "$wf" )
 done
 
-ACT_CMD=(act push "${WF_ARGS[@]}" -P ubuntu-latest=${GITHUB_RUNNER_IMAGE} --container-architecture linux/amd64 --env ACT=false --env SKIP_UPLOAD_ARTIFACTS=true --env SKIP_TERRAFORM=${SKIP_TERRAFORM:-false} --secret-file "$SECRETS_FILE")
+ACT_CMD=(act push "${WF_ARGS[@]}" -P ubuntu-latest=${GITHUB_RUNNER_IMAGE} --container-architecture linux/amd64 --env SKIP_UPLOAD_ARTIFACTS=true --env SKIP_TERRAFORM=${SKIP_TERRAFORM:-false} --secret-file "$SECRETS_FILE")
 
 # Re-append the job filter (if any) **after** all -W flags so `act` can
 # correctly match the job once workflows have been loaded.
@@ -326,6 +328,14 @@ fi
 
 # Finally, append any remaining pass-through args supplied by the user
 ACT_CMD+=("$@")
+
+# Abort early when artefact uploads are enabled but no GitHub token is present
+if [[ "${SKIP_UPLOAD_ARTIFACTS}" == "false" ]]; then
+  if [[ -z "${GITHUB_TOKEN:-}" ]]; then
+    echo "❌  SKIP_UPLOAD_ARTIFACTS=false but GITHUB_TOKEN is missing. Provide a GitHub Personal Access Token in ~/.bee_secrets/supabase.env (key: GITHUB_TOKEN) so local runs hit the real upload-artifact endpoint." >&2
+    exit 1
+  fi
+fi
 
 "${ACT_CMD[@]}" 
 

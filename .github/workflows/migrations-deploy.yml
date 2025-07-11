@@ -57,7 +57,7 @@ jobs:
         if: env.ACT != 'true'
         run: |
           # Try linking with access token first (preferred method)
-          if ! supabase link --project-ref "$SUPABASE_PROJECT_REF" --create-client; then
+          if ! supabase link --project-ref "$SUPABASE_PROJECT_REF"; then
             echo "Failed to link with access token, trying with password..."
             supabase link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
           fi
