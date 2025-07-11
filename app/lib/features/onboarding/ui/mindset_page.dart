@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/services/responsive_service.dart';
 import '../../../l10n/s.dart';
 import '../onboarding_controller.dart';
+import 'goal_setup_page.dart';
 
 /// Onboarding step for mindset & motivation assessment (Q13–16).
 ///
@@ -90,7 +91,11 @@ class MindsetPage extends ConsumerWidget {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Mindset saved!')),
                         );
-                        // TODO: navigate to next onboarding step once available
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const GoalSetupPage(),
+                          ),
+                        );
                       }
                       : null,
               child: const Text('Continue'),

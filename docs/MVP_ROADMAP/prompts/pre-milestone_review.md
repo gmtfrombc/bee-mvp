@@ -44,7 +44,7 @@ Return a markdown audit report that includes:
 
 ## 🧭 Developer Kick-Off Playbook
 
-## To kick off milestone <CURRENT_MILESTONE> follow these steps:
+## To kick off milestone <CURRENT_MILESTONE> follow these
 
 - Verify the working tree is clean—if there are local changes, STOP and ask me.
 - git fetch --prune, then git checkout main && git pull --ff-only to ensure we’re on the latest origin/main.

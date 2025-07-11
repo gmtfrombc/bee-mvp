@@ -6,7 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'package:app/features/auth/ui/registration_success_page.dart';
-import 'package:app/features/onboarding/ui/onboarding_screen.dart';
+import 'package:app/features/onboarding/ui/about_you_page.dart';
 import 'package:app/core/providers/auth_provider.dart';
 import 'package:app/core/services/auth_service.dart';
 
@@ -15,7 +15,7 @@ class _MockAuthService extends Mock implements AuthService {}
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('tapping “I\'m ready” navigates to OnboardingScreen', (
+  testWidgets('tapping “I\'m ready” navigates to AboutYouPage', (
     WidgetTester tester,
   ) async {
     final mockAuth = _MockAuthService();
@@ -35,6 +35,6 @@ void main() {
     await tester.pumpAndSettle();
 
     // Should navigate to onboarding
-    expect(find.byType(OnboardingScreen), findsOneWidget);
+    expect(find.byType(AboutYouPage), findsOneWidget);
   });
 }

@@ -19,6 +19,9 @@ create unique index if not exists coach_memory_user_idx on public.coach_memory(u
 -- Row Level Security: owners can access their row
 alter table public.coach_memory enable row level security;
 
+-- Drop policy if it exists before creating
+drop policy if exists "Users can manage own coach_memory" on public.coach_memory;
+
 create policy "Users can manage own coach_memory" on public.coach_memory
     for all using (auth.uid() = user_id);
 
@@ -30,6 +33,9 @@ begin
   return new;
 end;
 $$ language plpgsql;
+
+-- Drop existing trigger if already defined
+drop trigger if exists set_timestamp on public.coach_memory;
 
 create trigger set_timestamp
 before update on public.coach_memory

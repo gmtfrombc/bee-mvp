@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:app/features/onboarding/ui/onboarding_screen.dart';
+import 'package:app/features/onboarding/ui/about_you_page.dart';
 
 /// Shown immediately after a user confirms their email address.
 ///
@@ -27,7 +27,7 @@ class RegistrationSuccessPage extends StatelessWidget {
               ElevatedButton(
                 onPressed: () {
                   Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (_) => const OnboardingScreen()),
+                    MaterialPageRoute(builder: (_) => const AboutYouPage()),
                   );
                 },
                 child: const Text("I'm ready"),
