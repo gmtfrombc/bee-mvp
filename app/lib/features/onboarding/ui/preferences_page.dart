@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/services/responsive_service.dart';
 import '../../../core/theme/app_theme.dart';
+import 'readiness_page.dart';
 import '../onboarding_controller.dart';
 import '../../../core/mixins/input_validator.dart';
 
@@ -43,9 +44,10 @@ class PreferencesPage extends ConsumerWidget {
               onPressed:
                   draft.preferences.isNotEmpty
                       ? () {
-                        // TODO(M1.11.2): Navigate to next onboarding step once implemented.
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Preferences saved!')),
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const ReadinessPage(),
+                          ),
                         );
                       }
                       : null,
