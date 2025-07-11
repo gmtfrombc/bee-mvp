@@ -10,10 +10,10 @@
 
 ## ☑️ Phase 0 – Pre-work
 
-| #   | Task                                                                                                 | Notes                                             | Status     |
-| --- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------- | ---------- |
-| 0.1 | **Create a new feature branch** `ci-hardening/<ticket>`                                              | Keep changes isolated until the pipeline is green | 🟡 Planned |
-| 0.2 | **Install & update tooling**: Docker Desktop, `act`, Earthly (defer for now), Dagger (defer for now) | Needed for local reproduction                     | 🟡 Planned |
+| #   | Task                                                                                                 | Notes                                             | Status      |
+| --- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------- | ----------- |
+| 0.1 | **Create a new feature branch** `ci-hardening/<ticket>`                                              | Keep changes isolated until the pipeline is green | ✅ Complete |
+| 0.2 | **Install & update tooling**: Docker Desktop, `act`, Earthly (defer for now), Dagger (defer for now) | Needed for local reproduction                     | ✅ Complete |
 
 ---
 
