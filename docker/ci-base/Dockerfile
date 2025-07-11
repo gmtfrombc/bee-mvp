@@ -1,3 +1,4 @@
+# Rebuild trigger: 2025-07-11
 # syntax=docker/dockerfile:1
 FROM ubuntu:24.04
 
