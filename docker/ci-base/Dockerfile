@@ -1,4 +1,4 @@
-# Rebuild trigger: secrets added 2025-07-11
+# Rebuild trigger: manual 2025-07-11b
 # syntax=docker/dockerfile:1
 FROM ubuntu:24.04
 
