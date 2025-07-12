@@ -60,10 +60,10 @@
 
 ## ☑️ Phase 5 – Pre-commit Layer
 
-| #   | Task                                                                                                                                   | Acceptance                        | Status     |
-| --- | -------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------- | ---------- |
-| 5.1 | Add `.pre-commit-config.yaml` with hooks:<br>`flutter format`, `flutter analyze`, `pytest -q`, `deno lint`, `gitleaks detect --staged` | Hooks pass locally                | 🟡 Planned |
-| 5.2 | Document install in `CONTRIBUTING.md`                                                                                                  | New devs run `pre-commit install` | 🟡 Planned |
+| #   | Task                                                                                                                                   | Acceptance                        | Status      |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------- | ----------- |
+| 5.1 | Add `.pre-commit-config.yaml` with hooks:<br>`flutter format`, `flutter analyze`, `pytest -q`, `deno lint`, `gitleaks detect --staged` | Hooks pass locally                | ✅ Complete |
+| 5.2 | Document install in `CONTRIBUTING.md`                                                                                                  | New devs run `pre-commit install` | 🟡 Planned  |
 
 ---
 

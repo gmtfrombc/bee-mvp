@@ -1,6 +1,28 @@
 repos:
-  - repo: https://github.com/zricethezav/gitleaks
-    rev: v8.18.2
+  - repo: local
     hooks:
-      - id: gitleaks
-        args: ["--verbose", "--redact"]
+      - id: flutter-format
+        name: Flutter Format
+        entry: flutter format --set-exit-if-changed
+        language: system
+        pass_filenames: false
+      - id: flutter-analyze
+        name: Flutter Analyze
+        entry: flutter analyze
+        language: system
+        pass_filenames: false
+      - id: pytest
+        name: Pytest
+        entry: pytest -q
+        language: system
+        pass_filenames: false
+      - id: deno-lint
+        name: Deno Lint
+        entry: deno lint
+        language: system
+        pass_filenames: false
+      - id: gitleaks-detect
+        name: Gitleaks Detect
+        entry: gitleaks detect --staged
+        language: system
+        pass_filenames: false
