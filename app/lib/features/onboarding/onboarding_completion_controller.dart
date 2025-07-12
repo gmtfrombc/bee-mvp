@@ -9,11 +9,6 @@ import '../../core/services/scoring_service.dart';
 ///
 /// Exposes an [AsyncValue] so the UI can reactively show a loading spinner,
 /// error snackbar, or success navigation while the submission RPC executes.
-///
-/// The actual network interaction (calling `OnboardingRepository.submit()` and
-/// `AuthService.completeOnboarding()`) will be wired up in follow-up tasks
-/// (T1.2 – T1.4). For now we provide a stubbed implementation so the UI layer
-/// and tests can be built incrementally.
 class OnboardingCompletionController extends StateNotifier<AsyncValue<void>> {
   OnboardingCompletionController(this._ref)
     : super(const AsyncValue.data(null)); // idle
@@ -23,7 +18,8 @@ class OnboardingCompletionController extends StateNotifier<AsyncValue<void>> {
   /// Kick off the submission pipeline.
   ///
   /// Invokes [OnboardingRepository.submit] with the current [OnboardingDraft]
-  /// retrieved from [onboardingControllerProvider].
+  /// retrieved from [onboardingControllerProvider]. Computes AI tags before
+  /// submission (Milestone M2).
   Future<void> submit() async {
     state = const AsyncValue.loading();
     try {
@@ -51,7 +47,7 @@ class OnboardingCompletionController extends StateNotifier<AsyncValue<void>> {
 
       // Stop autosave timer now that draft is cleared.
       _ref.read(onboardingControllerProvider.notifier).cancelAutosave();
-      // On success we simply emit `data(null)`.
+      // Emit success.
       state = const AsyncValue.data(null);
     } catch (err, st) {
       state = AsyncValue.error(err, st);
