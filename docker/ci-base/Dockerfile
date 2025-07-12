@@ -17,7 +17,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
 # ---------------- Base packages ----------------
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-      curl git bash make zip unzip xz-utils jq ca-certificates gnupg && \
+      curl git bash make zip unzip xz-utils jq ca-certificates gnupg lsb-release python3 python3-pip python-is-python3 && \
     rm -rf /var/lib/apt/lists/*
 
 # ---------------- Node.js ----------------
@@ -50,6 +50,8 @@ RUN curl -L https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_V
     tar -xzf /tmp/gitleaks.tar.gz -C /usr/local/bin gitleaks && \
     rm /tmp/gitleaks.tar.gz && \
     gitleaks version
+
+RUN ln -sf /usr/bin/python3 /usr/bin/python && ln -sf /usr/bin/python3 /usr/local/bin/python
 
 WORKDIR /workspace
 

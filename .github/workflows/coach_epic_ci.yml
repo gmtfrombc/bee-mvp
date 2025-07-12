@@ -18,9 +18,9 @@ on:
 jobs:
   coach-flutter-tests:
     runs-on: ubuntu-latest
-    container: ghcr.io/gmtfrombc/ci-base:latest
+    container: ghcr.io/gmtfrombc/ci-base:2025-07-12
     env:
-      FLUTTER_VERSION: '3.30.0'
+      FLUTTER_VERSION: '3.32.6'
     
     steps:
     - uses: actions/checkout@v4
@@ -66,8 +66,8 @@ jobs:
         echo "📊 Checking coverage threshold (≥50%)..."
         
         # Install lcov for coverage processing
-        sudo apt-get update
-        sudo apt-get install -y lcov
+        apt-get update
+        apt-get install -y lcov
         
         # Generate coverage report
         genhtml coverage/lcov.info -o coverage/html
@@ -93,9 +93,9 @@ jobs:
 
   coach-e2e-tests:
     runs-on: ubuntu-latest
-    container: ghcr.io/gmtfrombc/ci-base:latest
+    container: ghcr.io/gmtfrombc/ci-base:2025-07-12
     env:
-      FLUTTER_VERSION: '3.30.0'
+      FLUTTER_VERSION: '3.32.6'
     needs: coach-flutter-tests
     
     steps:
@@ -124,9 +124,9 @@ jobs:
 
   coach-edge-function-tests:
     runs-on: ubuntu-latest
-    container: ghcr.io/gmtfrombc/ci-base:latest
+    container: ghcr.io/gmtfrombc/ci-base:2025-07-12
     env:
-      FLUTTER_VERSION: '3.30.0'
+      FLUTTER_VERSION: '3.32.6'
     
     steps:
     - uses: actions/checkout@v4
@@ -162,9 +162,9 @@ jobs:
 
   coach-performance-benchmark:
     runs-on: ubuntu-latest
-    container: ghcr.io/gmtfrombc/ci-base:latest
+    container: ghcr.io/gmtfrombc/ci-base:2025-07-12
     env:
-      FLUTTER_VERSION: '3.30.0'
+      FLUTTER_VERSION: '3.32.6'
     needs: coach-edge-function-tests
     if: github.event_name == 'pull_request'
     
@@ -196,9 +196,9 @@ jobs:
 
   coach-accessibility-check:
     runs-on: ubuntu-latest
-    container: ghcr.io/gmtfrombc/ci-base:latest
+    container: ghcr.io/gmtfrombc/ci-base:2025-07-12
     env:
-      FLUTTER_VERSION: '3.30.0'
+      FLUTTER_VERSION: '3.32.6'
     
     steps:
     - uses: actions/checkout@v4

@@ -70,6 +70,8 @@ jobs:
           context: .
           file: docker/ci-base/Dockerfile
           push: true
-          tags: ghcr.io/gmtfrombc/ci-base:latest
+          tags: |
+            ghcr.io/gmtfrombc/ci-base:latest
+            ghcr.io/gmtfrombc/ci-base:2025-07-12
           cache-from: type=gha
           cache-to: type=gha,mode=max 
