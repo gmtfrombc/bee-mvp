@@ -29,22 +29,21 @@
 
 ## ☑️ Phase 2 – Build a Unified CI Docker Image
 
-| #                                               | Task                                                                                                                                                                  | Acceptance                               | Status      |
-| ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- | ----------- |
-| 2.1                                             | Create `docker/ci-base/Dockerfile` that installs:<br>- Flutter SDK<br>- Go & gitleaks<br>- Python 3.12 & pytest<br>- Deno<br>- Supabase CLI<br>- `jq`, `bash`, `make` | Image builds locally with `docker build` | ✅ Complete |
-| 2.2                                             | Push image to GHCR:`ghcr.io/bee/ci-base:latest`                                                                                                                       | Visible in repo packages                 | ✅ Complete |
-| 2.3                                             | Replace `runs-on: ubuntu-latest` with: <br>`container:                                                                                                                |                                          |             |
-| image: ghcr.io/bee/ci-base:latest` in every job | CI uses identical environment                                                                                                                                         | ✅ Complete                              |             |
+| #   | Task                                                                                                                                                        | Acceptance                                      | Status                        |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- | ----------------------------- |
+| 2.1 | Create `docker/ci-base/Dockerfile` - installs Flutter SDK, gitleaks, Python 3.12, pytest, Deno, Supabas,`jq`, bash - img builds locally with `docker build` | ✅ Complete                                     |                               |
+| 2.2 | Push image to GHCR:`ghcr.io/bee/ci-base:latest`                                                                                                             | Visible in repo packages                        | ✅ Complete                   |
+| 2.3 | Replace `runs-on: ubuntu-latest` with: <br>`container:                                                                                                      | image: ghcr.io/bee/ci-base:latest` in every job | CI uses identical environment |
 
 ---
 
 ## ☑️ Phase 3 – Harden Shell Scripts
 
-| #   | Task                                                                                                | Acceptance                         | Status     |
-| --- | --------------------------------------------------------------------------------------------------- | ---------------------------------- | ---------- |
-| 3.1 | Add `set -euo pipefail` to all project scripts                                                      | Fail fast on errors                | 🟡 Planned |
-| 3.2 | Patch `scripts/check_secrets.sh` & any `jq` calls with null-safe guards:<br>`jq -e '.[]? // empty'` | No more “Cannot iterate over null” | 🟡 Planned |
-| 3.3 | Audit Supabase CLI usage; export required env vars via `env:` in workflow                           | Secrets resolved at runtime        | 🟡 Planned |
+| #   | Task                                                                                                | Acceptance                         | Status      |
+| --- | --------------------------------------------------------------------------------------------------- | ---------------------------------- | ----------- |
+| 3.1 | Add `set -euo pipefail` to all project scripts                                                      | Fail fast on errors                | ✅ Complete |
+| 3.2 | Patch `scripts/check_secrets.sh` & any `jq` calls with null-safe guards:<br>`jq -e '.[]? // empty'` | No more “Cannot iterate over null” | 🟡 Planned  |
+| 3.3 | Audit Supabase CLI usage; export required env vars via `env:` in workflow                           | Secrets resolved at runtime        | 🟡 Planned  |
 
 ---
 
@@ -54,6 +53,7 @@
 | --- | --------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------ | ---------- |
 | 4.1 | **Fast job** (`on: pull_request`):<br>- `flutter analyze && flutter test --coverage`<br>- `pytest -q`<br>- `deno lint`<br>- `gitleaks detect` | Finishes < 5 min         | 🟡 Planned |
 | 4.2 | **Full job** (`on: schedule` + manual dispatch):<br>- Supabase Edge integration tests<br>- End-to-end tests                                   | Runs nightly / on demand | 🟡 Planned |
+| 4.3 | Add Android command-line tools & SDK into `ci-base`, then re-enable APK build.                                                                | Entire suite runs green  | 🟡 Planned |
 
 ---
 

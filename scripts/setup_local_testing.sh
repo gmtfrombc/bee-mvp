@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
 echo "🔧 BEE-MVP Local Testing Environment Setup"
 echo "=========================================="

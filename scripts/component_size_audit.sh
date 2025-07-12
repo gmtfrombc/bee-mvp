@@ -6,7 +6,7 @@
 # Generates comprehensive size reports for weekly monitoring
 # Usage: ./scripts/component_size_audit.sh [--output-file report.md]
 
-set -e
+set -euo pipefail
 
 # Default output file
 OUTPUT_FILE="component_size_audit_report.md"
