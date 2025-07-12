@@ -78,21 +78,21 @@
 
 ## ☑️ Phase 7 – Optional: Earthly / Dagger Migration (Defer for now)
 
-| #   | Task                                                                          | Acceptance                 | Status     |
-| --- | ----------------------------------------------------------------------------- | -------------------------- | ---------- |
-| 7.1 | Prototype an **Earthfile**: `earthly +all` spins up services & runs all tests | Replaces YAML eventually   | 🟡 Planned |
-| 7.2 | Add small PoC job in Actions that calls Earthly                               | Works both locally & in CI | 🟡 Planned |
-| 7.3 | Evaluate Dagger SDK if Earthly doesn’t fit                                    | Decision recorded in ADR   | 🟡 Planned |
+| #   | Task                                                                          | Acceptance                 | Status      |
+| --- | ----------------------------------------------------------------------------- | -------------------------- | ----------- |
+| 7.1 | Prototype an **Earthfile**: `earthly +all` spins up services & runs all tests | Replaces YAML eventually   | ❌ Deferred |
+| 7.2 | Add small PoC job in Actions that calls Earthly                               | Works both locally & in CI | ❌ Deferred |
+| 7.3 | Evaluate Dagger SDK if Earthly doesn’t fit                                    | Decision recorded in ADR   | ❌ Deferred |
 
 ---
 
 ## ☑️ Phase 8 – Cleanup & Documentation
 
-| #   | Task                                                          | Acceptance           | Status     |
-| --- | ------------------------------------------------------------- | -------------------- | ---------- |
-| 8.1 | Remove redundant YAML steps now handled by Earthly/Docker     | Workflows simplified | 🟡 Planned |
-| 8.2 | Update `README.md` and `docs/ci_overview.md` with new process | Docs in PR           | 🟡 Planned |
-| 8.3 | Open follow-up tickets for flaky test triage                  | List known flakes    | 🟡 Planned |
+| #   | Task                                                          | Acceptance           | Status      |
+| --- | ------------------------------------------------------------- | -------------------- | ----------- |
+| 8.1 | Remove redundant YAML steps now handled by Earthly/Docker     | Workflows simplified | ❌ Deferred |
+| 8.2 | Update `README.md` and `docs/ci_overview.md` with new process | Docs in PR           | ✅ Complete |
+| 8.3 | Open follow-up tickets for flaky test triage                  | List known flakes    | ✅ Complete |
 
 ---
 

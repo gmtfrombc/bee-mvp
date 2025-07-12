@@ -127,27 +127,32 @@ The CI pipeline runs automatically on push and pull requests:
 
 ### Local CI with `act`
 
-You can run the same GitHub Actions workflow locally using the
-[nektos/act](https://github.com/nektos/act) runner.
+You can reproduce the **exact** GitHub Actions pipeline offline with one
+command:
 
 ```bash
-# One-time prerequisites (macOS / Apple Silicon)
-brew install act               # or `npm i -g act`
-docker pull catthehacker/ubuntu:act-latest   # large runner image
+make ci-local              # full workflow (same as push to PR)
+make ci-local ARGS="-j fast"  # only fast pull-request job
+```
 
-# Copy the template secrets file and fill in local placeholders (never commit real values)
-cp .secrets.example .secrets && echo "🔑  Edit .secrets with local placeholders before running act"
+How it works:
 
-# Run the complete CI workflow
-act push \
-  -W .github/workflows/ci.yml \
-  -P ubuntu-latest=catthehacker/ubuntu:act-latest \
+1. `.actrc` maps `ubuntu-latest` → `ghcr.io/gmtfrombc/ci-base:latest` so the
+   toolchain matches CI.
+2. `scripts/run_ci_locally.sh` auto-creates a `.secrets` file (stubbed if
+   missing) and forwards env vars.
+3. Apple-silicon Macs are handled automatically via
+   `--container-architecture linux/amd64`.
+
+For advanced usage you can still invoke **`act`** directly; see
+`docs/0_0_Core_docs/ACT_CLI/README.md` for flags.
+
+```bash
+# direct call example (build job only)
+act pull_request -j fast \
+  -P ubuntu-latest=ghcr.io/gmtfrombc/ci-base:latest \
   --container-architecture linux/amd64 \
-  --env ACT=true \
   --secret-file .secrets
-
-# TIP: add `-j build --step 20` to start from the Terraform step and skip
-# Flutter download for faster iteration.
 ```
 
 The workflow detects the `ACT` environment variable and automatically skips
