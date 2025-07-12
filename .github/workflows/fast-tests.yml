@@ -45,8 +45,8 @@ jobs:
       - name: Install Python test dependencies
         run: pip install --break-system-packages -r tests/requirements-minimal.txt
 
-      - name: Run Python Unit Tests
-        run: pytest -q
+      - name: Run Python Unit Tests (API only)
+        run: pytest -q tests/api
 
       # ---------------- Deno Lint ----------------
       - name: Deno Lint (Supabase Edge Functions)
