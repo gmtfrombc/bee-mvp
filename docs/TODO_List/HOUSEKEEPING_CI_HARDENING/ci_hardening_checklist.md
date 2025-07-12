@@ -43,7 +43,7 @@
 | --- | --------------------------------------------------------------------------------------------------- | ---------------------------------- | ----------- |
 | 3.1 | Add `set -euo pipefail` to all project scripts                                                      | Fail fast on errors                | ✅ Complete |
 | 3.2 | Patch `scripts/check_secrets.sh` & any `jq` calls with null-safe guards:<br>`jq -e '.[]? // empty'` | No more “Cannot iterate over null” | ✅ Complete |
-| 3.3 | Audit Supabase CLI usage; export required env vars via `env:` in workflow                           | Secrets resolved at runtime        | 🟡 Planned  |
+| 3.3 | Audit Supabase CLI usage; export required env vars via `env:` in workflow                           | Secrets resolved at runtime        | ✅ Complete |
 
 ---
 
