@@ -51,6 +51,20 @@ RUN curl -L https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_V
     rm /tmp/gitleaks.tar.gz && \
     gitleaks version
 
+# ---------------- Android SDK & NDK ----------------
+RUN apt-get update && apt-get install -y --no-install-recommends openjdk-17-jdk wget unzip && \
+    mkdir -p /opt/android-sdk/cmdline-tools && \
+    curl -sSL https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -o /tmp/cmdline-tools.zip && \
+    unzip -q /tmp/cmdline-tools.zip -d /opt/android-sdk/cmdline-tools && \
+    mv /opt/android-sdk/cmdline-tools/cmdline-tools /opt/android-sdk/cmdline-tools/latest && \
+    yes | /opt/android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=/opt/android-sdk --licenses && \
+    /opt/android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=/opt/android-sdk \
+      "platform-tools" "platforms;android-34" "build-tools;34.0.0" "ndk;26.3.11579264" && \
+    rm /tmp/cmdline-tools.zip
+
+ENV ANDROID_HOME=/opt/android-sdk
+ENV PATH="/opt/android-sdk/platform-tools:/opt/android-sdk/cmdline-tools/latest/bin:${PATH}"
+
 RUN ln -sf /usr/bin/python3 /usr/bin/python && ln -sf /usr/bin/python3 /usr/local/bin/python
 
 WORKDIR /workspace
