@@ -239,6 +239,11 @@ else
   GITHUB_RUNNER_IMAGE="${DEFAULT_RUNNER_IMAGE}"
 fi
 
+# 🐳 Inform user when the Docker image needs to be pulled the first time
+if ! docker image inspect "$GITHUB_RUNNER_IMAGE" >/dev/null 2>&1; then
+  echo "🐳  Docker image $GITHUB_RUNNER_IMAGE not found locally. Pulling now – this can take several minutes on first run."
+fi
+
 # 3️⃣  Execute `act`
 # Select workflow files – default is main CI plus migrations. Set SKIP_MIGRATIONS=true to skip.
 WORKFLOW_FILES=(
@@ -324,6 +329,11 @@ for wf in "${WORKFLOW_FILES[@]}"; do
 done
 
 ACT_CMD=(act push "${WF_ARGS[@]}" -P ubuntu-latest=${GITHUB_RUNNER_IMAGE} --container-architecture linux/amd64 --env SKIP_UPLOAD_ARTIFACTS=true --env SKIP_TERRAFORM=${SKIP_TERRAFORM:-false} --secret-file "$SECRETS_FILE")
+
+# Always run act in verbose mode unless user already provided a -v/--verbose flag
+if [[ "$*" != *"-v"* && "$*" != *"--verbose"* ]]; then
+  ACT_CMD+=( --verbose )
+fi
 
 # Re-append the job filter (if any) **after** all -W flags so `act` can
 # correctly match the job once workflows have been loaded.
