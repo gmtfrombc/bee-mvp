@@ -1,7 +1,7 @@
 ### Epic: 1.11 · Onboarding Intake Surveys
 
 **Module:** Core Mobile Experience\
-**Status:** 🟡 Planned\
+**Status:** ✅ Complete 
 **Dependencies:** Epic 1.6 – Registration & Auth ✅, Supabase project & env
 secrets, Design System components
 
@@ -69,14 +69,14 @@ breakpoints.
 
 ---
 
-### M1.11.3 · UI – Sections 3–4 (Readiness & Mindset) 🟡 Planned
+### M1.11.3 · UI – Sections 3–4 (Readiness & Mindset) ✅ Complete 
 
-| Task | Description                                 | Hours | Status |
-| ---- | ------------------------------------------- | ----- | ------ |
-| T1   | Build Likert-scale selector component       | 3h    | 🟡     |
-| T2   | Implement `ReadinessPage` (questions 10–12) | 3h    | 🟡     |
-| T3   | Implement `MindsetPage` (questions 13–16)   | 4h    | 🟡     |
-| T4   | Accessibility audit (voice-over, contrast)  | 2h    | 🟡     |
+| Task | Description                                 | Hours | Status      |
+| ---- | ------------------------------------------- | ----- | ----------- |
+| T1   | Build Likert-scale selector component       | 3h    | ✅ Complete |
+| T2   | Implement `ReadinessPage` (questions 10–12) | 3h    | ✅ Complete |
+| T3   | Implement `MindsetPage` (questions 13–16)   | 4h    | ✅ Complete |
+| T4   | Accessibility audit (voice-over, contrast)  | 2h    | ✅ Complete |
 
 **Acceptance Criteria:**
 
@@ -88,14 +88,14 @@ scan.
 
 ---
 
-### M1.11.4 · UI – Sections 5 Goal Setup & 6 Medical History 🟡 Planned
+### M1.11.4 · UI – Sections 5 Goal Setup & 6 Medical History ✅ Complete 
 
 | Task | Description                                          | Hours | Status |
 | ---- | ---------------------------------------------------- | ----- | ------ |
-| T1   | Build `GoalSetupPage` with dynamic follow-up field   | 4h    | 🟡     |
-| T2   | Build `MedicalHistoryPage` (checkbox grid)           | 4h    | 🟡     |
-| T3   | Biometrics inputs with numeric keyboard + unit hints | 3h    | 🟡     |
-| T4   | Persist partial progress for app restarts            | 2h    | 🟡     |
+| T1   | Build `GoalSetupPage` with dynamic follow-up field   | 4h    | ✅ Complete |
+| T2   | Build `MedicalHistoryPage` (checkbox grid)           | 4h    | ✅ Complete |
+| T3   | Biometrics inputs with numeric keyboard + unit hints | 3h    | ✅ Complete |
+| T4   | Persist partial progress for app restarts            | 2h    | ✅ Complete |
 
 **Acceptance Criteria:**
 
@@ -107,14 +107,14 @@ validation.
 
 ---
 
-### M1.11.5 · Scoring & AI-Tag Generation Logic 🟡 Planned
+### M1.11.5 · Scoring & AI-Tag Generation Logic ✅ Complete 
 
 | Task | Description                                                               | Hours | Status |
 | ---- | ------------------------------------------------------------------------- | ----- | ------ |
-| T1   | Translate scoring rules (@Onboarding_Survey_Scoring.md) into Dart service | 3h    | 🟡     |
-| T2   | Generate `motivation_type`, `readiness_level`, `coach_style` tags         | 2h    | 🟡     |
-| T3   | Unit tests covering all score ranges (branch ≥ 95 %)                      | 2h    | ✅     |
-| T4   | Edge-function stub to sync tags to `coach_memory`                         | 3h    | 🟡     |
+| T1   | Translate scoring rules (@Onboarding_Survey_Scoring.md) into Dart service | 3h    | ✅ Complete |
+| T2   | Generate `motivation_type`, `readiness_level`, `coach_style` tags         | 2h    | ✅ Complete |
+| T3   | Unit tests covering all score ranges (branch ≥ 95 %)                      | 2h    | ✅ Complete |
+| T4   | Edge-function stub to sync tags to `coach_memory`                         | 3h    | ✅ Complete |
 
 **Acceptance Criteria:**
 
@@ -126,14 +126,14 @@ edge-function call.
 
 ---
 
-### M1.11.6 · Navigation & Completion Hook 🟡 Planned
+### M1.11.6 · Navigation & Completion Hook ✅ Complete 
 
 | Task | Description                                      | Hours | Status |
 | ---- | ------------------------------------------------ | ----- | ------ |
-| T1   | Submit all collected data to Supabase inside txn | 2h    | 🟡     |
-| T2   | Flip `profiles.onboarding_complete = true`       | 1h    | 🟡     |
-| T3   | Navigate to Home; guard route on future launches | 2h    | 🟡     |
-| T4   | E2E test across reg → onboarding → home flow     | 3h    | 🟡     |
+| T1   | Submit all collected data to Supabase inside txn | 2h    | ✅ Complete |
+| T2   | Flip `profiles.onboarding_complete = true`       | 1h    | ✅ Complete |
+| T3   | Navigate to Home; guard route on future launches | 2h    | ✅ Complete |
+| T4   | E2E test across reg → onboarding → home flow     | 3h    | ✅ Complete |
 
 **Acceptance Criteria:**
 

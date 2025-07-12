@@ -16,7 +16,7 @@ jobs:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/gmtfrombc/ci-base:2025-07-12
+      image: ghcr.io/gmtfrombc/ci-base:latest
     services:
       postgres:
         image: postgres:15
@@ -48,9 +48,25 @@ jobs:
         working-directory: app
         run: flutter test --coverage
 
-      - name: Build Android debug APK (stub)
+      # ---------------- Android Build ----------------
+      - name: Cache Gradle
+        uses: actions/cache@v3
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('app/android/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Build Android debug APK
         working-directory: app/android
-        run: ./gradlew assembleDebug --no-daemon
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug-apk
+          path: app/android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 30
 
       - name: Python tests
         run: pytest -q
