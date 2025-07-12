@@ -17,7 +17,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
 # ---------------- Base packages ----------------
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-      curl wget git bash make zip unzip xz-utils jq ca-certificates gnupg lsb-release sudo python3 python3-pip python-is-python3 && \
+      curl wget git bash make zip unzip xz-utils jq ca-certificates gnupg lsb-release sudo python3 python3-pip python-is-python3 postgresql-client && \
     rm -rf /var/lib/apt/lists/*
 
 # ---------------- Node.js ----------------
