@@ -155,7 +155,7 @@ jobs:
       - name: Setup test database schema
         if: ${{ env.ACT != 'true' }}
         run: |
-          PGPASSWORD=${{ env.TEST_DB_PASSWORD }} psql -h localhost -p 54322 -U postgres -d test -c "
+          PGPASSWORD=${{ env.TEST_DB_PASSWORD }} psql -h postgres -p 5432 -U postgres -d test -c "
           -- Create auth schema and users table to simulate Supabase auth
           CREATE SCHEMA IF NOT EXISTS auth;
           
@@ -383,8 +383,8 @@ jobs:
       - name: Run RLS & Audit Tests
         if: ${{ env.ACT != 'true' }}
         env:
-          DB_HOST: localhost
-          DB_PORT: '54322'
+          DB_HOST: postgres
+          DB_PORT: '5432'
           DB_NAME: test
           DB_USER: rls_test_user
           DB_PASSWORD: postgres
@@ -395,8 +395,8 @@ jobs:
       - name: Verify Onboarding Migration Rollback
         if: ${{ env.ACT != 'true' }}
         env:
-          DB_HOST: localhost
-          DB_PORT: '54322'
+          DB_HOST: postgres
+          DB_PORT: '5432'
           DB_NAME: test
           DB_USER: postgres
           DB_PASSWORD: postgres
