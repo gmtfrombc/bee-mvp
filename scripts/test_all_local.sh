@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e  # Exit on any error
+set -euo pipefail  # Exit on any error
 
 echo "🚀 BEE-MVP Complete Local Testing Pipeline"
 echo "==========================================="

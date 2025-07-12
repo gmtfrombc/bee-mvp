@@ -3,7 +3,7 @@
 # Verify Security Fixes Applied Successfully
 # This script checks the database to confirm security issues are resolved
 
-set -e
+set -euo pipefail
 
 echo "🔍 Verifying Security Fixes in Production..."
 
