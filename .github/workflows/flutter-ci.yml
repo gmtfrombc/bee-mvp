@@ -141,6 +141,7 @@ jobs:
       NEEDS_REAL_FIREBASE: false  # Set to 'true' when integration tests or Play Store deployment needed
       ACT: 'false'  # CI default; the local `act` runner overwrites this
       FLUTTER_VERSION: '3.32.6'  # Single source of truth for Flutter SDK
+      SKIP_ANDROID_BUILD: 'true'  # Temporary: Skip APK build until Android SDK baked into image
     
     steps:
     - uses: actions/checkout@v4
@@ -240,10 +241,12 @@ jobs:
       run: flutter pub get
       
     - name: Build APK
+      if: ${{ env.SKIP_ANDROID_BUILD != 'true' }}
       working-directory: ./app
       run: flutter build apk --release
       
     - name: Upload APK
+      if: github.event_name == 'pull_request' && env.SKIP_ANDROID_BUILD != 'true'
       uses: actions/upload-artifact@v4.3.0
       with:
         name: app-release.apk
