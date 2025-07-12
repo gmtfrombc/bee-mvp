@@ -117,8 +117,8 @@ jobs:
 
       # ---------- Database RLS Tests ----------
       # actionlint-disable-next-line expression-env
-      - name: Setup PostgreSQL
-        if: ${{ env.ACT != 'true' }}
+      - if: ${{ env.SKIP_TERRAFORM != 'true' }}
+        name: Setup PostgreSQL
         uses: ikalnytskyi/action-setup-postgres@v7
         with:
           postgres-version: '14'
