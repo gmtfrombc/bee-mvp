@@ -53,7 +53,6 @@
 | --- | --------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------ | ---------- |
 | 4.1 | **Fast job** (`on: pull_request`):<br>- `flutter analyze && flutter test --coverage`<br>- `pytest -q`<br>- `deno lint`<br>- `gitleaks detect` | Finishes < 5 min         | 🟡 Planned |
 | 4.2 | **Full job** (`on: schedule` + manual dispatch):<br>- Supabase Edge integration tests<br>- End-to-end tests                                   | Runs nightly / on demand | 🟡 Planned |
-| 4.3 | Add Android command-line tools & SDK into `ci-base`, then re-enable APK build.                                                                | Entire suite runs green  | 🟡 Planned |
 
 ---
 
