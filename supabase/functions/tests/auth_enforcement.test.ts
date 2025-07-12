@@ -18,7 +18,7 @@ Deno.env.set("DENO_TESTING", "true");
 // ---------------------------------------------------------------------------
 const _originalFetch = globalThis.fetch;
 // deno-lint-ignore no-explicit-any
-globalThis.fetch = (input: any, init?: RequestInit): Promise<Response> => {
+globalThis.fetch = (input: any, _init?: RequestInit): Promise<Response> => {
   const url = typeof input === "string" ? input : input.toString();
 
   // Mock Supabase auth endpoint – always return 401 so that JWT validation
