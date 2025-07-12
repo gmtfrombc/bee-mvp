@@ -5,3 +5,4 @@ ruff==0.4.4
 requests>=2.32.0
 python-dotenv>=1.0.0
 sqlfluff==2.3.5
+click==8.1.7

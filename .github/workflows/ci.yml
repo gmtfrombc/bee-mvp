@@ -36,7 +36,7 @@ jobs:
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       # Default for local VS Code actionlint and GitHub runner. Overridden by `act` when you pass `-e ACT=true`.
       ACT: "false"
-      SKIP_TERRAFORM: "true"
+      SKIP_TERRAFORM: "false"
       FLUTTER_VERSION: '3.32.6'
       NODE_VERSION: '20.9.0'
 
