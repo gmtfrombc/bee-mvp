@@ -16,7 +16,7 @@ jobs:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/gmtfrombc/ci-base:2025-07-12
+      image: ghcr.io/gmtfrombc/ci-base:latest
     services:
       postgres:
         image: postgres:15
