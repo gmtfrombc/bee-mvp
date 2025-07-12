@@ -69,10 +69,10 @@
 
 ## ☑️ Phase 6 – Local Repro with `act`
 
-| #   | Task                                                                                          | Acceptance               | Status     |
-| --- | --------------------------------------------------------------------------------------------- | ------------------------ | ---------- |
-| 6.1 | Configure `act` to pull the same container: <br>`-P ubuntu-latest=ghcr.io/bee/ci-base:latest` | `act pull_request` green | 🟡 Planned |
-| 6.2 | Add `make ci-local` shortcut that runs `act` plus common flags                                | One-command local CI     | 🟡 Planned |
+| #   | Task                                                                                                | Acceptance               | Status      |
+| --- | --------------------------------------------------------------------------------------------------- | ------------------------ | ----------- |
+| 6.1 | Configure `act` to pull the same container: <br>`-P ubuntu-latest=ghcr.io/gmtfrombc/ci-base:latest` | `act pull_request` green | ✅ Complete |
+| 6.2 | Add `make ci-local` shortcut that runs `act` plus common flags                                      | One-command local CI     | ✅ Complete |
 
 ---
 

@@ -1,0 +1,1 @@
+-P ubuntu-latest=ghcr.io/gmtfrombc/ci-base:latest --container-architecture linux/amd64 --secret-file .secrets 
