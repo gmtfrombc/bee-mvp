@@ -4,24 +4,27 @@
 > repo uses without pushing a single commit.
 
 # Hardware: Macbook Air with M3 Apple chip
+
 # Supabase Secrets:located at: ~/.bee_secrets/supabase.env
 
 # NOTE: Run ACT from ROOT (BEE-MVP) with the following:
 
-bash scripts/run_ci_locally.sh -j deploy | cat  **NOTE: deploy only**
+bash scripts/run_ci_locally.sh -j deploy | cat **NOTE: deploy only**
 
-bash scripts/run_ci_locally.sh  **NOTE: build and deploy**
+bash scripts/run_ci_locally.sh **NOTE: build and deploy**
 
-bash SKIP_MIGRATIONS=true ./scripts/run_ci_locally.sh   **NOTE: skip migrations/deploy**
+bash SKIP_MIGRATIONS=true ./scripts/run_ci_locally.sh **NOTE: skip
+migrations/deploy**
 
-bash scripts/run_ci_locally.sh -q | tee ci.log  **NOTE: normal red/green run (quiet with failures)**
+bash scripts/run_ci_locally.sh -q | tee ci.log **NOTE: normal red/green run
+(quiet with failures)**
 
-bash grep -n --color ERROR ci.log | head  **NOTE: when something fails**
+bash grep -n --color ERROR ci.log | head **NOTE: when something fails**
 
-bash awk 'NR>=start-30 && NR<=start+30' start=$(grep -n "Supabase" -m1 ci.log | cut -d: -f1) ci.log  **NOTE: if I need more info aroudn a specific error**
+bash awk 'NR>=start-30 && NR<=start+30' start=$(grep -n "Supabase" -m1 ci.log |
+cut -d: -f1) ci.log **NOTE: if I need more info aroudn a specific error**
 
-bash scripts/run_ci_locally.sh --job flutter-ci --verbose | tee flutter.log  **NOTE: to run a specific 'job' e.g. flutter-ci etc.**
----
+## bash scripts/run_ci_locally.sh --job flutter-ci --verbose | tee flutter.log **NOTE: to run a specific 'job' e.g. flutter-ci etc.**
 
 ## 1. Prerequisites
 
@@ -67,7 +70,7 @@ Advanced: call `act` directly
 ```bash
 act push \
   -W .github/workflows/ci.yml \
-  -P ubuntu-latest=ghcr.io/catthehacker/ubuntu:act-22.04 \
+  -P ubuntu-latest=ghcr.io/gmtfrombc/ci-base:latest \
   --container-architecture linux/amd64 \
   --env ACT=false \
   --secret-file .secrets
@@ -183,3 +186,10 @@ SKIP_MIGRATIONS=true ./scripts/run_ci_locally.sh
 ---
 
 Happy **offline-CI**! 🎉
+
+### Quick shortcut
+
+```bash
+make ci-local           # full CI
+make ci-local ARGS="-j fast"  # just fast job
+```

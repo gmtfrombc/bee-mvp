@@ -228,7 +228,7 @@ fi
 #    requested job is the Flutter CI "test" job for dramatically faster runs.
 # -------------------------------------------------------------------------
 # Default minimal image for backend/integration workflows
-DEFAULT_RUNNER_IMAGE="ghcr.io/catthehacker/ubuntu:act-22.04"
+DEFAULT_RUNNER_IMAGE="ghcr.io/gmtfrombc/ci-base:latest"
 # Flutter-optimised image (contains SDK $FLUTTER_VERSION and Android toolchain)
 FLUTTER_RUNNER_IMAGE="ghcr.io/instrumentisto/flutter:${FLUTTER_VERSION}-androidsdk35-r0"
 
