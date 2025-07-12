@@ -6,7 +6,7 @@ on:
 jobs:
   fast:
     runs-on: ubuntu-latest
-    container: ghcr.io/bee/ci-base:latest
+    container: ghcr.io/gmtfrombc/ci-base:2025-07-12
     env:
       ACT: "false"  # Overwritten by `act` locally if used
       FLUTTER_VERSION: "3.32.6"
