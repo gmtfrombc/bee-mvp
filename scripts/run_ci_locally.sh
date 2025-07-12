@@ -247,6 +247,7 @@ WORKFLOW_FILES=(
   ".github/workflows/flutter-ci.yml"         # Flutter CI
   ".github/workflows/jitai_model_ci.yml"     # JITAI Model CI
   ".github/workflows/lightgbm_export_ci.yml" # LightGBM TS Export CI
+  ".github/workflows/fast-tests.yml"         # Fast Tests (Flutter/Python)
 )
 
 # When a specific job is requested, keep only the workflow likely to contain it
@@ -264,6 +265,10 @@ if [[ -n "$JOB_FILTER" ]]; then
     train-dry-run)
       # JITAI Model CI – train-dry-run job
       WORKFLOW_FILES=(".github/workflows/jitai_model_ci.yml")
+      ;;
+    fast)
+      # Fast lane (pull request)
+      WORKFLOW_FILES=(".github/workflows/fast-tests.yml")
       ;;
     *)
       # fallback: keep existing list (acts like original behaviour)
