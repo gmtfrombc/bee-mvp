@@ -9,9 +9,10 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    container: ghcr.io/gmtfrombc/ci-base:2025-07-12
     env:
       ACT: 'false'  # CI default; the local `act` runner overwrites this
-      FLUTTER_VERSION: '3.32.1'  # Single source of truth for Flutter SDK
+      FLUTTER_VERSION: '3.32.6'  # Single source of truth for Flutter SDK
     
     steps:
     - uses: actions/checkout@v4
@@ -45,24 +46,27 @@ jobs:
     #   • Keep the action for real CI (env.ACT != 'true')
     #   • Provide a minimal manual install when ACT == 'true'
 
-    - name: Setup Flutter (GitHub CI)
+    - name: Skip Flutter setup (preinstalled)
       if: ${{ env.ACT != 'true' }}
-      uses: subosito/flutter-action@v2
-      with:
-        flutter-version: '${{ env.FLUTTER_VERSION }}'
+      run: echo "Flutter SDK preinstalled in container – skipping setup."
 
     - name: Install Flutter SDK (local ACT)
       if: ${{ env.ACT == 'true' }}
       run: |
-        set -euo pipefail
+        set -eu
         echo "🔧 Installing Flutter SDK for local ACT run..."
-        sudo apt-get update -y -qq >/dev/null
-        sudo apt-get install -y -qq curl git unzip xz-utils libglu1-mesa openjdk-11-jre-headless >/dev/null
-        # Clone stable channel (fast, cached by Docker layer on second run)
-        git clone --depth 1 --branch ${FLUTTER_VERSION} https://github.com/flutter/flutter.git /opt/flutter
-        echo "/opt/flutter/bin" >> "$GITHUB_PATH"
-        /opt/flutter/bin/flutter --version
-        
+        if [ -x /opt/flutter/bin/flutter ]; then
+          echo "Flutter SDK already present in container – skipping manual install."
+          /opt/flutter/bin/flutter --version
+        else
+          echo "No Flutter found in container, installing..."
+          apt-get update -y -qq >/dev/null
+          apt-get install -y -qq curl git unzip xz-utils libglu1-mesa openjdk-11-jre-headless >/dev/null
+          git clone --depth 1 --branch ${FLUTTER_VERSION} https://github.com/flutter/flutter.git /opt/flutter
+          echo "/opt/flutter/bin" >> "$GITHUB_PATH"
+          /opt/flutter/bin/flutter --version
+        fi
+
     - name: Get dependencies
       working-directory: ./app
       run: flutter pub get
@@ -87,8 +91,8 @@ jobs:
       working-directory: ./app
       run: |
         echo "📊 Verifying global coverage threshold (≥65%)..."
-        sudo apt-get update
-        sudo apt-get install -y lcov bc
+        apt-get update
+        apt-get install -y lcov bc
 
         # Generate HTML coverage for debugging (optional)
         genhtml coverage/lcov.info -o coverage/html
@@ -132,10 +136,12 @@ jobs:
   build-android:
     needs: test
     runs-on: ubuntu-latest
+    container: ghcr.io/gmtfrombc/ci-base:2025-07-12
     env:
       NEEDS_REAL_FIREBASE: false  # Set to 'true' when integration tests or Play Store deployment needed
       ACT: 'false'  # CI default; the local `act` runner overwrites this
-      FLUTTER_VERSION: '3.32.1'  # Single source of truth for Flutter SDK
+      FLUTTER_VERSION: '3.32.6'  # Single source of truth for Flutter SDK
+      SKIP_ANDROID_BUILD: 'true'  # Temporary: Skip APK build until Android SDK baked into image
     
     steps:
     - uses: actions/checkout@v4
@@ -227,20 +233,20 @@ jobs:
           echo "✅ CI-safe Firebase configuration created"
         fi
         
-    - name: Setup Flutter
-      uses: subosito/flutter-action@v2
-      with:
-        flutter-version: '${{ env.FLUTTER_VERSION }}'
-        
+    - name: Skip Flutter setup (preinstalled)
+      run: echo "Flutter SDK preinstalled in container – skipping setup."
+
     - name: Get dependencies
       working-directory: ./app
       run: flutter pub get
       
     - name: Build APK
+      if: ${{ env.SKIP_ANDROID_BUILD != 'true' }}
       working-directory: ./app
       run: flutter build apk --release
       
     - name: Upload APK
+      if: github.event_name == 'pull_request' && env.SKIP_ANDROID_BUILD != 'true'
       uses: actions/upload-artifact@v4.3.0
       with:
         name: app-release.apk
@@ -262,7 +268,7 @@ jobs:
     runs-on: macos-latest
     env:
       NEEDS_REAL_FIREBASE: false  # Set to 'true' when integration tests or TestFlight deployment needed
-      FLUTTER_VERSION: '3.32.1'  # Single source of truth for Flutter SDK
+      FLUTTER_VERSION: '3.32.6'  # Single source of truth for Flutter SDK
     
     steps:
     - uses: actions/checkout@v4

@@ -1,0 +1,77 @@
+name: Build & Publish CI Base Image
+
+on:
+  push:
+    paths:
+      - 'docker/ci-base/**'
+      - '.github/workflows/build-ci-base.yml'
+  pull_request:
+    paths:
+      - 'docker/ci-base/**'
+      - '.github/workflows/build-ci-base.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-push:
+    runs-on: ubuntu-latest
+    env:
+      GHCR_PAT: ${{ secrets.GHCR_PAT }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Debug GHCR_PAT availability
+        shell: bash
+        run: |
+          if [ -z "${{ secrets.GHCR_PAT }}" ]; then
+            echo "::notice title=PAT length::missing"
+          else
+            echo "::notice title=PAT length::non-empty"
+          fi
+
+      - name: Fail if PAT missing
+        shell: bash
+        run: |
+          if [ -z "${{ secrets.GHCR_PAT }}" ]; then
+            echo "::error ::GHCR_PAT is not set"
+            exit 1
+          fi
+
+      # Prefer a Personal Access Token if provided to bootstrap package creation
+      - name: Login to GHCR with PAT
+        if: ${{ env.GHCR_PAT != '' }}
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: gmtfrombc
+          password: ${{ secrets.GHCR_PAT }}
+
+      # Fallback to the default GITHUB_TOKEN once the package exists
+      - name: Login to GHCR with GITHUB_TOKEN
+        if: ${{ env.GHCR_PAT == '' }}
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push ci-base image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/ci-base/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/gmtfrombc/ci-base:latest
+            ghcr.io/gmtfrombc/ci-base:2025-07-12
+          cache-from: type=gha
+          cache-to: type=gha,mode=max 
