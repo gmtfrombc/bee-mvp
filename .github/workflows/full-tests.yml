@@ -1,0 +1,62 @@
+name: Full Test Suite
+
+on:
+  schedule:
+    - cron: '0 4 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  full:
+    name: Full Test Suite
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/gmtfrombc/ci-base:2025-07-12
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: bee_test
+        ports:
+          - 54322:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 10s --health-timeout 5s --health-retries 5
+    env:
+      TEST_DB_PASSWORD: postgres
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Secret Scan (gitleaks)
+        run: gitleaks detect --no-banner --redact --verbose --report-path gitleaks.report
+
+      - name: Flutter dependencies
+        working-directory: app
+        run: flutter pub get
+
+      - name: Flutter analyze
+        working-directory: app
+        run: flutter analyze --fatal-infos --fatal-warnings
+
+      - name: Flutter tests (full) with coverage
+        working-directory: app
+        run: flutter test --coverage
+
+      - name: Build Android debug APK (stub)
+        working-directory: app/android
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: Python tests
+        run: pytest -q
+
+      - name: Supabase Edge & RLS tests
+        run: deno test -A supabase/functions/tests
+
+      - name: Deno lint
+        run: deno lint 
