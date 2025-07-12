@@ -3,7 +3,7 @@
 # BEE Momentum Meter - Production Deployment Script
 # Epic 1.1 - Task T1.1.5.13
 
-set -e
+set -euo pipefail
 
 # Colors for output
 RED='\033[0;31m'

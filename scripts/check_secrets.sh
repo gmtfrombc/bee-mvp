@@ -29,7 +29,7 @@ function install_gitleaks() {
   # Fetch latest release download URL matching the pattern
   local latest_url
   latest_url=$(curl -s https://api.github.com/repos/gitleaks/gitleaks/releases/latest | \
-    jq -r --arg pattern "$pattern" '.assets[] | select(.name|test($pattern)) | .browser_download_url' | head -n 1)
+    jq -r --arg pattern "$pattern" '.assets[]? | select(.name | test($pattern)) | .browser_download_url' | head -n 1)
 
   if [[ -z "$latest_url" ]]; then
     echo -e "${RED}❌ Could not find a gitleaks binary via GitHub API for ${os}/${arch}.${RESET}"

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e
+set -euo pipefail
 
 # Auto‑provision .env if missing
 if [ ! -f app/.env ]; then

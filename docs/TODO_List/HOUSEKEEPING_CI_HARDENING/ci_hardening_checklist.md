@@ -40,11 +40,11 @@
 
 ## ☑️ Phase 3 – Harden Shell Scripts
 
-| #   | Task                                                                                                | Acceptance                         | Status     |
-| --- | --------------------------------------------------------------------------------------------------- | ---------------------------------- | ---------- |
-| 3.1 | Add `set -euo pipefail` to all project scripts                                                      | Fail fast on errors                | 🟡 Planned |
-| 3.2 | Patch `scripts/check_secrets.sh` & any `jq` calls with null-safe guards:<br>`jq -e '.[]? // empty'` | No more “Cannot iterate over null” | 🟡 Planned |
-| 3.3 | Audit Supabase CLI usage; export required env vars via `env:` in workflow                           | Secrets resolved at runtime        | 🟡 Planned |
+| #   | Task                                                                                                | Acceptance                         | Status      |
+| --- | --------------------------------------------------------------------------------------------------- | ---------------------------------- | ----------- |
+| 3.1 | Add `set -euo pipefail` to all project scripts                                                      | Fail fast on errors                | ✅ Complete |
+| 3.2 | Patch `scripts/check_secrets.sh` & any `jq` calls with null-safe guards:<br>`jq -e '.[]? // empty'` | No more “Cannot iterate over null” | ✅ Complete |
+| 3.3 | Audit Supabase CLI usage; export required env vars via `env:` in workflow                           | Secrets resolved at runtime        | ✅ Complete |
 
 ---
 
@@ -54,6 +54,7 @@
 | --- | --------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------ | ---------- |
 | 4.1 | **Fast job** (`on: pull_request`):<br>- `flutter analyze && flutter test --coverage`<br>- `pytest -q`<br>- `deno lint`<br>- `gitleaks detect` | Finishes < 5 min         | 🟡 Planned |
 | 4.2 | **Full job** (`on: schedule` + manual dispatch):<br>- Supabase Edge integration tests<br>- End-to-end tests                                   | Runs nightly / on demand | 🟡 Planned |
+| 4.3 | Add Android SDK & NDK into `ci-base`, then re-enable APK build & upload                                                                       | Entire suite runs green  | 🟡 Planned |
 
 ---
 
@@ -98,4 +99,4 @@
 ### Done ✓
 
 Merge the feature branch only when **all** jobs pass on GitHub _Actions_ **and**
-via `act`, and the checklist items are ticked off in the PR description.
+via `
