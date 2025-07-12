@@ -28,6 +28,16 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container: ghcr.io/gmtfrombc/ci-base:2025-07-12
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: test
+        ports: ["54322:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 10s --health-timeout 5s --health-retries 5
     env:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       # Test database credentials (not sensitive, but keeps GitGuardian happy)
@@ -117,16 +127,6 @@ jobs:
 
       # ---------- Database RLS Tests ----------
       # actionlint-disable-next-line expression-env
-      - if: ${{ env.SKIP_TERRAFORM != 'true' }}
-        name: Setup PostgreSQL
-        uses: ikalnytskyi/action-setup-postgres@v7
-        with:
-          postgres-version: '14'
-          username: 'postgres'
-          password: ${{ env.TEST_DB_PASSWORD }}
-          database: 'test'
-          port: 54322
-
       - name: Install Python dependencies
         run: |
           pip --version  # show current (24.0) Debian pip
