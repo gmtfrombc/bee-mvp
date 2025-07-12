@@ -1,5 +1,5 @@
 // embedding.ts – lightweight client to generate text embeddings via OpenAI or Vertex AI
-// deno-lint-ignore-file no-explicit-any
+// deno-lint-ignore-file no-explicit-any no-unused-vars
 
 import { getSupabaseClient } from './_shared/supabase_client.ts'
 

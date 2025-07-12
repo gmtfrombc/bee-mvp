@@ -1,3 +1,4 @@
+// deno-lint-ignore-file no-explicit-any
 import { getSupabaseClient } from "./supabase_client.ts";
 
 let supabase: Awaited<ReturnType<typeof getSupabaseClient>> | null = null;
@@ -12,7 +13,6 @@ async function client() {
 export async function recordLatency(path: string, ms: number): Promise<void> {
   if (Deno.env.get("DENO_TESTING") === "true") return; // skip in tests
   try {
-    // deno-lint-ignore no-explicit-any
     const db = await client() as any;
     await db
       .from("api_latency")

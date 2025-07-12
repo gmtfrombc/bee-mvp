@@ -1,0 +1,53 @@
+name: Fast Tests (Pull Request)
+
+on:
+  pull_request:
+
+jobs:
+  fast:
+    runs-on: ubuntu-latest
+    container: ghcr.io/gmtfrombc/ci-base:2025-07-12
+    env:
+      ACT: "false"  # Overwritten by `act` locally if used
+      FLUTTER_VERSION: "3.32.6"
+      NODE_VERSION: "20.9.0"
+    steps:
+      - uses: actions/checkout@v4
+
+      # ---------------- Secret Scan ----------------
+      - name: Secret Scan with Gitleaks
+        run: |
+          chmod +x scripts/check_secrets.sh
+          ./scripts/check_secrets.sh
+
+      # ---------------- Flutter (analyze + unit) ----------------
+      - name: Prepare Flutter Environment Files
+        working-directory: ./app
+        run: |
+          # .env used by the app – copy example for CI builds
+          cp .env.example .env
+          # Replace firebase_options.dart with CI-safe stub to avoid secrets
+          cp lib/firebase_options_ci.dart lib/firebase_options.dart
+
+      - name: Flutter Pub Get
+        working-directory: ./app
+        run: flutter pub get
+
+      - name: Flutter Analyze
+        working-directory: ./app
+        run: flutter analyze --fatal-warnings --fatal-infos
+
+      - name: Flutter Tests with Coverage
+        working-directory: ./app
+        run: flutter test --coverage
+
+      # ---------------- Python (pytest) ----------------
+      - name: Install Python test dependencies
+        run: pip install --break-system-packages -r tests/requirements-minimal.txt
+
+      - name: Run Python Unit Tests (API only)
+        run: pytest -q tests/api
+
+      # ---------------- Deno Lint ----------------
+      - name: Deno Lint (Supabase Edge Functions)
+        run: deno lint supabase/functions 
