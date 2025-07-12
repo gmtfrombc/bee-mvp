@@ -33,6 +33,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # ---------------- Prepare Flutter Environment ----------------
+      - name: Prepare Flutter Environment Files
+        working-directory: ./app
+        run: |
+          # Copy example env for CI builds
+          cp .env.example .env
+          # Provide stub Firebase options to satisfy import
+          cp lib/firebase_options_ci.dart lib/firebase_options.dart
+
       - name: Secret Scan (gitleaks)
         run: gitleaks detect --no-banner --redact --verbose --report-path gitleaks.report
 
