@@ -50,11 +50,11 @@
 
 ## ☑️ Phase 4 – Split Fast vs. Slow Tests
 
-| #   | Task                                                                                                                                          | Acceptance               | Status     |
-| --- | --------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------ | ---------- |
-| 4.1 | **Fast job** (`on: pull_request`):<br>- `flutter analyze && flutter test --coverage`<br>- `pytest -q`<br>- `deno lint`<br>- `gitleaks detect` | Finishes < 5 min         | 🟡 Planned |
-| 4.2 | **Full job** (`on: schedule` + manual dispatch):<br>- Supabase Edge integration tests<br>- End-to-end tests                                   | Runs nightly / on demand | 🟡 Planned |
-| 4.3 | Add Android SDK & NDK into `ci-base`, then re-enable APK build & upload                                                                       | Entire suite runs green  | 🟡 Planned |
+| #   | Task                                                                                                                                          | Acceptance               | Status      |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------ | ----------- |
+| 4.1 | **Fast job** (`on: pull_request`):<br>- `flutter analyze && flutter test --coverage`<br>- `pytest -q`<br>- `deno lint`<br>- `gitleaks detect` | Finishes < 5 min         | ✅ Complete |
+| 4.2 | **Full job** (`on: schedule` + manual dispatch):<br>- Supabase Edge integration tests<br>- End-to-end tests                                   | Runs nightly / on demand | 🟡 Planned  |
+| 4.3 | Add Android SDK & NDK into `ci-base`, then re-enable APK build & upload                                                                       | Entire suite runs green  | 🟡 Planned  |
 
 ---
 
