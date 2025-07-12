@@ -232,6 +232,38 @@ DEFAULT_RUNNER_IMAGE="ghcr.io/gmtfrombc/ci-base:latest"
 # Flutter-optimised image (contains SDK $FLUTTER_VERSION and Android toolchain)
 FLUTTER_RUNNER_IMAGE="ghcr.io/instrumentisto/flutter:${FLUTTER_VERSION}-androidsdk35-r0"
 
+# -------------------------------------------------------------------------
+# 🐳 Docker Daemon Health Check – fail fast instead of hanging indefinitely
+# -------------------------------------------------------------------------
+# On macOS if Docker Desktop is closed or the daemon is still starting, the
+# first CLI call (e.g., `docker info`) blocks for a long time.  We probe the
+# daemon with a 5-second timeout; on failure we abort early with a helpful
+# message so users aren’t left wondering whether the script froze.
+
+TIMEOUT_BIN=$(command -v timeout || command -v gtimeout || true)
+ping_docker() {
+  if [[ -n "$TIMEOUT_BIN" ]]; then
+    $TIMEOUT_BIN 5 docker info >/dev/null 2>&1
+  else
+    # Fallback when GNU coreutils not installed – manual timeout
+    docker info >/dev/null 2>&1 &
+    local pid=$!
+    sleep 5
+    if kill -0 "$pid" 2>/dev/null; then
+      kill "$pid" 2>/dev/null
+      return 124  # emulate timeout exit code
+    fi
+    wait "$pid"
+  fi
+}
+
+if ! ping_docker; then
+  echo "❌  Docker daemon is not responding within 5 seconds. Is Docker Desktop running?" >&2
+  exit 1
+fi
+
+# -------------------------------------------------------------------------
+
 if [[ "$JOB_FILTER" == "test" ]]; then
   # Use the heavier but pre-baked Flutter image when only Flutter tests run
   GITHUB_RUNNER_IMAGE="${FLUTTER_RUNNER_IMAGE}"
