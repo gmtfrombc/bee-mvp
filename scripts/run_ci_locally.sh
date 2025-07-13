@@ -200,7 +200,7 @@ fi
 # Optional: Skip Supabase migrations job manually by exporting SKIP_MIGRATIONS=true before running this script.
 
 # === ARG PARSING: capture -j/--job early so we can tweak workflow list ===
-JOB_FILTER=""
+JOB_FILTER="${JOB_FILTER:-}"
 PASSTHRU_ARGS=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
