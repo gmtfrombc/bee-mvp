@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'onboarding_controller.dart';
 import 'data/onboarding_repository.dart';
 import '../../core/providers/auth_provider.dart';
+import '../../core/services/scoring_service.dart';
 
 /// Controller that manages the final submission step of the onboarding flow.
 ///
@@ -27,9 +28,22 @@ class OnboardingCompletionController extends StateNotifier<AsyncValue<void>> {
     state = const AsyncValue.loading();
     try {
       final draft = _ref.read(onboardingControllerProvider);
+
+      // -------------------------------------------------------------------
+      // Compute personalisation tags (Motivation, Readiness, Coach Style)
+      // before sending the RPC as per Milestone M2.
+      // -------------------------------------------------------------------
+      final tags = ScoringService.computeTags(draft);
+      final tagsJson = tags.toJson();
+
       final repo = _ref.read(onboardingRepositoryProvider);
 
-      await repo.submit(draft: draft);
+      await repo.submit(
+        draft: draft,
+        motivationType: tagsJson['motivationType'] as String,
+        readinessLevel: tagsJson['readinessLevel'] as String,
+        coachStyle: tagsJson['coachStyle'] as String,
+      );
 
       // Mark onboarding complete in Supabase profile.
       final authService = await _ref.read(authServiceProvider.future);
