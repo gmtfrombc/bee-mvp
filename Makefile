@@ -1,6 +1,6 @@
 .PHONY: ci-local
 ci-local:
-	@bash scripts/run_ci_locally.sh $(ARGS) 
+	@JOB_FILTER=fast bash scripts/run_ci_locally.sh $(ARGS) 
 
 .PHONY: ci-fast
 ci-fast:

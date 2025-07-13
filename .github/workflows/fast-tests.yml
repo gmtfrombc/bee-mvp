@@ -15,6 +15,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # ---------------- Cache Flutter build artefacts ----------------
+      - name: Cache Dart & Flutter build artefacts
+        uses: actions/cache@v3
+        with:
+          path: app/.dart_tool
+          key: ${{ runner.os }}-dart-${{ hashFiles('app/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-dart-
+
       # ---------------- Secret Scan ----------------
       - name: Secret Scan with Gitleaks
         run: |
@@ -40,7 +49,7 @@ jobs:
 
       - name: Flutter Tests with Coverage
         working-directory: ./app
-        run: flutter test --coverage
+        run: flutter test --coverage --fail-fast
 
       # ---------------- Python (pytest) ----------------
       - name: Install Python test dependencies
@@ -49,7 +58,7 @@ jobs:
 
       - name: Run Python Unit Tests (API only)
         if: env.FAST_ONLY != 'true'
-        run: pytest -q tests/api
+        run: pytest -q -x tests/api
 
       # ---------------- Deno Lint ----------------
       - name: Deno Lint (Supabase Edge Functions)
