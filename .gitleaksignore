@@ -5,20 +5,16 @@
 7113de4dd4b2cbdc1676c8d0215c464ec5bda838:exposed_keys.txt:gcp-api-key:1
 7113de4dd4b2cbdc1676c8d0215c464ec5bda838:exposed_keys.txt:gcp-api-key:2
 7113de4dd4b2cbdc1676c8d0215c464ec5bda838:exposed_keys.txt:gcp-api-key:3
-
 # Pre-existing Supabase keys in .vscode/launch.json (development config)
 203fae29aaf400cd1b00bb1237bfb8020e7e96bb:.vscode/launch.json:real-supabase-anon-key:48
 203fae29aaf400cd1b00bb1237bfb8020e7e96bb:.vscode/launch.json:jwt:48
 c95c45afe6f22f1d808ebef2f60f05b7c2824fc7:.vscode/launch.json:real-supabase-anon-key:48
 c95c45afe6f22f1d808ebef2f60f05b7c2824fc7:.vscode/launch.json:jwt:48
-
 # Pre-existing GCP key in google-services.json (Android config)
 7eb7d47cbd53a64379056be800e2f0c3fec75b8e:app/android/app/google-services.json:gcp-api-key:18
-
 # Pre-existing Supabase keys in environment.dart (development config)
 3671b55c151a251d7a8668529fedf7bd0945ce8c:app/lib/core/config/environment.dart:real-supabase-anon-key:18
 3671b55c151a251d7a8668529fedf7bd0945ce8c:app/lib/core/config/environment.dart:jwt:18
-
 001258b8db216bc59691147a60b4c3da5a89dc5b:vulnerability-test.js:stripe-access-token:1
 05a30746d32338e2c8778850f95dbac6368a764f:docs/0_0_Core_docs/automated_workflows.md:flutter-dart-define-secrets:52
 05a30746d32338e2c8778850f95dbac6368a764f:docs/0_0_Core_docs/automated_workflows.md:flutter-dart-define-secrets:73
@@ -38,7 +34,6 @@ c95c45afe6f22f1d808ebef2f60f05b7c2824fc7:.vscode/launch.json:jwt:48
 268dcf10bae3569a84c3cdab4829bbedde68e268:app/backup/core/config/app_secrets.dart:flutter-dart-define-secrets:56
 26c513f5560a6dda53ab9366e7cc12c34cb411c7:supabase/functions/ai-coaching-engine/deno.lock:generic-api-key:97
 34d8a6cfea929c3a7199c26e35c8ff7462dd2333:app/backup/core/config/app_secrets.dart:flutter-dart-define-secrets:56
-3671b55c151a251d7a8668529fedf7bd0945ce8c:app/lib/core/config/environment.dart:jwt:18
 36dc014c2305b51ba990c0043e1758a9ff77da54:supabase/functions/deno.lock:generic-api-key:268
 3f742c4fd9e4297f2ac07bcf813bb9b40438faa6:docs/deployment_docs/6-1-25 deployment/deployment_quick_reference.md:generic-api-key:87
 3f742c4fd9e4297f2ac07bcf813bb9b40438faa6:docs/deployment_docs/6-1-25 deployment/deployment_quick_reference.md:supabase-access-token:191
