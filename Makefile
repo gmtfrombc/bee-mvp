@@ -23,7 +23,7 @@ ui-goldens:
 
 .PHONY: ci-lite
 ci-lite:
-	@echo "🚀 Running lightweight CI (lint + unit tests)"; \
-	cd app && flutter pub get >/dev/null; \
-	flutter analyze --fatal-warnings --fatal-infos; \
-	flutter test --exclude-tags golden; 
+	@echo "🚀 Running lightweight CI (lint + unit tests)"
+	@cd app && flutter pub get >/dev/null && \
+	  flutter analyze --fatal-warnings --fatal-infos && \
+	  flutter test --exclude-tags golden 
