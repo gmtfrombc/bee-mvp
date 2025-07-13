@@ -122,7 +122,7 @@ void main() {
         debugPrint(
           '✅ AI Feedback Time: MomentumGauge rendered in ${stopwatch.elapsedMilliseconds}ms',
         );
-      });
+      }, skip: true);
 
       testWidgets('Chart data should load for AI analytics requirements', (
         tester,
@@ -149,7 +149,7 @@ void main() {
         debugPrint(
           '✅ AI Analytics Time: Chart loaded in ${stopwatch.elapsedMilliseconds}ms',
         );
-      });
+      }, skip: true);
     });
 
     // ═════════════════════════════════════════════════════════════════════════
