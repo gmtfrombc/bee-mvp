@@ -25,8 +25,8 @@ tests with Supabase persistence and profile flagging.
 # [ ] Tapping **Finish** on `MedicalHistoryPage` triggers asynchronous submission. [ ] RPC `submit_onboarding` succeeds and returns `200`. [ ] AuthService.completeOnboarding()`is invoked; Supabase row shows`onboarding_complete
 
 true`.
-[ ] Local`OnboardingDraft`is cleared.
-[ ] Failure shows retry snackbar; success navigates to`LaunchController`.
+[x] Local`OnboardingDraft`is cleared.
+[x] Failure shows retry snackbar; success navigates to`LaunchController`.
 
 **Tasks**
 
@@ -45,17 +45,17 @@ true`.
 
 **Acceptance Criteria**
 
-[ ] Motivation type, readiness level, and coach style are computed exactly
-per`M1.11.5` rules. [ ] Tags are included in the RPC parameters and stored in
-Supabase. [ ] Computation completes in < 200 ms (p95).
+[x] Motivation type, readiness level, and coach style are computed exactly
+per`M1.11.5` rules. [x] Tags are included in the RPC parameters and stored in
+Supabase. [x] Computation completes in < 200 ms (p95).
 
 **Tasks**
 
-| ID   | Description                                                                               | Status     |
-| ---- | ----------------------------------------------------------------------------------------- | ---------- |
-| T2.1 | Expose `ScoringService.computeTags(OnboardingDraft)` (pure Dart).                         | ⚪ Planned |
-| T2.2 | Call service before submission; capture `motivationType`, `readinessLevel`, `coachStyle`. | ⚪ Planned |
-| T2.3 | Unit-test boundary values for tag mapping (≥ 95 % branch coverage).                       | ⚪ Planned |
+| ID   | Description                                                                               | Status  |
+| ---- | ----------------------------------------------------------------------------------------- | ------- |
+| T2.1 | Expose `ScoringService.computeTags(OnboardingDraft)` (pure Dart).                         | ✅ Done |
+| T2.2 | Call service before submission; capture `motivationType`, `readinessLevel`, `coachStyle`. | ✅ Done |
+| T2.3 | Unit-test boundary values for tag mapping (≥ 95 % branch coverage).                       | ✅ Done |
 
 ---
 
