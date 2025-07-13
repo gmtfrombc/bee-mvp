@@ -15,6 +15,9 @@ class OnboardingController extends StateNotifier<OnboardingDraft> {
   final _storage = OnboardingDraftStorageService();
   Timer? _autosaveTimer;
 
+  /// Cancel the periodic autosave timer (called after successful submission).
+  void cancelAutosave() => _autosaveTimer?.cancel();
+
   void _initPersistence() {
     // Restore asynchronously.
     _storage.loadDraft().then((saved) {

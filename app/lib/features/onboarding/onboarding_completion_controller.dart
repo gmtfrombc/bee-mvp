@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'onboarding_controller.dart';
 import 'data/onboarding_repository.dart';
+import '../../core/providers/auth_provider.dart';
 
 /// Controller that manages the final submission step of the onboarding flow.
 ///
@@ -30,6 +31,12 @@ class OnboardingCompletionController extends StateNotifier<AsyncValue<void>> {
 
       await repo.submit(draft: draft);
 
+      // Mark onboarding complete in Supabase profile.
+      final authService = await _ref.read(authServiceProvider.future);
+      await authService.completeOnboarding();
+
+      // Stop autosave timer now that draft is cleared.
+      _ref.read(onboardingControllerProvider.notifier).cancelAutosave();
       // On success we simply emit `data(null)`.
       state = const AsyncValue.data(null);
     } catch (err, st) {
