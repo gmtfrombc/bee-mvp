@@ -65,11 +65,31 @@ git push -u origin feature/your-task
 Open a Pull Request and wait for the CI checks in GitHub Actions – they mirror
 the local hooks for consistent results.
 
-## 5. Need Help?
+## 5. Local testing workflow (AI coder)
+
+Speed matters. Use the **inner loop** for rapid feedback and the **outer loop**
+once before every push:
+
+| Loop  | Command           | What it runs                                        | Typical time |
+| ----- | ----------------- | --------------------------------------------------- | ------------ |
+| Inner | `make smart-test` | Only the tests that changed in your last commit     | Seconds      |
+|       | `make ui-goldens` | Regenerates onboarding golden PNGs after UI tweaks  | Seconds      |
+| Outer | `make ci-fast`    | Full fast-test suite (Docker image identical to CI) | Minutes      |
+
+Push sequence
+
+```bash
+git fetch origin
+git rebase origin/main --autostash
+make ci-fast          # must be green
+git push --force-with-lease
+```
+
+## 6. Need Help?
 
 • **CI Failing locally?** Run `scripts/run_ci_locally.sh` (see
 `docs/0_0_Core_docs/ACT_CLI/README.md`). • **Pre-commit unknown command?**
-Ensure Homebrew (or your package manager) added it to `$PATH`. • **Gitleaks not
-found?** Check the install section above.
+Ensure your package manager added it to `$PATH`. • **Gitleaks not found?** Check
+the install section above.
 
 Happy contributing! 🚀

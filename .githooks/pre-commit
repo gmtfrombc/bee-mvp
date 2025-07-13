@@ -61,3 +61,24 @@ if [[ -n "$staged_py_files" ]]; then
 fi
 
 echo "✅ Ruff lint passed"
+
+# 5. Run Flutter analyzer on staged Dart files (app/ module)
+staged_dart_files=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.dart$' || true)
+if [[ -n "$staged_dart_files" ]]; then
+  if ! command -v flutter >/dev/null 2>&1; then
+    echo "❌  Flutter SDK is not installed or not in PATH. Install Flutter 3.3.2a before committing Dart code."
+    exit 1
+  fi
+
+  echo "🔍  Running Flutter analyze on Dart sources..."
+  pushd app >/dev/null
+  if ! flutter analyze --fatal-warnings --fatal-infos; then
+    echo "❌  Flutter analyze detected issues. Commit aborted."
+    popd >/dev/null
+    exit 1
+  fi
+  popd >/dev/null
+fi
+
+echo "✅ Flutter analyze passed"
+echo "💡 Tip: For a quick inner loop, run 'make smart-test' (or 'make ui-goldens' after UI tweaks) before committing."
