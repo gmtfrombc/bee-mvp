@@ -22,11 +22,15 @@ tests with Supabase persistence and profile flagging.
 
 **Acceptance Criteria**
 
-# [ ] Tapping **Finish** on `MedicalHistoryPage` triggers asynchronous submission. [ ] RPC `submit_onboarding` succeeds and returns `200`. [ ] AuthService.completeOnboarding()`is invoked; Supabase row shows`onboarding_complete
+# [x] Tapping **Finish** on `MedicalHistoryPage` triggers asynchronous submission.
 
-true`.
-[x] Local`OnboardingDraft`is cleared.
-[x] Failure shows retry snackbar; success navigates to`LaunchController`.
+# [x] RPC `submit_onboarding` succeeds and returns `200`.
+
+# [x] `AuthService.completeOnboarding()` is invoked; Supabase row shows `onboarding_complete = true`.
+
+# [x] Local `OnboardingDraft` is cleared.
+
+# [x] Failure shows retry snackbar; success navigates to `LaunchController`.
 
 **Tasks**
 
@@ -45,8 +49,8 @@ true`.
 
 **Acceptance Criteria**
 
-[x] Motivation type, readiness level, and coach style are computed exactly
-per`M1.11.5` rules. [x] Tags are included in the RPC parameters and stored in
+[x] Motivation type, readiness level, and coach style are computed exactly per
+`M1.11.5` rules. [x] Tags are included in the RPC parameters and stored in
 Supabase. [x] Computation completes in < 200 ms (p95).
 
 **Tasks**
