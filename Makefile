@@ -20,3 +20,10 @@ smart-test:
 ui-goldens:
 	@cd app && flutter test --update-goldens \
 	  test/features/onboarding/ui/onboarding_pages_golden_test.dart 
+
+.PHONY: ci-lite
+ci-lite:
+	@echo "🚀 Running lightweight CI (lint + unit tests)"; \
+	cd app && flutter pub get >/dev/null; \
+	flutter analyze --fatal-warnings --fatal-infos; \
+	flutter test --tags "unit & !golden"; 
