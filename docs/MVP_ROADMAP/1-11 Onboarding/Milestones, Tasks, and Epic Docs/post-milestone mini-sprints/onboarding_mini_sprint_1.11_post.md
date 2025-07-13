@@ -30,14 +30,14 @@ true`.
 
 **Tasks**
 
-| ID   | Description                                                         | Status     |
-| ---- | ------------------------------------------------------------------- | ---------- |
-| T1.1 | Add `OnboardingCompletionController` (handles loading/error state). | ✅ Done    |
-| T1.2 | Invoke `onboardingRepository.submit()` with current draft.          | ✅ Done    |
-| T1.3 | After success call `authService.completeOnboarding()`.              | ✅ Done    |
-| T1.4 | Clear `OnboardingDraftStorageService` and cancel autosave timer.    | ✅ Done    |
-| T1.5 | Replace `Navigator.pop()` in `MedicalHistoryPage` with new handler. | ⚪ Planned |
-| T1.6 | Add snackbar + progress indicator widget.                           | ⚪ Planned |
+| ID   | Description                                                         | Status  |
+| ---- | ------------------------------------------------------------------- | ------- |
+| T1.1 | Add `OnboardingCompletionController` (handles loading/error state). | ✅ Done |
+| T1.2 | Invoke `onboardingRepository.submit()` with current draft.          | ✅ Done |
+| T1.3 | After success call `authService.completeOnboarding()`.              | ✅ Done |
+| T1.4 | Clear `OnboardingDraftStorageService` and cancel autosave timer.    | ✅ Done |
+| T1.5 | Replace `Navigator.pop()` in `MedicalHistoryPage` with new handler. | ✅ Done |
+| T1.6 | Add snackbar + progress indicator widget.                           | ✅ Done |
 
 ---
 
