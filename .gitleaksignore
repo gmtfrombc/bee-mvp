@@ -17,7 +17,7 @@ c95c45afe6f22f1d808ebef2f60f05b7c2824fc7:.vscode/launch.json:jwt:48
 
 # Pre-existing Supabase keys in environment.dart (development config)
 3671b55c151a251d7a8668529fedf7bd0945ce8c:app/lib/core/config/environment.dart:real-supabase-anon-key:18
-3671b55c151a251d7a8668529fedf7bd0945ce8c:app/lib/core/config/environment.dart:jwt:18 
+3671b55c151a251d7a8668529fedf7bd0945ce8c:app/lib/core/config/environment.dart:jwt:18
 
 001258b8db216bc59691147a60b4c3da5a89dc5b:vulnerability-test.js:stripe-access-token:1
 05a30746d32338e2c8778850f95dbac6368a764f:docs/0_0_Core_docs/automated_workflows.md:flutter-dart-define-secrets:52
@@ -134,4 +134,4 @@ f9bb5b5cc2dfe4010229b8f9ecb95e427cb3af38:tests/db/test_rls.py:hashicorp-tf-passw
 fb81886951fbba511a66a8ddcab788af0eb3a60c:docs/deployment_docs/6-1-25 deployment/deployment_quick_reference.md:generic-api-key:87
 fb81886951fbba511a66a8ddcab788af0eb3a60c:docs/deployment_docs/6-1-25 deployment/deployment_quick_reference.md:supabase-access-token:191
 fee3ec5a8d0b1bba1e8cd16370d3d89427423b62:supabase_test.js:jwt:1
-fee3ec5a8d0b1bba1e8cd16370d3d89427423b62:supabase_test.js:real-supabase-anon-key:1 
+fee3ec5a8d0b1bba1e8cd16370d3d89427423b62:supabase_test.js:real-supabase-anon-key:1
