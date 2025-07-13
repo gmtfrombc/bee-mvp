@@ -14,4 +14,4 @@ if ! make ci-lite; then
   exit 1
 fi
 
-echo "✅ Local CI passed – proceeding with push." 
+echo "✅ ci-lite passed – proceeding with push." 
