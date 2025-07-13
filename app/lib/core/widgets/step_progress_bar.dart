@@ -51,7 +51,10 @@ class StepProgressBar extends StatelessWidget {
           // Label -----------------------------------------------------------
           Text(
             '$displayedStep/$safeTotal',
-            style: Theme.of(context).textTheme.labelMedium,
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+              color: Theme.of(context).colorScheme.onSurface,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
       ),
