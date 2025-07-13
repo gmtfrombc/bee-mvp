@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/services/responsive_service.dart';
 import '../../../core/widgets/likert_selector.dart';
+import '../../../core/widgets/step_progress_bar.dart';
 import '../../../l10n/s.dart';
 import '../models/onboarding_draft.dart';
 import '../onboarding_controller.dart';
@@ -39,6 +40,8 @@ class ReadinessPage extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            const StepProgressBar(currentStep: 3, totalSteps: 6),
+            SizedBox(height: spacing),
             // Q10: Priority Selection
             _buildPrioritySection(context, controller, draft, spacing, theme),
 

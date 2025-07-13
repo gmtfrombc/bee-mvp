@@ -366,7 +366,7 @@ if [[ "$JOB_FILTER" == "fast" ]]; then
   EVENT="pull_request"
 fi
 
-ACT_CMD=(act $EVENT "${WF_ARGS[@]}" -P ubuntu-latest=${GITHUB_RUNNER_IMAGE} --container-architecture linux/amd64 --env SKIP_UPLOAD_ARTIFACTS=true --env SKIP_TERRAFORM=${SKIP_TERRAFORM:-false} --secret-file "$SECRETS_FILE")
+ACT_CMD=(act $EVENT "${WF_ARGS[@]}" -P ubuntu-latest=${GITHUB_RUNNER_IMAGE} --container-architecture linux/amd64 --env SKIP_UPLOAD_ARTIFACTS=true --env SKIP_TERRAFORM=${SKIP_TERRAFORM:-false} --env FAST_ONLY=${FAST_ONLY:-false} --secret-file "$SECRETS_FILE")
 
 # Always run act in verbose mode unless user already provided a -v/--verbose flag
 if [[ "$*" != *"-v"* && "$*" != *"--verbose"* ]]; then

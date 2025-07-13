@@ -28,16 +28,22 @@ String? _onboardingStepGuard(BuildContext context, int step) {
     listen: false,
   ).read(onboardingControllerProvider.notifier);
 
-  if (step >= 1 && !controller.isStep1Complete) return kOnboardingStep1Route;
+  if (step >= 1 && !controller.isStep1Complete) {
+    return kOnboardingStep1Route;
+  }
+
   if (step >= 2 && !controller.isStep2Complete) {
     return kOnboardingStep2Route;
   }
+
   if (step >= 3 && !controller.isReadinessComplete) {
     return kOnboardingStep3Route;
   }
+
   if (step >= 4 && !controller.isMindsetComplete) {
     return kOnboardingStep4Route;
   }
+
   if (step >= 5 && !controller.isGoalSetupComplete) {
     return kOnboardingStep5Route;
   }

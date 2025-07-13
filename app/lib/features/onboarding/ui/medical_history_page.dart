@@ -6,6 +6,7 @@ import '../../../core/services/responsive_service.dart';
 import '../../../core/widgets/onboarding_submission_snackbar.dart';
 import '../onboarding_completion_controller.dart';
 import '../onboarding_controller.dart';
+import '../../../core/widgets/step_progress_bar.dart';
 
 /// Onboarding step for selecting relevant medical conditions (Section 6).
 class MedicalHistoryPage extends ConsumerWidget {
@@ -27,6 +28,12 @@ class MedicalHistoryPage extends ConsumerWidget {
       appBar: AppBar(title: const Text('Medical History')),
       body: CustomScrollView(
         slivers: [
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: ResponsiveService.getMediumPadding(context),
+              child: const StepProgressBar(currentStep: 6, totalSteps: 6),
+            ),
+          ),
           SliverPadding(
             padding: ResponsiveService.getMediumPadding(context),
             sliver: SliverGrid(

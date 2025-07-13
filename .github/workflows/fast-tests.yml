@@ -11,6 +11,7 @@ jobs:
       ACT: "false"  # Overwritten by `act` locally if used
       FLUTTER_VERSION: "3.32.6"
       NODE_VERSION: "20.9.0"
+      FAST_ONLY: "false"
     steps:
       - uses: actions/checkout@v4
 
@@ -43,11 +44,14 @@ jobs:
 
       # ---------------- Python (pytest) ----------------
       - name: Install Python test dependencies
+        if: env.FAST_ONLY != 'true'
         run: pip install --break-system-packages -r tests/requirements-minimal.txt
 
       - name: Run Python Unit Tests (API only)
+        if: env.FAST_ONLY != 'true'
         run: pytest -q tests/api
 
       # ---------------- Deno Lint ----------------
       - name: Deno Lint (Supabase Edge Functions)
+        if: env.FAST_ONLY != 'true'
         run: deno lint supabase/functions 
