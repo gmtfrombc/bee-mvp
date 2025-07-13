@@ -11,6 +11,7 @@ jobs:
       ACT: "false"  # Overwritten by `act` locally if used
       FLUTTER_VERSION: "3.32.6"
       NODE_VERSION: "20.9.0"
+      FAST_ONLY: "false"
     steps:
       - uses: actions/checkout@v4
 
