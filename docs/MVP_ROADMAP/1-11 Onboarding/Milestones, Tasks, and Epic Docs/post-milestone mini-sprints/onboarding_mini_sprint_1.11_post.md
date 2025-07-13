@@ -49,8 +49,8 @@ tests with Supabase persistence and profile flagging.
 
 **Acceptance Criteria**
 
-[x] Motivation type, readiness level, and coach style are computed exactly
-per`M1.11.5` rules. [x] Tags are included in the RPC parameters and stored in
+[x] Motivation type, readiness level, and coach style are computed exactly per
+`M1.11.5` rules. [x] Tags are included in the RPC parameters and stored in
 Supabase. [x] Computation completes in < 200 ms (p95).
 
 **Tasks**
