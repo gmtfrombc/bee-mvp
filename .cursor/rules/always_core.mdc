@@ -1,24 +1,52 @@
----
-description: 
-globs: 
-alwaysApply: true
----
-rule_type: always
----
+## rule_type: always
+
+# 🧠 Standard Workflow
+
+1. Create a feature branch named after the task
+   - e.g. `epic-1.12/T1-xyz`.
+
+2. Rebase early, rebase often **before every push**
+
+   ```bash
+   git fetch origin       # always refresh main
+   git rebase origin/main --autostash
+   ```
+
+   This surfaces conflicts while context is fresh and keeps history linear.
+
+3. Commit as usual (the pre-commit hook auto-formats, lints, runs gitleaks,\
+   and aborts if any `<<<<<<<`, `=======`, `>>>>>>>` markers are present).
+
+4. Run local CI (pick one):
+
+   • Fast lane  `make ci-fast` # runs fast-tests (≈5 min) • Full matrix
+   `make ci-local`
+
+   A local green guarantees a remote green because the helper script spins up
+   the same Docker image GitHub CI uses.
+
+5. Push (`git push --force-with-lease` if rebased), open a PR, wait for **Fast
+   Tests** (< 5 min) to pass, then squash-merge to `main`.
+
+6. **Full Tests** run automatically on `main` overnight.
+
 # 🧠 Core Coding Rules
-- Always plan first: provide a step-by-step **plan** before modifying code. Wait for user approval.
-- Use **Chain-of-Thought reasoning** for complex tasks. Think aloud before executing.
-- Check for existing functions/services/widgets before writing new code. Avoid duplication.
-- Never prompt the user to run terminal commands. Use `--non-interactive` flags if needed.
+
+- Always plan first: provide a step-by-step **plan** before modifying code. Wait
+  for user approval.
+- Use **Chain-of-Thought reasoning** for complex tasks. Think aloud before
+  executing.
+- Check for existing functions/services/widgets before writing new code. Avoid
+  duplication.
+- Never prompt the user to run terminal commands. Use `--non-interactive` flags
+  if needed.
 - Supabase secrets ENV file lives at `~/.bee_secrets/supabase.env`
 - Use Flutter SDK **3.3.2a** with **Riverpod v2** only.
 - Use `--fatal-warnings`; null-safety is enforced project-wide.
 
 # 🧠 Further Reference
 
-Further reference (open on demand):
-• docs/architecture/bee_mvp_tech_overview.md      – full architecture & SLAs
-• docs/architecture/component_governance.md       – component size & patterns
-• ocs/MVP_ROADMAP/bee_project_plan_mvp_FINAL.md   – MVP roadmap & epics
-
-
+Further reference (open on demand): • docs/architecture/bee_mvp_tech_overview.md
+– full architecture & SLAs • docs/architecture/component_governance.md –
+component size & patterns • ocs/MVP_ROADMAP/bee_project_plan_mvp_FINAL.md – MVP
+roadmap & epics

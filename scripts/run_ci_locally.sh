@@ -200,7 +200,7 @@ fi
 # Optional: Skip Supabase migrations job manually by exporting SKIP_MIGRATIONS=true before running this script.
 
 # === ARG PARSING: capture -j/--job early so we can tweak workflow list ===
-JOB_FILTER=""
+JOB_FILTER="${JOB_FILTER:-}"
 PASSTHRU_ARGS=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -360,7 +360,13 @@ for wf in "${WORKFLOW_FILES[@]}"; do
   WF_ARGS+=( -W "$wf" )
 done
 
-ACT_CMD=(act push "${WF_ARGS[@]}" -P ubuntu-latest=${GITHUB_RUNNER_IMAGE} --container-architecture linux/amd64 --env SKIP_UPLOAD_ARTIFACTS=true --env SKIP_TERRAFORM=${SKIP_TERRAFORM:-false} --secret-file "$SECRETS_FILE")
+# Determine GitHub event for act – some workflows (e.g., fast-tests) trigger only on pull_request.
+EVENT="push"
+if [[ "$JOB_FILTER" == "fast" ]]; then
+  EVENT="pull_request"
+fi
+
+ACT_CMD=(act $EVENT "${WF_ARGS[@]}" -P ubuntu-latest=${GITHUB_RUNNER_IMAGE} --container-architecture linux/amd64 --env SKIP_UPLOAD_ARTIFACTS=true --env SKIP_TERRAFORM=${SKIP_TERRAFORM:-false} --secret-file "$SECRETS_FILE")
 
 # Always run act in verbose mode unless user already provided a -v/--verbose flag
 if [[ "$*" != *"-v"* && "$*" != *"--verbose"* ]]; then

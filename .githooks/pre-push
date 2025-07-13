@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -e
+
+# Prevent infinite loop if hook triggered by automated CI.
+if [[ -n "$CI" ]]; then
+  exit 0
+fi
+
+echo "🚦 Pre-push: running fast local CI (make ci-fast)…"
+
+if ! make ci-fast; then
+  echo "❌️ Local CI failed – push aborted. Fix issues and commit again."
+  exit 1
+fi
+
+echo "✅ Local CI passed – proceeding with push." 
