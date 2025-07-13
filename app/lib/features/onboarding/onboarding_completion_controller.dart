@@ -1,5 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'onboarding_controller.dart';
+import 'data/onboarding_repository.dart';
+
 /// Controller that manages the final submission step of the onboarding flow.
 ///
 /// Exposes an [AsyncValue] so the UI can reactively show a loading spinner,
@@ -10,16 +13,22 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// (T1.2 – T1.4). For now we provide a stubbed implementation so the UI layer
 /// and tests can be built incrementally.
 class OnboardingCompletionController extends StateNotifier<AsyncValue<void>> {
-  OnboardingCompletionController() : super(const AsyncValue.data(null)); // idle
+  OnboardingCompletionController(this._ref)
+    : super(const AsyncValue.data(null)); // idle
+
+  final Ref _ref;
 
   /// Kick off the submission pipeline.
   ///
-  /// Currently stubbed with a short delay. Will be replaced in T1.2.
+  /// Invokes [OnboardingRepository.submit] with the current [OnboardingDraft]
+  /// retrieved from [onboardingControllerProvider].
   Future<void> submit() async {
     state = const AsyncValue.loading();
     try {
-      // TODO(T1.2): integrate with OnboardingRepository & AuthService
-      await Future.delayed(const Duration(milliseconds: 300));
+      final draft = _ref.read(onboardingControllerProvider);
+      final repo = _ref.read(onboardingRepositoryProvider);
+
+      await repo.submit(draft: draft);
 
       // On success we simply emit `data(null)`.
       state = const AsyncValue.data(null);
@@ -32,5 +41,5 @@ class OnboardingCompletionController extends StateNotifier<AsyncValue<void>> {
 /// Riverpod provider exposing the [OnboardingCompletionController].
 final onboardingCompletionControllerProvider =
     StateNotifierProvider<OnboardingCompletionController, AsyncValue<void>>(
-      (ref) => OnboardingCompletionController(),
+      (ref) => OnboardingCompletionController(ref),
     );

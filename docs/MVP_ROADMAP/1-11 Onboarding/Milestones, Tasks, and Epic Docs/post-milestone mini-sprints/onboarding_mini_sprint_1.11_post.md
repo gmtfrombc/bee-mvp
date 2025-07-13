@@ -22,10 +22,8 @@ tests with Supabase persistence and profile flagging.
 
 **Acceptance Criteria**
 
-[ ] Tapping **Finish** on `MedicalHistoryPage` triggers asynchronous submission.
-[ ] RPC `submit_onboarding` succeeds and returns `200`. [ ]
-AuthService.completeOnboarding()`is invoked; Supabase row shows`onboarding_complete
-=
+# [ ] Tapping **Finish** on `MedicalHistoryPage` triggers asynchronous submission. [ ] RPC `submit_onboarding` succeeds and returns `200`. [ ] AuthService.completeOnboarding()`is invoked; Supabase row shows`onboarding_complete
+
 true`.
 [ ] Local`OnboardingDraft`is cleared.
 [ ] Failure shows retry snackbar; success navigates to`LaunchController`.
@@ -35,7 +33,7 @@ true`.
 | ID   | Description                                                         | Status     |
 | ---- | ------------------------------------------------------------------- | ---------- |
 | T1.1 | Add `OnboardingCompletionController` (handles loading/error state). | ✅ Done    |
-| T1.2 | Invoke `onboardingRepository.submit()` with current draft.          | ⚪ Planned |
+| T1.2 | Invoke `onboardingRepository.submit()` with current draft.          | ✅ Done    |
 | T1.3 | After success call `authService.completeOnboarding()`.              | ⚪ Planned |
 | T1.4 | Clear `OnboardingDraftStorageService` and cancel autosave timer.    | ⚪ Planned |
 | T1.5 | Replace `Navigator.pop()` in `MedicalHistoryPage` with new handler. | ⚪ Planned |
