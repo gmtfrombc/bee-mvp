@@ -6,9 +6,10 @@ if [[ -n "$CI" ]]; then
   exit 0
 fi
 
-echo "🚦 Pre-push: running fast local CI (make ci-fast)…"
+# Use the lightweight CI target for quick feedback before pushing.
+echo "🚦 Pre-push: running lightweight local CI (make ci-lite)…"
 
-if ! make ci-fast; then
+if ! make ci-lite; then
   echo "❌️ Local CI failed – push aborted. Fix issues and commit again."
   exit 1
 fi
