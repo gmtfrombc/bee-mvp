@@ -7,6 +7,7 @@ import 'readiness_page.dart';
 import '../onboarding_controller.dart';
 import '../../../core/mixins/input_validator.dart';
 import '../../../core/widgets/step_progress_bar.dart';
+import 'package:app/core/widgets/can_pop_scope.dart';
 
 /// Onboarding step 2 – lets users pick 1–5 lifestyle preference areas.
 class PreferencesPage extends ConsumerWidget {
@@ -19,44 +20,46 @@ class PreferencesPage extends ConsumerWidget {
 
     final spacing = ResponsiveService.getSmallSpacing(context);
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Your Preferences')),
-      body: Padding(
-        padding: ResponsiveService.getMediumPadding(context),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const StepProgressBar(currentStep: 2, totalSteps: 6),
-            SizedBox(height: spacing),
-            _PreferenceChips(
-              selectedKeys: draft.preferences,
-              onToggle: controller.togglePreference,
-              spacing: spacing,
-            ),
-            SizedBox(height: spacing),
-            if (InputValidatorUtils.preferences(draft.preferences) != null)
-              Text(
-                InputValidatorUtils.preferences(draft.preferences)!,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.error,
-                ),
+    return CanPopScope(
+      child: Scaffold(
+        appBar: AppBar(title: const Text('Your Preferences')),
+        body: Padding(
+          padding: ResponsiveService.getMediumPadding(context),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const StepProgressBar(currentStep: 2, totalSteps: 6),
+              SizedBox(height: spacing),
+              _PreferenceChips(
+                selectedKeys: draft.preferences,
+                onToggle: controller.togglePreference,
+                spacing: spacing,
               ),
-            SizedBox(height: spacing * 3),
-            ElevatedButton(
-              key: const ValueKey('continue_button'),
-              onPressed:
-                  draft.preferences.isNotEmpty
-                      ? () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const ReadinessPage(),
-                          ),
-                        );
-                      }
-                      : null,
-              child: const Text('Continue'),
-            ),
-          ],
+              SizedBox(height: spacing),
+              if (InputValidatorUtils.preferences(draft.preferences) != null)
+                Text(
+                  InputValidatorUtils.preferences(draft.preferences)!,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.error,
+                  ),
+                ),
+              SizedBox(height: spacing * 3),
+              ElevatedButton(
+                key: const ValueKey('continue_button'),
+                onPressed:
+                    draft.preferences.isNotEmpty
+                        ? () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const ReadinessPage(),
+                            ),
+                          );
+                        }
+                        : null,
+                child: const Text('Continue'),
+              ),
+            ],
+          ),
         ),
       ),
     );

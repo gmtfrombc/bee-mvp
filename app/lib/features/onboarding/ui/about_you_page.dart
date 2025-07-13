@@ -8,6 +8,7 @@ import '../../../core/services/responsive_service.dart';
 import '../onboarding_controller.dart';
 import '../../../core/mixins/input_validator.dart';
 import '../../../core/widgets/step_progress_bar.dart';
+import 'package:app/core/widgets/can_pop_scope.dart';
 
 /// First onboarding page collecting basic demographic information.
 class AboutYouPage extends ConsumerStatefulWidget {
@@ -41,83 +42,86 @@ class _AboutYouPageState extends ConsumerState<AboutYouPage> {
       _dobTextController.text = DateFormat.yMd().format(draft.dateOfBirth!);
     }
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Tell us about you')),
-      body: SingleChildScrollView(
-        padding: ResponsiveService.getMediumPadding(context),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const StepProgressBar(currentStep: 1, totalSteps: 6),
-              SizedBox(height: spacing),
-              // Date of Birth -------------------------------------------------
-              GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () => _selectDob(context, controller.updateDateOfBirth),
-                child: AbsorbPointer(
-                  child: TextFormField(
-                    controller: _dobTextController,
-                    decoration: const InputDecoration(
-                      labelText: 'Date of Birth',
-                      hintText: 'Select your birth date',
+    return CanPopScope(
+      child: Scaffold(
+        appBar: AppBar(title: const Text('Tell us about you')),
+        body: SingleChildScrollView(
+          padding: ResponsiveService.getMediumPadding(context),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const StepProgressBar(currentStep: 1, totalSteps: 6),
+                SizedBox(height: spacing),
+                // Date of Birth -------------------------------------------------
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap:
+                      () => _selectDob(context, controller.updateDateOfBirth),
+                  child: AbsorbPointer(
+                    child: TextFormField(
+                      controller: _dobTextController,
+                      decoration: const InputDecoration(
+                        labelText: 'Date of Birth',
+                        hintText: 'Select your birth date',
+                      ),
+                      validator: (_) => _dobValidator(draft.dateOfBirth),
+                      readOnly: true,
                     ),
-                    validator: (_) => _dobValidator(draft.dateOfBirth),
-                    readOnly: true,
                   ),
                 ),
-              ),
-              SizedBox(height: spacing),
+                SizedBox(height: spacing),
 
-              // Gender -------------------------------------------------------
-              DropdownButtonFormField<String>(
-                value: draft.gender,
-                decoration: const InputDecoration(labelText: 'Gender'),
-                items: const [
-                  DropdownMenuItem(value: 'male', child: Text('Male')),
-                  DropdownMenuItem(value: 'female', child: Text('Female')),
-                  DropdownMenuItem(
-                    value: 'non_binary',
-                    child: Text('Non-binary'),
-                  ),
-                  DropdownMenuItem(
-                    value: 'prefer_not_to_say',
-                    child: Text('Prefer not to say'),
-                  ),
-                ],
-                onChanged: controller.updateGender,
-                validator:
-                    (val) => (val == null || val.isEmpty) ? 'Required' : null,
-              ),
-              SizedBox(height: spacing),
-
-              // Culture ------------------------------------------------------
-              TextFormField(
-                initialValue: draft.culture,
-                decoration: const InputDecoration(
-                  labelText: 'Culture',
-                  hintText: 'e.g. Colombian-American',
+                // Gender -------------------------------------------------------
+                DropdownButtonFormField<String>(
+                  value: draft.gender,
+                  decoration: const InputDecoration(labelText: 'Gender'),
+                  items: const [
+                    DropdownMenuItem(value: 'male', child: Text('Male')),
+                    DropdownMenuItem(value: 'female', child: Text('Female')),
+                    DropdownMenuItem(
+                      value: 'non_binary',
+                      child: Text('Non-binary'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'prefer_not_to_say',
+                      child: Text('Prefer not to say'),
+                    ),
+                  ],
+                  onChanged: controller.updateGender,
+                  validator:
+                      (val) => (val == null || val.isEmpty) ? 'Required' : null,
                 ),
-                maxLength: 64,
-                onChanged: controller.updateCulture,
-              ),
-              SizedBox(height: spacing * 2),
+                SizedBox(height: spacing),
 
-              // Continue button ---------------------------------------------
-              ElevatedButton(
-                key: const ValueKey('continue_button'),
-                onPressed:
-                    controller.isStep1Complete
-                        ? () {
-                          if (_formKey.currentState?.validate() ?? false) {
-                            context.push(kOnboardingStep2Route);
+                // Culture ------------------------------------------------------
+                TextFormField(
+                  initialValue: draft.culture,
+                  decoration: const InputDecoration(
+                    labelText: 'Culture',
+                    hintText: 'e.g. Colombian-American',
+                  ),
+                  maxLength: 64,
+                  onChanged: controller.updateCulture,
+                ),
+                SizedBox(height: spacing * 2),
+
+                // Continue button ---------------------------------------------
+                ElevatedButton(
+                  key: const ValueKey('continue_button'),
+                  onPressed:
+                      controller.isStep1Complete
+                          ? () {
+                            if (_formKey.currentState?.validate() ?? false) {
+                              context.push(kOnboardingStep2Route);
+                            }
                           }
-                        }
-                        : null,
-                child: const Text('Continue'),
-              ),
-            ],
+                          : null,
+                  child: const Text('Continue'),
+                ),
+              ],
+            ),
           ),
         ),
       ),
