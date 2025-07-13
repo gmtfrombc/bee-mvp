@@ -47,7 +47,7 @@ class OnboardingCompletionController extends StateNotifier<AsyncValue<void>> {
 
       // Stop autosave timer now that draft is cleared.
       _ref.read(onboardingControllerProvider.notifier).cancelAutosave();
-      // Emit success.
+      // On success we simply emit `data(null)`.
       state = const AsyncValue.data(null);
     } catch (err, st) {
       state = AsyncValue.error(err, st);
