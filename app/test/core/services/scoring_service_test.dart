@@ -12,9 +12,7 @@ void main() {
         motivationReason: 'feel_better',
         satisfactionOutcome: 'proud',
       );
-
       final tags = ScoringService.computeTags(draft);
-
       expect(tags.readinessLevel, ReadinessLevel.high);
       expect(tags.coachStyle, CoachStyle.cheerleader);
       expect(tags.motivationType, MotivationType.internal);
