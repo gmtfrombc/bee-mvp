@@ -8,6 +8,7 @@ import '../../../l10n/s.dart';
 import '../models/onboarding_draft.dart';
 import '../onboarding_controller.dart';
 import 'mindset_page.dart';
+import 'package:app/core/widgets/can_pop_scope.dart';
 
 /// Onboarding step for readiness and confidence assessment (Q10-12).
 ///
@@ -33,33 +34,35 @@ class ReadinessPage extends ConsumerWidget {
     final spacing = ResponsiveService.getMediumSpacing(context);
     final theme = Theme.of(context);
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Readiness & Priorities')),
-      body: SingleChildScrollView(
-        padding: ResponsiveService.getMediumPadding(context),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const StepProgressBar(currentStep: 3, totalSteps: 6),
-            SizedBox(height: spacing),
-            // Q10: Priority Selection
-            _buildPrioritySection(context, controller, draft, spacing, theme),
+    return CanPopScope(
+      child: Scaffold(
+        appBar: AppBar(title: const Text('Readiness & Priorities')),
+        body: SingleChildScrollView(
+          padding: ResponsiveService.getMediumPadding(context),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const StepProgressBar(currentStep: 3, totalSteps: 6),
+              SizedBox(height: spacing),
+              // Q10: Priority Selection
+              _buildPrioritySection(context, controller, draft, spacing, theme),
 
-            SizedBox(height: spacing * 2),
+              SizedBox(height: spacing * 2),
 
-            // Q11: Readiness Level
-            _buildReadinessSection(context, controller, draft, spacing),
+              // Q11: Readiness Level
+              _buildReadinessSection(context, controller, draft, spacing),
 
-            SizedBox(height: spacing * 2),
+              SizedBox(height: spacing * 2),
 
-            // Q12: Confidence Level
-            _buildConfidenceSection(context, controller, draft, spacing),
+              // Q12: Confidence Level
+              _buildConfidenceSection(context, controller, draft, spacing),
 
-            SizedBox(height: spacing * 3),
+              SizedBox(height: spacing * 3),
 
-            // Continue Button
-            _buildContinueButton(context, controller, draft),
-          ],
+              // Continue Button
+              _buildContinueButton(context, controller, draft),
+            ],
+          ),
         ),
       ),
     );

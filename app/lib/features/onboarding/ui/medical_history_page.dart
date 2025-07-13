@@ -7,6 +7,7 @@ import '../../../core/widgets/onboarding_submission_snackbar.dart';
 import '../onboarding_completion_controller.dart';
 import '../onboarding_controller.dart';
 import '../../../core/widgets/step_progress_bar.dart';
+import 'package:app/core/widgets/can_pop_scope.dart';
 
 /// Onboarding step for selecting relevant medical conditions (Section 6).
 class MedicalHistoryPage extends ConsumerWidget {
@@ -24,57 +25,60 @@ class MedicalHistoryPage extends ConsumerWidget {
 
     final crossAxisCount = _getCrossAxisCount(context);
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Medical History')),
-      body: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: ResponsiveService.getMediumPadding(context),
-              child: const StepProgressBar(currentStep: 6, totalSteps: 6),
-            ),
-          ),
-          SliverPadding(
-            padding: ResponsiveService.getMediumPadding(context),
-            sliver: SliverGrid(
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: crossAxisCount,
-                crossAxisSpacing: spacing,
-                mainAxisSpacing: spacing,
-                childAspectRatio: 3.5,
+    return CanPopScope(
+      child: Scaffold(
+        appBar: AppBar(title: const Text('Medical History')),
+        body: CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: ResponsiveService.getMediumPadding(context),
+                child: const StepProgressBar(currentStep: 6, totalSteps: 6),
               ),
-              delegate: SliverChildBuilderDelegate((context, index) {
-                final condition = MedicalCondition.values[index];
-                return _ConditionTile(
-                  condition: condition,
-                  selected: draft.medicalConditions.contains(condition),
-                  onChanged: () => controller.toggleMedicalCondition(condition),
-                );
-              }, childCount: MedicalCondition.values.length),
             ),
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.all(spacing * 2),
-              child: Center(
-                child: ElevatedButton(
-                  key: const ValueKey('continue_button'),
-                  onPressed:
-                      (draft.medicalConditions.isNotEmpty &&
-                              !completionState.isLoading)
-                          ? () {
-                            completionNotifier.submit();
-                          }
-                          : null,
-                  child: const Text('Finish'),
+            SliverPadding(
+              padding: ResponsiveService.getMediumPadding(context),
+              sliver: SliverGrid(
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: crossAxisCount,
+                  crossAxisSpacing: spacing,
+                  mainAxisSpacing: spacing,
+                  childAspectRatio: 3.5,
+                ),
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  final condition = MedicalCondition.values[index];
+                  return _ConditionTile(
+                    condition: condition,
+                    selected: draft.medicalConditions.contains(condition),
+                    onChanged:
+                        () => controller.toggleMedicalCondition(condition),
+                  );
+                }, childCount: MedicalCondition.values.length),
+              ),
+            ),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.all(spacing * 2),
+                child: Center(
+                  child: ElevatedButton(
+                    key: const ValueKey('continue_button'),
+                    onPressed:
+                        (draft.medicalConditions.isNotEmpty &&
+                                !completionState.isLoading)
+                            ? () {
+                              completionNotifier.submit();
+                            }
+                            : null,
+                    child: const Text('Finish'),
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
+        // Snackbar listener (renders nothing visually).
+        floatingActionButton: const OnboardingSubmissionSnackbar(),
       ),
-      // Snackbar listener (renders nothing visually).
-      floatingActionButton: const OnboardingSubmissionSnackbar(),
     );
   }
 

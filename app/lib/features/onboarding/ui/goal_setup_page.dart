@@ -5,6 +5,7 @@ import '../../../core/services/responsive_service.dart';
 import '../onboarding_controller.dart';
 import 'medical_history_page.dart';
 import '../../../core/widgets/step_progress_bar.dart';
+import 'package:app/core/widgets/can_pop_scope.dart';
 
 /// Onboarding step for users to specify their main outcome goal.
 ///
@@ -43,51 +44,55 @@ class _GoalSetupPageState extends ConsumerState<GoalSetupPage> {
 
     final spacing = ResponsiveService.getMediumSpacing(context);
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Goal Setup')),
-      body: SingleChildScrollView(
-        padding: ResponsiveService.getMediumPadding(context),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const StepProgressBar(currentStep: 5, totalSteps: 6),
-              SizedBox(height: spacing * 2),
-              TextFormField(
-                controller: _goalController,
-                decoration: const InputDecoration(
-                  labelText: 'Outcome Goal',
-                  hintText: 'e.g. Lose 10 lb in 3 months',
+    return CanPopScope(
+      child: Scaffold(
+        appBar: AppBar(title: const Text('Goal Setup')),
+        body: SingleChildScrollView(
+          padding: ResponsiveService.getMediumPadding(context),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const StepProgressBar(currentStep: 5, totalSteps: 6),
+                SizedBox(height: spacing * 2),
+                TextFormField(
+                  controller: _goalController,
+                  decoration: const InputDecoration(
+                    labelText: 'Outcome Goal',
+                    hintText: 'e.g. Lose 10 lb in 3 months',
+                  ),
+                  maxLength: 120,
+                  onChanged: controller.updateGoalTarget,
+                  validator:
+                      (val) =>
+                          (val == null || val.trim().isEmpty)
+                              ? 'Required'
+                              : null,
                 ),
-                maxLength: 120,
-                onChanged: controller.updateGoalTarget,
-                validator:
-                    (val) =>
-                        (val == null || val.trim().isEmpty) ? 'Required' : null,
-              ),
-              SizedBox(height: spacing * 2),
-              ElevatedButton(
-                key: const ValueKey('continue_button'),
-                onPressed:
-                    controller.isGoalSetupComplete
-                        ? () {
-                          if (!(_formKey.currentState?.validate() ?? false)) {
-                            return;
+                SizedBox(height: spacing * 2),
+                ElevatedButton(
+                  key: const ValueKey('continue_button'),
+                  onPressed:
+                      controller.isGoalSetupComplete
+                          ? () {
+                            if (!(_formKey.currentState?.validate() ?? false)) {
+                              return;
+                            }
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Goal saved!')),
+                            );
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const MedicalHistoryPage(),
+                              ),
+                            );
                           }
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Goal saved!')),
-                          );
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => const MedicalHistoryPage(),
-                            ),
-                          );
-                        }
-                        : null,
-                child: const Text('Continue'),
-              ),
-            ],
+                          : null,
+                  child: const Text('Continue'),
+                ),
+              ],
+            ),
           ),
         ),
       ),
