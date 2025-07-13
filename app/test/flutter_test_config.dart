@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/services.dart';
@@ -76,9 +77,6 @@ Future<void> _setupFirebaseMocks() async {
     'plugins.flutter.io/firebase_auth',
     'plugins.flutter.io/firebase_messaging',
   ];
-
-  final messenger =
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
   for (final name in channels) {
     final channel = MethodChannel(name);
     messenger.setMockMethodCallHandler(
