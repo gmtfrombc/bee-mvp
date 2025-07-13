@@ -77,6 +77,8 @@ Future<void> _setupFirebaseMocks() async {
     'plugins.flutter.io/firebase_messaging',
   ];
 
+  final messenger =
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
   for (final name in channels) {
     final channel = MethodChannel(name);
     messenger.setMockMethodCallHandler(
