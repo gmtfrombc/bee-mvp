@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 import 'package:app/core/navigation/routes.dart';
 import 'package:flutter/widgets.dart';
+import 'package:app/core/services/onboarding_submission_flag_service.dart';
 
 /// Enable anonymous sign-in only when running in demo mode.
 /// Activate by passing:
@@ -70,6 +71,14 @@ class OnboardingGuard {
   FutureOr<String?> call(BuildContext context, GoRouterState state) async {
     // Allow any route that is already within the onboarding flow to proceed.
     if (state.fullPath?.startsWith('/onboarding') == true) {
+      return null;
+    }
+
+    // If a submission is currently running, bypass remote profile check so we
+    // don't redirect the user back into onboarding while the flag hasn't yet
+    // been persisted to Supabase.
+    final flagService = OnboardingSubmissionFlagService();
+    if (await flagService.isSubmitting()) {
       return null;
     }
 

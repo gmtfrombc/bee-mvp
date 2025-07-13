@@ -74,12 +74,12 @@ app never reopens onboarding for that user.
 
 **Tasks**
 
-| ID   | Description                                                    | Status     |
-| ---- | -------------------------------------------------------------- | ---------- |
-| T3.1 | Extend `routes.dart` with steps 3-6, guard by draft state.     | ✅ Done    |
-| T3.2 | Add `StepProgressBar` widget to all onboarding pages.          | ✅ Done    |
-| T3.3 | Implement `CanPopScope` to prevent accidental back navigation. | ⚪ Planned |
-| T3.4 | Update `OnboardingGuard` to allow in-flight submissions.       | ⚪ Planned |
+| ID   | Description                                                    | Status  |
+| ---- | -------------------------------------------------------------- | ------- |
+| T3.1 | Extend `routes.dart` with steps 3-6, guard by draft state.     | ✅ Done |
+| T3.2 | Add `StepProgressBar` widget to all onboarding pages.          | ✅ Done |
+| T3.3 | Implement `CanPopScope` to prevent accidental back navigation. | ✅ Done |
+| T3.4 | Update `OnboardingGuard` to allow in-flight submissions.       | ✅ Done |
 
 ---
 
