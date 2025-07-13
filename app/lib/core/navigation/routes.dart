@@ -17,6 +17,12 @@ final GoRouter appRouter = GoRouter(
           .call, // Ensures onboarding is complete before accessing other routes
   routes: [
     GoRoute(path: '/', builder: (context, state) => const LaunchController()),
+    // Expose an explicit "/launch" alias so other modules can navigate
+    // without relying on the root path constant.
+    GoRoute(
+      path: '/launch',
+      builder: (context, state) => const LaunchController(),
+    ),
     GoRoute(
       path: kOnboardingStep1Route,
       builder: (context, state) => const AboutYouPage(),

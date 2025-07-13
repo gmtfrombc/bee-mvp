@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/models/medical_history.dart';
 import '../../../core/services/responsive_service.dart';
+import '../../../core/widgets/onboarding_submission_snackbar.dart';
+import '../onboarding_completion_controller.dart';
 import '../onboarding_controller.dart';
 
 /// Onboarding step for selecting relevant medical conditions (Section 6).
@@ -13,6 +15,10 @@ class MedicalHistoryPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final spacing = ResponsiveService.getSmallSpacing(context);
     final controller = ref.watch(onboardingControllerProvider.notifier);
+    final completionState = ref.watch(onboardingCompletionControllerProvider);
+    final completionNotifier = ref.read(
+      onboardingCompletionControllerProvider.notifier,
+    );
     final draft = ref.watch(onboardingControllerProvider);
 
     final crossAxisCount = _getCrossAxisCount(context);
@@ -47,14 +53,10 @@ class MedicalHistoryPage extends ConsumerWidget {
                 child: ElevatedButton(
                   key: const ValueKey('continue_button'),
                   onPressed:
-                      draft.medicalConditions.isNotEmpty
+                      (draft.medicalConditions.isNotEmpty &&
+                              !completionState.isLoading)
                           ? () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Medical history saved!'),
-                              ),
-                            );
-                            Navigator.of(context).pop(); // Finish onboarding
+                            completionNotifier.submit();
                           }
                           : null,
                   child: const Text('Finish'),
@@ -64,6 +66,8 @@ class MedicalHistoryPage extends ConsumerWidget {
           ),
         ],
       ),
+      // Snackbar listener (renders nothing visually).
+      floatingActionButton: const OnboardingSubmissionSnackbar(),
     );
   }
 
