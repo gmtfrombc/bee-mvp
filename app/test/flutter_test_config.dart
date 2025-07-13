@@ -69,14 +69,14 @@ Future<void> testExecutable(FutureOr<void> Function() testMain) async {
 /// Registers no-op handlers for common Firebase method channels so that unit
 /// tests can run without a real native Firebase core.
 Future<void> _setupFirebaseMocks() async {
+  final messenger =
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
   const channels = [
     'plugins.flutter.io/firebase_core',
     'plugins.flutter.io/firebase_auth',
     'plugins.flutter.io/firebase_messaging',
   ];
 
-  final messenger =
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
   for (final name in channels) {
     final channel = MethodChannel(name);
     messenger.setMockMethodCallHandler(
