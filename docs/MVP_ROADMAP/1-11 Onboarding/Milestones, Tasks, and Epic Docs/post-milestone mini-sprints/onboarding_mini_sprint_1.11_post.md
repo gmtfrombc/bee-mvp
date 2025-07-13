@@ -68,7 +68,7 @@ Supabase. [x] Computation completes in < 200 ms (p95).
 **Acceptance Criteria**
 
 [ ] Entire onboarding flow uses `GoRouter` paths `/onboarding/step1–6`. [ ]
-Deep-linked steps cannot be accessed unless previous steps complete. [ ]
+Deep-linked steps cannot be accessed unless previous steps complete. [x]
 Progress indicator shows current step / total. [ ] After completion, relaunching
 app never reopens onboarding for that user.
 
@@ -77,7 +77,7 @@ app never reopens onboarding for that user.
 | ID   | Description                                                    | Status     |
 | ---- | -------------------------------------------------------------- | ---------- |
 | T3.1 | Extend `routes.dart` with steps 3-6, guard by draft state.     | ✅ Done    |
-| T3.2 | Add `StepProgressBar` widget to all onboarding pages.          | ⚪ Planned |
+| T3.2 | Add `StepProgressBar` widget to all onboarding pages.          | ✅ Done    |
 | T3.3 | Implement `CanPopScope` to prevent accidental back navigation. | ⚪ Planned |
 | T3.4 | Update `OnboardingGuard` to allow in-flight submissions.       | ⚪ Planned |
 
