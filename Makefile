@@ -26,4 +26,4 @@ ci-lite:
 	@echo "🚀 Running lightweight CI (lint + unit tests)"; \
 	cd app && flutter pub get >/dev/null; \
 	flutter analyze --fatal-warnings --fatal-infos; \
-	flutter test --tags "unit & !golden"; 
+	flutter test --exclude-tags golden; 
