@@ -1,7 +1,7 @@
 import 'dart:async';
-import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/services.dart';
 import 'package:golden_toolkit/golden_toolkit.dart';
 
 /// Allows up to 1% pixel difference to accommodate minor cross-platform
@@ -44,6 +44,19 @@ class _ToleranceFileComparator implements GoldenFileComparator {
 }
 
 Future<void> testExecutable(FutureOr<void> Function() testMain) async {
+  // Initialise binding & provide fallback Firebase mocks so CI container
+  // doesn’t crash on missing platform channels.
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  // TODO(tech-debt/T1.1-FIREBASE-MOCKS): Replace ad-hoc stubs with proper
+  // `firebase_testing` mocks once we add integration tests that exercise
+  // Firebase interactions.
+  try {
+    await _setupFirebaseMocks();
+  } catch (_) {
+    // Ignore; tests that don’t touch Firebase will still run.
+  }
+
   // Ensure fonts load for consistent rendering.
   await loadAppFonts();
 
@@ -51,4 +64,24 @@ Future<void> testExecutable(FutureOr<void> Function() testMain) async {
   goldenFileComparator = _ToleranceFileComparator(defaultComparator);
 
   await testMain();
+}
+
+/// Registers no-op handlers for common Firebase method channels so that unit
+/// tests can run without a real native Firebase core.
+Future<void> _setupFirebaseMocks() async {
+  const channels = [
+    'plugins.flutter.io/firebase_core',
+    'plugins.flutter.io/firebase_auth',
+    'plugins.flutter.io/firebase_messaging',
+  ];
+
+  final messenger =
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+  for (final name in channels) {
+    final channel = MethodChannel(name);
+    messenger.setMockMethodCallHandler(
+      channel,
+      (MethodCall methodCall) async => null,
+    );
+  }
 }

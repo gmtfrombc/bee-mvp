@@ -232,11 +232,48 @@ DEFAULT_RUNNER_IMAGE="ghcr.io/gmtfrombc/ci-base:latest"
 # Flutter-optimised image (contains SDK $FLUTTER_VERSION and Android toolchain)
 FLUTTER_RUNNER_IMAGE="ghcr.io/instrumentisto/flutter:${FLUTTER_VERSION}-androidsdk35-r0"
 
+# -------------------------------------------------------------------------
+# 🐳 Docker Daemon Health Check – fail fast instead of hanging indefinitely
+# -------------------------------------------------------------------------
+# On macOS if Docker Desktop is closed or the daemon is still starting, the
+# first CLI call (e.g., `docker info`) blocks for a long time.  We probe the
+# daemon with a 5-second timeout; on failure we abort early with a helpful
+# message so users aren’t left wondering whether the script froze.
+
+TIMEOUT_BIN=$(command -v timeout || command -v gtimeout || true)
+ping_docker() {
+  if [[ -n "$TIMEOUT_BIN" ]]; then
+    $TIMEOUT_BIN 5 docker info >/dev/null 2>&1
+  else
+    # Fallback when GNU coreutils not installed – manual timeout
+    docker info >/dev/null 2>&1 &
+    local pid=$!
+    sleep 5
+    if kill -0 "$pid" 2>/dev/null; then
+      kill "$pid" 2>/dev/null
+      return 124  # emulate timeout exit code
+    fi
+    wait "$pid"
+  fi
+}
+
+if ! ping_docker; then
+  echo "❌  Docker daemon is not responding within 5 seconds. Is Docker Desktop running?" >&2
+  exit 1
+fi
+
+# -------------------------------------------------------------------------
+
 if [[ "$JOB_FILTER" == "test" ]]; then
   # Use the heavier but pre-baked Flutter image when only Flutter tests run
   GITHUB_RUNNER_IMAGE="${FLUTTER_RUNNER_IMAGE}"
 else
   GITHUB_RUNNER_IMAGE="${DEFAULT_RUNNER_IMAGE}"
+fi
+
+# 🐳 Inform user when the Docker image needs to be pulled the first time
+if ! docker image inspect "$GITHUB_RUNNER_IMAGE" >/dev/null 2>&1; then
+  echo "🐳  Docker image $GITHUB_RUNNER_IMAGE not found locally. Pulling now – this can take several minutes on first run."
 fi
 
 # 3️⃣  Execute `act`
@@ -247,6 +284,7 @@ WORKFLOW_FILES=(
   ".github/workflows/flutter-ci.yml"         # Flutter CI
   ".github/workflows/jitai_model_ci.yml"     # JITAI Model CI
   ".github/workflows/lightgbm_export_ci.yml" # LightGBM TS Export CI
+  ".github/workflows/fast-tests.yml"         # Fast Tests (Flutter/Python)
 )
 
 # When a specific job is requested, keep only the workflow likely to contain it
@@ -264,6 +302,10 @@ if [[ -n "$JOB_FILTER" ]]; then
     train-dry-run)
       # JITAI Model CI – train-dry-run job
       WORKFLOW_FILES=(".github/workflows/jitai_model_ci.yml")
+      ;;
+    fast)
+      # Fast lane (pull request)
+      WORKFLOW_FILES=(".github/workflows/fast-tests.yml")
       ;;
     *)
       # fallback: keep existing list (acts like original behaviour)
@@ -319,6 +361,11 @@ for wf in "${WORKFLOW_FILES[@]}"; do
 done
 
 ACT_CMD=(act push "${WF_ARGS[@]}" -P ubuntu-latest=${GITHUB_RUNNER_IMAGE} --container-architecture linux/amd64 --env SKIP_UPLOAD_ARTIFACTS=true --env SKIP_TERRAFORM=${SKIP_TERRAFORM:-false} --secret-file "$SECRETS_FILE")
+
+# Always run act in verbose mode unless user already provided a -v/--verbose flag
+if [[ "$*" != *"-v"* && "$*" != *"--verbose"* ]]; then
+  ACT_CMD+=( --verbose )
+fi
 
 # Re-append the job filter (if any) **after** all -W flags so `act` can
 # correctly match the job once workflows have been loaded.
