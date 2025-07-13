@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/services/responsive_service.dart';
 import '../onboarding_controller.dart';
 import 'medical_history_page.dart';
+import '../../../core/widgets/step_progress_bar.dart';
 
 /// Onboarding step for users to specify their main outcome goal.
 ///
@@ -51,6 +52,8 @@ class _GoalSetupPageState extends ConsumerState<GoalSetupPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              const StepProgressBar(currentStep: 5, totalSteps: 6),
+              SizedBox(height: spacing * 2),
               TextFormField(
                 controller: _goalController,
                 decoration: const InputDecoration(

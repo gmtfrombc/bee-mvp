@@ -5,6 +5,7 @@ import '../../../core/services/responsive_service.dart';
 import '../../../l10n/s.dart';
 import '../onboarding_controller.dart';
 import 'goal_setup_page.dart';
+import '../../../core/widgets/step_progress_bar.dart';
 
 /// Onboarding step for mindset & motivation assessment (Q13–16).
 ///
@@ -26,6 +27,8 @@ class MindsetPage extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            const StepProgressBar(currentStep: 4, totalSteps: 6),
+            SizedBox(height: spacing),
             // Q13 Motivation Reason
             _SingleChoiceSection<String>(
               title: S.of(context).onboarding_q13_prompt,

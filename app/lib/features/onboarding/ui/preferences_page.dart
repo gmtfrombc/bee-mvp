@@ -6,6 +6,7 @@ import '../../../core/theme/app_theme.dart';
 import 'readiness_page.dart';
 import '../onboarding_controller.dart';
 import '../../../core/mixins/input_validator.dart';
+import '../../../core/widgets/step_progress_bar.dart';
 
 /// Onboarding step 2 – lets users pick 1–5 lifestyle preference areas.
 class PreferencesPage extends ConsumerWidget {
@@ -25,6 +26,8 @@ class PreferencesPage extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            const StepProgressBar(currentStep: 2, totalSteps: 6),
+            SizedBox(height: spacing),
             _PreferenceChips(
               selectedKeys: draft.preferences,
               onToggle: controller.togglePreference,

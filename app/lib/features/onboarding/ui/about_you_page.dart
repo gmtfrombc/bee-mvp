@@ -7,6 +7,7 @@ import 'package:app/core/navigation/routes.dart';
 import '../../../core/services/responsive_service.dart';
 import '../onboarding_controller.dart';
 import '../../../core/mixins/input_validator.dart';
+import '../../../core/widgets/step_progress_bar.dart';
 
 /// First onboarding page collecting basic demographic information.
 class AboutYouPage extends ConsumerStatefulWidget {
@@ -49,6 +50,8 @@ class _AboutYouPageState extends ConsumerState<AboutYouPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              const StepProgressBar(currentStep: 1, totalSteps: 6),
+              SizedBox(height: spacing),
               // Date of Birth -------------------------------------------------
               GestureDetector(
                 behavior: HitTestBehavior.opaque,
