@@ -70,3 +70,16 @@ BEGIN
         CREATE ROLE supabase_functions_admin;
     END IF;
 END$$; 
+
+DO $$
+DECLARE
+  ext TEXT;
+BEGIN
+  FOREACH ext IN ARRAY ARRAY['vector', 'http', 'pg_net'] LOOP
+    BEGIN
+      EXECUTE format('CREATE EXTENSION IF NOT EXISTS %I', ext);
+    EXCEPTION WHEN undefined_file THEN
+      RAISE NOTICE '% extension not installed, skipping.', ext;
+    END;
+  END LOOP;
+END$$; 
