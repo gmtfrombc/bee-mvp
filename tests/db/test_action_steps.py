@@ -78,7 +78,7 @@ def _conn(user_id: uuid.UUID | None = None, *, superuser: bool = False):
     if user_id:
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT set_config('request.jwt.claims', %s, true)",
+                "SELECT set_config('request.jwt.claims', %s, false)",
                 (json.dumps({"sub": str(user_id)}),),
             )
     return conn
