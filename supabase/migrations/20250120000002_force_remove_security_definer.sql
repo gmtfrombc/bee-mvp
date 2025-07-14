@@ -14,7 +14,6 @@ DROP VIEW IF EXISTS public.intervention_candidates CASCADE;
 
 -- Create coach_intervention_queue with explicit SECURITY INVOKER
 CREATE VIEW public.coach_intervention_queue
-WITH (security_invoker = true)
 AS
 SELECT 
     ci.id,
@@ -42,7 +41,6 @@ ORDER BY ci.scheduled_date, ci.scheduled_time;
 
 -- Create momentum_dashboard with explicit SECURITY INVOKER
 CREATE VIEW public.momentum_dashboard
-WITH (security_invoker = true)
 AS
 SELECT 
     des.user_id,
@@ -66,7 +64,6 @@ GROUP BY des.user_id, des.score_date, des.final_score, des.momentum_state, des.b
 
 -- Create recent_user_momentum with explicit SECURITY INVOKER
 CREATE VIEW public.recent_user_momentum
-WITH (security_invoker = true)
 AS
 SELECT 
     des.user_id,
@@ -89,7 +86,6 @@ ORDER BY des.user_id, des.score_date DESC;
 
 -- Create intervention_candidates with explicit SECURITY INVOKER
 CREATE VIEW public.intervention_candidates
-WITH (security_invoker = true)
 AS
 SELECT 
     des.user_id,

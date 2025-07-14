@@ -276,51 +276,51 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Schedule daily content generation at 3 AM UTC
 -- This is the core requirement for T1.2.1.1.3
-DO $$
+DO $outer$
 BEGIN
   IF EXISTS (SELECT 1 FROM pg_namespace WHERE nspname='cron') THEN
     PERFORM cron.schedule(
       'daily-content-generation',
       '0 3 * * *',
-      $$
+      $q$
       SELECT trigger_daily_content_generation(CURRENT_DATE);
-      $$
+      $q$
     );
   END IF;
-END$$;
+END$outer$;
 
 -- Schedule a backup generation check at 4 AM UTC in case 3 AM failed
-DO $$
+DO $outer$
 BEGIN
   IF EXISTS (SELECT 1 FROM pg_namespace WHERE nspname='cron') THEN
     PERFORM cron.schedule(
       'daily-content-generation-backup',
       '0 4 * * *',
-      $$
+      $q$
       SELECT CASE 
           WHEN is_content_generation_needed(CURRENT_DATE) 
           THEN trigger_daily_content_generation(CURRENT_DATE, false, 'backup_system')
           ELSE NULL::UUID
       END;
-      $$
+      $q$
     );
   END IF;
-END$$;
+END$outer$;
 
 -- Schedule cleanup of old generation job records (keep 90 days)
-DO $$
+DO $outer$
 BEGIN
   IF EXISTS (SELECT 1 FROM pg_namespace WHERE nspname='cron') THEN
     PERFORM cron.schedule(
       'cleanup-content-generation-jobs',
       '0 2 * * 0',
-      $$
+      $q$
       DELETE FROM public.content_generation_jobs 
       WHERE created_at < NOW() - INTERVAL '90 days';
-      $$
+      $q$
     );
   END IF;
-END$$;
+END$outer$;
 
 -- =====================================================
 -- MONITORING AND ANALYTICS

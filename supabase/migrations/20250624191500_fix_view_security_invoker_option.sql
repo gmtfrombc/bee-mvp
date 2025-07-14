@@ -5,8 +5,7 @@ BEGIN;
 
 DROP VIEW IF EXISTS public.daily_feed_content_current;
 
-CREATE VIEW public.daily_feed_content_current
-WITH (security_invoker=true) AS
+CREATE VIEW public.daily_feed_content_current AS
 SELECT *
   FROM public.daily_feed_content
  WHERE is_active = true

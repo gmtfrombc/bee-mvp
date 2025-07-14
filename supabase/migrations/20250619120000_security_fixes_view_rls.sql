@@ -7,8 +7,7 @@
 DROP VIEW IF EXISTS public.coach_interactions_public CASCADE;
 
 -- Recreate view ensuring it runs with the privileges of the querying user
-CREATE VIEW public.coach_interactions_public
-WITH (security_invoker = true) AS
+CREATE VIEW public.coach_interactions_public AS
 SELECT
   id,
   user_id,

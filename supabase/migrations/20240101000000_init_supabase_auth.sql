@@ -90,3 +90,23 @@ BEGIN
     END;
   END LOOP;
 END$$; 
+
+-- Stub pg_cron when extension is unavailable so later migrations that call
+-- cron.schedule() parse successfully in vanilla Postgres 14 (CI/Docker).
+DO $$
+BEGIN
+  -- If pg_cron extension/schema is still missing, create a minimal stub.
+  IF NOT EXISTS (SELECT 1 FROM pg_namespace WHERE nspname = 'cron') THEN
+    CREATE SCHEMA IF NOT EXISTS cron;
+    -- No-op implementation that simply returns 0 so callers can proceed.
+    CREATE OR REPLACE FUNCTION cron.schedule(
+      job_name TEXT,
+      schedule TEXT,
+      command TEXT
+    ) RETURNS BIGINT AS $cron$
+    BEGIN
+      RETURN 0; -- fake job id
+    END;
+    $cron$ LANGUAGE plpgsql;
+  END IF;
+END$$; 
