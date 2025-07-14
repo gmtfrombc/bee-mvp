@@ -25,7 +25,8 @@ def _psql(sql: str, *, user: str, password: str) -> None:
         [
             "psql",
             f"-h{DB_CFG['host']}",
-            f"-p{DB_CFG['port']}",
+            "-p",
+            DB_CFG["port"],
             f"-U{user}",
             "-d",
             DB_CFG["database"],
@@ -76,7 +77,8 @@ def test_migration_stub_runs_with_restricted_role(tmp_path):
         [
             "psql",
             f"-h{DB_CFG['host']}",
-            f"-p{DB_CFG['port']}",
+            "-p",
+            DB_CFG["port"],
             f"-U{RESTRICTED_ROLE}",
             "-d",
             DB_CFG["database"],

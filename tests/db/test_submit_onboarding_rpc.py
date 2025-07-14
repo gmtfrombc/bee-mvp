@@ -1,10 +1,11 @@
 import os
-import subprocess
 import uuid
 import json
 
 import psycopg2 as _real_psycopg2
 import pytest
+
+from tests.db.db_utils import _psql
 
 # Database connection configuration – mirrors other DB tests
 DB_CFG = {
@@ -26,28 +27,6 @@ MIGRATION_FILES = [
     "supabase/migrations/20240722130000_coach_memory_table.sql",  # coach_memory
     "supabase/migrations/20250722140000_submit_onboarding_rpc.sql",  # RPC under test
 ]
-
-
-def _psql(sql: str) -> None:
-    """Utility wrapper to execute raw SQL via the psql CLI (fail-fast)."""
-    subprocess.run(
-        [
-            "psql",
-            f"-h{DB_CFG['host']}",
-            f"-p{DB_CFG['port']}",
-            f"-U{DB_CFG['user']}",
-            "-d",
-            DB_CFG["database"],
-            "-v",
-            "ON_ERROR_STOP=1",
-            "-q",
-            "-c",
-            sql,
-        ],
-        check=True,
-        text=True,
-        env={**os.environ, "PGPASSWORD": DB_CFG["password"]},
-    )
 
 
 @pytest.mark.integration
