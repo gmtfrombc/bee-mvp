@@ -62,10 +62,33 @@ fi
 
 echo "✅ Ruff lint passed"
 
-# 4.5 Run Python tests automatically if any .py file is staged.
+# 4.5 Run Python tests with ephemeral Postgres if any .py file is staged.
 if git diff --cached --name-only | grep -E '\.py$' >/dev/null; then
-  echo "🧪  Running pytest on full suite (Python files changed)..."
-  if ! pytest -q; then
+  echo "🧪  Spinning up disposable Postgres (port 55433) & running pytest..."
+  TEST_PG_PORT=55433
+  CONTAINER_ID=$(docker run -d --rm -e POSTGRES_PASSWORD=postgres -e POSTGRES_USER=postgres -e POSTGRES_DB=test -p ${TEST_PG_PORT}:5432 --name ci_test_pg postgres:15)
+  if [ -z "$CONTAINER_ID" ]; then
+    echo "❌  Failed to start Postgres test container."; exit 1;
+  fi
+
+  # Wait for Postgres to be ready
+  for i in {1..20}; do
+    if docker exec ci_test_pg pg_isready -U postgres >/dev/null 2>&1; then
+      break
+    fi
+    sleep 1
+  done
+
+  export DB_HOST=localhost
+  export DB_PORT=$TEST_PG_PORT
+
+  pytest -q
+  STATUS=$?
+
+  echo "🧹  Stopping Postgres test container"
+  docker stop ci_test_pg >/dev/null
+
+  if [ $STATUS -ne 0 ]; then
     echo "❌  Pytest failures detected. Commit aborted."
     exit 1
   fi
