@@ -5,3 +5,4 @@ output-localization-file: s.dart
 output-class: S
 synthetic-package: false
 nullable-getter: false
+format: false
