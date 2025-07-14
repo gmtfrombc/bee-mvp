@@ -1,7 +1,8 @@
 import os
 import subprocess
 from pathlib import Path
-import secrets
+
+# secrets import no longer needed
 
 # Import real module to bypass conftest patching
 import psycopg2 as _real_psycopg2
@@ -20,8 +21,8 @@ DB_CFG = {
     "password": os.getenv("DB_SUPER_PASSWORD", "postgres"),
 }
 
-# Generate a random test password to avoid hardcoded secrets
-TEST_ROLE_PASSWORD = os.getenv("TEST_ROLE_PASSWORD", secrets.token_urlsafe(16))
+# Use a consistent password to avoid mismatch issues in CI/local runs
+TEST_ROLE_PASSWORD = os.getenv("TEST_ROLE_PASSWORD", "postgres")
 
 # Ordered list of onboarding-related migration files to apply in this test suite
 MIGRATION_FILES = [
