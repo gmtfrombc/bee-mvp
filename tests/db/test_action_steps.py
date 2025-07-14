@@ -1,20 +1,10 @@
 import os
-import subprocess
 import uuid
-import json
 
 import psycopg2 as _real_psycopg2
 import pytest
 
-# Database connection parameters mirror other DB tests
-DB_CFG = {
-    "host": os.getenv("DB_HOST", "localhost"),
-    "port": os.getenv("DB_PORT", "54322"),
-    "database": os.getenv("DB_NAME", "test"),
-    # Superuser is used for applying migrations / seeding.
-    "user": "postgres",
-    "password": os.getenv("DB_SUPER_PASSWORD", "postgres"),
-}
+from tests.db.db_utils import _psql, _conn
 
 # Ordered list of migration files required for action_steps feature
 MIGRATION_FILES = [
@@ -24,64 +14,6 @@ MIGRATION_FILES = [
     "supabase/migrations/20250714142000_action_step_triggers.sql",
     "supabase/migrations/20250714143000_action_step_rls.sql",
 ]
-
-
-def _psql(sql: str) -> None:
-    """Execute raw *sql* against the configured database via `psql` CLI."""
-
-    subprocess.run(
-        [
-            "psql",
-            f"-h{DB_CFG['host']}",
-            f"-p{DB_CFG['port']}",
-            f"-U{DB_CFG['user']}",
-            "-d",
-            DB_CFG["database"],
-            "-v",
-            "ON_ERROR_STOP=1",
-            "-q",
-            "-f",
-            "-",  # read SQL from stdin
-        ],
-        input=sql,
-        check=True,
-        text=True,
-        env={**os.environ, "PGPASSWORD": DB_CFG["password"]},
-    )
-
-
-# Replace _conn implementation to use dedicated non-superuser role for RLS tests
-def _conn(user_id: uuid.UUID | None = None, *, superuser: bool = False):
-    """Return psycopg2 connection.
-
-    If *superuser* is True, connect using DB superuser (bypasses RLS) – useful
-    for seeding data. Otherwise connect as dedicated **rls_test_user** (created
-    in fixture) so that RLS policies are enforced. If *user_id* is provided we
-    also set `auth.uid()` via `request.jwt.claims`.
-    """
-
-    if superuser:
-        creds = {
-            "user": DB_CFG["user"],
-            "password": DB_CFG["password"],
-        }
-    else:
-        creds = {"user": "rls_test_user", "password": "password"}
-
-    conn = _real_psycopg2.connect(
-        host=DB_CFG["host"],
-        port=DB_CFG["port"],
-        dbname=DB_CFG["database"],
-        **creds,
-    )
-
-    if user_id:
-        with conn.cursor() as cur:
-            cur.execute(
-                "SELECT set_config('request.jwt.claims', %s, false)",
-                (json.dumps({"sub": str(user_id)}),),
-            )
-    return conn
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -114,13 +46,18 @@ def _prepare_db():
 
     # Tables dropped; keep role for other tests to avoid dependency issues
 
-    # Inside _prepare_db fixture, after migrations, create non-superuser role
+    # Inside _prepare_db fixture, (re)create non-superuser role with a known
+    # password.  We **always** set/overwrite the PASSWORD so that an existing
+    # role from earlier tests (with a different password) does not break the
+    # authentication flow in CI.
     _psql(
         """
         DO $$
         BEGIN
-          IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'rls_test_user') THEN
-            CREATE ROLE rls_test_user LOGIN NOSUPERUSER PASSWORD 'password';
+          IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'rls_test_user') THEN
+            ALTER ROLE rls_test_user WITH LOGIN NOSUPERUSER PASSWORD 'postgres';
+          ELSE
+            CREATE ROLE rls_test_user LOGIN NOSUPERUSER PASSWORD 'postgres';
           END IF;
         END$$;
 
