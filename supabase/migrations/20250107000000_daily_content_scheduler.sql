@@ -9,11 +9,23 @@ ALTER DATABASE postgres SET row_security = on;
 -- =====================================================
 -- ENABLE REQUIRED EXTENSIONS
 -- =====================================================
--- Enable pg_cron for scheduled jobs
-CREATE EXTENSION IF NOT EXISTS pg_cron;
+-- Enable pg_cron / pg_net extensions if available (skip if not installed)
+DO $$
+BEGIN
+  BEGIN
+    CREATE EXTENSION IF NOT EXISTS pg_cron;
+  EXCEPTION
+    WHEN undefined_file THEN
+      RAISE NOTICE 'pg_cron extension not installed – skipping.';
+  END;
 
--- Enable pg_net for HTTP requests (if not already enabled)
-CREATE EXTENSION IF NOT EXISTS pg_net;
+  BEGIN
+    CREATE EXTENSION IF NOT EXISTS pg_net;
+  EXCEPTION
+    WHEN undefined_file THEN
+      RAISE NOTICE 'pg_net extension not installed – skipping.';
+  END;
+END$$;
 
 -- =====================================================
 -- CONTENT GENERATION TRACKING

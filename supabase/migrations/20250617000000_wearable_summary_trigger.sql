@@ -1,8 +1,16 @@
 -- Migration: Add trigger to call wearable-summary-listener Edge Function on INSERT/UPDATE
 -- Sprint-E · Task T1.3.10.2
 
--- Enable http extension (if not already)
-create extension if not exists http with schema extensions;
+-- Enable http extension if available (skip when absent)
+DO $$
+BEGIN
+  BEGIN
+    EXECUTE 'CREATE EXTENSION IF NOT EXISTS http WITH SCHEMA extensions';
+  EXCEPTION
+    WHEN undefined_file THEN
+      RAISE NOTICE 'http extension not installed – skipping.';
+  END;
+END$$;
 
 -- Replace existing function (idempotent)
 create or replace function public.notify_wearable_summary()

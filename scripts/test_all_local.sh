@@ -46,6 +46,30 @@ check_dependencies() {
 # Phase 1: Database Infrastructure Testing
 test_database() {
     log_info "🗄️  PHASE 1: Database Infrastructure Testing"
+    # ------------------------------------------------------------------------
+    # Optional CI-parity Postgres (Docker) — mirrors GitHub workflow
+    # Set USE_DOCKER_CI=false to keep using local Postgres
+    # ------------------------------------------------------------------------
+    if [[ "${USE_DOCKER_CI:-true}" == "true" ]]; then
+        if command -v docker >/dev/null 2>&1; then
+            if ! docker ps --format '{{.Names}}' | grep -q '^bee_ci_pg$'; then
+                log_info "Starting disposable Postgres 14 container (bee_ci_pg) for CI parity…"
+                docker run --rm -d --name bee_ci_pg \
+                    -e POSTGRES_PASSWORD=postgres \
+                    -p 55432:5432 postgres:14 >/dev/null
+                export PGHOST=localhost PGPORT=55432 PGUSER=postgres PGPASSWORD=postgres
+                trap "docker rm -f bee_ci_pg >/dev/null 2>&1" EXIT
+                # Wait for Postgres to accept connections
+                until PGPASSWORD=postgres psql -h "$PGHOST" -p "$PGPORT" -U postgres -d postgres -c 'SELECT 1' >/dev/null 2>&1; do
+                    sleep 0.5
+                done
+            else
+                log_info "Reusing existing bee_ci_pg container"
+            fi
+        else
+            log_warning "Docker not found – falling back to local Postgres"
+        fi
+    fi
     
     # Check PostgreSQL version
     log_info "Checking PostgreSQL version..."
