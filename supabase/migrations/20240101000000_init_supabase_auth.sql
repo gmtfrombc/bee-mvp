@@ -19,7 +19,9 @@ CREATE TABLE IF NOT EXISTS auth.users (
     encrypted_password TEXT,
     email_confirmed_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    raw_app_meta_data JSONB DEFAULT '{}'::jsonb,
+    raw_user_meta_data JSONB DEFAULT '{}'::jsonb
 );
 
 -- Simulate Supabase's auth.uid() helper that returns the authenticated user id
