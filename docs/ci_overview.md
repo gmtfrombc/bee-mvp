@@ -69,3 +69,40 @@ Makefile              # developer shortcuts (ci-local)
 ---
 
 Happy **green builds**! 🎉
+
+## 5. DB-Backed Python Tests (Action Steps, Onboarding, etc.)
+
+The DB integration suites under `tests/db/` expect a running **Postgres 15**
+instance that matches what GitHub CI provides (`service.postgres`). When the
+container is absent, tests will silently fall back to `localhost:54322` which
+usually points to a developer’s Supabase stack, causing false-green results or
+authentication mismatches.
+
+### Local quick-start
+
+```
+# start disposable database on free high port
+PORT=60000
+
+docker run --rm -d \
+  --name ci-pg \
+  -e POSTGRES_USER=postgres \
+  -e POSTGRES_PASSWORD=postgres \
+  -e POSTGRES_DB=test \
+  -p ${PORT}:5432 \
+  postgres:15
+
+DB_HOST=localhost DB_PORT=${PORT} pytest -q   # all tests
+```
+
+### Automation via pre-commit
+
+Our `.githooks/pre-commit` hook now:
+
+1. Detects staged **Python** files.
+2. Launches `postgres:15` on the first free port of `[55433, 60000]`.
+3. Sets `DB_HOST`/`DB_PORT` env vars and runs **`pytest -q`**.
+4. Shuts down the container.
+
+Total overhead ≈ 10 seconds and guarantees DB tests always run before every
+commit—no more surprises in GitHub CI.
