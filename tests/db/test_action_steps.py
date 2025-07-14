@@ -50,18 +50,31 @@ def _psql(sql: str) -> None:
     )
 
 
-def _conn(user_id: uuid.UUID | None = None):
-    """Return psycopg2 connection; if *user_id* provided sets `auth.uid()`."""
+# Replace _conn implementation to use dedicated non-superuser role for RLS tests
+def _conn(user_id: uuid.UUID | None = None, *, superuser: bool = False):
+    """Return psycopg2 connection.
+
+    If *superuser* is True, connect using DB superuser (bypasses RLS) – useful
+    for seeding data. Otherwise connect as dedicated **rls_test_user** (created
+    in fixture) so that RLS policies are enforced. If *user_id* is provided we
+    also set `auth.uid()` via `request.jwt.claims`.
+    """
+
+    if superuser:
+        creds = {
+            "user": DB_CFG["user"],
+            "password": DB_CFG["password"],
+        }
+    else:
+        creds = {"user": "rls_test_user", "password": "password"}
+
     conn = _real_psycopg2.connect(
         host=DB_CFG["host"],
         port=DB_CFG["port"],
         dbname=DB_CFG["database"],
-        user=DB_CFG["user"],  # superuser but we simulate RLS via jwt.claims
-        password=DB_CFG["password"],
+        **creds,
     )
 
-    # Preserve transaction-scoped connection (autocommit disabled) to keep
-    # the `set_config` setting alive for subsequent statements.
     if user_id:
         with conn.cursor() as cur:
             cur.execute(
@@ -98,6 +111,25 @@ def _prepare_db():
     for path in MIGRATION_FILES:
         with open(path, "r", encoding="utf-8") as sql_file:
             _psql(sql_file.read())
+
+    # After dropping tables also drop helper role to keep environment clean
+    _psql("DROP ROLE IF EXISTS rls_test_user;")
+
+    # Inside _prepare_db fixture, after migrations, create non-superuser role
+    _psql(
+        """
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'rls_test_user') THEN
+            CREATE ROLE rls_test_user LOGIN NOSUPERUSER PASSWORD 'password';
+          END IF;
+        END$$;
+
+        GRANT USAGE ON SCHEMA public, auth TO rls_test_user;
+        GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO rls_test_user;
+        GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO rls_test_user;
+        """
+    )
 
     yield
 
@@ -209,7 +241,7 @@ def test_action_step_logs_rls():
                 date_trunc('week', timezone('utc', current_date))::date)
         RETURNING id;
     """
-    conn_super = _conn(None)
+    conn_super = _conn(None, superuser=True)
     with conn_super, conn_super.cursor() as cur:
         cur.execute(insert_step_sql)
         step_id = cur.fetchone()[0]
