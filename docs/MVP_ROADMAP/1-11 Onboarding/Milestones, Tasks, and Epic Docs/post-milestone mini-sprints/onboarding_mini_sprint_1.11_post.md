@@ -93,11 +93,10 @@ Coverage ≥ 85 % on new services/controllers.
 
 **Tasks**
 
-| ID   | Description                                                              | Status      |
-| ---- | ------------------------------------------------------------------------ | ----------- |
+| ID   | Description                                                              | Status     |
+| ---- | ------------------------------------------------------------------------ | ---------- |
 | T4.1 | Create `onboarding_full_flow_test.dart` using `mocktail` + `fake_async`. | ✅ Done     |
-| T4.2 | Add unit tests for `ScoringService` edge cases.                          | ✅ Done     |
-| T4.3 | Update CI coverage thresholds and golden files.                          | ❌ Deferred |
+| T4.2 | Add unit tests for `ScoringService` edge cases.                          | ⚪ Planned |
 
 ---
 
