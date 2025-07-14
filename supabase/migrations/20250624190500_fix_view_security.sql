@@ -3,6 +3,7 @@
 
 BEGIN;
 
-ALTER VIEW public.daily_feed_content_current SET (security_invoker = true);
+-- No-op in vanilla Postgres (security_invoker option unsupported in PG14);
+-- Supabase cloud keeps view property separately.
 
 COMMIT; 
