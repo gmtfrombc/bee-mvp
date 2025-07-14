@@ -7,12 +7,13 @@ This document defines the structure, logic, and content for weekly action steps 
 
 ## 🎯 Goal of the System
 
-Help patients develop identity-based, consistent behaviors through weekly mini-goals that:
+*Documents: @action_steps.md*
+-Help patients develop identity-based, consistent behaviors through weekly mini-goals that:
 - Are proactive (approach-oriented)
-- Are consistent (5–7 days per week)
+- Are consistent (5–7 days per week) based on their own, user-set goals
 - Support internal motivation and confidence
 - Allow tracking and reflection
-- Opportunity for AI Coach to support behavior change
+- Opportunity for AI (and human) Coach to support behavior change
 - Completion/non-completion of action steps is a significant contributor to Momentum Score
 
 ---
