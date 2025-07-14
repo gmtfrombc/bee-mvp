@@ -112,8 +112,7 @@ def _prepare_db():
         with open(path, "r", encoding="utf-8") as sql_file:
             _psql(sql_file.read())
 
-    # After dropping tables also drop helper role to keep environment clean
-    _psql("DROP ROLE IF EXISTS rls_test_user;")
+    # Tables dropped; keep role for other tests to avoid dependency issues
 
     # Inside _prepare_db fixture, after migrations, create non-superuser role
     _psql(
