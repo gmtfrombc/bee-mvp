@@ -4,6 +4,7 @@ import 'onboarding_controller.dart';
 import 'data/onboarding_repository.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../core/services/scoring_service.dart';
+import '../../core/services/onboarding_submission_flag_service.dart';
 
 /// Controller that manages the final submission step of the onboarding flow.
 ///
@@ -22,6 +23,12 @@ class OnboardingCompletionController extends StateNotifier<AsyncValue<void>> {
   /// submission (Milestone M2).
   Future<void> submit() async {
     state = const AsyncValue.loading();
+
+    // Toggle local "in-flight" flag so OnboardingGuard allows navigation
+    // while the RPC is executing.
+    final flagService = OnboardingSubmissionFlagService();
+    await flagService.setSubmitting(true);
+
     try {
       final draft = _ref.read(onboardingControllerProvider);
 
@@ -51,6 +58,9 @@ class OnboardingCompletionController extends StateNotifier<AsyncValue<void>> {
       state = const AsyncValue.data(null);
     } catch (err, st) {
       state = AsyncValue.error(err, st);
+    } finally {
+      // Always clear the flag regardless of success or failure.
+      await flagService.setSubmitting(false);
     }
   }
 }
