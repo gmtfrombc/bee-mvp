@@ -20,6 +20,17 @@
 -- ENABLE REALTIME FOR MOMENTUM TABLES
 -- =====================================================
 
+-- Ensure supabase_realtime publication exists (CI/local Postgres may lack Realtime extension)
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_publication WHERE pubname = 'supabase_realtime') THEN
+    CREATE PUBLICATION supabase_realtime;
+  END IF;
+EXCEPTION
+  WHEN insufficient_privilege THEN
+    RAISE NOTICE 'Could not create publication supabase_realtime (insufficient privileges) – realtime tables will be skipped in vanilla Postgres.';
+END$$;
+
 -- Enable realtime for daily_engagement_scores table
 ALTER TABLE daily_engagement_scores REPLICA IDENTITY FULL;
 ALTER PUBLICATION supabase_realtime ADD TABLE daily_engagement_scores;
