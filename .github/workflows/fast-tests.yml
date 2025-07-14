@@ -4,7 +4,37 @@ on:
   pull_request:
 
 jobs:
+  migrations:
+    runs-on: ubuntu-latest
+    container: ghcr.io/gmtfrombc/ci-base:latest
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply Supabase migrations
+        env:
+          PGHOST: postgres
+          PGUSER: postgres
+          PGPASSWORD: postgres
+        run: |
+          for f in supabase/migrations/*.sql; do
+            echo "Applying $f"
+            psql -d postgres -v ON_ERROR_STOP=1 -f "$f"
+          done
+
   fast:
+    needs: migrations
     runs-on: ubuntu-latest
     container: ghcr.io/gmtfrombc/ci-base:latest
     env:
