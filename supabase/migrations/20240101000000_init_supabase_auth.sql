@@ -52,6 +52,13 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+-- Simulate Supabase's auth.jwt() helper
+CREATE OR REPLACE FUNCTION auth.jwt() RETURNS JSONB AS $$
+BEGIN
+    RETURN '{}'::jsonb; -- empty claims for CI/local Postgres
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
 -- ╭─────────────────────────────────────────────────────────────╮
 -- │  Baseline roles (match Supabase)                           │
 -- ╰─────────────────────────────────────────────────────────────╯
