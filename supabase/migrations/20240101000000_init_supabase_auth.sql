@@ -8,6 +8,17 @@
 -- Ensure pgcrypto for gen_random_uuid()
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
+-- Attempt to enable pg_cron if available (non-critical)
+DO $$
+BEGIN
+  BEGIN
+    CREATE EXTENSION IF NOT EXISTS pg_cron;
+  EXCEPTION
+    WHEN undefined_file THEN
+      RAISE NOTICE 'pg_cron extension not installed, skipping.';
+  END;
+END$$;
+
 -- ╭─────────────────────────────────────────────────────────────╮
 -- │  auth schema & helpers                                     │
 -- ╰─────────────────────────────────────────────────────────────╯
