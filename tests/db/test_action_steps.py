@@ -1,10 +1,20 @@
 import os
+import subprocess
 import uuid
+import json
 
 import psycopg2 as _real_psycopg2
 import pytest
 
-from tests.db.db_utils import _psql, _conn
+# Database connection parameters mirror other DB tests
+DB_CFG = {
+    "host": os.getenv("DB_HOST", "localhost"),
+    "port": os.getenv("DB_PORT", "54322"),
+    "database": os.getenv("DB_NAME", "test"),
+    # Superuser is used for applying migrations / seeding.
+    "user": "postgres",
+    "password": os.getenv("DB_SUPER_PASSWORD", "postgres"),
+}
 
 # Ordered list of migration files required for action_steps feature
 MIGRATION_FILES = [
@@ -14,6 +24,51 @@ MIGRATION_FILES = [
     "supabase/migrations/20250714142000_action_step_triggers.sql",
     "supabase/migrations/20250714143000_action_step_rls.sql",
 ]
+
+
+def _psql(sql: str) -> None:
+    """Execute raw *sql* against the configured database via `psql` CLI."""
+
+    subprocess.run(
+        [
+            "psql",
+            f"-h{DB_CFG['host']}",
+            f"-p{DB_CFG['port']}",
+            f"-U{DB_CFG['user']}",
+            "-d",
+            DB_CFG["database"],
+            "-v",
+            "ON_ERROR_STOP=1",
+            "-q",
+            "-f",
+            "-",  # read SQL from stdin
+        ],
+        input=sql,
+        check=True,
+        text=True,
+        env={**os.environ, "PGPASSWORD": DB_CFG["password"]},
+    )
+
+
+def _conn(user_id: uuid.UUID | None = None):
+    """Return psycopg2 connection; if *user_id* provided sets `auth.uid()`."""
+    conn = _real_psycopg2.connect(
+        host=DB_CFG["host"],
+        port=DB_CFG["port"],
+        dbname=DB_CFG["database"],
+        user=DB_CFG["user"],  # superuser but we simulate RLS via jwt.claims
+        password=DB_CFG["password"],
+    )
+
+    # Preserve transaction-scoped connection (autocommit disabled) to keep
+    # the `set_config` setting alive for subsequent statements.
+    if user_id:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT set_config('request.jwt.claims', %s, true)",
+                (json.dumps({"sub": str(user_id)}),),
+            )
+    return conn
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -43,29 +98,6 @@ def _prepare_db():
     for path in MIGRATION_FILES:
         with open(path, "r", encoding="utf-8") as sql_file:
             _psql(sql_file.read())
-
-    # Tables dropped; keep role for other tests to avoid dependency issues
-
-    # Inside _prepare_db fixture, (re)create non-superuser role with a known
-    # password.  We **always** set/overwrite the PASSWORD so that an existing
-    # role from earlier tests (with a different password) does not break the
-    # authentication flow in CI.
-    _psql(
-        """
-        DO $$
-        BEGIN
-          IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'rls_test_user') THEN
-            ALTER ROLE rls_test_user WITH LOGIN NOSUPERUSER PASSWORD 'postgres';
-          ELSE
-            CREATE ROLE rls_test_user LOGIN NOSUPERUSER PASSWORD 'postgres';
-          END IF;
-        END$$;
-
-        GRANT USAGE ON SCHEMA public, auth TO rls_test_user;
-        GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO rls_test_user;
-        GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO rls_test_user;
-        """
-    )
 
     yield
 
@@ -177,7 +209,7 @@ def test_action_step_logs_rls():
                 date_trunc('week', timezone('utc', current_date))::date)
         RETURNING id;
     """
-    conn_super = _conn(None, superuser=True)
+    conn_super = _conn(None)
     with conn_super, conn_super.cursor() as cur:
         cur.execute(insert_step_sql)
         step_id = cur.fetchone()[0]
