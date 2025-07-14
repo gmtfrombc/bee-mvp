@@ -34,6 +34,13 @@ EXCEPTION
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+-- Simulate Supabase's auth.role() helper
+CREATE OR REPLACE FUNCTION auth.role() RETURNS TEXT AS $$
+BEGIN
+    RETURN 'service_role'; -- Stub implementation for CI/local migrations
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
 -- ╭─────────────────────────────────────────────────────────────╮
 -- │  Baseline roles (match Supabase)                           │
 -- ╰─────────────────────────────────────────────────────────────╯
