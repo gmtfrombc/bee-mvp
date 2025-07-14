@@ -62,6 +62,15 @@ fi
 
 echo "✅ Ruff lint passed"
 
+# 4.5 Run Python tests automatically if any .py file is staged.
+if git diff --cached --name-only | grep -E '\.py$' >/dev/null; then
+  echo "🧪  Running pytest on full suite (Python files changed)..."
+  if ! pytest -q; then
+    echo "❌  Pytest failures detected. Commit aborted."
+    exit 1
+  fi
+fi
+
 # 5. Run Flutter analyzer on staged Dart files (app/ module)
 staged_dart_files=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.dart$' || true)
 if [[ -n "$staged_dart_files" ]]; then
