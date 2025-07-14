@@ -27,6 +27,8 @@ begin
 end;$$ language plpgsql;
 
 -- 4. Trigger that calls the function before every UPDATE
+-- Ensure idempotency in CI/local replays
+drop trigger if exists trg_action_steps_updated on public.action_steps;
 create trigger trg_action_steps_updated
   before update on public.action_steps
   for each row execute procedure public.set_updated_at(); 
