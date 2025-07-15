@@ -21,6 +21,10 @@ ui-goldens:
 	@cd app && flutter test --update-goldens \
 	  test/features/onboarding/ui/onboarding_pages_golden_test.dart 
 
+.PHONY: db-start
+db-start:
+	@bash scripts/start_test_db.sh 
+
 .PHONY: ci-lite
 ci-lite:
 	@echo "🚀 Running lightweight CI (lint + unit tests)"

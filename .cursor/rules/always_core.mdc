@@ -50,3 +50,8 @@ Further reference (open on demand): • docs/architecture/bee_mvp_tech_overview.
 – full architecture & SLAs • docs/architecture/component_governance.md –
 component size & patterns • ocs/MVP_ROADMAP/bee_project_plan_mvp_FINAL.md – MVP
 roadmap & epics
+
+# Local DB
+
+• Tests auto-start a throw-away Postgres with scripts/start_test_db.sh (see file
+for details).
