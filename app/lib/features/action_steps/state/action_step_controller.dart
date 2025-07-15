@@ -3,6 +3,7 @@ import 'action_step_draft.dart';
 import '../validators/action_step_validators.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:app/core/providers/supabase_provider.dart';
+import 'package:app/core/services/action_step_status_service.dart';
 
 /// Manages the Action Step draft during creation / editing.
 class ActionStepController extends StateNotifier<ActionStepDraft> {
@@ -62,6 +63,10 @@ class ActionStepController extends StateNotifier<ActionStepDraft> {
 
     // Perform insert – rely on Supabase exceptions for error handling.
     await _client.from('action_steps').insert(payload);
+
+    // Persist local "has set action step" flag so onboarding integration can
+    // decide whether to prompt next time.
+    await ActionStepStatusService().setHasSetActionStep(true);
   }
 }
 
