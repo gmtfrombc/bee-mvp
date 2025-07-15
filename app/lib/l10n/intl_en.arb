@@ -94,6 +94,30 @@
   "onboarding_med_condition_gerd": "GERD or acid reflux",
   "onboarding_med_condition_chronic_pain": "Chronic pain / fibromyalgia",
   "onboarding_med_condition_arthritis": "Arthritis",
-  "onboarding_med_condition_none": "None of the above"
+  "onboarding_med_condition_none": "None of the above",
+  "@onboarding_med_condition_none": {
+    "description": "Option label when no medical conditions apply"
+  },
+
+  "action_step_category_nutrition": "Nutrition",
+  "@action_step_category_nutrition": {
+    "description": "Action Step category label: Nutrition"
+  },
+  "action_step_category_movement": "Movement",
+  "@action_step_category_movement": {
+    "description": "Action Step category label: Movement"
+  },
+  "action_step_category_sleep": "Sleep",
+  "@action_step_category_sleep": {
+    "description": "Action Step category label: Sleep"
+  },
+  "action_step_category_stress": "Stress management",
+  "@action_step_category_stress": {
+    "description": "Action Step category label: Stress management"
+  },
+  "action_step_category_social": "Social connection",
+  "@action_step_category_social": {
+    "description": "Action Step category label: Social connection"
+  }
 
 }

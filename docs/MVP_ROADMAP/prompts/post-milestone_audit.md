@@ -25,7 +25,7 @@ specifications defined in the milestone document.
 ### 📦 Deliverables Audit
 
 - Confirm that all deliverables (code files, migrations, tests, assets, etc.)
-  exist and are placed in expected locations.
+  exist and are placed in expected locations. Insure that the code changes did not unduly increase complexity and reduce stability of the codebase
 
 ### 🧪 Testing Validation
 
@@ -48,7 +48,7 @@ Produce a clean markdown QA report with:
 1. **PASS/FAIL Status**
 2. Table of acceptance criteria with ✅/❌
 3. Missing or incomplete deliverables
-4. Code smells or architectural violations
+4. Code smells, unncessary or overly complex additons,  or architectural violations
 5. Recommended remediation tasks
 6. Use the file @M1.11.1_post-milestone_mini-sprint.md as your template for the
    document and place in the folder: docs/MVP_ROADMAP/1-11

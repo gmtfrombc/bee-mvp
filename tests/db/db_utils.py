@@ -11,6 +11,45 @@ __all__ = ["_psql", "_conn"]
 # Environment helpers
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# Auto-bootstrap local Postgres container (see scripts/start_test_db.sh)
+# ---------------------------------------------------------------------------
+
+# Lazily populate DB_HOST / DB_PORT by invoking the helper script once.  This
+# prevents the frequent "role \"postgres\" does not exist" error when the dev
+# Postgres on 5432 belongs to Supabase instead of vanilla Postgres.
+
+
+def _ensure_local_db():
+    if os.getenv("DB_HOST") and os.getenv("DB_PORT"):
+        return
+
+    script_path = os.path.join(
+        os.path.dirname(os.path.dirname(__file__)), "..", "scripts", "start_test_db.sh"
+    )
+    if not os.path.exists(script_path):
+        # Fallback – nothing we can do automatically
+        return
+
+    try:
+        import subprocess
+        import re
+
+        result = subprocess.run(
+            ["bash", script_path], capture_output=True, text=True, check=True
+        )
+        for line in result.stdout.splitlines():
+            m = re.match(r"export (DB_HOST|DB_PORT)=(.+)", line.strip())
+            if m:
+                os.environ[m.group(1)] = m.group(2)
+    except Exception:
+        # Silent fail – tests will attempt connection and raise meaningful error
+        pass
+
+
+_ensure_local_db()
+
+# Use (possibly) updated environment variables
 _PG_HOST = os.getenv("DB_HOST", "localhost")
 _PG_PORT = os.getenv("DB_PORT", "5432")
 _PG_DB = os.getenv("DB_NAME", "test")

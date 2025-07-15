@@ -40,14 +40,3 @@ Return a markdown audit report that includes:
 - Mini QA Plan
 - Action items for resolution (if any)
 
----
-
-## 🧭 Developer Kick-Off Playbook
-
-## To kick off milestone <CURRENT_MILESTONE> follow these
-
-- Verify the working tree is clean—if there are local changes, STOP and ask me.
-- git fetch --prune, then git checkout main && git pull --ff-only to ensure we’re on the latest origin/main.
-- Create and switch to branch feature/<CURRENT_MILESTONE>, add any pre-milestone planning docs already in the repo (if present), commit with message docs: add planning docs for <CURRENT_MILESTONE>.
-- git push -u origin feature/<CURRENT_MILESTONE> and open a draft PR targeting main titled “<CURRENT_MILESTONE>: <milestone title>”.
-- No stashing, no additional scripts. Report the PR URL when done.”
