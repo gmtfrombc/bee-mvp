@@ -1,20 +1,9 @@
 import os
-import subprocess
 import uuid
-import json
 
-import psycopg2 as _real_psycopg2
 import pytest
 
-# Database connection configuration – mirrors other DB tests
-DB_CFG = {
-    "host": os.getenv("DB_HOST", "localhost"),
-    "port": os.getenv("DB_PORT", "54322"),
-    "database": os.getenv("DB_NAME", "test"),
-    # Always apply migrations using superuser to avoid privilege errors in CI
-    "user": "postgres",
-    "password": os.getenv("DB_SUPER_PASSWORD", "postgres"),
-}
+from tests.db.db_utils import _psql, _conn
 
 # Ordered list of migration files needed for Action Steps + helper view
 MIGRATION_FILES = [
@@ -27,62 +16,6 @@ MIGRATION_FILES = [
     "supabase/migrations/20250714143000_action_step_rls.sql",
     "supabase/migrations/20250714145000_current_week_action_steps_view.sql",
 ]
-
-
-def _psql(sql: str) -> None:
-    """Execute raw *sql* against the configured database via `psql` CLI."""
-
-    subprocess.run(
-        [
-            "psql",
-            f"-h{DB_CFG['host']}",
-            f"-p{DB_CFG['port']}",
-            f"-U{DB_CFG['user']}",
-            "-d",
-            DB_CFG["database"],
-            "-v",
-            "ON_ERROR_STOP=1",
-            "-q",
-            "-f",
-            "-",  # read SQL from stdin
-        ],
-        input=sql,
-        check=True,
-        text=True,
-        env={**os.environ, "PGPASSWORD": DB_CFG["password"]},
-    )
-
-
-def _conn(user_id: uuid.UUID | None = None):
-    """Return psycopg2 connection; if *user_id* provided sets `auth.uid()`."""
-    conn = _real_psycopg2.connect(
-        host=DB_CFG["host"],
-        port=DB_CFG["port"],
-        dbname=DB_CFG["database"],
-        user=DB_CFG["user"],  # superuser but we simulate RLS via jwt.claims
-        password=DB_CFG["password"],
-    )
-    # Keep autocommit disabled so that `set_config` with `is_local = true`
-    # remains visible for subsequent statements executed within the same
-    # connection (otherwise the setting is cleared after each autocommitted
-    # statement and `auth.uid()` would return NULL).
-    #
-    # NOTE: We intentionally *do not* call `conn.autocommit = True` here.
-    # Psycopg2 defaults to a transaction-scoped connection which is exactly
-    # what we need for the RLS tests below.
-    #
-    # If you need autocommit semantics for a specific operation, create a
-    # dedicated cursor/connection instead of toggling this flag globally.
-    #
-    # See https://www.postgresql.org/docs/current/functions-admin.html#FUNCTIONS-ADMIN-SET for details.
-
-    if user_id:
-        with conn.cursor() as cur:
-            cur.execute(
-                "SELECT set_config('request.jwt.claims', %s, true)",
-                (json.dumps({"sub": str(user_id)}),),
-            )
-    return conn
 
 
 @pytest.mark.integration
@@ -115,6 +48,20 @@ def test_current_week_action_steps_view():
         with open(path, "r", encoding="utf-8") as sql_file:
             _psql(sql_file.read())
 
+    # Ensure dedicated non-superuser role exists for RLS assertions
+    _psql(
+        """
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'rls_test_user') THEN
+            CREATE ROLE rls_test_user LOGIN PASSWORD 'postgres';
+          END IF;
+          GRANT USAGE ON SCHEMA public, auth TO rls_test_user;
+          GRANT SELECT ON ALL TABLES IN SCHEMA public TO rls_test_user;
+        END$$;
+        """
+    )
+
     # 2️⃣  Prepare sample data (bypass RLS using superuser)
     user_a = uuid.uuid4()
     user_b = uuid.uuid4()
@@ -144,7 +91,7 @@ def test_current_week_action_steps_view():
         )
 
     # Fetch one of user_a's current-week step ids to attach logs
-    conn_super = _conn(None)
+    conn_super = _conn(None, superuser=True)
     with conn_super.cursor() as cur:
         cur.execute(
             """

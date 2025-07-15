@@ -1,6 +1,7 @@
 import os
-import subprocess
 import pytest
+
+from tests.db.db_utils import _psql
 
 DB_CFG = {
     "host": os.getenv("DB_HOST", "localhost"),
@@ -20,22 +21,6 @@ def test_migration_apply_and_rollback(tmp_path):
     """Apply onboarding migration, dump schema, roll back, and compare dumps."""
 
     # Helper to run psql commands
-    def _psql(sql: str):
-        subprocess.run(
-            [
-                "psql",
-                f"-h{DB_CFG['host']}",
-                f"-p{DB_CFG['port']}",
-                "-Upostgres",
-                "-d",
-                DB_CFG["database"],
-                "-c",
-                sql,
-            ],
-            check=True,
-            text=True,
-            env={**os.environ, "PGPASSWORD": DB_CFG["password"]},
-        )
 
     # 1. (Removed pg_dump baseline – no longer needed)
 

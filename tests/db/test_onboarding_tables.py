@@ -1,13 +1,14 @@
 import os
-import subprocess
+import psycopg2 as _real_psycopg2
+import pytest
+
 from pathlib import Path
+
+from tests.db.db_utils import _psql
 
 # secrets import no longer needed
 
 # Import real module to bypass conftest patching
-import psycopg2 as _real_psycopg2
-import pytest
-
 import uuid
 from psycopg2 import errors
 
@@ -31,29 +32,6 @@ MIGRATION_FILES = [
     "supabase/migrations/20250708122000_onboarding_responses_rls.sql",  # RLS policies
     "supabase/migrations/20250708123000_onboarding_responses_audit_trigger.sql",  # audit trigger
 ]
-
-
-def _psql(sql: str) -> None:  # helper to execute raw SQL via psql CLI for ease
-    """Execute *sql* against the configured database using the psql CLI."""
-
-    subprocess.run(
-        [
-            "psql",
-            f"-h{DB_CFG['host']}",
-            f"-p{DB_CFG['port']}",
-            f"-U{DB_CFG['user']}",
-            "-d",
-            DB_CFG["database"],
-            "-v",
-            "ON_ERROR_STOP=1",  # fail fast on any SQL error
-            "-q",
-            "-c",
-            sql,
-        ],
-        check=True,
-        text=True,
-        env={**os.environ, "PGPASSWORD": DB_CFG["password"]},
-    )
 
 
 @pytest.mark.integration
