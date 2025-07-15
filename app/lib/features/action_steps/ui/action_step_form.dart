@@ -17,6 +17,8 @@ class _ActionStepFormState extends ConsumerState<ActionStepForm> {
   final _formKey = GlobalKey<FormState>();
   final _descriptionCtrl = TextEditingController();
 
+  bool _isSubmitting = false;
+
   static const _categories = <String>[
     'exercise',
     'nutrition',
@@ -84,21 +86,39 @@ class _ActionStepFormState extends ConsumerState<ActionStepForm> {
             // Primary button
             ElevatedButton(
               onPressed:
-                  controller.isComplete
+                  (controller.isComplete && !_isSubmitting)
                       ? () {
                         if (!(_formKey.currentState?.validate() ?? false)) {
                           return;
                         }
-                        // For now just show confirmation.
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Action Step saved (local)!'),
-                          ),
-                        );
-                        Navigator.of(context).maybePop();
+                        final messenger = ScaffoldMessenger.of(context);
+                        final navigator = Navigator.of(context);
+                        setState(() => _isSubmitting = true);
+                        controller
+                            .submit()
+                            .then((_) {
+                              navigator.maybePop();
+                            })
+                            .catchError((e) {
+                              messenger.showSnackBar(
+                                SnackBar(content: Text('Failed to save: $e')),
+                              );
+                            })
+                            .whenComplete(() {
+                              if (mounted) {
+                                setState(() => _isSubmitting = false);
+                              }
+                            });
                       }
                       : null,
-              child: const Text('Continue'),
+              child:
+                  _isSubmitting
+                      ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                      : const Text('Continue'),
             ),
           ],
         ),
