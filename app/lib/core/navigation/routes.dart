@@ -10,6 +10,7 @@ import 'package:app/features/onboarding/ui/medical_history_page.dart';
 import 'package:app/features/onboarding/onboarding_controller.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/widgets.dart';
+import 'package:app/features/action_steps/ui/action_step_setup_page.dart';
 
 /// Centralized route constants for the app.
 const String kOnboardingStep1Route = '/onboarding/step1';
@@ -18,6 +19,7 @@ const String kOnboardingStep3Route = '/onboarding/step3';
 const String kOnboardingStep4Route = '/onboarding/step4';
 const String kOnboardingStep5Route = '/onboarding/step5';
 const String kOnboardingStep6Route = '/onboarding/step6';
+const String kActionStepSetupRoute = '/action-step/setup';
 
 /// Global [GoRouter] instance for the application.
 const _onboardingGuard = OnboardingGuard();
@@ -89,6 +91,10 @@ final GoRouter appRouter = GoRouter(
       path: kOnboardingStep6Route,
       redirect: (ctx, state) => _onboardingStepGuard(ctx, 6),
       builder: (context, state) => const MedicalHistoryPage(),
+    ),
+    GoRoute(
+      path: kActionStepSetupRoute,
+      builder: (context, state) => const ActionStepSetupPage(),
     ),
   ],
 );
