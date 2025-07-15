@@ -50,6 +50,7 @@ class _ActionStepFormState extends ConsumerState<ActionStepForm> {
             // Category dropdown
             DropdownButtonFormField<String>(
               value: draft.category,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
               decoration: const InputDecoration(labelText: 'Category'),
               items:
                   _categories
@@ -64,6 +65,7 @@ class _ActionStepFormState extends ConsumerState<ActionStepForm> {
             // Description field
             TextFormField(
               controller: _descriptionCtrl,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
               decoration: const InputDecoration(labelText: 'Description'),
               maxLength: 80,
               onChanged: controller.updateDescription,
