@@ -1,0 +1,4 @@
+secrets:
+  ignore-paths:
+    - ".cursor/rules/docker_db.mdc"
+    - "scripts/start_test_db.sh"
