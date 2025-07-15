@@ -1,39 +1,27 @@
+---
+alwaysApply: true
+---
+
 ## rule_type: always
 
-# 🧠 Standard Workflow
+# 🧠 Standard Workflow--New Task
 
-1. Create a feature branch named after the task
-   - e.g. `epic-1.12/T1-xyz`.
-
-2. Rebase early, rebase often **before every push**
-
-   ```bash
-   git fetch origin       # always refresh main
-   git rebase origin/main --autostash
-   ```
-
-   This surfaces conflicts while context is fresh and keeps history linear.
-
-3. Commit as usual (the pre-commit hook auto-formats, lints, runs gitleaks,\
-   and aborts if any `<<<<<<<`, `=======`, `>>>>>>>` markers are present).
-
-4. Run local CI (pick one):
-
-   • Fast lane  `make ci-fast` # runs fast-tests (≈5 min) • Full matrix
-   `make ci-local`
-
-   A local green guarantees a remote green because the helper script spins up
-   the same Docker image GitHub CI uses.
-
-5. Push (`git push --force-with-lease` if rebased), open a PR, wait for **Fast
-   Tests** (< 5 min) to pass, then squash-merge to `main`.
-
-6. **Full Tests** run automatically on `main` overnight.
+1️⃣ Branch epic-<epic>/T<task>-slug off main.
+2️⃣ Plan: post a step-by-step plan, wait for ✔ from user.
+3️⃣ Code locally, commit small chunks. Pre-commit hook auto-runs formatter + linter + Gitleaks; aborts on conflict markers.
+4️⃣ Test locally
+• Fast path make ci-fast (~5 min)
+• Full matrix make ci-local (identical to GitHub via ACT)  ￼
+5️⃣ Fix failures: rerun only failed tests (flutter test --name, pytest --lf, deno test --filter) until green, then run the full suite once.
+6️⃣ Rebase before push
+git fetch origin
+git rebase origin/main --autostash      # surfacing fresh conflicts
+git push --force-with-lease             # safe overwrite
+7️⃣ Open PR, wait for Fast Tests to pass (< 5 min), squash-merge to main, then delete the branch.
+8️⃣ Stop; await next user task.
 
 # 🧠 Core Coding Rules
 
-- Always plan first: provide a step-by-step **plan** before modifying code. Wait
-  for user approval.
 - Use **Chain-of-Thought reasoning** for complex tasks. Think aloud before
   executing.
 - Check for existing functions/services/widgets before writing new code. Avoid

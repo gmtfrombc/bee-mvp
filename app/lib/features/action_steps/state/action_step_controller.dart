@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'action_step_draft.dart';
+import '../validators/action_step_validators.dart';
 
 /// Manages the Action Step draft during creation / editing.
 class ActionStepController extends StateNotifier<ActionStepDraft> {
@@ -21,7 +22,11 @@ class ActionStepController extends StateNotifier<ActionStepDraft> {
   }
 
   /// Convenience getter used by UI to enable/disable primary button.
-  bool get isComplete => state.isComplete;
+  bool get isComplete {
+    return state.isComplete &&
+        isPositivePhrase(state.description) &&
+        isFrequencyInRange(state.frequency);
+  }
 
   // Future: submit to Supabase (Task T3).
   Future<void> submit() async {

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app/core/services/responsive_service.dart';
 import '../state/action_step_controller.dart';
 import 'widgets/action_step_frequency_selector.dart';
+import '../validators/action_step_validators.dart';
 
 /// Form capturing Action Step details (category, description, frequency).
 class ActionStepForm extends ConsumerStatefulWidget {
@@ -64,9 +65,7 @@ class _ActionStepFormState extends ConsumerState<ActionStepForm> {
               decoration: const InputDecoration(labelText: 'Description'),
               maxLength: 80,
               onChanged: controller.updateDescription,
-              validator:
-                  (val) =>
-                      (val == null || val.trim().isEmpty) ? 'Required' : null,
+              validator: positivePhraseValidator,
             ),
             SizedBox(height: spacing),
 
