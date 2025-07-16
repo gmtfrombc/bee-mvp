@@ -62,6 +62,21 @@ fi
 
 echo "✅ Ruff lint passed"
 
+# 5. Run Deno lint on Supabase Edge Function TypeScript files
+staged_ts_files=$(git diff --cached --name-only --diff-filter=ACM | grep -E '^supabase/functions/.*\.ts$' || true)
+if [[ -n "$staged_ts_files" ]]; then
+  if ! command -v deno >/dev/null 2>&1; then
+    echo "❌  Deno is not installed. Install Deno >=1.46 before committing TypeScript code."
+    exit 1
+  fi
+
+  echo "🧐  Running Deno lint on Supabase edge functions..."
+  if ! deno lint supabase/functions; then
+    echo "❌  Deno lint detected issues. Please fix them before committing. Commit aborted."
+    exit 1
+  fi
+fi
+
 # 4.5 Run Python tests with ephemeral Postgres if any .py file is staged.
 if git diff --cached --name-only | grep -E '\.py$' >/dev/null; then
   echo "🧪  Spinning up disposable Postgres & running pytest..."
