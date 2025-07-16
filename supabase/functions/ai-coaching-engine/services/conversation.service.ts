@@ -21,6 +21,54 @@ import { GenerateResponseRequest, GenerateResponseResponse } from '../types.ts'
 import type { AIResponse } from './ai-client.ts'
 import { recordTokenUsage } from '../../_shared/metrics.ts'
 
+// -----------------------------------------------------------------------------
+// Action Step Suggestions (integrates suggest-action-steps Edge Function)
+// -----------------------------------------------------------------------------
+
+export interface ActionStepSuggestion {
+  id: string
+  title: string
+  category: string
+  description: string
+}
+
+async function fetchActionStepSuggestions(
+  userId: string,
+  authToken?: string,
+): Promise<ActionStepSuggestion[]> {
+  try {
+    type SupabaseFunctionsClient = {
+      functions: {
+        invoke: (
+          name: string,
+          options: Record<string, unknown>,
+        ) => Promise<{ data: unknown; error: unknown }>
+      }
+    }
+
+    const supabase = await getSupabaseClient() as unknown as SupabaseFunctionsClient
+    const { data, error } = await supabase.functions.invoke(
+      'suggest-action-steps',
+      {
+        body: { user_id: userId },
+        headers: authToken ? { Authorization: `Bearer ${authToken}` } : undefined,
+      },
+    )
+
+    if (error) {
+      // On HTTP 429 or other server errors, gracefully degrade
+      console.warn('suggest-action-steps error', error)
+      return []
+    }
+
+    const suggestions = (data as { suggestions?: ActionStepSuggestion[] } | null)?.suggestions ?? []
+    return suggestions
+  } catch (err) {
+    console.warn('Failed to fetch action step suggestions', err)
+    return []
+  }
+}
+
 // --- Environment / singletons -------------------------------------------------
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? ''
@@ -160,6 +208,14 @@ export async function processConversation(
     )
     const patternSummary = analyzeEngagement(engagementEvents)
 
+    // ------------------------------------------------------------------
+    // 🏃‍♀️  Fetch action step suggestions (non-blocking, rate-limited)
+    // ------------------------------------------------------------------
+    const actionStepSuggestions = await fetchActionStepSuggestions(
+      user_id,
+      authToken || undefined,
+    )
+
     // Sentiment
     let sentiment: SentimentResult | null = null
     if (system_event !== 'momentum_change') {
@@ -228,6 +284,7 @@ export async function processConversation(
             visitDate: provider_visit_date as string | undefined,
           }
           : undefined,
+        actionStepSuggestions,
       )
       timings['prompt_build_ms'] = Date.now() - promptBuildStart
 

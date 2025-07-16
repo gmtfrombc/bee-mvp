@@ -135,7 +135,7 @@ jobs:
       uses: denoland/setup-deno@v1
       with:
         # >=1.44 required for lock.json v5 parsing
-        deno-version: v1.46.3
+        deno-version: v1.x
         
     - name: Run Edge Function tests
       working-directory: ./supabase/functions/ai-coaching-engine
@@ -174,7 +174,7 @@ jobs:
     - name: Setup Deno
       uses: denoland/setup-deno@v1
       with:
-        deno-version: v1.46.3
+        deno-version: v1.x
         
     - name: Start Supabase local (mock)
       run: |

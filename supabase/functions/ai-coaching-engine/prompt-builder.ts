@@ -131,6 +131,7 @@ export async function buildPrompt(
     transcriptSummary?: string
     visitDate?: string
   },
+  actionStepSuggestions?: { id: string; title: string; category: string; description: string }[],
 ): Promise<ChatPrompt> {
   // Load template files – safety + system + momentum-specific conversation template
   const [safetyTemplate, systemTemplate, conversationTemplate] = await Promise.all([
@@ -140,7 +141,7 @@ export async function buildPrompt(
   ])
 
   // Inject personalization context into system template
-  const personalizedSystemPrompt = injectPersonalizationContext(
+  let personalizedSystemPrompt = injectPersonalizationContext(
     `${conversationTemplate}\n\n${systemTemplate}`,
     persona,
     summary,
@@ -150,6 +151,15 @@ export async function buildPrompt(
     articleContext,
     providerVisitContext,
   )
+
+  // If action step suggestions provided, append a section
+  if (actionStepSuggestions && actionStepSuggestions.length > 0) {
+    const list = actionStepSuggestions
+      .slice(0, 5)
+      .map((s, idx) => `${idx + 1}. **${s.title}** – ${s.description}`)
+      .join('\n')
+    personalizedSystemPrompt += `\n\n## Suggested Action Steps (max 5)\n${list}`
+  }
 
   // Build the complete prompt array
   const prompt: ChatPrompt = [
