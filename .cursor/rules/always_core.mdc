@@ -24,6 +24,7 @@ git push --force-with-lease             # safe overwrite
 
 - Use **Chain-of-Thought reasoning** for complex tasks. Think aloud before
   executing.
+- Create efficient code using best practices, minimizing complexity and maintaining a lean codebase
 - Check for existing functions/services/widgets before writing new code. Avoid
   duplication.
 - Never prompt the user to run terminal commands. Use `--non-interactive` flags

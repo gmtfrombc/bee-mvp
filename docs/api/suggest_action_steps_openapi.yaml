@@ -1,12 +1,11 @@
 openapi: 3.1.0
 info:
   title: Suggest Action Steps API
-  version: 0.1.0
-
+  version: 1.0.0
 paths:
-  /suggest_action_steps:
+  /suggest-action-steps:
     post:
-      summary: Generate action step suggestions for a user
+      summary: Get suggested action steps for a user
       requestBody:
         required: true
         content:
@@ -17,66 +16,53 @@ paths:
                 user_id:
                   type: string
                   format: uuid
+                  description: Unique user identifier
               required:
                 - user_id
       responses:
         "200":
-          description: Success
+          description: Suggestions payload
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ActionStep"
-        "400":
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
+                type: object
+                properties:
+                  suggestions:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ActionStepSuggestion"
         "429":
-          description: Rate Limited
-          headers:
-            Retry-After:
-              schema:
-                type: integer
-                format: int32
-                example: 30
-        "500":
-          description: Internal Server Error
+          description: Too Many Requests
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
-  /health:
-    get:
-      summary: Health check endpoint
-      responses:
-        "200":
-          description: OK
-
+                $ref: "#/components/schemas/RateLimitedError"
 components:
   schemas:
-    ActionStep:
+    ActionStepSuggestion:
       type: object
       properties:
+        id:
+          type: string
+          description: Unique suggestion key
+        title:
+          type: string
         category:
           type: string
         description:
           type: string
-        frequency:
-          type: integer
-          minimum: 3
-          maximum: 7
-        week_start:
-          type: string
-          format: date
-    Error:
+      required:
+        - id
+        - title
+        - category
+        - description
+    RateLimitedError:
       type: object
       properties:
         code:
           type: string
+          enum: [RATE_LIMITED]
         message:
           type: string
-        correlation_id:
-          type: string
+        retry_after:
+          type: integer
