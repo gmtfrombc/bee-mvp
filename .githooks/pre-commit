@@ -141,3 +141,24 @@ fi
 
 echo "✅ Flutter analyze passed"
 echo "💡 Tip: For a quick inner loop, run 'make smart-test' (or 'make ui-goldens' after UI tweaks) before committing."
+
+# 5.5 Validate Supabase function names inside updated GitHub workflows
+if git diff --cached --name-only | grep -E '^\.github/workflows/.*\.yml$' >/dev/null; then
+  echo "🔍  Validating Supabase function deploy names in modified workflow files..."
+  invalid=false
+  while read -r wf; do
+    # Extract function names that appear after 'supabase functions deploy'
+    while read -r fname; do
+      # shellcheck disable=SC2076
+      if [[ ! $fname =~ ^[A-Za-z][A-Za-z0-9_-]*$ ]]; then
+        echo "❌  Invalid Supabase function name '$fname' found in $wf"
+        invalid=true
+      fi
+    done < <(grep -oE 'supabase functions deploy +[^ ]+' "$wf" | awk '{print $4}')
+  done < <(git diff --cached --name-only | grep -E '^\.github/workflows/.*\.yml$')
+
+  if [[ $invalid == true ]]; then
+    echo "💡  Function names must match ^[A-Za-z][A-Za-z0-9_-]*$ (no @version suffix). Commit aborted."
+    exit 1
+  fi
+fi
