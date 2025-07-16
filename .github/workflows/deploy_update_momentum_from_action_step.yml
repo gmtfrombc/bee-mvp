@@ -1,0 +1,36 @@
+name: Deploy update-momentum-from-action-step Edge Function
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'supabase/functions/update-momentum-from-action-step/**'
+      - '.github/workflows/deploy_update_momentum_from_action_step.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: v1.x
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Deploy Edge Function
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: |
+          supabase functions deploy update-momentum-from-action-step \
+            --project-ref $SUPABASE_PROJECT_REF \
+            --no-verify-jwt 
