@@ -33,10 +33,10 @@ Flutter 3.3.2a + Supabase architecture rules.
 
 | Task | Description                                                                                                                 | Hours | Status     |
 | ---- | --------------------------------------------------------------------------------------------------------------------------- | ----- | ---------- |
-| T1   | Design `action_steps` table (`id`, `user_id`, `category`, `description`, `frequency`, `week_start`, `source`, `created_at`) | 2h    | 🟡 Planned |
-| T2   | Add audit & `updated_at` triggers                                                                                           | 2h    | 🟡 Planned |
-| T3   | Implement RLS to enforce row-level user isolation                                                                           | 3h    | 🟡 Planned |
-| T4   | Write SQL unit tests for RLS + triggers (`tests/db/test_action_steps.py`)                                                   | 3h    | 🟡 Planned |
+| T1   | Design `action_steps` table (`id`, `user_id`, `category`, `description`, `frequency`, `week_start`, `source`, `created_at`) | 2h    | ✅ Complete |
+| T2   | Add audit & `updated_at` triggers                                                                                           | 2h    | ✅ Complete |
+| T3   | Implement RLS to enforce row-level user isolation                                                                           | 3h    | ✅ Complete |
+| T4   | Write SQL unit tests for RLS + triggers (`tests/db/test_action_steps.py`)                                                   | 3h    | ✅ Complete|
 
 **Deliverables:** Migration SQL, RLS policies, CI tests green.
 
@@ -51,10 +51,10 @@ blocked; tests pass in CI.
 
 | Task | Description                                                                           | Hours | Status     |
 | ---- | ------------------------------------------------------------------------------------- | ----- | ---------- |
-| T1   | Build `ActionStepSetupPage` with Riverpod form (Category, Description, Frequency 3-7) | 6h    | 🟡 Planned |
-| T2   | Implement validation (positive phrasing, frequency bounds)                            | 3h    | 🟡 Planned |
-| T3   | Connect page to Supabase insert RPC; show snackbar on error                           | 2h    | 🟡 Planned |
-| T4   | Integrate with onboarding flow (Epic 1.11) – optional first-time prompt               | 2h    | 🟡 Planned |
+| T1   | Build `ActionStepSetupPage` with Riverpod form (Category, Description, Frequency 3-7) | 6h    | ✅ Complete |
+| T2   | Implement validation (positive phrasing, frequency bounds)                            | 3h    | ✅ Complete |
+| T3   | Connect page to Supabase insert RPC; show snackbar on error                           | 2h    | ✅ Complete |
+| T4   | Integrate with onboarding flow (Epic 1.11) – optional first-time prompt               | 2h    | ✅ Complete |
 
 **Acceptance Criteria:** Users can create/edit Action Step; validation prevents
 invalid goals; E2E test passes on iOS & Android.
@@ -68,10 +68,10 @@ emulator.
 
 | Task | Description                                                                     | Hours | Status     |
 | ---- | ------------------------------------------------------------------------------- | ----- | ---------- |
-| T1   | Create edge function `suggest-action-steps@1.0.0` (SemVer tag)                  | 4h    | 🟡 Planned |
-| T2   | Implement logic: fetch past goals, user priorities, return 3-5 suggestions JSON | 4h    | 🟡 Planned |
-| T3   | Add unit tests (`supabase/functions/tests/suggest_action_steps_test.ts`)        | 3h    | 🟡 Planned |
-| T4   | Wire function into AI Coach conversation engine                                 | 3h    | 🟡 Planned |
+| T1   | Create edge function `suggest-action-steps@1.0.0` (SemVer tag)                  | 4h    | ✅ Complete |
+| T2   | Implement logic: fetch past goals, user priorities, return 3-5 suggestions JSON | 4h    | ✅ Complete |
+| T3   | Add unit tests (`supabase/functions/tests/suggest_action_steps_test.ts`)        | 3h    | ✅ Complete |
+| T4   | Wire function into AI Coach conversation engine                                 | 3h    | ✅ Complete |
 
 **Acceptance Criteria:** Function returns suggestions < 500 ms p95; coach
 message renders options; unit tests ≥ 90 % coverage.
