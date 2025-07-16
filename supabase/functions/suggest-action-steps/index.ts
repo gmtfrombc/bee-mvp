@@ -81,5 +81,7 @@ export async function handler(req: Request): Promise<Response> {
   });
 }
 
-// Supabase entry point
-serve(handler);
+// Supabase entry point – only run when executed as a script, not when imported in tests
+if (import.meta.main) {
+  serve(handler);
+}
