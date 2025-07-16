@@ -80,6 +80,113 @@ function buildPlaceholderSuggestions(): ActionStepSuggestion[] {
   ];
 }
 
+// Extracted pure algorithm for easier unit-testing
+export type PlannedStep = {
+  id: string;
+  category: string | null;
+  frequency?: number | null;
+  week_start: string;
+};
+export type CompletionLog = { action_step_id: string; completed_on: string };
+
+/**
+ * Compute ranked suggestions from planned steps & completion logs.
+ * Returns 3-5 suggestions or falls back to placeholder suggestions.
+ */
+export function computeSuggestions(
+  steps: PlannedStep[],
+  logs: CompletionLog[],
+): ActionStepSuggestion[] {
+  // ---------------------------------------------------------------------------
+  // 🧮 Compute per-category stats (identical logic to original inline version)
+  // ---------------------------------------------------------------------------
+  type Stats = {
+    plannedPerWeek: Map<string, number>; // week_start -> planned count
+    completedPerWeek: Map<string, number>;
+  };
+  const byCategory = new Map<string, Stats>();
+
+  for (const step of steps) {
+    const cat = String(step.category ?? "uncategorized");
+    const week = step.week_start;
+    const stats = byCategory.get(cat) ??
+      { plannedPerWeek: new Map(), completedPerWeek: new Map() };
+    stats.plannedPerWeek.set(
+      week,
+      (stats.plannedPerWeek.get(week) ?? 0) + (step.frequency ?? 1),
+    );
+    byCategory.set(cat, stats);
+  }
+
+  for (const log of logs) {
+    const step = steps.find((s) => s.id === log.action_step_id);
+    if (!step) continue;
+    const cat = String(step.category ?? "uncategorized");
+    const week = step.week_start;
+    const stats = byCategory.get(cat);
+    if (!stats) continue;
+    stats.completedPerWeek.set(
+      week,
+      (stats.completedPerWeek.get(week) ?? 0) + 1,
+    );
+  }
+
+  // Helper to check 3 consecutive skipped weeks
+  function skippedThreeWeeks(stats: Stats): boolean {
+    const today = new Date();
+    for (let i = 0; i < 3; i++) {
+      const weekStart = new Date(today.getTime() - i * 7 * 24 * 60 * 60 * 1000);
+      weekStart.setUTCDate(weekStart.getUTCDate() - weekStart.getUTCDay()); // previous Sunday
+      const key = weekStart.toISOString().slice(0, 10);
+      const completed = stats.completedPerWeek.get(key) ?? 0;
+      if (completed > 0) return false; // Completed at least once – not skipped
+    }
+    return true;
+  }
+
+  type Ranked = { category: string; score: number };
+  const ranked: Ranked[] = [];
+  byCategory.forEach((stats, category) => {
+    if (skippedThreeWeeks(stats)) return; // exclude
+
+    let totalPlanned = 0;
+    let totalCompleted = 0;
+    stats.plannedPerWeek.forEach((v) => (totalPlanned += v));
+    stats.completedPerWeek.forEach((v) => (totalCompleted += v));
+
+    const completionRatio = totalPlanned === 0
+      ? 0
+      : totalCompleted / totalPlanned;
+    const score = 1 - completionRatio; // higher score ⇒ lower completion
+    ranked.push({ category, score });
+  });
+
+  ranked.sort((a, b) => b.score - a.score);
+
+  const top = ranked.slice(0, 5);
+
+  // ---------------------------------------------------------------------------
+  // ✨ Build suggestions per top category (simple template)
+  // ---------------------------------------------------------------------------
+  const suggestions: ActionStepSuggestion[] = top.map((entry, idx) => {
+    const cat = entry.category;
+    const prettyCat = cat.charAt(0).toUpperCase() + cat.slice(1);
+    return {
+      id: `${cat}-suggestion-${idx + 1}`,
+      title: `${prettyCat} Focus`,
+      category: cat,
+      description:
+        `Choose a small, attainable goal to improve your ${cat} this week.`,
+    };
+  });
+
+  const finalSuggestions = suggestions.length >= 3
+    ? suggestions.slice(0, Math.min(5, suggestions.length))
+    : buildPlaceholderSuggestions();
+
+  return finalSuggestions;
+}
+
 export async function handler(req: Request): Promise<Response> {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
@@ -192,94 +299,11 @@ export async function handler(req: Request): Promise<Response> {
   }
 
   // ---------------------------------------------------------------------------
-  // 🧮 Compute per-category stats
+  // ✨ Build & return suggestions via extracted helper
   // ---------------------------------------------------------------------------
-  type Stats = {
-    plannedPerWeek: Map<string, number>; // week_start -> planned count
-    completedPerWeek: Map<string, number>;
-  };
-  const byCategory = new Map<string, Stats>();
+  const suggestions = computeSuggestions(steps ?? [], logs);
 
-  for (const step of steps ?? []) {
-    const cat = String(step.category ?? "uncategorized");
-    const week = step.week_start;
-    const stats = byCategory.get(cat) ??
-      { plannedPerWeek: new Map(), completedPerWeek: new Map() };
-    stats.plannedPerWeek.set(
-      week,
-      (stats.plannedPerWeek.get(week) ?? 0) + (step.frequency ?? 1),
-    );
-    byCategory.set(cat, stats);
-  }
-
-  for (const log of logs) {
-    const stepId = log.action_step_id;
-    const step = (steps ?? []).find((s: { id: string }) => s.id === stepId);
-    if (!step) continue;
-    const cat = String(step.category);
-    const week = step.week_start;
-    const stats = byCategory.get(cat);
-    if (!stats) continue;
-    stats.completedPerWeek.set(
-      week,
-      (stats.completedPerWeek.get(week) ?? 0) + 1,
-    );
-  }
-
-  // Helper to check 3 consecutive skipped weeks
-  function skippedThreeWeeks(stats: Stats): boolean {
-    const today = new Date();
-    for (let i = 0; i < 3; i++) {
-      const weekStart = new Date(today.getTime() - i * 7 * 24 * 60 * 60 * 1000);
-      weekStart.setUTCDate(weekStart.getUTCDate() - weekStart.getUTCDay()); // previous Sunday
-      const key = weekStart.toISOString().slice(0, 10);
-      const completed = stats.completedPerWeek.get(key) ?? 0;
-      if (completed > 0) return false; // Completed at least once – not skipped
-    }
-    return true;
-  }
-
-  type Ranked = { category: string; score: number };
-  const ranked: Ranked[] = [];
-  byCategory.forEach((stats, category) => {
-    if (skippedThreeWeeks(stats)) return; // exclude
-
-    let totalPlanned = 0;
-    let totalCompleted = 0;
-    stats.plannedPerWeek.forEach((v) => (totalPlanned += v));
-    stats.completedPerWeek.forEach((v) => (totalCompleted += v));
-
-    const completionRatio = totalPlanned === 0
-      ? 0
-      : totalCompleted / totalPlanned;
-    const score = 1 - completionRatio; // higher score ⇒ lower completion
-    ranked.push({ category, score });
-  });
-
-  ranked.sort((a, b) => b.score - a.score);
-
-  const top = ranked.slice(0, 5);
-
-  // ---------------------------------------------------------------------------
-  // ✨ Build suggestions per top category (simple template)
-  // ---------------------------------------------------------------------------
-  const suggestions: ActionStepSuggestion[] = top.map((entry, idx) => {
-    const cat = entry.category;
-    const prettyCat = cat.charAt(0).toUpperCase() + cat.slice(1);
-    return {
-      id: `${cat}-suggestion-${idx + 1}`,
-      title: `${prettyCat} Focus`,
-      category: cat,
-      description:
-        `Choose a small, attainable goal to improve your ${cat} this week.`,
-    };
-  });
-
-  const finalSuggestions = suggestions.length >= 3
-    ? suggestions.slice(0, Math.min(5, suggestions.length))
-    : buildPlaceholderSuggestions();
-
-  return new Response(JSON.stringify({ suggestions: finalSuggestions }), {
+  return new Response(JSON.stringify({ suggestions }), {
     status: 200,
     headers: {
       "Content-Type": "application/json",
