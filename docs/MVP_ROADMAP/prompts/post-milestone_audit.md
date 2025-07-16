@@ -50,6 +50,7 @@ Produce a clean markdown QA report with:
 3. Missing or incomplete deliverables
 4. Code smells, unncessary or overly complex additons,  or architectural violations
 5. Recommended remediation tasks
+6. Produce a table with task # ('R'), description and status flag: '🟡 Planned '
 6. Use the file @M1.11.1_post-milestone_mini-sprint.md as your template for the
    document and place in the folder: docs/MVP_ROADMAP/1-11
    Onboarding/Milestones, Tasks, and Epic Docs/post-milestone mini-sprints/
