@@ -11,6 +11,8 @@ on:
 jobs:
   train-dry-run:
     runs-on: ubuntu-latest
+    env:
+      ACT: "false"  # Overridden to 'true' when using act for local runs
     steps:
       - uses: actions/checkout@v3
       - name: Setup Python
@@ -30,13 +32,13 @@ jobs:
         env:
           NDJSON_PATH: scripts/jitai_training_sample.ndjson
       - name: Upload artefact (GitHub only)
-        if: env.ACT != 'true'
+        if: ${{ env.ACT != 'true' }}
         uses: actions/upload-artifact@v4.6.2
         with:
           name: jitai_model_json
           path: jitai_model.json
       - name: Upload to GCS & update Supabase secret (GitHub only)
-        if: github.ref == 'refs/heads/main' && env.ACT != 'true'
+        if: ${{ github.ref == 'refs/heads/main' && env.ACT != 'true' }}
         env:
           GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
           GCS_BUCKET: ${{ secrets.GCS_BUCKET }}
