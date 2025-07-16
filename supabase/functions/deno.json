@@ -1,7 +1,7 @@
 {
-  "nodeModulesDir": true,
+  "nodeModulesDir": "auto",
   "compilerOptions": {
-    "types": ["npm:@types/node"],
+    "types": [ ],
     "lib": ["deno.window", "deno.ns", "dom", "esnext"]
   },
   "imports": {
