@@ -1,0 +1,60 @@
+openapi: 3.1.0
+info:
+  title: Update Momentum From Action Step API
+  version: 1.0.0
+paths:
+  /update-momentum-from-action-step:
+    post:
+      summary: Publish momentum update after action-step log
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ActionStepLogEvent"
+      responses:
+        "202":
+          description: Accepted – event queued
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
+        "500":
+          description: Internal server error
+components:
+  schemas:
+    ActionStepLogEvent:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        action_step_id:
+          type: string
+          format: uuid
+        day:
+          type: string
+          format: date
+        status:
+          type: string
+          enum: [completed, skipped]
+        correlation_id:
+          type: string
+      required:
+        - user_id
+        - action_step_id
+        - day
+        - status
+        - correlation_id
+    ValidationError:
+      type: object
+      properties:
+        code:
+          type: string
+          enum: [VALIDATION_ERROR]
+        message:
+          type: string
+        correlation_id:
+          type: string
