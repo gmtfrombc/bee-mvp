@@ -79,8 +79,10 @@ void main() {
       await tester.tap(find.text('Create Account'));
       await tester.pumpAndSettle();
 
-      // Required error should appear three times (Name, Email, Password)
-      expect(find.text('Required'), findsNWidgets(3));
+      // Validation messages per field
+      expect(find.text('Required'), findsOneWidget); // Name field
+      expect(find.text('Email is required'), findsOneWidget);
+      expect(find.text('Password is required'), findsOneWidget);
     });
 
     testWidgets('shows Account already exists snackbar on duplicate email', (
@@ -144,7 +146,8 @@ void main() {
       await tester.tap(find.text('Log In'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Required'), findsNWidgets(2));
+      expect(find.text('Email is required'), findsOneWidget);
+      expect(find.text('Password is required'), findsOneWidget);
     });
 
     testWidgets('shows incorrect credentials snackbar', (tester) async {
