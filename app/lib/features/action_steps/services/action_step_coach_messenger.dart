@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app/l10n/s.dart';
 
 /// Provides empathetic, localized coach feedback after an Action Step
-/// check-in. The messenger currently displays a `SnackBar` but could be
+/// check-in. The messenger currently displays a `SnackBar` but can be
 /// extended to other UI surfaces (dialogs, toasts, etc.).
 class ActionStepCoachMessenger {
   const ActionStepCoachMessenger();
@@ -28,16 +28,8 @@ class ActionStepCoachMessenger {
 
   void _showCoachSnackBar(BuildContext context, String message) {
     final messenger = ScaffoldMessenger.maybeOf(context);
-    if (messenger == null) {
-      // In unit/widget tests the Scaffold may be absent. Gracefully no-op.
-      return;
-    }
+    if (messenger == null) return; // In tests without Scaffold.
 
-    if (Scaffold.maybeOf(context) == null) {
-      return;
-    }
-
-    // Remove any existing coach snackbars to avoid stacking.
     messenger
       ..hideCurrentSnackBar()
       ..showSnackBar(
