@@ -98,12 +98,12 @@ visible change within 5 min in staging.
 
 ### M1.5.5 · Rewards, Accessibility & Analytics
 
-| Task | Description                                                              | Hours | Status     |
-| ---- | ------------------------------------------------------------------------ | ----- | ---------- |
-| T1   | Implement confetti animation (respect animation-reduce setting)          | 2h    | 🟡 Planned |
-| T2   | Add empathetic coach message variants for success/failure                | 2h    | 🟡 Planned |
-| T3   | Instrument analytics events (`action_step_set`, `action_step_completed`) | 2h    | 🟡 Planned |
-| T4   | Conduct WCAG AA audit & fix issues                                       | 2h    | 🟡 Planned |
+| Task | Description                                                              | Hours | Status      |
+| ---- | ------------------------------------------------------------------------ | ----- | ----------- |
+| T1   | Implement confetti animation (respect animation-reduce setting)          | 2h    | ✅ Complete |
+| T2   | Add empathetic coach message variants for success/failure                | 2h    | ✅ Complete |
+| T3   | Instrument analytics events (`action_step_set`, `action_step_completed`) | 2h    | ✅ Complete |
+| T4   | Conduct WCAG AA audit & fix issues                                       | 2h    | ✅ Complete |
 
 **Acceptance Criteria:** Animation disabled when
 `MediaQuery.of(context).disableAnimations` true; analytics events captured in
