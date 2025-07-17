@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:app/features/action_steps/services/action_step_analytics.dart';
-import 'package:mocktail/mocktail.dart';
 
 /// Test helper: Always returns `ActionStepDayStatus.skipped` immediately.
 class _SkippedNotifier extends DailyCheckinController {
