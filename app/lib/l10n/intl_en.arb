@@ -118,6 +118,8 @@
   "action_step_category_social": "Social connection",
   "@action_step_category_social": {
     "description": "Action Step category label: Social connection"
-  }
+  },
+  "actionStepSuccessCoachMessage": "Great job! You completed your Action Step—keep building momentum!",
+  "actionStepFailureCoachMessage": "Don't worry, tomorrow is a new opportunity. You've got this!"
 
 }

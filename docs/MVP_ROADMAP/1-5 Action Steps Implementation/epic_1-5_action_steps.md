@@ -85,9 +85,9 @@ message renders options; unit tests ≥ 90 % coverage.
 | Task | Description                                                             | Hours | Status      |
 | ---- | ----------------------------------------------------------------------- | ----- | ----------- |
 | T1   | Create daily check-in UI widget to mark completion/skip                 | 4h    | ✅ Complete |
-| T2   | Persist completions in `action_step_logs` table (new)                   | 3h    | 🟡 Planned  |
-| T3   | Edge function `update-momentum-from-action-step@1.0.0` to publish event | 3h    | 🟡 Planned  |
-| T4   | Write Flutter provider to listen for momentum updates                   | 2h    | 🟡 Planned  |
+| T2   | Persist completions in `action_step_logs` table (new)                   | 3h    | ✅ Complete |
+| T3   | Edge function `update-momentum-from-action-step@1.0.0` to publish event | 3h    | ✅ Complete |
+| T4   | Write Flutter provider to listen for momentum updates                   | 2h    | ✅ Complete |
 
 **Acceptance Criteria:** Completion toggles update UI instantly; Momentum Score
 visible change within 5 min in staging.
