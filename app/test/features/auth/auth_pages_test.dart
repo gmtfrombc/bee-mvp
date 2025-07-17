@@ -104,15 +104,16 @@ void main() {
       await tester.pumpAndSettle();
 
       // Fill valid fields
-      await tester.enterText(find.widgetWithText(TextFormField, 'Name'), 'Bob');
+      // BeeTextField places the label outside the TextFormField, so we select by index.
+      await tester.enterText(find.byType(TextFormField).at(0), 'Bob'); // Name
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'Email'),
+        find.byType(TextFormField).at(1),
         'bob@bee.com',
-      );
+      ); // Email
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'Password'),
+        find.byType(TextFormField).at(2),
         'password123',
-      );
+      ); // Password
 
       // Trigger submission
       await tester.tap(find.text('Create Account'));
@@ -163,14 +164,8 @@ void main() {
         ),
       );
 
-      await tester.enterText(
-        find.widgetWithText(TextFormField, 'Email'),
-        'bob@bee.com',
-      );
-      await tester.enterText(
-        find.widgetWithText(TextFormField, 'Password'),
-        'badpass',
-      );
+      await tester.enterText(find.byType(TextFormField).at(0), 'bob@bee.com');
+      await tester.enterText(find.byType(TextFormField).at(1), 'badpass');
 
       await tester.tap(find.text('Log In'));
 
