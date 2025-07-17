@@ -28,24 +28,27 @@ class DailyCheckinCard extends ConsumerWidget {
     final spacing = ResponsiveService.getMediumSpacing(context);
     final borderRadius = BorderRadius.circular(12);
 
-    return Card(
-      margin: EdgeInsets.all(spacing),
-      shape: RoundedRectangleBorder(borderRadius: borderRadius),
-      child: Padding(
-        padding: EdgeInsets.all(spacing),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _Header(date: today),
-            SizedBox(height: spacing),
-            statusAsync.when(
-              data: (status) => _StatusContent(status: status),
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (err, st) => Text('Error: $err'),
-            ),
-            SizedBox(height: spacing),
-            _ActionButtons(statusAsync: statusAsync, today: today),
-          ],
+    return FocusTraversalGroup(
+      policy: WidgetOrderTraversalPolicy(),
+      child: Card(
+        margin: EdgeInsets.all(spacing),
+        shape: RoundedRectangleBorder(borderRadius: borderRadius),
+        child: Padding(
+          padding: EdgeInsets.all(spacing),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _Header(date: today),
+              SizedBox(height: spacing),
+              statusAsync.when(
+                data: (status) => _StatusContent(status: status),
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (err, st) => Text('Error: $err'),
+              ),
+              SizedBox(height: spacing),
+              _ActionButtons(statusAsync: statusAsync, today: today),
+            ],
+          ),
         ),
       ),
     );
