@@ -23,6 +23,7 @@ import 'core/providers/vitals_notifier_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/services/auth_session_service.dart';
 import 'package:app/core/navigation/routes.dart';
+import 'features/action_steps/providers/momentum_listener_provider.dart';
 
 // Global instance to share across app
 final AuthSessionService authSessionService = AuthSessionService();
@@ -173,6 +174,8 @@ class _AppWrapperState extends ConsumerState<AppWrapper>
     try {
       // Initialize Supabase provider
       await ref.read(supabaseProvider.future);
+      // Start listening for momentum updates as soon as Supabase is ready.
+      ref.read(momentumListenerProvider);
       debugPrint('✅ Supabase connection established');
 
       // Start listening for token refreshes/sign-out to keep secure storage in sync
