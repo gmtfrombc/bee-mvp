@@ -11,18 +11,34 @@ class ActionStepCoachMessenger {
   /// Shows the success coach message (called after the user marks today
   /// completed).
   void sendSuccessMessage(BuildContext context) {
-    _showCoachSnackBar(context, S.of(context).actionStepSuccessCoachMessage);
+    final message =
+        Localizations.of<S>(context, S)?.actionStepSuccessCoachMessage ??
+        'Great job! You completed your Action Step—keep building momentum!';
+    _showCoachSnackBar(context, message);
   }
 
   /// Shows the failure/encouragement coach message (called after the user
   /// skips today).
   void sendFailureMessage(BuildContext context) {
-    _showCoachSnackBar(context, S.of(context).actionStepFailureCoachMessage);
+    final message =
+        Localizations.of<S>(context, S)?.actionStepFailureCoachMessage ??
+        "Don't worry, tomorrow is a new opportunity. You've got this!";
+    _showCoachSnackBar(context, message);
   }
 
   void _showCoachSnackBar(BuildContext context, String message) {
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    if (messenger == null) {
+      // In unit/widget tests the Scaffold may be absent. Gracefully no-op.
+      return;
+    }
+
+    if (Scaffold.maybeOf(context) == null) {
+      return;
+    }
+
     // Remove any existing coach snackbars to avoid stacking.
-    ScaffoldMessenger.of(context)
+    messenger
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
