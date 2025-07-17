@@ -27,6 +27,9 @@ class BeeTextField extends StatefulWidget {
     this.maxLines = 1,
     this.maxLength,
     this.inputFormatters,
+    this.readOnly = false,
+    this.onTap,
+    this.hint,
   });
 
   /// Label displayed above the field.
@@ -71,6 +74,15 @@ class BeeTextField extends StatefulWidget {
   /// Optional additional formatters.
   final List<TextInputFormatter>? inputFormatters;
 
+  /// Whether the field is read-only. Useful for picker-trigger fields.
+  final bool readOnly;
+
+  /// Optional tap callback when [readOnly] is true (or any custom need).
+  final VoidCallback? onTap;
+
+  /// Optional hint/placeholder text shown inside the field when empty.
+  final String? hint;
+
   @override
   State<BeeTextField> createState() => _BeeTextFieldState();
 }
@@ -107,12 +119,15 @@ class _BeeTextFieldState extends State<BeeTextField> {
           obscureText: _obscure,
           enableSuggestions: widget.enableSuggestions && !widget.obscureText,
           autocorrect: widget.autocorrect && !widget.obscureText,
+          readOnly: widget.readOnly,
+          onTap: widget.onTap,
           maxLines: widget.maxLines,
           maxLength: widget.maxLength,
           inputFormatters: widget.inputFormatters,
           decoration: InputDecoration(
             contentPadding: inputPadding,
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+            hintText: widget.hint,
             suffixIcon:
                 widget.obscureText
                     ? IconButton(

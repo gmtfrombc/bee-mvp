@@ -6,6 +6,8 @@ import '../onboarding_controller.dart';
 import 'medical_history_page.dart';
 import '../../../core/widgets/step_progress_bar.dart';
 import 'package:app/core/widgets/can_pop_scope.dart';
+import '../../../core/ui/widgets/bee_text_field.dart';
+import '../../../core/ui/bee_toast.dart';
 
 /// Onboarding step for users to specify their main outcome goal.
 ///
@@ -56,12 +58,10 @@ class _GoalSetupPageState extends ConsumerState<GoalSetupPage> {
               children: [
                 const StepProgressBar(currentStep: 5, totalSteps: 6),
                 SizedBox(height: spacing * 2),
-                TextFormField(
+                BeeTextField(
                   controller: _goalController,
-                  decoration: const InputDecoration(
-                    labelText: 'Outcome Goal',
-                    hintText: 'e.g. Lose 10 lb in 3 months',
-                  ),
+                  label: 'Outcome Goal',
+                  hint: 'e.g. Lose 10 lb in 3 months',
                   maxLength: 120,
                   onChanged: controller.updateGoalTarget,
                   validator:
@@ -79,8 +79,10 @@ class _GoalSetupPageState extends ConsumerState<GoalSetupPage> {
                             if (!(_formKey.currentState?.validate() ?? false)) {
                               return;
                             }
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Goal saved!')),
+                            showBeeToast(
+                              context,
+                              'Goal saved!',
+                              type: BeeToastType.success,
                             );
                             Navigator.of(context).push(
                               MaterialPageRoute(
