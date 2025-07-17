@@ -82,15 +82,24 @@ class _ConfettiOverlayEntryState extends State<_ConfettiOverlayEntry>
     if (widget.reducedMotion) {
       return Positioned.fill(
         child: IgnorePointer(
-          child: AnimatedOpacity(
-            // Start fully opaque then fade out quickly.
-            opacity: 0.0,
-            duration: const Duration(milliseconds: 250),
-            curve: Curves.easeOut,
-            child: Container(
-              color: Theme.of(
-                context,
-              ).colorScheme.primary.withAlpha((0.3 * 255).round()),
+          child: Semantics(
+            container: true,
+            // Provide a short announcement for screen-reader users since the
+            // visual confetti is replaced by a subtle flash.
+            // We avoid `announce` to keep scope minimal; liveRegion ensures the
+            // label is read automatically on supported platforms.
+            liveRegion: true,
+            label: 'Celebration',
+            child: AnimatedOpacity(
+              // Start fully opaque then fade out quickly.
+              opacity: 0.0,
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeOut,
+              child: Container(
+                color: Theme.of(
+                  context,
+                ).colorScheme.primary.withAlpha((0.3 * 255).round()),
+              ),
             ),
           ),
         ),
