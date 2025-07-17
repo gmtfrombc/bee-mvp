@@ -4,6 +4,8 @@ import 'package:app/features/action_steps/models/action_step_day_status.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:app/features/action_steps/services/action_step_analytics.dart';
+import 'package:mocktail/mocktail.dart';
 
 /// Test helper: Always returns `ActionStepDayStatus.skipped` immediately.
 class _SkippedNotifier extends DailyCheckinController {
@@ -11,13 +13,38 @@ class _SkippedNotifier extends DailyCheckinController {
   Future<ActionStepDayStatus> build() async => ActionStepDayStatus.skipped;
 }
 
+/// No-op analytics used in widget tests.
+class _FakeAnalytics extends Fake implements ActionStepAnalytics {
+  @override
+  Future<void> logSet({
+    required String actionStepId,
+    required String category,
+    required String description,
+    required int frequency,
+    required String weekStart,
+    String source = 'manual',
+  }) async {}
+
+  @override
+  Future<void> logCompleted({
+    required bool success,
+    String? actionStepId,
+  }) async {}
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('DailyCheckinCard', () {
     testWidgets('shows Pending state initially', (tester) async {
+      // Provide noop analytics to avoid Supabase initialization.
       await tester.pumpWidget(
-        const ProviderScope(child: MaterialApp(home: DailyCheckinCard())),
+        ProviderScope(
+          overrides: [
+            actionStepAnalyticsProvider.overrideWithValue(_FakeAnalytics()),
+          ],
+          child: const MaterialApp(home: DailyCheckinCard()),
+        ),
       );
       await tester.pumpAndSettle();
 
@@ -29,7 +56,12 @@ void main() {
 
     testWidgets('changes to Completed after tapping I did it', (tester) async {
       await tester.pumpWidget(
-        const ProviderScope(child: MaterialApp(home: DailyCheckinCard())),
+        ProviderScope(
+          overrides: [
+            actionStepAnalyticsProvider.overrideWithValue(_FakeAnalytics()),
+          ],
+          child: const MaterialApp(home: DailyCheckinCard()),
+        ),
       );
       await tester.pumpAndSettle();
 
@@ -46,7 +78,10 @@ void main() {
 
       await tester.pumpWidget(
         ProviderScope(
-          overrides: [override],
+          overrides: [
+            override,
+            actionStepAnalyticsProvider.overrideWithValue(_FakeAnalytics()),
+          ],
           child: const MaterialApp(home: DailyCheckinCard()),
         ),
       );
