@@ -25,7 +25,8 @@ begin
         end;
         $$ language plpgsql;
     end if;
-end $$;
+end;
+$$ language plpgsql;
 
 create trigger momentum_updates_set_updated_at
 before update on public.momentum_updates
