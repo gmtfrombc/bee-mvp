@@ -9,6 +9,7 @@ import '../onboarding_controller.dart';
 import '../../../core/mixins/input_validator.dart';
 import '../../../core/widgets/step_progress_bar.dart';
 import 'package:app/core/widgets/can_pop_scope.dart';
+import '../../../core/ui/widgets/bee_text_field.dart';
 
 /// First onboarding page collecting basic demographic information.
 class AboutYouPage extends ConsumerStatefulWidget {
@@ -55,21 +56,14 @@ class _AboutYouPageState extends ConsumerState<AboutYouPage> {
                 const StepProgressBar(currentStep: 1, totalSteps: 6),
                 SizedBox(height: spacing),
                 // Date of Birth -------------------------------------------------
-                GestureDetector(
-                  behavior: HitTestBehavior.opaque,
+                BeeTextField(
+                  controller: _dobTextController,
+                  label: 'Date of Birth',
+                  hint: 'Select your birth date',
+                  readOnly: true,
                   onTap:
                       () => _selectDob(context, controller.updateDateOfBirth),
-                  child: AbsorbPointer(
-                    child: TextFormField(
-                      controller: _dobTextController,
-                      decoration: const InputDecoration(
-                        labelText: 'Date of Birth',
-                        hintText: 'Select your birth date',
-                      ),
-                      validator: (_) => _dobValidator(draft.dateOfBirth),
-                      readOnly: true,
-                    ),
-                  ),
+                  validator: (_) => _dobValidator(draft.dateOfBirth),
                 ),
                 SizedBox(height: spacing),
 
@@ -96,12 +90,10 @@ class _AboutYouPageState extends ConsumerState<AboutYouPage> {
                 SizedBox(height: spacing),
 
                 // Culture ------------------------------------------------------
-                TextFormField(
+                BeeTextField(
+                  label: 'Culture',
                   initialValue: draft.culture,
-                  decoration: const InputDecoration(
-                    labelText: 'Culture',
-                    hintText: 'e.g. Colombian-American',
-                  ),
+                  hint: 'e.g. Colombian-American',
                   maxLength: 64,
                   onChanged: controller.updateCulture,
                 ),
