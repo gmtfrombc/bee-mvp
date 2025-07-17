@@ -4,7 +4,8 @@ ci-local:
 
 .PHONY: ci-fast
 ci-fast:
-	@JOB_FILTER=fast $(MAKE) ci-local 
+	@$(MAKE) db-smoke && \
+	JOB_FILTER=fast $(MAKE) ci-local 
 
 .PHONY: smart-test
 smart-test:
@@ -24,6 +25,13 @@ ui-goldens:
 .PHONY: db-start
 db-start:
 	@bash scripts/start_test_db.sh 
+
+.PHONY: db-smoke
+db-smoke:
+	@echo "🏗  Running migration smoke test (Postgres)" && \
+	eval $$(bash scripts/start_test_db.sh) && \
+	set -e; files=$$(ls supabase/migrations/*.sql | sort); for f in $$files; do echo "→ $$f"; PGPASSWORD=postgres psql -h $$DB_HOST -p $$DB_PORT -U postgres -d test -v ON_ERROR_STOP=1 -f $$f; done && \
+	echo "✅  Migrations applied successfully"
 
 .PHONY: ci-lite
 ci-lite:
