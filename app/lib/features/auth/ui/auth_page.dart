@@ -7,6 +7,8 @@ import '../../../core/utils/auth_error_mapper.dart';
 import 'package:app/core/widgets/launch_controller.dart';
 import 'login_page.dart';
 import 'confirmation_pending_page.dart';
+import '../../../core/ui/widgets/bee_text_field.dart';
+import '../../../core/validators/auth_validators.dart';
 
 /// Registration screen that captures Name, Email, and Password.
 ///
@@ -27,7 +29,7 @@ class _AuthPageState extends ConsumerState<AuthPage> {
   final _emailCtrl = TextEditingController();
   final _pwdCtrl = TextEditingController();
 
-  bool _obscurePwd = true;
+  // BeeTextField handles its own visibility toggle when `obscureText` is true, so no local state is required.
   bool _submitted = false;
 
   @override
@@ -91,7 +93,7 @@ class _AuthPageState extends ConsumerState<AuthPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _BeeTextField(
+              BeeTextField(
                 controller: _nameCtrl,
                 label: 'Name',
                 textInputAction: TextInputAction.next,
@@ -99,36 +101,19 @@ class _AuthPageState extends ConsumerState<AuthPage> {
                     (v) => v == null || v.trim().isEmpty ? 'Required' : null,
               ),
               SizedBox(height: spacing),
-              _BeeTextField(
+              BeeTextField(
                 controller: _emailCtrl,
                 label: 'Email',
                 keyboardType: TextInputType.emailAddress,
                 textInputAction: TextInputAction.next,
-                validator: (v) {
-                  final email = v?.trim() ?? '';
-                  if (email.isEmpty) return 'Required';
-                  final reg = RegExp(r"^[^\s@]+@[^\s@]+\.[^\s@]+");
-                  if (!reg.hasMatch(email)) return 'Invalid email';
-                  return null;
-                },
+                validator: emailValidator,
               ),
               SizedBox(height: spacing),
-              _BeeTextField(
+              BeeTextField(
                 controller: _pwdCtrl,
                 label: 'Password',
-                obscureText: _obscurePwd,
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _obscurePwd ? Icons.visibility_off : Icons.visibility,
-                  ),
-                  onPressed: () => setState(() => _obscurePwd = !_obscurePwd),
-                ),
-                validator: (v) {
-                  final pwd = v ?? '';
-                  if (pwd.isEmpty) return 'Required';
-                  if (pwd.length < 8) return 'Min 8 characters';
-                  return null;
-                },
+                obscureText: true,
+                validator: passwordValidator,
               ),
               SizedBox(height: spacing * 2),
               ElevatedButton(
@@ -166,35 +151,4 @@ class _AuthPageState extends ConsumerState<AuthPage> {
   }
 }
 
-/// Thin wrapper around TextFormField with theme-compliant decoration.
-class _BeeTextField extends StatelessWidget {
-  final TextEditingController controller;
-  final String label;
-  final bool obscureText;
-  final Widget? suffixIcon;
-  final String? Function(String?)? validator;
-  final TextInputType? keyboardType;
-  final TextInputAction? textInputAction;
-
-  const _BeeTextField({
-    required this.controller,
-    required this.label,
-    this.obscureText = false,
-    this.suffixIcon,
-    this.validator,
-    this.keyboardType,
-    this.textInputAction,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return TextFormField(
-      controller: controller,
-      obscureText: obscureText,
-      validator: validator,
-      keyboardType: keyboardType,
-      textInputAction: textInputAction,
-      decoration: InputDecoration(labelText: label, suffixIcon: suffixIcon),
-    );
-  }
-}
+// Removed private _BeeTextField – replaced by shared BeeTextField.

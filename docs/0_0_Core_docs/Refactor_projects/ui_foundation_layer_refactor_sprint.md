@@ -38,8 +38,8 @@
 | U1  | Create `core/ui/widgets/bee_text_field.dart`                                          | new            | mobile    | 2        | ✅ Complete | —            |
 | U2  | Create `core/ui/bee_toast.dart` (snackbar wrapper)                                    | new            | mobile    | 2        | ✅ Complete | —            |
 | U3  | Move email & pwd validators to `core/validators/auth_validators.dart`                 | new            | mobile    | 1        | ✅ Complete | —            |
-| U4  | Add numeric range & unit validators `core/validators/numeric_validators.dart`         | new            | mobile    | 1        | ⚪ Planned  | —            |
-| U5  | Refactor `auth/ui/auth_page.dart` & `auth/ui/login_page.dart` to use **BeeTextField** | existing       | mobile    | 2        | ⚪ Planned  | U1-U3        |
+| U4  | Move numeric range & unit validators `core/validators/numeric_validators.dart`        | new            | mobile    | 1        | ✅ Complete | —            |
+| U5  | Refactor `auth/ui/auth_page.dart` & `auth/ui/login_page.dart` to use **BeeTextField** | existing       | mobile    | 2        | ✅ Complete | U1-U3        |
 | U6  | Refactor `onboarding/ui/about_you_page.dart`, `goal_setup_page.dart`                  | existing       | mobile    | 2        | ⚪ Planned  | U1-U4        |
 | U7  | Implement `BeeDropdown` (generic) & `BeePrimaryButton` (loading state)                | new            | mobile    | 2        | ⚪ Planned  | —            |
 | U8  | Custom lint rule in `analysis_options.yaml` to disallow raw `TextFormField`           | config         | dev-infra | 1        | ⚪ Planned  | U1           |

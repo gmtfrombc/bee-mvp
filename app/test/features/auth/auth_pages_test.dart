@@ -79,8 +79,10 @@ void main() {
       await tester.tap(find.text('Create Account'));
       await tester.pumpAndSettle();
 
-      // Required error should appear three times (Name, Email, Password)
-      expect(find.text('Required'), findsNWidgets(3));
+      // Validation messages per field
+      expect(find.text('Required'), findsOneWidget); // Name field
+      expect(find.text('Email is required'), findsOneWidget);
+      expect(find.text('Password is required'), findsOneWidget);
     });
 
     testWidgets('shows Account already exists snackbar on duplicate email', (
@@ -102,15 +104,16 @@ void main() {
       await tester.pumpAndSettle();
 
       // Fill valid fields
-      await tester.enterText(find.widgetWithText(TextFormField, 'Name'), 'Bob');
+      // BeeTextField places the label outside the TextFormField, so we select by index.
+      await tester.enterText(find.byType(TextFormField).at(0), 'Bob'); // Name
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'Email'),
+        find.byType(TextFormField).at(1),
         'bob@bee.com',
-      );
+      ); // Email
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'Password'),
+        find.byType(TextFormField).at(2),
         'password123',
-      );
+      ); // Password
 
       // Trigger submission
       await tester.tap(find.text('Create Account'));
@@ -144,7 +147,8 @@ void main() {
       await tester.tap(find.text('Log In'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Required'), findsNWidgets(2));
+      expect(find.text('Email is required'), findsOneWidget);
+      expect(find.text('Password is required'), findsOneWidget);
     });
 
     testWidgets('shows incorrect credentials snackbar', (tester) async {
@@ -160,14 +164,8 @@ void main() {
         ),
       );
 
-      await tester.enterText(
-        find.widgetWithText(TextFormField, 'Email'),
-        'bob@bee.com',
-      );
-      await tester.enterText(
-        find.widgetWithText(TextFormField, 'Password'),
-        'badpass',
-      );
+      await tester.enterText(find.byType(TextFormField).at(0), 'bob@bee.com');
+      await tester.enterText(find.byType(TextFormField).at(1), 'badpass');
 
       await tester.tap(find.text('Log In'));
 

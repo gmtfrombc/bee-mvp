@@ -80,18 +80,12 @@ void main() {
       await tester.pumpAndSettle();
 
       // Fill valid fields
+      await tester.enterText(find.byType(TextFormField).at(0), 'Alice');
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'Name'),
-        'Alice',
-      );
-      await tester.enterText(
-        find.widgetWithText(TextFormField, 'Email'),
+        find.byType(TextFormField).at(1),
         'alice@example.com',
       );
-      await tester.enterText(
-        find.widgetWithText(TextFormField, 'Password'),
-        'password123',
-      );
+      await tester.enterText(find.byType(TextFormField).at(2), 'password123');
 
       // Submit form and allow one frame. Spinner animation means we avoid
       // pumpAndSettle which would wait forever.
