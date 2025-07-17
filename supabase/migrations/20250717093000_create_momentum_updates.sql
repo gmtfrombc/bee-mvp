@@ -15,7 +15,7 @@ create table if not exists public.momentum_updates (
 );
 
 -- Timestamp trigger to keep updated_at fresh
-do $$
+do $outer$
 begin
     if not exists (select 1 from pg_proc where proname = 'set_updated_at') then
         create function set_updated_at() returns trigger as $$
@@ -26,7 +26,7 @@ begin
         $$ language plpgsql;
     end if;
 end;
-$$ language plpgsql;
+$outer$ language plpgsql;
 
 create trigger momentum_updates_set_updated_at
 before update on public.momentum_updates
