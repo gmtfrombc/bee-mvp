@@ -20,7 +20,13 @@ class ConfettiOverlay {
           (_) => _ConfettiOverlayEntry(
             reducedMotion: reducedMotion,
             onCompleted: () {
-              if (entry.mounted) entry.remove();
+              if (entry.mounted) {
+                try {
+                  entry.remove();
+                } on AssertionError {
+                  // Overlay may already be disposed in test environments.
+                }
+              }
             },
           ),
     );
