@@ -1,0 +1,23 @@
+{
+  "title": "Action-Step Check-In Latency (p95)",
+  "panels": [
+    {
+      "type": "stat",
+      "title": "p95 Latency – Check-In → Momentum (ms)",
+      "datasource": "Postgres",
+      "targets": [
+        {
+          "rawSql": "SELECT bucket AS time, p95_latency_ms AS value FROM v_action_step_checkin_latency_p95 ORDER BY bucket"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "decimals": 0
+        }
+      }
+    }
+  ],
+  "refresh": "5m",
+  "time": { "from": "now-30d", "to": "now" }
+} 
