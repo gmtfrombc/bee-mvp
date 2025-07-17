@@ -29,6 +29,10 @@ class ActionStepCoachMessenger {
   void _showCoachSnackBar(BuildContext context, String message) {
     final messenger = ScaffoldMessenger.maybeOf(context);
     if (messenger == null) return; // In tests without Scaffold.
+    if (Scaffold.maybeOf(context) == null) {
+      // No Scaffold in context tree, skip showing.
+      return;
+    }
 
     messenger
       ..hideCurrentSnackBar()
