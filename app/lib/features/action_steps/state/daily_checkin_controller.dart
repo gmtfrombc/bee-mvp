@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/action_step_day_status.dart';
+import 'package:app/features/action_steps/services/action_step_analytics.dart';
 
 /// Controls the check-in state for the current day.
 ///
@@ -21,6 +22,9 @@ class DailyCheckinController extends AsyncNotifier<ActionStepDayStatus> {
     state = const AsyncValue.data(ActionStepDayStatus.completed);
 
     // TODO(M1.5.4-T2): Persist completion log to Supabase.
+
+    // Analytics
+    await ref.read(actionStepAnalyticsProvider).logCompleted(success: true);
   }
 
   /// User indicates they choose to skip today.
@@ -29,6 +33,9 @@ class DailyCheckinController extends AsyncNotifier<ActionStepDayStatus> {
     state = const AsyncValue.data(ActionStepDayStatus.skipped);
 
     // TODO(M1.5.4-T2): Persist skip log to Supabase.
+
+    // Analytics
+    await ref.read(actionStepAnalyticsProvider).logCompleted(success: false);
   }
 }
 

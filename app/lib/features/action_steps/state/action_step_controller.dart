@@ -4,13 +4,16 @@ import '../validators/action_step_validators.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:app/core/providers/supabase_provider.dart';
 import 'package:app/core/services/action_step_status_service.dart';
+import 'package:app/features/action_steps/services/action_step_analytics.dart';
 
 /// Manages the Action Step draft during creation / editing.
 class ActionStepController extends StateNotifier<ActionStepDraft> {
-  ActionStepController(this._client) : super(const ActionStepDraft());
+  ActionStepController(this._client, this._analytics)
+    : super(const ActionStepDraft());
 
   /// Supabase client injected via provider for insertion.
   final SupabaseClient _client;
+  final ActionStepAnalytics _analytics;
 
   // ---------------------------------------------------------------------------
   // Field updaters
@@ -62,10 +65,24 @@ class ActionStepController extends StateNotifier<ActionStepDraft> {
     };
 
     // Perform insert – rely on Supabase exceptions for error handling.
-    await _client.from('action_steps').insert(payload);
+    final inserted =
+        await _client
+            .from('action_steps')
+            .insert(payload)
+            .select('*')
+            .maybeSingle();
 
-    // Persist local "has set action step" flag so onboarding integration can
-    // decide whether to prompt next time.
+    final actionStepId = inserted?['id']?.toString() ?? 'unknown';
+
+    // Fire analytics event.
+    await _analytics.logSet(
+      actionStepId: actionStepId,
+      category: draft.category ?? 'unknown',
+      description: draft.description.trim(),
+      frequency: draft.frequency,
+      weekStart: mondayUtc.toIso8601String().substring(0, 10),
+    );
+
     await ActionStepStatusService().setHasSetActionStep(true);
   }
 }
@@ -74,5 +91,6 @@ class ActionStepController extends StateNotifier<ActionStepDraft> {
 final actionStepControllerProvider =
     StateNotifierProvider<ActionStepController, ActionStepDraft>((ref) {
       final client = ref.watch(supabaseClientProvider);
-      return ActionStepController(client);
+      final analytics = ref.watch(actionStepAnalyticsProvider);
+      return ActionStepController(client, analytics);
     });
