@@ -5,6 +5,7 @@ import 'package:app/core/services/responsive_service.dart';
 import '../../state/daily_checkin_controller.dart';
 import '../../models/action_step_day_status.dart';
 import 'package:app/features/action_steps/widgets/confetti_overlay.dart';
+import 'package:app/features/action_steps/services/action_step_coach_messenger.dart';
 
 /// Displays today's Action Step check-in state and allows the user to mark it
 /// as completed or skipped.
@@ -146,7 +147,12 @@ class _ActionButtons extends ConsumerWidget {
                         context,
                         reducedMotion: reduceMotion,
                       );
+                      // Trigger state update.
                       controller.markCompleted();
+                      // Show localized success coach message.
+                      ref
+                          .read(actionStepCoachMessengerProvider)
+                          .sendSuccessMessage(context);
                     },
             icon: const Icon(Icons.check),
             label: const Text('I did it'),
@@ -161,7 +167,16 @@ class _ActionButtons extends ConsumerWidget {
           button: true,
           label: 'Skip today',
           child: OutlinedButton.icon(
-            onPressed: buttonsDisabled ? null : () => controller.markSkipped(),
+            onPressed:
+                buttonsDisabled
+                    ? null
+                    : () {
+                      controller.markSkipped();
+                      // Show localized encouragement/failure coach message.
+                      ref
+                          .read(actionStepCoachMessengerProvider)
+                          .sendFailureMessage(context);
+                    },
             icon: const Icon(Icons.close),
             label: const Text('Skip'),
             style: OutlinedButton.styleFrom(
