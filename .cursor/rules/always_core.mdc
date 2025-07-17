@@ -6,6 +6,7 @@ alwaysApply: true
 
 # 🧠 Standard Workflow--New Task
 
+1️⃣ Checkout main, insure all synced
 1️⃣ Branch epic-<epic>/T<task>-slug off main.
 2️⃣ Plan: post a step-by-step plan, wait for ✔ from user.
 3️⃣ Code locally, commit small chunks. Pre-commit hook auto-runs formatter + linter + Gitleaks; aborts on conflict markers.
