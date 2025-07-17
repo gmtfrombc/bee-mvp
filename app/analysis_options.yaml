@@ -128,3 +128,16 @@ linter:
 # - Use modern method signatures with enhanced parameters
 # - Follow modular architecture patterns
 # ==============================================================
+
+# dart_code_metrics:
+#   rules:
+#     - ban-name
+#
+#   rules-exclude:
+#     ban-name:
+#       - lib/core/**
+#
+#   rules-config:
+#     ban-name:
+#       entries:
+#         - TextFormField
