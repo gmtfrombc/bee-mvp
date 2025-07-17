@@ -63,6 +63,7 @@ dependencies:
 
   # Animations
   lottie: ^3.1.2
+  confetti: ^0.7.0
 
   # Utilities
   intl: ^0.20.2

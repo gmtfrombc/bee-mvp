@@ -61,8 +61,7 @@ import 's_en.dart';
 /// be consistent with the languages listed in the S.supportedLocales
 /// property.
 abstract class S {
-  S(String locale)
-    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+  S(String locale) : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -82,16 +81,17 @@ abstract class S {
   /// Additional delegates can be added by appending to this list in
   /// MaterialApp. This list does not have to be used at all if a custom list
   /// of delegates is preferred or required.
-  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
-      <LocalizationsDelegate<dynamic>>[
-        delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-      ];
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates = <LocalizationsDelegate<dynamic>>[
+    delegate,
+    GlobalMaterialLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+  ];
 
   /// A list of this localizations delegate's supported locales.
-  static const List<Locale> supportedLocales = <Locale>[Locale('en')];
+  static const List<Locale> supportedLocales = <Locale>[
+    Locale('en')
+  ];
 
   /// Question 10 prompt – importance selection
   ///
@@ -327,11 +327,53 @@ abstract class S {
   /// **'Arthritis'**
   String get onboarding_med_condition_arthritis;
 
-  /// No description provided for @onboarding_med_condition_none.
+  /// Option label when no medical conditions apply
   ///
   /// In en, this message translates to:
   /// **'None of the above'**
   String get onboarding_med_condition_none;
+
+  /// Action Step category label: Nutrition
+  ///
+  /// In en, this message translates to:
+  /// **'Nutrition'**
+  String get action_step_category_nutrition;
+
+  /// Action Step category label: Movement
+  ///
+  /// In en, this message translates to:
+  /// **'Movement'**
+  String get action_step_category_movement;
+
+  /// Action Step category label: Sleep
+  ///
+  /// In en, this message translates to:
+  /// **'Sleep'**
+  String get action_step_category_sleep;
+
+  /// Action Step category label: Stress management
+  ///
+  /// In en, this message translates to:
+  /// **'Stress management'**
+  String get action_step_category_stress;
+
+  /// Action Step category label: Social connection
+  ///
+  /// In en, this message translates to:
+  /// **'Social connection'**
+  String get action_step_category_social;
+
+  /// No description provided for @actionStepSuccessCoachMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Great job! You completed your Action Step—keep building momentum!'**
+  String get actionStepSuccessCoachMessage;
+
+  /// No description provided for @actionStepFailureCoachMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t worry, tomorrow is a new opportunity. You\'ve got this!'**
+  String get actionStepFailureCoachMessage;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {
@@ -343,24 +385,24 @@ class _SDelegate extends LocalizationsDelegate<S> {
   }
 
   @override
-  bool isSupported(Locale locale) =>
-      <String>['en'].contains(locale.languageCode);
+  bool isSupported(Locale locale) => <String>['en'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_SDelegate old) => false;
 }
 
 S lookupS(Locale locale) {
+
+
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
-    case 'en':
-      return SEn();
+    case 'en': return SEn();
   }
 
   throw FlutterError(
     'S.delegate failed to load unsupported locale "$locale". This is likely '
     'an issue with the localizations generation tool. Please file an issue '
     'on GitHub with a reproducible sample app and the gen-l10n configuration '
-    'that was used.',
+    'that was used.'
   );
 }

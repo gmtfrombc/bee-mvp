@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app/core/services/responsive_service.dart';
 import '../../state/daily_checkin_controller.dart';
 import '../../models/action_step_day_status.dart';
+import 'package:app/features/action_steps/widgets/confetti_overlay.dart';
 
 /// Displays today's Action Step check-in state and allows the user to mark it
 /// as completed or skipped.
@@ -138,7 +139,15 @@ class _ActionButtons extends ConsumerWidget {
           label: 'Mark today completed',
           child: ElevatedButton.icon(
             onPressed:
-                buttonsDisabled ? null : () => controller.markCompleted(),
+                buttonsDisabled
+                    ? null
+                    : () {
+                      ConfettiOverlay.show(
+                        context,
+                        reducedMotion: reduceMotion,
+                      );
+                      controller.markCompleted();
+                    },
             icon: const Icon(Icons.check),
             label: const Text('I did it'),
             style: ElevatedButton.styleFrom(
