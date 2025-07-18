@@ -167,6 +167,7 @@ flutter:
     - assets/images/placeholders/
     - assets/animations/
     - assets/icons/
+    - assets/data/
     - .env.example
 
   # Custom fonts for BEE design system
