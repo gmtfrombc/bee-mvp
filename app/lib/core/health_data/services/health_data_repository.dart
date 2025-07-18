@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/energy_level.dart';
 import '../models/biometric_manual_input.dart';
+import '../models/pes_entry.dart';
 import '../../providers/supabase_provider.dart';
 
 /// Repository offering CRUD operations to health-data tables with an in-memory cache.
@@ -37,6 +38,8 @@ class HealthDataRepository {
   final Map<String, List<BiometricManualInput>> _biometricCache = {};
   DateTime _energyCacheTimestamp = DateTime.fromMillisecondsSinceEpoch(0);
   DateTime _biometricCacheTimestamp = DateTime.fromMillisecondsSinceEpoch(0);
+  final Map<String, List<PesEntry>> _pesCache = {};
+  DateTime _pesCacheTimestamp = DateTime.fromMillisecondsSinceEpoch(0);
 
   bool _isCacheValid(DateTime ts) => DateTime.now().difference(ts) < cacheTTL;
 
@@ -172,6 +175,94 @@ class HealthDataRepository {
   }) async {
     await _supabase.from('biometric_manual_inputs').delete().eq('id', id);
     _biometricCache[userId]?.removeWhere((e) => e.id == id);
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // PES ENTRIES CRUD
+  // --------------------------------------------------------------------------
+  /// Inserts or upserts (unique per user/date) a perceived energy score.
+  /// Returns the saved [PesEntry]. Throws [StateError] if no authenticated user
+  /// is available via `Supabase.auth`.
+  Future<PesEntry> insertEnergyLevel({
+    required DateTime date,
+    required int score,
+  }) async {
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) {
+      throw StateError('Cannot insert PES – no authenticated user');
+    }
+
+    final payload = {
+      'user_id': userId,
+      'date': date.toIso8601String().split('T').first,
+      'score': score,
+    };
+
+    // Use upsert so a second write on the same day replaces the existing row
+    // and triggers DB 409 conflict if violating the unique constraint.
+    final inserted =
+        await _supabase
+            .from('pes_entries')
+            .upsert(payload, onConflict: 'user_id,date')
+            .select()
+            .single();
+
+    final newEntry = PesEntry.fromJson(inserted);
+
+    // Update in-memory cache
+    _pesCache.putIfAbsent(userId, () => [])
+      ..removeWhere((e) => e.date == newEntry.date)
+      ..add(newEntry);
+    _pesCacheTimestamp = DateTime.now();
+
+    return newEntry;
+  }
+
+  Future<List<PesEntry>> fetchPesEntries({
+    required String userId,
+    bool forceRefresh = false,
+  }) async {
+    if (!forceRefresh &&
+        _pesCache.containsKey(userId) &&
+        _isCacheValid(_pesCacheTimestamp)) {
+      return _pesCache[userId]!;
+    }
+
+    final data = await _supabase
+        .from('pes_entries')
+        .select()
+        .eq('user_id', userId)
+        .order('date', ascending: false);
+
+    final entries =
+        (data as List)
+            .map((e) => PesEntry.fromJson(e as Map<String, dynamic>))
+            .toList();
+
+    _pesCache[userId] = entries;
+    _pesCacheTimestamp = DateTime.now();
+    return entries;
+  }
+
+  Future<void> updatePesEntry(PesEntry entry) async {
+    await _supabase
+        .from('pes_entries')
+        .update(entry.toJson())
+        .eq('id', entry.id);
+
+    final cacheList = _pesCache[entry.userId];
+    if (cacheList != null) {
+      final idx = cacheList.indexWhere((e) => e.id == entry.id);
+      if (idx != -1) cacheList[idx] = entry;
+    }
+  }
+
+  Future<void> deletePesEntry({
+    required String id,
+    required String userId,
+  }) async {
+    await _supabase.from('pes_entries').delete().eq('id', id);
+    _pesCache[userId]?.removeWhere((e) => e.id == id);
   }
 }
 
