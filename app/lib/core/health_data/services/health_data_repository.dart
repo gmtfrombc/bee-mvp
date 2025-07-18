@@ -215,6 +215,19 @@ class HealthDataRepository {
       ..add(newEntry);
     _pesCacheTimestamp = DateTime.now();
 
+    // ------------------------------------------------------------------
+    // Trigger Momentum Score update (+10 pts) – non-blocking best effort
+    // ------------------------------------------------------------------
+    try {
+      await _supabase.functions.invoke(
+        'update-momentum-score',
+        body: {'user_id': userId, 'delta': 10, 'source': 'pes_entry'},
+      );
+    } catch (e) {
+      // We deliberately swallow errors to avoid disrupting the user flow.
+      debugPrint('⚠️  update-momentum-score invoke failed: $e');
+    }
+
     return newEntry;
   }
 
