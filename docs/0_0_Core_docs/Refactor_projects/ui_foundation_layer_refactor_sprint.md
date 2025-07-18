@@ -43,8 +43,8 @@
 | U6  | Refactor `onboarding/ui/about_you_page.dart`, `goal_setup_page.dart`                  | existing       | mobile    | 2        | ✅ Complete | U1-U4        |
 | U7  | Implement `BeeDropdown` (generic) & `BeePrimaryButton` (loading state)                | new            | mobile    | 2        | ✅ Complete | —            |
 | U8  | Custom lint rule in `analysis_options.yaml` to disallow raw `TextFormField`           | config         | dev-infra | 1        | ✅ Complete | U1           |
-| U9  | Widget & unit tests for **BeeTextField** & **BeeToast** (coverage ≥90 %)              | test           | QA        | 2        | ⚪ Planned  | U1, U2       |
-| U10 | Update docs (`architecture/auto_flutter_architecture.md`)                             | docs           | DX        | 1        | ⚪ Planned  | All          |
+| U9  | Widget & unit tests for **BeeTextField** & **BeeToast** (coverage ≥90 %)              | test           | QA        | 2        | ✅ Complete | U1, U2       |
+| U10 | Update docs (`architecture/auto_flutter_architecture.md`)                             | docs           | DX        | 1        | ✅ Complete | All          |
 | U11 | Add CI check to ensure lint passes                                                    | CI             | dev-infra | 1        | ⚪ Planned  | U8           |
 
 _Total effort: 16 hrs (≈ 2 dev-days)._ Tasks U5–U7 can run in parallel once
