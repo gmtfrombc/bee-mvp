@@ -1,0 +1,77 @@
+Z_{\text{MetS}}=\beta_0+\beta_1\,\text{BMI}+\beta_2\,\text{HDL}+\beta_3\,\text{SBP}
++\beta_4\,\ln(\text{TG})+\beta_5\,\text{FG}
+
+Non-hispanic white, Asian (India, Japan, China, Singapore)
+
+Sex
+β₀
+β₁ (BMI)
+β₂ (HDL)
+β₃ (SBP)
+β₄ ln (TG)
+β₅ (FG)
+Male
+−4.8316
++0.0315
+−0.0272
++0.0044
++0.8018
++0.0101
+Female
+−6.5231
++0.0523
+−0.0138
++0.0081
++0.6125
++0.0208
+
+Non-hispanic black
+Sex
+β₀
+β₁
+β₂
+β₃
+β₄
+β₅
+Male
+−7.2382
++0.0615
+−0.0006
++0.0163
++0.7921
++0.0113
+Female
+−11.9786
++0.1065
+−0.0106
++0.0147
++0.4508
++0.0207
+
+Mexican-American/Other Hispanic
+Sex
+β₀
+β₁
+β₂
+β₃
+β₄
+β₅
+Male
+−5.8654
++0.0286
+−0.0204
++0.0106
++0.8171
++0.0152
+Female
+−7.2154
++0.0382
+−0.0099
++0.0123
++0.4819
++0.0164
+
+Convert to Percentile
+\text{MHS} = \Phi(Z)\times100
+
+Calculate Fasting Glucose from HgbA1C: FPG_mg_dl  = 38.46 * (A1C_percent - 3.146)
