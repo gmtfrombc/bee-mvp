@@ -71,3 +71,6 @@ supabase/functions/**/coverage/
 
 # CI debug/build logs
 *.log
+
+# macOS Finder junk
+.DS_Store
