@@ -68,6 +68,9 @@ be flipped to an _error_ after adoption reaches ≥ 80 %.
   adapt to dark mode automatically.
 - Navigation & dialog semantics follow Flutter a11y recommendations; new widgets
   include semantic labels where appropriate.
+- Detailed colour token definitions & WCAG AA contrast ratios are maintained in
+  `docs/architecture/theme_guidelines.md`; consult this file before adding or
+  modifying colours.
 
 ## Health Data Module
 
