@@ -31,13 +31,13 @@ respect Flutter 3.3.2a + Supabase rules.
 
 ### M1.7.1 · Perceived Energy Score System
 
-| Task | Description                                                         | Hours | Status     |
-| ---- | ------------------------------------------------------------------- | ----- | ---------- |
-| T1   | Build `EnergyInputSlider` widget (emoji 1-5) with Riverpod provider | 6h    | ⚪ Planned |
-| T2   | Create PES trend spark-line widget on Momentum screen               | 4h    | ⚪ Planned |
-| T3   | Persist entries via `HealthDataRepository.insertEnergyLevel()`      | 2h    | ⚪ Planned |
-| T4   | Daily prompt scheduler (default daily, user configurable)           | 3h    | ⚪ Planned |
-| T5   | Edge function call `updateMomentumScore()` (+10 pts) on insert      | 3h    | ⚪ Planned |
+| Task | Description                                                         | Hours | Status      |
+| ---- | ------------------------------------------------------------------- | ----- | ----------- |
+| T1   | Build `EnergyInputSlider` widget (emoji 1-5) with Riverpod provider | 6h    | ✅ Complete |
+| T2   | Create PES trend spark-line widget on Momentum screen               | 4h    | ✅ Complete |
+| T3   | Persist entries via `HealthDataRepository.insertEnergyLevel()`      | 2h    | ✅ Complete |
+| T4   | Daily prompt scheduler (default daily, user configurable)           | 3h    | ✅ Complete |
+| T5   | Edge function call `updateMomentumScore()` (+10 pts) on insert      | 3h    | ✅ Complete |
 
 **Deliverables:** Flutter widgets, provider logic, Supabase integration,
 edge-function hook.
@@ -81,6 +81,31 @@ logic, tests.
 
 **Acceptance Criteria:** Flag detection latency < 2 min post-cron; coach prompt
 asks relevant question; unit + integration tests ≥ 90 %.
+
+---
+
+### M1.7.4 · Advanced Metabolic Health Score & Gauge
+
+| Task | Description                                                              | Hours | Status     |
+| ---- | ------------------------------------------------------------------------ | ----- | ---------- |
+| T1   | Convert coefficient tables to JSON asset & repository loader             | 2h    | ⚪ Planned |
+| T2   | Extend `MetabolicHealthScoreService` for BMI, A1C→FG, percentile mapping | 3h    | ⚪ Planned |
+| T3   | Implement `mapMhsToCategory()` helper for colour bands                   | 1h    | ⚪ Planned |
+| T4   | Build `MetabolicScoreGauge` widget with colour-wheel gauge               | 4h    | ⚪ Planned |
+| T5   | Enhance form: BMI auto-calc, A1C toggle, validators & tests              | 2h    | ⚪ Planned |
+| T6   | Update docs, increase coverage to ≥ 90 % lines / 100 % branches          | 1h    | ⚪ Planned |
+
+**Deliverables:** JSON coefficients asset (or Supabase table), upgraded score
+service, category mapper, gauge widget, enhanced form logic, documentation and
+tests.
+
+**Acceptance Criteria:**
+
+- Correct coefficient set chosen by sex & cohort; unit tests ≥ 95 % accuracy.
+- Score appears in gauge within 3 s of save; category colour matches bands.
+- `<10` values rendered as “<10”.
+- WCAG AA; no magic numbers; `flutter analyze --fatal-warnings` passes.
+- Coverage targets met; widget & service tests green in CI.
 
 ---
 

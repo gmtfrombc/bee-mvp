@@ -1,0 +1,11 @@
+{
+  "_comment": "CDC reference means & SDs for height_cm and weight_kg broken down by sex and age bands (years). Replace placeholder values with real dataset before production.",
+  "male": {
+    "18-29": { "height_cm_mean": 175.7, "height_cm_sd": 7.4, "weight_kg_mean": 83.1, "weight_kg_sd": 12.9 },
+    "30-39": { "height_cm_mean": 176.0, "height_cm_sd": 7.2, "weight_kg_mean": 85.4, "weight_kg_sd": 13.2 }
+  },
+  "female": {
+    "18-29": { "height_cm_mean": 162.1, "height_cm_sd": 6.4, "weight_kg_mean": 70.2, "weight_kg_sd": 11.5 },
+    "30-39": { "height_cm_mean": 162.4, "height_cm_sd": 6.3, "weight_kg_mean": 72.0, "weight_kg_sd": 11.9 }
+  }
+} 
