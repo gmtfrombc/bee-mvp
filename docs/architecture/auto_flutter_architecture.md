@@ -69,6 +69,33 @@ be flipped to an _error_ after adoption reaches ≥ 80 %.
 - Navigation & dialog semantics follow Flutter a11y recommendations; new widgets
   include semantic labels where appropriate.
 
+## Health Data Module
+
+The `core/health_data/` module acts as a **domain-centric slice** that unifies
+models, validators, repository layer, and (upcoming) widgets dealing with user
+health signals.
+
+```
+app/lib/core/health_data/
+  models/            ← EnergyLevel, BiometricManualInput, MetabolicScore
+  services/          ← HealthDataRepository (Riverpod)
+  validators/        ← numeric_validators.dart
+  widgets/           ← EnergyInputSlider, BiometricsForm, …
+```
+
+### Data flow
+
+```mermaid
+graph TD;
+  models["Models\nEnergyLevel & BiometricManualInput"] --> repo["HealthDataRepository"];
+  validators["Validators\nnumeric_validators.dart"] --> repo;
+  repo -->|"CRUD"| supabase["Supabase Tables\nenergy_levels\nbiometric_manual_inputs"];
+  widgets["Widgets\nEnergyInputSlider / BiometricsForm"] --> repo;
+```
+
+The repository caches in memory and syncs with Supabase tables secured by
+Row-Level Security (RLS).
+
 ---
 
-_Last updated: 2025-07-17_
+_Last updated: 2025-07-18_

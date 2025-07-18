@@ -50,10 +50,10 @@
 | HD5  | Implement `services/health_data_repository.dart` with Riverpod provider                                       | new                       | mobile    | 2        | ✅ Complete | HD2-HD4 |
 | HD6  | Supabase migration file + RLS for both tables                                                                 | `supabase/migrations/`    | backend   | 2        | ✅ Complete | —       |
 | HD7  | Unit tests with mocked Supabase client covering HealthDataRepository (`test/core/health_data_repo_test.dart`) | new                       | QA        | 1.5      | ✅ Complete | HD5-HD6 |
-| HD8  | Widget placeholder files (`widgets/README.md`) explaining upcoming widgets & style contract                   | new                       | mobile    | 0.5      | ⚪ Planned  | HD1     |
-| HD9  | Add README inside `core/health_data/` outlining extension guidelines                                          | new                       | DX        | 0.5      | ⚪ Planned  | All     |
-| HD10 | Update `docs/architecture/auto_flutter_architecture.md` + new diagram                                         | docs                      | DX        | 1        | ⚪ Planned  | All     |
-| HD11 | Ensure CI (make ci-fast) runs flutter tests in `core/health_data/`                                            | CI                        | dev-infra | 0.5      | ⚪ Planned  | HD7     |
+| HD8  | Widget placeholder files (`widgets/README.md`) explaining upcoming widgets & style contract                   | new                       | mobile    | 0.5      | ✅ Complete | HD1     |
+| HD9  | Add README inside `core/health_data/` outlining extension guidelines                                          | new                       | DX        | 0.5      | ✅ Complete | All     |
+| HD10 | Update `docs/architecture/auto_flutter_architecture.md` + new diagram                                         | docs                      | DX        | 1        | ✅ Complete | All     |
+| HD11 | Ensure CI (make ci-fast) runs flutter tests in `core/health_data/`                                            | CI                        | dev-infra | 0.5      | ✅ Complete | HD7     |
 
 _Total effort: ≈ 12 hrs (1.5 dev-days)._ Tasks HD2–HD5 can run concurrently
 after HD1.
