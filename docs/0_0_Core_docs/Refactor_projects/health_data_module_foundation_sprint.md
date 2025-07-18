@@ -46,7 +46,7 @@
 | HD1  | Create folder skeleton `app/lib/core/health_data/...`                                       | new dirs                  | mobile    | 0.5      | ✅ Complete | —       |
 | HD2  | Implement `models/energy_level.dart` & unit enum mapping                                    | new                       | mobile    | 1        | ✅ Complete | HD1     |
 | HD3  | Implement `models/biometric_manual_input.dart`, `metabolic_score.dart`                      | new                       | mobile    | 2        | ✅ Complete | HD1     |
-| HD4  | Implement `validators/numeric_validators.dart`, unit converter utils                        | new                       | mobile    | 1        | ⚪ Planned  | HD1     |
+| HD4  | Implement `validators/numeric_validators.dart`, unit converter utils                        | new                       | mobile    | 1        | ✅ Complete | HD1     |
 | HD5  | Implement `services/health_data_repository.dart` with Riverpod provider                     | new                       | mobile    | 2        | ⚪ Planned  | HD2-HD4 |
 | HD6  | Supabase migration file + RLS for both tables                                               | `supabase/migrations/`    | backend   | 2        | ⚪ Planned  | —       |
 | HD7  | Integration test using Supabase emulator (`test/core/health_data_repo_test.dart`)           | new                       | QA        | 2        | ⚪ Planned  | HD5-HD6 |
