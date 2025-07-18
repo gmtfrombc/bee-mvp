@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app/core/health_data/models/energy_level.dart';
 import 'package:app/features/health_signals/pes/pes_providers.dart';
+import 'package:app/l10n/s.dart';
 
 void main() {
   group('PesTrendSparkline', () {
@@ -13,13 +14,22 @@ void main() {
           overrides: [
             pesTrendProvider.overrideWith((ref) async => <EnergyLevelEntry>[]),
           ],
-          child: const MaterialApp(home: PesTrendSparkline()),
+          child: const MaterialApp(
+            localizationsDelegates: S.localizationsDelegates,
+            supportedLocales: S.supportedLocales,
+            home: PesTrendSparkline(),
+          ),
         ),
       );
 
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('energy trend'), findsOneWidget);
+      expect(
+        find.text(
+          'Your energy trend will appear here after you log a few days.',
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets('renders chart when 7 entries available', (tester) async {
