@@ -120,6 +120,14 @@
     "description": "Action Step category label: Social connection"
   },
   "actionStepSuccessCoachMessage": "Great job! You completed your Action Step—keep building momentum!",
-  "actionStepFailureCoachMessage": "Don't worry, tomorrow is a new opportunity. You've got this!"
+  "actionStepFailureCoachMessage": "Don't worry, tomorrow is a new opportunity. You've got this!",
+  "pes_duplicate_entry_snackbar": "You've already logged today's energy level. Try again tomorrow!",
+  "@pes_duplicate_entry_snackbar": {
+    "description": "Snackbar shown when user attempts to submit a second PES entry on the same day"
+  },
+  "pes_trend_empty_state": "Your energy trend will appear here after you log a few days.",
+  "@pes_trend_empty_state": {
+    "description": "Placeholder copy when no PES data is available for sparkline"
+  }
 
 }

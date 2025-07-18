@@ -148,4 +148,10 @@ class SEn extends S {
 
   @override
   String get actionStepFailureCoachMessage => 'Don\'t worry, tomorrow is a new opportunity. You\'ve got this!';
+
+  @override
+  String get pes_duplicate_entry_snackbar => 'You\'ve already logged today\'s energy level. Try again tomorrow!';
+
+  @override
+  String get pes_trend_empty_state => 'Your energy trend will appear here after you log a few days.';
 }

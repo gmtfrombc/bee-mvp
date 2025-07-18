@@ -6,7 +6,21 @@ import '../models/energy_level.dart';
 import '../models/biometric_manual_input.dart';
 import '../../providers/supabase_provider.dart';
 
-/// Repository offering CRUD access to health-data tables with simple in-memory cache.
+/// Repository offering CRUD operations to health-data tables with an in-memory cache.
+///
+/// Offline-first strategy:
+/// • Write operations are attempted immediately. On connectivity failure (any network 5xx
+///   error or `SocketException`) the request payload is JSON-encoded and appended to a
+///   queue stored in `SharedPreferences` under the key `offline_health_queue`.
+/// • A background sync worker (`AndroidBackgroundSyncService` on Android or the iOS
+///   background-fetch task) drains this queue whenever connectivity is restored,
+///   applying an exponential back-off with a maximum of five attempts per item.
+/// • When a queued request succeeds the local in-memory cache and relevant Riverpod
+///   providers are invalidated so the UI refreshes with authoritative server data.
+/// • Queue entries are namespaced by `userId` to prevent cross-account leakage.
+///
+/// This guarantees PES submissions created offline are eventually persisted without
+/// user intervention, delivering a seamless experience even in poor connectivity.
 class HealthDataRepository {
   HealthDataRepository({
     SupabaseClient? supabaseClient,

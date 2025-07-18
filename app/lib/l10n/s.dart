@@ -374,6 +374,18 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Don\'t worry, tomorrow is a new opportunity. You\'ve got this!'**
   String get actionStepFailureCoachMessage;
+
+  /// Snackbar shown when user attempts to submit a second PES entry on the same day
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve already logged today\'s energy level. Try again tomorrow!'**
+  String get pes_duplicate_entry_snackbar;
+
+  /// Placeholder copy when no PES data is available for sparkline
+  ///
+  /// In en, this message translates to:
+  /// **'Your energy trend will appear here after you log a few days.'**
+  String get pes_trend_empty_state;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {
