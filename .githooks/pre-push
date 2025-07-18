@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# .githooks/pre-push – ensure new migrations apply cleanly from scratch
+set -euo pipefail
+
+# Skip if no SQL migrations staged since last push (speeds up pushes without DB changes)
+if ! git diff --cached --name-only | grep -qE '^supabase/migrations/.*\.sql$'; then
+  exit 0
+fi
+
+echo "🧪  Running migration smoke test before push…"
+
+# Clean any earlier container
+docker rm -f bee_prepush_pg >/dev/null 2>&1 || true
+
+# Start disposable Postgres 15 container
+PORT=55600
+while lsof -i :$PORT >/dev/null 2>&1; do PORT=$((PORT+1)); done
+CID=$(docker run -d --rm -e POSTGRES_PASSWORD=postgres -p ${PORT}:5432 --name bee_prepush_pg postgres:15)
+
+# Wait until Postgres ready (10s timeout)
+for i in {1..20}; do
+  if docker exec bee_prepush_pg pg_isready -U postgres >/dev/null 2>&1; then break; fi
+  sleep 0.5
+done
+
+export DB_HOST=localhost
+export DB_PORT=$PORT
+
+if ! make db-smoke; then
+  echo "❌  Migration smoke test failed – push cancelled." >&2
+  docker rm -f bee_prepush_pg >/dev/null
+  exit 1
+fi
+
+echo "✅  Migrations applied successfully"
+# Clean up
+docker rm -f bee_prepush_pg >/dev/null
+exit 0 
