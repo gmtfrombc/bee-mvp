@@ -12,7 +12,7 @@ void main() {
     );
 
     // Initially disabled.
-    final saveButtonFinder = find.text('Save');
+    final saveButtonFinder = find.widgetWithText(ElevatedButton, 'Save');
     ElevatedButton btn = tester.widget<ElevatedButton>(saveButtonFinder);
     expect(btn.onPressed, isNull);
 
