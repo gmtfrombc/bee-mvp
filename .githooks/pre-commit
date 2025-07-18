@@ -35,6 +35,21 @@ else
   exit 1
 fi
 
+echo "🔍  SQLFluff lint on staged SQL..."
+# Run sqlfluff on any staged .sql files in migrations directory
+staged_sql_files=$(git diff --cached --name-only --diff-filter=ACM | grep -E '^supabase/migrations/.*\.sql$' || true)
+if [[ -n "$staged_sql_files" ]]; then
+  if command -v sqlfluff >/dev/null 2>&1; then
+    if ! sqlfluff lint $staged_sql_files --dialect postgres; then
+      echo "❌  SQLFluff found issues in staged SQL files. Commit aborted."
+      exit 1
+    fi
+    echo "✅ SQLFluff passed"
+  else
+    echo "⚠️  sqlfluff not installed – skipping SQL lint (recommended: pip install sqlfluff[postgres])"
+  fi
+fi
+
 echo "✅ Pre-commit hook completed successfully"
 
 # 3. Run Black on staged Python files to ensure formatting consistency

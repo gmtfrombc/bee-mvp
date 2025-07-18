@@ -1,0 +1,75 @@
+openapi: 3.1.0
+info:
+  title: Update Momentum From Biometrics API
+  version: 1.0.0
+paths:
+  /update-momentum-from-biometrics:
+    post:
+      summary: Publish momentum update after manual biometrics submission
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BiometricsEvent"
+      responses:
+        "202":
+          description: Accepted – event queued
+        "400":
+          description: Validation or version error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
+        "401":
+          description: Unauthorized (missing or invalid service role key)
+        "405":
+          description: Method Not Allowed
+        "500":
+          description: Internal server error
+components:
+  schemas:
+    BiometricsEvent:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        weight_kg:
+          type: number
+          minimum: 30
+          maximum: 250
+        height_cm:
+          type: number
+          minimum: 120
+          maximum: 250
+        age_years:
+          type: integer
+          minimum: 0
+          maximum: 120
+        sex:
+          type: string
+          enum: [male, female, other, unknown]
+        correlation_id:
+          type: string
+        day:
+          type: string
+          format: date
+      required:
+        - user_id
+        - weight_kg
+        - height_cm
+        - age_years
+        - sex
+        - correlation_id
+        - day
+    ValidationError:
+      type: object
+      properties:
+        code:
+          type: string
+          enum: [VALIDATION_ERROR]
+        message:
+          type: string
+        correlation_id:
+          type: string
