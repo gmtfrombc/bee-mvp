@@ -62,6 +62,11 @@ be flipped to an _error_ after adoption reaches ≥ 80 %.
 4. Use **BeeToast** for all user-visible feedback; do not call
    `ScaffoldMessenger.of(context).showSnackBar` directly.
 
+> **Heads-up for new contributors:** A quick reference table of all foundation
+> widgets (and how to extend them) now lives in
+> `app/lib/core/ui/widgets/README.md`. Check that file first before adding new
+> UI controls.
+
 ## Theming & Accessibility
 
 - All widgets derive colours & font sizes from the global `ThemeData` so they
