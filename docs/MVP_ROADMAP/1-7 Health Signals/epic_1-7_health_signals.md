@@ -98,6 +98,7 @@ asks relevant question; unit + integration tests ≥ 90 %.
 **Deliverables:** JSON coefficients asset (or Supabase table), upgraded score
 service, category mapper, gauge widget, enhanced form logic, documentation and
 tests.
+**All Equations and Coefficients for Metabolic Health Score in app/data/mhs_data.txt
 
 **Acceptance Criteria:**
 

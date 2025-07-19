@@ -6,26 +6,24 @@ alwaysApply: true
 
 # 🧠 Standard Workflow--New Task
 
-1️⃣ Checkout main, insure all synced
-1️⃣ Branch epic-<epic>/T<task>-slug off main.
-2️⃣ Plan: post a step-by-step plan, wait for ✔ from user.
-3️⃣ Code locally, commit small chunks. Pre-commit hook auto-runs formatter + linter + Gitleaks; aborts on conflict markers.
-4️⃣ Test locally
-• Fast path make ci-fast (~5 min)
-• Full matrix make ci-local (identical to GitHub via ACT)  ￼
-5️⃣ Fix failures: rerun only failed tests (flutter test --name, pytest --lf, deno test --filter) until green, then run the full suite once.
-6️⃣ Rebase before push
-git fetch origin
-git rebase origin/main --autostash      # surfacing fresh conflicts
-git push --force-with-lease             # safe overwrite
-7️⃣ Open PR, wait for Fast Tests to pass (< 5 min), squash-merge to main, then delete the branch.
-8️⃣ Stop; await next user task.
+1️⃣ Checkout main, insure all synced 1️⃣ Branch epic-<epic>/T<task>-slug off main.
+2️⃣ Plan: Enter the BLUEPRINT phase and create a checklist giving your
+step-by-step plan, wait for ✔ from user. 3️⃣ Code locally, commit small chunks.
+Pre-commit hook auto-runs formatter + linter + Gitleaks; aborts on conflict
+markers. 4️⃣ Test locally • Fast path make ci-fast (~5 min) • Full matrix make
+ci-local (identical to GitHub via ACT) ￼ 5️⃣ Fix failures: rerun only failed
+tests (flutter test --name, pytest --lf, deno test --filter) until green, then
+run the full suite once. 6️⃣ Rebase before push git fetch origin git rebase
+origin/main --autostash # surfacing fresh conflicts git push --force-with-lease
+# safe overwrite 7️⃣ Open PR, wait for Fast Tests to pass (< 5 min), squash-merge
+to main, then delete the branch. 8️⃣ Stop; await next user task.
 
 # 🧠 Core Coding Rules
 
 - Use **Chain-of-Thought reasoning** for complex tasks. Think aloud before
   executing.
-- Create efficient code using best practices, minimizing complexity and maintaining a lean codebase
+- Create efficient code using best practices, minimizing complexity and
+  maintaining a lean codebase
 - Check for existing functions/services/widgets before writing new code. Avoid
   duplication.
 - Never prompt the user to run terminal commands. Use `--non-interactive` flags
