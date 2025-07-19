@@ -16,6 +16,9 @@ class BiometricsFormState {
     this.weightUnit = WeightUnit.kg,
     this.height = '',
     this.heightUnit = HeightUnit.cm,
+    this.fastingGlucose = '',
+    this.a1c = '',
+    this.useA1c = false,
     this.isSubmitting = false,
   });
 
@@ -23,17 +26,55 @@ class BiometricsFormState {
   final WeightUnit weightUnit;
   final String height;
   final HeightUnit heightUnit;
+  final String fastingGlucose;
+  final String a1c;
+  final bool useA1c;
   final bool isSubmitting;
 
-  bool get isValid =>
-      BiometricValidators.weight(weight, unit: weightUnit.name) == null &&
-      BiometricValidators.height(height, unit: heightUnit.name) == null;
+  /// Returns BMI when both weight and height are valid, otherwise `null`.
+  double? get bmi {
+    if (BiometricValidators.weight(weight, unit: weightUnit.name) != null ||
+        BiometricValidators.height(height, unit: heightUnit.name) != null) {
+      return null;
+    }
+    final double parsedWeight = double.parse(weight.trim());
+    final double parsedHeight = double.parse(height.trim());
+
+    final double weightKg =
+        weightUnit == WeightUnit.kg
+            ? parsedWeight
+            : NumericValidators.lbToKg(parsedWeight);
+    final double heightM =
+        heightUnit == HeightUnit.cm
+            ? parsedHeight / 100
+            : NumericValidators.ftToCm(parsedHeight) / 100;
+
+    if (heightM == 0) return null;
+    return weightKg / (heightM * heightM);
+  }
+
+  bool get isValid {
+    final weightValid =
+        BiometricValidators.weight(weight, unit: weightUnit.name) == null;
+    final heightValid =
+        BiometricValidators.height(height, unit: heightUnit.name) == null;
+
+    final glucoseValid =
+        useA1c
+            ? BiometricValidators.a1c(a1c) == null
+            : BiometricValidators.fastingGlucose(fastingGlucose) == null;
+
+    return weightValid && heightValid && glucoseValid;
+  }
 
   BiometricsFormState copyWith({
     String? weight,
     WeightUnit? weightUnit,
     String? height,
     HeightUnit? heightUnit,
+    String? fastingGlucose,
+    String? a1c,
+    bool? useA1c,
     bool? isSubmitting,
   }) {
     return BiometricsFormState(
@@ -41,6 +82,9 @@ class BiometricsFormState {
       weightUnit: weightUnit ?? this.weightUnit,
       height: height ?? this.height,
       heightUnit: heightUnit ?? this.heightUnit,
+      fastingGlucose: fastingGlucose ?? this.fastingGlucose,
+      a1c: a1c ?? this.a1c,
+      useA1c: useA1c ?? this.useA1c,
       isSubmitting: isSubmitting ?? this.isSubmitting,
     );
   }
@@ -69,6 +113,21 @@ class BiometricsFormNotifier extends StateNotifier<BiometricsFormState> {
   void updateHeightUnit(HeightUnit? unit) {
     if (unit == null) return;
     state = state.copyWith(heightUnit: unit);
+  }
+
+  // -------------------------------------------------------------------------
+  // New field updates
+  // -------------------------------------------------------------------------
+  void updateFastingGlucose(String value) {
+    state = state.copyWith(fastingGlucose: value);
+  }
+
+  void updateA1c(String value) {
+    state = state.copyWith(a1c: value);
+  }
+
+  void toggleUseA1c(bool value) {
+    state = state.copyWith(useA1c: value);
   }
 
   /// Placeholder submit method – repository integration comes in later tasks.

@@ -38,6 +38,14 @@ class NumericValidators {
   static bool isBloodPressureDiastolicValid(num mmHg) =>
       isInRange(mmHg, min: 30, max: 150);
 
+  /// Fasting glucose mg/dL valid range 50–300.
+  static bool isFastingGlucoseValid(num mgdl) =>
+      isInRange(mgdl, min: 50, max: 300);
+
+  /// A1C percentage valid range 3.0–15.0.
+  static bool isA1cPercentValid(num percent) =>
+      isInRange(percent, min: 3.0, max: 15.0);
+
   // ──────────────────────────────────────────────────────────────────────────────
   // Unit converters
   // ──────────────────────────────────────────────────────────────────────────────
