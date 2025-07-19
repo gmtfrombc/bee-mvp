@@ -86,19 +86,19 @@ asks relevant question; unit + integration tests ≥ 90 %.
 
 ### M1.7.4 · Advanced Metabolic Health Score & Gauge
 
-| Task | Description                                                              | Hours | Status     |
-| ---- | ------------------------------------------------------------------------ | ----- | ---------- |
-| T1   | Convert coefficient tables to JSON asset & repository loader             | 2h    | ⚪ Planned |
-| T2   | Extend `MetabolicHealthScoreService` for BMI, A1C→FG, percentile mapping | 3h    | ⚪ Planned |
-| T3   | Implement `mapMhsToCategory()` helper for colour bands                   | 1h    | ⚪ Planned |
-| T4   | Build `MetabolicScoreGauge` widget with colour-wheel gauge               | 4h    | ⚪ Planned |
-| T5   | Enhance form: BMI auto-calc, A1C toggle, validators & tests              | 2h    | ⚪ Planned |
-| T6   | Update docs, increase coverage to ≥ 90 % lines / 100 % branches          | 1h    | ⚪ Planned |
+| Task | Description                                                              | Hours | Status      |
+| ---- | ------------------------------------------------------------------------ | ----- | ----------- |
+| T1   | Convert coefficient tables to JSON asset & repository loader             | 2h    | ⚪ Planned  |
+| T2   | Extend `MetabolicHealthScoreService` for BMI, A1C→FG, percentile mapping | 3h    | ⚪ Planned  |
+| T3   | Implement `mapMhsToCategory()` helper for colour bands                   | 1h    | ⚪ Planned  |
+| T4   | Build `MetabolicScoreGauge` widget with colour-wheel gauge               | 4h    | ⚪ Planned  |
+| T5   | Enhance form: BMI auto-calc, A1C toggle, validators & tests              | 2h    | ⚪ Planned  |
+| T6   | Update docs, increase coverage to ≥ 90 % lines / 100 % branches          | 1h    | ✅ Complete |
 
 **Deliverables:** JSON coefficients asset (or Supabase table), upgraded score
 service, category mapper, gauge widget, enhanced form logic, documentation and
-tests.
-**All Equations and Coefficients for Metabolic Health Score in app/data/mhs_data.txt
+tests. **All Equations and Coefficients for Metabolic Health Score in
+app/data/mhs_data.txt
 
 **Acceptance Criteria:**
 
