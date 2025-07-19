@@ -4,6 +4,8 @@ import 'dart:math';
 import 'package:flutter/services.dart' show AssetBundle, rootBundle;
 
 import '../../models/sex.dart';
+import '../models/biometric_record.dart';
+import '../mhs_coefficient_repository.dart';
 
 /// Service that converts raw height & weight measurements into a
 /// Metabolic Health Score (MHS) percentile (0–100).
@@ -73,6 +75,69 @@ class MetabolicHealthScoreService {
 
     final score = ((heightPercentile + weightPercentile) / 2).clamp(0.0, 100.0);
     return double.parse(score.toStringAsFixed(1));
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // Advanced Metabolic Health Score (MHS)
+  // --------------------------------------------------------------------------
+
+  /// Calculates the **Advanced Metabolic Health Score (MHS)** percentile (0–100).
+  ///
+  /// The algorithm follows the white-paper spec:
+  /// 1. **BMI** derived from weight/height if not pre-computed.
+  /// 2. **Fasting glucose (FG)** – if missing, estimated from A1C:
+  ///    `FG = 38.46 × (A1C − 3.146)`.
+  /// 3. Z-score computed using cohort- and sex-specific β-coefficients:
+  ///    ```text
+  ///    Z = β₀ + β₁·BMI + β₂·HDL + β₃·SBP + β₄·ln(TG) + β₅·FG
+  ///    ```
+  /// 4. Percentile = Φ(Z) × 100, where Φ is the standard normal CDF.
+  ///
+  /// Throws [ArgumentError] if coefficients are unavailable or required
+  /// biomarkers are missing.
+  Future<double> calculateMhs({
+    required BiometricRecord record,
+    MhsCoefficientRepository? coeffRepository,
+  }) async {
+    final repo = coeffRepository ?? MhsCoefficientRepository.instance;
+
+    // Resolve coefficient set (throws if missing JSON asset).
+    final coeffs = await repo.getCoefficients(
+      cohortKey: record.cohortKey,
+      sex: record.sex,
+    );
+    if (coeffs.length != 6) {
+      throw StateError('Coefficient table must contain exactly 6 values');
+    }
+
+    final bmi = record.bmi;
+
+    // Fasting glucose: use provided value or derive from A1C.
+    double? fg = record.fgMgDl;
+    if (fg == null) {
+      final a1c = record.a1cPercent;
+      if (a1c == null) {
+        throw ArgumentError('Either FG or A1C must be supplied');
+      }
+      fg = 38.46 * (a1c - 3.146);
+    }
+
+    // ln(TG) where TG in mg/dL – ensure positive.
+    if (record.tgMgDl <= 0) {
+      throw ArgumentError('Triglycerides must be positive to compute ln(TG)');
+    }
+    final lnTg = log(record.tgMgDl);
+
+    final z =
+        coeffs[0] +
+        coeffs[1] * bmi +
+        coeffs[2] * record.hdlMgDl +
+        coeffs[3] * record.sbp +
+        coeffs[4] * lnTg +
+        coeffs[5] * fg;
+
+    final percentile = (_cdf(z) * 100).clamp(0.0, 100.0);
+    return double.parse(percentile.toStringAsFixed(1));
   }
 
   // ────────────────────────────────────────────────────────────────────────────
