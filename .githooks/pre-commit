@@ -50,6 +50,11 @@ if [[ -n "$staged_sql_files" ]]; then
   fi
 fi
 
+# --- DB migration smoke test (runs only when relevant files changed) ---
+if ! bash scripts/check_migrations.sh; then
+  exit 1
+fi
+
 echo "✅ Pre-commit hook completed successfully"
 
 # 3. Run Black on staged Python files to ensure formatting consistency
