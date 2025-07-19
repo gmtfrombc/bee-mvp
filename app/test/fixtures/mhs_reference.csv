@@ -1,0 +1,7 @@
+cohort,sex,bmi,hdl,sbp,tg,fg,expected_mhs
+non_hispanic_white_asian,male,25,55,118,140,90,65.2
+non_hispanic_white_asian,female,22,60,112,110,85,72.8
+non_hispanic_black,male,28,50,125,160,100,48.1
+non_hispanic_black,female,30,48,130,170,105,42.7
+mexican_american_other_hispanic,male,27,52,120,150,95,53.9
+mexican_american_other_hispanic,female,26,58,115,130,88,60.4 

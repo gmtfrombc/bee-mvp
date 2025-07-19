@@ -1,7 +1,11 @@
+EQUATION TO CALCULATE FOR MetS scores (Z-SCORE)
+
 Z_{\text{MetS}}=\beta_0+\beta_1\,\text{BMI}+\beta_2\,\text{HDL}+\beta_3\,\text{SBP}
 +\beta_4\,\ln(\text{TG})+\beta_5\,\text{FG}
 
-Non-hispanic white, Asian (India, Japan, China, Singapore)
+COEFFICIENTS FOR DIFFENT COHORTS TO BE USED IN CALCULATING MetS scores
+
+1. Non-hispanic white, Asian (India, Japan, China, Singapore)
 
 Sex
 β₀
@@ -25,7 +29,8 @@ Female
 +0.6125
 +0.0208
 
-Non-hispanic black
+2. Non-hispanic black
+
 Sex
 β₀
 β₁
@@ -48,7 +53,7 @@ Female
 +0.4508
 +0.0207
 
-Mexican-American/Other Hispanic
+3. Mexican-American/Other Hispanic
 Sex
 β₀
 β₁
@@ -71,7 +76,11 @@ Female
 +0.4819
 +0.0164
 
+EQUATION TO CONVERT MetS Score (Z-SCORE) to MHS (Metabolic Health Score)
+
 Convert to Percentile
 \text{MHS} = \Phi(Z)\times100
+
+EQUATION TO CALCULATE Fasting Glucose from HgbA1C
 
 Calculate Fasting Glucose from HgbA1C: FPG_mg_dl  = 38.46 * (A1C_percent - 3.146)
