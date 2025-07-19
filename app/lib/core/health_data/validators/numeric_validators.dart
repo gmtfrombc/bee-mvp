@@ -20,6 +20,13 @@ class NumericValidators {
   /// Weight in kilograms – roughly 20 kg‒300 kg covers 99 % of adults.
   static bool isWeightKgValid(num kg) => isInRange(kg, min: 20, max: 300);
 
+  /// Height in centimetres – typical adult range 120‒250 cm.
+  static bool isHeightCmValid(num cm) => isInRange(cm, min: 120, max: 250);
+
+  /// Height in feet – converts to cm and checks range above (approx. 3.9‒8.2 ft).
+  static bool isHeightFtValid(num feet) =>
+      isHeightCmValid(ftToCm(feet.toDouble()));
+
   /// Heart-rate beats per minute – physiologically plausible at rest/activity.
   static bool isHeartRateValid(num bpm) => isInRange(bpm, min: 30, max: 220);
 
@@ -34,6 +41,18 @@ class NumericValidators {
   // ──────────────────────────────────────────────────────────────────────────────
   // Unit converters
   // ──────────────────────────────────────────────────────────────────────────────
+
+  /// Centimetres → inches.
+  static double cmToIn(double cm) => cm / 2.54;
+
+  /// Inches → centimetres.
+  static double inToCm(double inch) => inch * 2.54;
+
+  /// Centimetres → feet (decimal).
+  static double cmToFt(double cm) => cm / 30.48;
+
+  /// Feet (decimal) → centimetres.
+  static double ftToCm(double ft) => ft * 30.48;
 
   /// Kilograms → pounds.
   static double kgToLb(double kg) => kg * 2.2046226218;

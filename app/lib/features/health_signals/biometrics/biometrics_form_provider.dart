@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:app/core/health_data/validators/biometric_validators.dart';
 
 /// Enumeration for weight units.
 enum WeightUnit { kg, lbs }
@@ -22,7 +23,9 @@ class BiometricsFormState {
   final HeightUnit heightUnit;
   final bool isSubmitting;
 
-  bool get isValid => weight.isNotEmpty && height.isNotEmpty;
+  bool get isValid =>
+      BiometricValidators.weight(weight, unit: weightUnit.name) == null &&
+      BiometricValidators.height(height, unit: heightUnit.name) == null;
 
   BiometricsFormState copyWith({
     String? weight,

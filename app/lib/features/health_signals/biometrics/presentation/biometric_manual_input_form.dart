@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app/core/ui/widgets/widgets.dart';
 import '../biometrics_form_provider.dart';
 import 'package:app/core/services/responsive_service.dart';
+import 'package:app/core/health_data/validators/biometric_validators.dart';
 
 /// Form that captures user weight & height with inline unit toggles.
 ///
@@ -35,6 +36,11 @@ class BiometricManualInputForm extends ConsumerWidget {
                   u == 'kg' ? WeightUnit.kg : WeightUnit.lbs,
                 ),
             hint: 'e.g. 70',
+            validator:
+                (v) => BiometricValidators.weight(
+                  v,
+                  unit: formState.weightUnit.name,
+                ),
           ),
           SizedBox(height: verticalSpacing),
 
@@ -50,6 +56,11 @@ class BiometricManualInputForm extends ConsumerWidget {
                   u == 'cm' ? HeightUnit.cm : HeightUnit.ftIn,
                 ),
             hint: 'e.g. 175',
+            validator:
+                (v) => BiometricValidators.height(
+                  v,
+                  unit: formState.heightUnit.name,
+                ),
           ),
           SizedBox(height: verticalSpacing * 1.5),
 
