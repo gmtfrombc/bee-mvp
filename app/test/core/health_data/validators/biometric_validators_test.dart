@@ -33,4 +33,32 @@ void main() {
       expect(BiometricValidators.height('5.7', unit: 'ft'), isNull); // ~173 cm
     });
   });
+
+  group('BiometricValidators.fastingGlucose', () {
+    test('empty returns error', () {
+      expect(BiometricValidators.fastingGlucose(''), isNotNull);
+    });
+
+    test('valid value returns null', () {
+      expect(BiometricValidators.fastingGlucose('90'), isNull);
+    });
+
+    test('out of range returns error', () {
+      expect(BiometricValidators.fastingGlucose('400'), isNotNull);
+    });
+  });
+
+  group('BiometricValidators.a1c', () {
+    test('empty returns error', () {
+      expect(BiometricValidators.a1c(''), isNotNull);
+    });
+
+    test('valid value returns null', () {
+      expect(BiometricValidators.a1c('5.4'), isNull);
+    });
+
+    test('out of range returns error', () {
+      expect(BiometricValidators.a1c('20'), isNotNull);
+    });
+  });
 }

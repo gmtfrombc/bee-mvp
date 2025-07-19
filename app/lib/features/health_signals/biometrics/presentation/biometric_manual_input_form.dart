@@ -62,6 +62,58 @@ class BiometricManualInputForm extends ConsumerWidget {
                   unit: formState.heightUnit.name,
                 ),
           ),
+          SizedBox(height: verticalSpacing),
+
+          // BMI display -----------------------------------------------------
+          if (formState.bmi != null)
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'BMI: ${formState.bmi!.toStringAsFixed(1)}',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            ),
+          SizedBox(height: verticalSpacing * 1.5),
+
+          // A1C toggle -------------------------------------------------------
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  'Enter A1C instead of fasting glucose',
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+              ),
+              Switch(value: formState.useA1c, onChanged: notifier.toggleUseA1c),
+            ],
+          ),
+          SizedBox(height: verticalSpacing),
+
+          // Conditional field ----------------------------------------------
+          if (!formState.useA1c) ...[
+            HealthInputField(
+              label: 'Fasting Glucose',
+              value: formState.fastingGlucose,
+              onChanged: notifier.updateFastingGlucose,
+              units: const ['mg/dL'],
+              selectedUnit: 'mg/dL',
+              onUnitChanged: (_) {},
+              hint: 'e.g. 90',
+              validator: BiometricValidators.fastingGlucose,
+            ),
+          ] else ...[
+            HealthInputField(
+              label: 'A1C',
+              value: formState.a1c,
+              onChanged: notifier.updateA1c,
+              units: const ['%'],
+              selectedUnit: '%',
+              onUnitChanged: (_) {},
+              hint: 'e.g. 5.4',
+              validator: BiometricValidators.a1c,
+            ),
+          ],
           SizedBox(height: verticalSpacing * 1.5),
 
           // Submit button ---------------------------------------------------

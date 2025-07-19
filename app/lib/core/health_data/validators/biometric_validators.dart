@@ -81,4 +81,40 @@ class BiometricValidators {
 
     return null;
   }
+
+  // ---------------------------------------------------------------------------
+  // Fasting Glucose
+  // ---------------------------------------------------------------------------
+
+  /// Validates fasting glucose in mg/dL (50–300 mg/dL).
+  static String? fastingGlucose(String? value) {
+    if (value == null || value.trim().isEmpty) return 'Required';
+
+    final double? parsed = double.tryParse(value.trim());
+    if (parsed == null) return 'Enter a valid number';
+
+    if (!NumericValidators.isFastingGlucoseValid(parsed)) {
+      return 'Enter 50‒300 mg/dL';
+    }
+
+    return null;
+  }
+
+  // ---------------------------------------------------------------------------
+  // A1C (Haemoglobin)
+  // ---------------------------------------------------------------------------
+
+  /// Validates A1C percentage (3.0–15.0 %).
+  static String? a1c(String? value) {
+    if (value == null || value.trim().isEmpty) return 'Required';
+
+    final double? parsed = double.tryParse(value.trim());
+    if (parsed == null) return 'Enter a valid number';
+
+    if (!NumericValidators.isA1cPercentValid(parsed)) {
+      return 'Enter 3‒15 %';
+    }
+
+    return null;
+  }
 }
