@@ -7,8 +7,8 @@ failures, and raise CI coverage gate to 45 %.
 
 | Task | Description                                                      | Est    | Status |
 | ---- | ---------------------------------------------------------------- | ------ | ------ |
-| T0   | List all lines containing `skip:` via grep; paste into checklist | 0.5 h  | ⬜     |
-| T1   | Remove `skip:` from test group #1; fix failures                  | 1 h    | ⬜     |
+| T0   | List all lines containing `skip:` via grep; paste into checklist | 0.5 h  | ✅     |
+| T1   | Remove `skip:` from test group #1; fix failures                  | 1 h    | ✅     |
 | T2   | Repeat for remaining tests (#2-#12)                              | 3 h    | ⬜     |
 | T3   | Update or regenerate golden images if diff errors arise          | 1 h    | ⬜     |
 | T4   | Run `make ci-fast` locally until green                           | —      | ⬜     |
