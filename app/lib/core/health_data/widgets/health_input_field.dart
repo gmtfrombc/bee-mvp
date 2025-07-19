@@ -19,6 +19,7 @@ class HealthInputField extends ConsumerWidget {
     required this.selectedUnit,
     required this.onUnitChanged,
     this.hint,
+    this.validator,
   });
 
   /// Label displayed before the unit toggle.
@@ -41,6 +42,8 @@ class HealthInputField extends ConsumerWidget {
 
   /// Optional placeholder.
   final String? hint;
+
+  final String? Function(String?)? validator;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -73,6 +76,7 @@ class HealthInputField extends ConsumerWidget {
           initialValue: value,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           onChanged: onChanged,
+          validator: validator,
           inputFormatters: [
             FilteringTextInputFormatter.allow(RegExp(r"[0-9.]")),
           ],
