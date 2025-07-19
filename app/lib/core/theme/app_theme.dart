@@ -44,6 +44,18 @@ class AppTheme {
   static const Color vitalsSleep = Colors.teal;
   static const Color vitalsSteps = Colors.blue;
 
+  // Metabolic Health Score (MHS) Gauge Colors
+  /// Excellent (≥ 80)
+  static const Color mhsExcellent = Color(0xFF388E3C); // Green 600
+  /// Good (60–79)
+  static const Color mhsGood = Color(0xFF0288D1); // Blue 700
+  /// Fair (40–59)
+  static const Color mhsFair = Color(0xFFB26E00); // Dark Goldenrod
+  /// Poor (20–39)
+  static const Color mhsPoor = Color(0xFFE65100); // Deep Orange 800
+  /// Very Poor (< 20)
+  static const Color mhsVeryPoor = Color(0xFFD32F2F); // Red 700
+
   // Accent Colors
   // Purple accent used for call-to-action buttons like "Read More / Read Again"
   static const Color accentPurple = Color(0xFF9C27B0);
