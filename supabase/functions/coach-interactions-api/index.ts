@@ -39,6 +39,62 @@ export async function handleRequest(req: Request): Promise<Response> {
   }
 
   // ------------------------------------------------------------------
+  // NEW: POST /prompt – deliver AI Coach prompt based on flag trigger
+  // ------------------------------------------------------------------
+  if (matches("/prompt")) {
+    if (req.method !== "POST") {
+      return json({ error: "Method Not Allowed" }, 405);
+    }
+
+    let body: {
+      user_id?: string;
+      template?: string;
+      flag_type?: string;
+    };
+    try {
+      body = await req.json();
+    } catch (_) {
+      return json({ error: "Invalid JSON" }, 400);
+    }
+
+    const { user_id, template, flag_type } = body;
+    if (!user_id || !template || !flag_type) {
+      return json({ error: "user_id, template, and flag_type required" }, 400);
+    }
+    if (template !== "biometric_drop") {
+      return json({ error: "Unsupported template" }, 400);
+    }
+    if (!(flag_type === "low_steps" || flag_type === "low_sleep")) {
+      return json(
+        { error: "flag_type must be 'low_steps' or 'low_sleep'" },
+        400,
+      );
+    }
+
+    // Dynamically import the prompt template
+    try {
+      const path =
+        `../ai-coaching-engine/prompt_templates/${template}_${flag_type}.ts`;
+      const mod = await import(
+        new URL(path, import.meta.url).href
+      ) as { default: string };
+      const prompt = mod.default;
+
+      // Future: enqueue prompt for delivery via conversation engine.
+      console.log("Prepared Coach prompt", {
+        user_id,
+        flag_type,
+        prompt_snippet: prompt.slice(0, 60),
+      });
+    } catch (err) {
+      console.error("Template load error", err);
+      return json({ error: "template_load" }, 500);
+    }
+
+    return json({ status: "accepted" }, 202);
+  }
+
+  // ------------------------------------------------------------------
   // POST /refresh-context – invoked after biometrics save to refresh
   // downstream conversation context. For MVP it simply acknowledges the
   // request; future iterations may push events to a job queue.

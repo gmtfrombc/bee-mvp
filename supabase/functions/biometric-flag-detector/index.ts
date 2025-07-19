@@ -193,6 +193,35 @@ export async function handleRequest(req: Request): Promise<Response> {
           "new_flag",
           { user_id, flag_type: flagType },
         );
+
+        // 5️⃣  Trigger AI Coach prompt integration
+        try {
+          const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+          const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ??
+            Deno.env.get("SERVICE_ROLE_KEY") ?? "";
+          if (supabaseUrl && serviceKey) {
+            const promptUrl =
+              `${supabaseUrl}/functions/v1/coach-interactions-api/prompt`;
+            const res = await fetch(promptUrl, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "X-Api-Version": "1",
+                Authorization: `Bearer ${serviceKey}`,
+              },
+              body: JSON.stringify({
+                user_id,
+                template: "biometric_drop",
+                flag_type: flagType,
+              }),
+            });
+            if (!res.ok) {
+              console.error("coach-interactions-api prompt failed", res.status);
+            }
+          }
+        } catch (err) {
+          console.error("coach-interactions-api prompt fetch error", err);
+        }
       }
     }
 
