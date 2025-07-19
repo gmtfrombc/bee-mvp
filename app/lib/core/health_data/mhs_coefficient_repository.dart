@@ -26,6 +26,13 @@ class MhsCoefficientRepository {
 
   static final MhsCoefficientRepository instance = MhsCoefficientRepository._();
 
+  /// Creates a new repository that loads from the provided [bundle] instead of
+  /// the rootBundle. This is useful for unit tests where loading from disk
+  /// assets is not feasible.
+  factory MhsCoefficientRepository.forBundle(AssetBundle bundle) {
+    return MhsCoefficientRepository._(bundle: bundle);
+  }
+
   // ──────────────────────────────────────────────
   // Public API
   // ──────────────────────────────────────────────
