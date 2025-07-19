@@ -35,9 +35,9 @@ _Last updated: 2025-07-19_
 | onboarding_flow_test.dart                 | Onboarding happy path            | ✅     |
 | launch_controller_flow_test.dart          | LaunchController post-onboarding | ✅     |
 | onboarding_pages_golden_test.dart         | PrefsPage golden                 | ✅     |
-| medical_history_performance_test.dart     | MedicalHistory perf benchmark    | ⚪     |
-| navigation_integration_test.dart          | Achievements nav scenario        | ⚪     |
-| adaptive_polling_toggle_test.dart         | AdaptivePollingToggle prefs      | ⚪     |
+| medical_history_performance_test.dart     | MedicalHistory perf benchmark    | ✅     |
+| navigation_integration_test.dart          | Achievements nav scenario        | ✅     |
+| adaptive_polling_toggle_test.dart         | AdaptivePollingToggle prefs      | ✅     |
 | accessibility_test.dart                   | MomentumCard accessibility       | ⚪     |
 | minimal_performance_test.dart             | Minimal perf tests               | ⚪     |
 | momentum_performance_essentials_test.dart | Momentum perf essentials         | ⚪     |
