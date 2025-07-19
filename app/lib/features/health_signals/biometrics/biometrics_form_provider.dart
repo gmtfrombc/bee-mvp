@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app/core/health_data/validators/biometric_validators.dart';
+import 'package:app/core/health_data/validators/numeric_validators.dart';
+import 'package:app/core/health_data/services/health_data_repository.dart';
 
 /// Enumeration for weight units.
 enum WeightUnit { kg, lbs }
@@ -46,7 +48,9 @@ class BiometricsFormState {
 
 /// StateNotifier handling biometrics form state.
 class BiometricsFormNotifier extends StateNotifier<BiometricsFormState> {
-  BiometricsFormNotifier() : super(const BiometricsFormState());
+  BiometricsFormNotifier(this.ref) : super(const BiometricsFormState());
+
+  final Ref ref;
 
   // Field updates ----------------------------------------------------------
   void updateWeight(String value) {
@@ -71,8 +75,29 @@ class BiometricsFormNotifier extends StateNotifier<BiometricsFormState> {
   Future<void> submit() async {
     if (!state.isValid) return;
     state = state.copyWith(isSubmitting: true);
-    await Future.delayed(const Duration(milliseconds: 300));
-    // TODO: hook into HealthDataRepository.insertBiometrics() in Task T5.
+    try {
+      final repo = ref.read(healthDataRepositoryProvider);
+
+      // Convert units to metric
+      final double parsedWeight = double.parse(state.weight.trim());
+      final double parsedHeight = double.parse(state.height.trim());
+
+      final double weightKg =
+          state.weightUnit == WeightUnit.kg
+              ? parsedWeight
+              : NumericValidators.lbToKg(parsedWeight);
+
+      final double heightCm =
+          state.heightUnit == HeightUnit.cm
+              ? parsedHeight
+              : NumericValidators.ftToCm(parsedHeight);
+
+      await repo.insertBiometrics(weightKg: weightKg, heightCm: heightCm);
+    } catch (e, st) {
+      // In production we might surface a snackbar; for now log.
+      // ignore: avoid_print
+      print('Error submitting biometrics: $e\n$st');
+    }
     state = state.copyWith(isSubmitting: false);
   }
 }
@@ -80,5 +105,5 @@ class BiometricsFormNotifier extends StateNotifier<BiometricsFormState> {
 /// Global provider for widgets to watch & mutate biometrics form.
 final biometricsFormProvider =
     StateNotifierProvider<BiometricsFormNotifier, BiometricsFormState>(
-      (ref) => BiometricsFormNotifier(),
+      (ref) => BiometricsFormNotifier(ref),
     );

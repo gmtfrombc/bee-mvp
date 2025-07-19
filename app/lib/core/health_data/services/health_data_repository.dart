@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/energy_level.dart';
 import '../models/biometric_manual_input.dart';
 import '../models/pes_entry.dart';
+import '../models/manual_biometrics_entry.dart';
 import '../../providers/supabase_provider.dart';
 
 /// Repository offering CRUD operations to health-data tables with an in-memory cache.
@@ -40,6 +41,9 @@ class HealthDataRepository {
   DateTime _biometricCacheTimestamp = DateTime.fromMillisecondsSinceEpoch(0);
   final Map<String, List<PesEntry>> _pesCache = {};
   DateTime _pesCacheTimestamp = DateTime.fromMillisecondsSinceEpoch(0);
+  final Map<String, List<ManualBiometricsEntry>> _manualBiometricsCache = {};
+  DateTime _manualBiometricsCacheTimestamp =
+      DateTime.fromMillisecondsSinceEpoch(0);
 
   bool _isCacheValid(DateTime ts) => DateTime.now().difference(ts) < cacheTTL;
 
@@ -175,6 +179,74 @@ class HealthDataRepository {
   }) async {
     await _supabase.from('biometric_manual_inputs').delete().eq('id', id);
     _biometricCache[userId]?.removeWhere((e) => e.id == id);
+  }
+
+  Future<ManualBiometricsEntry> insertBiometrics({
+    required double weightKg,
+    required double heightCm,
+  }) async {
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) {
+      throw StateError('Cannot insert biometrics – no authenticated user');
+    }
+
+    final payload = {
+      'user_id': userId,
+      'weight_kg': weightKg,
+      'height_cm': heightCm,
+    };
+
+    final inserted =
+        await _supabase
+            .from('manual_biometrics')
+            .insert(payload)
+            .select()
+            .single();
+
+    final entry = ManualBiometricsEntry.fromJson(inserted);
+
+    _manualBiometricsCache.putIfAbsent(userId, () => []).add(entry);
+    _manualBiometricsCacheTimestamp = DateTime.now();
+
+    // Trigger downstream Momentum & coach context updates (non-blocking).
+    try {
+      await _supabase.functions.invoke(
+        'update_momentum_from_biometrics',
+        body: {'user_id': userId, 'delta': 15, 'source': 'manual_biometrics'},
+      );
+    } catch (e) {
+      debugPrint('⚠️  update_momentum_from_biometrics failed: $e');
+    }
+
+    return entry;
+  }
+
+  Future<List<ManualBiometricsEntry>> fetchManualBiometrics({
+    required String userId,
+    bool forceRefresh = false,
+  }) async {
+    if (!forceRefresh &&
+        _manualBiometricsCache.containsKey(userId) &&
+        _isCacheValid(_manualBiometricsCacheTimestamp)) {
+      return _manualBiometricsCache[userId]!;
+    }
+
+    final data = await _supabase
+        .from('manual_biometrics')
+        .select()
+        .eq('user_id', userId)
+        .order('created_at', ascending: false);
+
+    final entries =
+        (data as List)
+            .map(
+              (e) => ManualBiometricsEntry.fromJson(e as Map<String, dynamic>),
+            )
+            .toList();
+
+    _manualBiometricsCache[userId] = entries;
+    _manualBiometricsCacheTimestamp = DateTime.now();
+    return entries;
   }
 
   // ──────────────────────────────────────────────────────────────────────────
