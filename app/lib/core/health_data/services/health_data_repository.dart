@@ -249,6 +249,27 @@ class HealthDataRepository {
     return entries;
   }
 
+  /// Streams the **latest** row in the `manual_biometrics` table for the given
+  /// [userId].
+  ///
+  /// The stream emits a new [ManualBiometricsEntry] whenever an insert/update
+  /// occurs and will push `null` if the table is cleared for the user. This
+  /// utilises Supabase's realtime channel under the hood and therefore requires
+  /// `supabase.transformers.any()` to be enabled (already true for Flutter SDK
+  /// 2.0+).
+  Stream<ManualBiometricsEntry?> watchLatestBiometrics(String userId) {
+    return _supabase
+        .from('manual_biometrics')
+        .stream(primaryKey: ['id'])
+        .eq('user_id', userId)
+        .order('created_at', ascending: false)
+        .limit(1)
+        .map(
+          (rows) =>
+              rows.isEmpty ? null : ManualBiometricsEntry.fromJson(rows.first),
+        );
+  }
+
   // ──────────────────────────────────────────────────────────────────────────
   // PES ENTRIES CRUD
   // --------------------------------------------------------------------------
