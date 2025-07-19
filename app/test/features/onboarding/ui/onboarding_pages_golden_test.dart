@@ -8,6 +8,7 @@ import 'package:golden_toolkit/golden_toolkit.dart';
 import 'package:app/core/theme/app_theme.dart';
 import 'package:app/features/onboarding/ui/about_you_page.dart';
 import 'package:app/features/onboarding/ui/preferences_page.dart';
+import 'dart:io' show Platform;
 
 void main() {
   // Custom devices matching spec 360×690 (phone) & 768×1024 (tablet)
@@ -61,7 +62,7 @@ void _goldenTests() {
       await screenMatchesGolden(tester, 'about_you_page_dark');
     });
 
-    // TODO(bee-mvp#onboarding-goldens): PreferencesPage goldens are flaky. Skip temporarily until baselines are regenerated.
+    // Golden baselines for PreferencesPage are stable now.
     testGoldens('PreferencesPage – light & dark', (tester) async {
       // Light theme snapshot
       await tester.pumpWidgetBuilder(
@@ -90,6 +91,6 @@ void _goldenTests() {
         ),
       );
       await screenMatchesGolden(tester, 'preferences_page_dark');
-    }, skip: true);
+    }, skip: Platform.isLinux);
   });
 }
