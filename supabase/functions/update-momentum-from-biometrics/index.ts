@@ -13,12 +13,18 @@ const cors = {
 
 const API_VERSION = "1" as const;
 
-type SourceType = "manual_biometrics";
+type SourceType = "manual_biometrics" | "biometric_flag";
 
+/**
+ * Incoming payload can be either:
+ * 1. Legacy: { user_id, delta, source: "manual_biometrics" }
+ * 2. Penalty: { user_id, penalty: -10 }  – "source" optional, defaults to "biometric_flag"
+ */
 interface MomentumPayload {
   user_id: string;
-  delta: number;
-  source: SourceType;
+  delta?: number; // positive or negative adjustment
+  penalty?: number; // alias for negative delta used by biometric flag flow
+  source?: SourceType;
 }
 
 // ---------------------------------------------------------------------------
@@ -51,12 +57,43 @@ export async function handleRequest(req: Request): Promise<Response> {
   }
 
   // Parse & validate payload
-  let payload: MomentumPayload;
+  let rawPayload: MomentumPayload;
   try {
-    payload = await req.json() as MomentumPayload;
+    rawPayload = await req.json() as MomentumPayload;
   } catch {
     return json({ error: "Invalid JSON" }, 400);
   }
+
+  // ---------------------------------------------------------------------
+  // Normalise to ensure we always have `delta` & `source`
+  // ---------------------------------------------------------------------
+  const payload: Required<
+    Pick<MomentumPayload, "user_id" | "delta" | "source">
+  > = (() => {
+    const { user_id, delta, penalty, source } = rawPayload;
+
+    // Ensure we have *some* delta value
+    let finalDelta: number | undefined = delta;
+
+    // If only penalty provided → convert to negative delta
+    if (finalDelta === undefined && typeof penalty === "number") {
+      finalDelta = penalty; // Spec sends negative (e.g., -10)
+      // Guard: if a positive penalty slipped through, invert it.
+      if (finalDelta > 0) finalDelta = -Math.abs(finalDelta);
+    }
+
+    const finalSource: SourceType =
+      (source ??
+        (penalty !== undefined
+          ? "biometric_flag"
+          : "manual_biometrics")) as SourceType;
+
+    return {
+      user_id: user_id ?? "", // will be validated shortly
+      delta: finalDelta as number,
+      source: finalSource,
+    };
+  })();
 
   const validationError = validatePayload(payload);
   if (validationError) return json({ error: validationError }, 400);
@@ -69,7 +106,7 @@ export async function handleRequest(req: Request): Promise<Response> {
       const client: SupabaseClient = await getSupabaseClient(serviceKey);
       const { error } = await client.from("engagement_events").insert({
         user_id: payload.user_id,
-        event_type: "manual_biometrics",
+        event_type: payload.source,
         points_delta: payload.delta,
         source: payload.source,
         created_at: new Date().toISOString(),
@@ -122,12 +159,25 @@ if (import.meta.main) {
 // ---------------------------------------------------------------------------
 function validatePayload(body: Partial<MomentumPayload>): string | null {
   if (!body.user_id) return "user_id required";
-  if (typeof body.delta !== "number" || Number.isNaN(body.delta)) {
-    return "delta must be a number";
+
+  const hasDelta = typeof body.delta === "number" && !Number.isNaN(body.delta);
+  const hasPenalty = typeof body.penalty === "number" &&
+    !Number.isNaN(body.penalty);
+
+  if (!hasDelta && !hasPenalty) {
+    return "delta or penalty must be provided";
   }
-  if (body.source !== "manual_biometrics") {
-    return "source must be 'manual_biometrics'";
+  if (hasDelta && hasPenalty) {
+    return "Provide either delta or penalty, not both";
   }
+
+  if (
+    body.source && body.source !== "manual_biometrics" &&
+    body.source !== "biometric_flag"
+  ) {
+    return "invalid source";
+  }
+
   return null;
 }
 
