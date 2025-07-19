@@ -27,3 +27,17 @@ ticket referencing failure log.
 ---
 
 _Last updated: 2025-07-19_
+
+#### Skipped Tests Tracker
+
+| Skipped Test (file)                       | Description                                                  | Status     |
+| ----------------------------------------- | ------------------------------------------------------------ | ---------- |
+| onboarding_flow_test.dart                 | Onboarding happy-path flow – heavy dependencies              | ⚪ Pending |
+| launch_controller_flow_test.dart          | LaunchController shows AppWrapper when onboarding complete   | ⚪ Pending |
+| onboarding_pages_golden_test.dart         | PreferencesPage golden – flaky baseline                      | ⚪ Pending |
+| medical_history_performance_test.dart     | MedicalHistoryPage performance benchmark (CI unreliable)     | ⚪ Pending |
+| navigation_integration_test.dart          | Achievements navigation scenario – timer conflicts           | ⚪ Pending |
+| adaptive_polling_toggle_test.dart         | AdaptivePollingToggle SharedPreferences interaction          | ⚪ Pending |
+| accessibility_test.dart                   | MomentumCard comprehensive accessibility semantics           | ⚪ Pending |
+| minimal_performance_test.dart             | Minimal performance tests group – platform channel flakiness | ⚪ Pending |
+| momentum_performance_essentials_test.dart | Momentum performance essentials (AI coach benchmarks)        | ⚪ Pending |
