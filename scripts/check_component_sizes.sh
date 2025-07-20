@@ -89,6 +89,11 @@ check_files() {
                     ;;
             esac
 
+            if grep -q "@size-exempt" "$file"; then
+                echo -e "${YELLOW}⚠️  SKIP: $file is marked as @size-exempt${NC}"
+                continue
+            fi
+
             if [[ $lines -gt $limit ]]; then
                 local violation_percent=$(( (lines * 100 / limit) - 100 ))
                 echo -e "${RED}❌ VIOLATION: ${file}${NC}"

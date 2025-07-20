@@ -106,9 +106,6 @@ Class naming: `PascalCase`, include type suffix (`MomentumGaugeWidget`).
 3. Commit – pre-commit hook enforces limits.
 4. CI reruns checks; failure blocks merge.
 
-Bypass (`git commit --no-verify`) is **emergency-only** and must be followed by
-immediate refactor.
-
 ---
 
 ## 8 🚀 Developer Quick Reference

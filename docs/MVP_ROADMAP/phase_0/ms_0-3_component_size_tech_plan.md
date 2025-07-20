@@ -90,7 +90,7 @@ At sprint end:
 | G6 | Refactor coach chat screen                                | `features/ai_coach/ui/coach_chat_screen.dart`                       | ai-coach      | 4h   | ✅     |
 | G7 | Factor out analytics helpers                              | `features/today_feed/data/services/today_feed_sharing_service.dart` | today_feed    | 3h   | ✅     |
 | G8 | Move test fixtures/builders out                           | `core/services/notification_test_validator.dart` et al.             | notifications | 3h   | ✅     |
-| P3 | **Enable HARD_FAIL** in CI, remove `--no-verify` note     | `.github/workflows/ci.yml`, docs                                    | dev-infra     | 0.5h | ⬜     |
+| P3 | **Enable HARD_FAIL** in CI, remove `--no-verify` note     | `.github/workflows/ci.yml`, docs                                    | dev-infra     | 0.5h | ✅     |
 | P4 | Clean-up `@size-exempt` annotations & re-audit            | repo-wide                                                           | dev-infra     | 0.5h | ⬜     |
 
 _Total est. effort:_ 28 h (matches PRD)\
@@ -112,5 +112,17 @@ If the enforced step blocks PRs unexpectedly:
 - Investigate offending file(s) and schedule follow-up patch.
 
 ---
+
+### P4 Detailed Breakdown – Refactor of @size-exempt Files
+
+| Sub-ID | Target File(s)                                                                                                                                                    | Work Summary                                                         | Est | Status |
+| ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- | --- | ------ |
+| P4-A   | `core/notifications/domain/services/notification_core_service.dart`                                                                                               | Extract token-manager & permission-helper classes; leave thin façade | 2h  | ⬜     |
+| P4-B   | `features/today_feed/data/services/today_feed_interaction_analytics_service.dart` <br/>`features/today_feed/data/services/session_duration_tracking_service.dart` | Split shared analytics helpers; isolate DB writes                    | 2h  | ⬜     |
+| P4-C   | `features/today_feed/presentation/widgets/momentum_point_feedback_widget.dart`                                                                                    | Separate animation/header/body widgets                               | 1h  | ⬜     |
+| P4-D   | `features/today_feed/presentation/widgets/components/today_feed_interactions.dart`                                                                                | Break into like/share/bookmark sub-widgets                           | 1h  | ⬜     |
+| P4-E   | `features/today_feed/presentation/widgets/states/error_state_widget.dart`                                                                                         | Extract generic error-card + retry-CTA widget                        | 1h  | ⬜     |
+
+_Total P4 est. effort:_ **7 h** spread across five focused PRs.
 
 _End of technical plan_

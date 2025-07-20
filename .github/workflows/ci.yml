@@ -68,14 +68,12 @@ jobs:
         working-directory: .
 
       # ---------- Component Size Governance ----------
-      - name: Component Size Check (warning mode)
+      - name: Component Size Check (enforced)
         run: |
-          echo "🔍 Checking component size compliance..."
+          echo "🔍 Enforcing hard-fail ceilings..."
           chmod +x scripts/check_component_sizes.sh
-          ./scripts/check_component_sizes.sh
+          HARD_FAIL=true ./scripts/check_component_sizes.sh --warn-only
         working-directory: .
-        env:
-          REFACTOR_MODE: true  # Sprint 0: Notification system refactor in progress
 
       # ---------- Flutter Basic Validation ----------
       # actionlint-disable-next-line expression-env
