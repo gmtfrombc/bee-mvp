@@ -1,5 +1,3 @@
-// @size-exempt Temporary: exceeds hard ceiling – scheduled for refactor
-
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
@@ -8,6 +6,7 @@ import '../../domain/models/today_feed_content.dart';
 import '../../../../core/services/connectivity_service.dart';
 import '../datasources/today_feed_analytics_remote_datasource.dart';
 import '../../domain/models/reading_session_models.dart';
+part 'session_duration_helpers.dart';
 
 /// Configuration constants for session duration tracking
 class SessionTrackingConfig {
@@ -32,83 +31,7 @@ class SessionTrackingConfig {
 }
 
 /// Active session tracker for real-time duration monitoring
-class _ActiveSessionTracker {
-  final String sessionId;
-  final String userId;
-  final int contentId;
-  final DateTime startTime;
-  final TodayFeedContent content;
-
-  DateTime lastActivity;
-  final List<DateTime> activitySamples = [];
-  Timer? _samplingTimer;
-  Timer? _timeoutTimer;
-
-  _ActiveSessionTracker({
-    required this.sessionId,
-    required this.userId,
-    required this.contentId,
-    required this.startTime,
-    required this.content,
-  }) : lastActivity = startTime;
-
-  void startSampling() {
-    _samplingTimer?.cancel();
-    _samplingTimer = Timer.periodic(
-      SessionTrackingConfig.samplingInterval,
-      (_) => _recordActivitySample(),
-    );
-    _resetTimeoutTimer();
-  }
-
-  void _recordActivitySample() {
-    final now = DateTime.now();
-    activitySamples.add(now);
-    lastActivity = now;
-    _resetTimeoutTimer();
-  }
-
-  void _resetTimeoutTimer() {
-    _timeoutTimer?.cancel();
-    _timeoutTimer = Timer(
-      SessionTrackingConfig.sessionTimeout,
-      _onSessionTimeout,
-    );
-  }
-
-  void _onSessionTimeout() {
-    debugPrint('⏰ Session timeout for session $sessionId');
-  }
-
-  void recordInteraction() {
-    final now = DateTime.now();
-    lastActivity = now;
-    activitySamples.add(now);
-    _resetTimeoutTimer();
-  }
-
-  ReadingSession finalize({Map<String, dynamic>? additionalMetadata}) {
-    _samplingTimer?.cancel();
-    _timeoutTimer?.cancel();
-
-    final endTime = lastActivity;
-    return ReadingSession.fromTrackingData(
-      sessionId: sessionId,
-      userId: userId,
-      contentId: contentId,
-      startTime: startTime,
-      endTime: endTime,
-      activitySamples: activitySamples,
-      content: content,
-      additionalMetadata: additionalMetadata,
-    );
-  }
-
-  void dispose() {
-    _samplingTimer?.cancel();
-    _timeoutTimer?.cancel();
-  }
-}
+// _ActiveSessionTracker moved to session_duration_helpers.dart
 
 /// Comprehensive session duration tracking service for Today Feed content
 ///
@@ -414,13 +337,6 @@ class SessionDurationTrackingService {
     debugPrint(
       '💾 Session cached for offline sync: ${sessionData['session_id']}',
     );
-  }
-
-  /// Handle connectivity changes for sync
-  void _onConnectivityChanged(ConnectivityStatus status) {
-    if (status == ConnectivityStatus.online) {
-      _syncPendingSessions();
-    }
   }
 
   /// Sync pending sessions when online

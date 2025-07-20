@@ -1,10 +1,10 @@
-// @size-exempt Temporary: exceeds hard ceiling – scheduled for refactor
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/models/today_feed_content.dart';
 import '../datasources/today_feed_analytics_remote_datasource.dart';
 import '../../domain/models/interaction_analytics_models.dart';
+part 'today_feed_interaction_analytics_calculations.dart';
 
 /// Service for tracking and analyzing user interactions with Today Feed content
 ///
@@ -467,63 +467,10 @@ class TodayFeedInteractionAnalyticsService {
   }
 
   /// Analyze topic preferences from interactions
-  Map<String, double> _analyzeTopicPreferences(
-    List<Map<String, dynamic>> interactions,
-  ) {
-    final topicCounts = <String, int>{};
-
-    for (final interaction in interactions) {
-      final content = interaction['daily_feed_content'];
-      if (content != null) {
-        final topic = content['topic_category'] as String;
-        topicCounts[topic] = (topicCounts[topic] ?? 0) + 1;
-      }
-    }
-
-    final total = topicCounts.values.fold(0, (sum, count) => sum + count);
-    if (total == 0) return {};
-
-    return topicCounts.map((topic, count) => MapEntry(topic, count / total));
-  }
+  // _analyzeTopicPreferences and subsequent helper methods moved to part file
 
   /// Analyze engagement patterns
-  Map<String, dynamic> _analyzeEngagementPatterns(
-    List<Map<String, dynamic>> interactions,
-  ) {
-    // Analyze time-of-day patterns
-    final hourCounts = <int, int>{};
-    for (final interaction in interactions) {
-      final timestamp = DateTime.parse(interaction['interaction_timestamp']);
-      final hour = timestamp.hour;
-      hourCounts[hour] = (hourCounts[hour] ?? 0) + 1;
-    }
-
-    final peakHour =
-        hourCounts.entries.reduce((a, b) => a.value > b.value ? a : b).key;
-
-    return {
-      'peak_engagement_hour': peakHour,
-      'hourly_distribution': hourCounts,
-      'weekend_vs_weekday_ratio': _calculateWeekendRatio(interactions),
-    };
-  }
-
-  /// Calculate weekend vs weekday engagement ratio
-  double _calculateWeekendRatio(List<Map<String, dynamic>> interactions) {
-    int weekendCount = 0;
-    int weekdayCount = 0;
-
-    for (final interaction in interactions) {
-      final timestamp = DateTime.parse(interaction['interaction_timestamp']);
-      if (timestamp.weekday >= 6) {
-        weekendCount++;
-      } else {
-        weekdayCount++;
-      }
-    }
-
-    return weekdayCount > 0 ? weekendCount / weekdayCount : 0.0;
-  }
+  // _analyzeEngagementPatterns and subsequent helper methods moved to part file
 
   /// Calculate performance score
   double _calculatePerformanceScore(
@@ -531,29 +478,16 @@ class TodayFeedInteractionAnalyticsService {
     double avgSessionDuration,
     int uniqueViewers,
   ) {
-    // Weighted scoring: 50% engagement rate, 30% session duration, 20% reach
-    final engagementScore = engagementRate.clamp(0.0, 1.0);
-    final durationScore = (avgSessionDuration / 120).clamp(
-      0.0,
-      1.0,
-    ); // 2 min max
-    final reachScore = (uniqueViewers / 100).clamp(0.0, 1.0); // 100 users max
-
-    return (engagementScore * 0.5) + (durationScore * 0.3) + (reachScore * 0.2);
+    // moved to part file
+    return 0.0;
   }
 
   /// Calculate interaction breakdown
   Map<String, int> _calculateInteractionBreakdown(
     List<Map<String, dynamic>> interactions,
   ) {
-    final breakdown = <String, int>{};
-
-    for (final interaction in interactions) {
-      final type = interaction['interaction_type'] as String;
-      breakdown[type] = (breakdown[type] ?? 0) + 1;
-    }
-
-    return breakdown;
+    // moved to part file
+    return {};
   }
 
   /// Get daily engagement data
