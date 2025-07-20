@@ -1,12 +1,11 @@
-// @size-exempt Temporary: exceeds hard ceiling – scheduled for refactor
-import 'dart:io';
 import 'dart:convert';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
+// New helpers extracted for component-size refactor
+import 'notification_token_manager.dart';
+import 'notification_permission_helper.dart';
 import '../../../services/firebase_service.dart';
 import '../models/notification_models.dart';
 
@@ -24,11 +23,13 @@ class NotificationCoreService {
   FirebaseMessaging? _messaging;
   bool _isAvailable = false;
 
-  // Token management constants
-  static const String _tokenKey = 'fcm_token';
-  static const String _tokenTimestampKey = 'fcm_token_timestamp';
+  // Storage keys (token keys moved to NotificationTokenManager)
   static const String _lastNotificationKey = 'last_background_notification';
   static const String _pendingActionsKey = 'pending_notification_actions';
+
+  // Extracted helpers
+  NotificationTokenManager? _tokenManager;
+  NotificationPermissionHelper? _permissionHelper;
 
   // Callbacks for notification events
   void Function(RemoteMessage)? _onMessageReceived;
@@ -58,6 +59,8 @@ class NotificationCoreService {
 
     try {
       _messaging = FirebaseMessaging.instance;
+      _tokenManager = NotificationTokenManager(_messaging!);
+      _permissionHelper = NotificationPermissionHelper(_messaging!);
       _onMessageReceived = onMessageReceived;
       _onMessageOpenedApp = onMessageOpenedApp;
       _onTokenRefresh = onTokenRefresh;
@@ -87,50 +90,35 @@ class NotificationCoreService {
   /// Check if notification service is available
   bool get isAvailable => _isAvailable && FirebaseService.isAvailable;
 
-  /// Check if running on iOS simulator (FCM tokens don't work)
-  bool get _isIOSSimulator {
-    if (!Platform.isIOS) return false;
-    return kDebugMode; // In debug mode, assume simulator unless proven otherwise
+  /// Request notification permissions via helper
+  NotificationTokenManager _ensureTokenManager() {
+    if (_tokenManager != null) return _tokenManager!;
+    if (FirebaseService.isAvailable) {
+      _tokenManager = NotificationTokenManager(FirebaseMessaging.instance);
+    } else {
+      _tokenManager = NotificationTokenManager();
+    }
+    return _tokenManager!;
   }
 
-  /// Request notification permissions from the user
+  NotificationPermissionHelper _ensurePermissionHelper() {
+    if (_permissionHelper != null) return _permissionHelper!;
+    if (FirebaseService.isAvailable) {
+      _permissionHelper = NotificationPermissionHelper(
+        FirebaseMessaging.instance,
+      );
+    } else {
+      _permissionHelper = NotificationPermissionHelper();
+    }
+    return _permissionHelper!;
+  }
+
   Future<bool> requestPermissions() async {
     if (!isAvailable) {
       FirebaseService.logServiceAttempt('Messaging', 'requestPermissions');
       return false;
     }
-
-    try {
-      // Request FCM permissions
-      final settings = await _messaging!.requestPermission(
-        alert: true,
-        announcement: false,
-        badge: true,
-        carPlay: false,
-        criticalAlert: false,
-        provisional: false,
-        sound: true,
-      );
-
-      // Check system-level notification permissions
-      final systemPermission = await Permission.notification.request();
-
-      final hasPermission =
-          settings.authorizationStatus == AuthorizationStatus.authorized ||
-          settings.authorizationStatus == AuthorizationStatus.provisional;
-
-      if (kDebugMode) {
-        debugPrint('FCM Authorization Status: ${settings.authorizationStatus}');
-        debugPrint('System Permission Status: $systemPermission');
-      }
-
-      return hasPermission && systemPermission.isGranted;
-    } catch (e) {
-      if (kDebugMode) {
-        debugPrint('Error requesting notification permissions: $e');
-      }
-      return false;
-    }
+    return _ensurePermissionHelper().requestPermissions();
   }
 
   /// Set up notification message handlers
@@ -158,10 +146,8 @@ class NotificationCoreService {
 
     // Handle token refresh
     _messaging!.onTokenRefresh.listen((String token) {
-      if (kDebugMode) {
-        debugPrint('FCM Token refreshed: $token');
-      }
-      _storeToken(token);
+      if (kDebugMode) debugPrint('FCM Token refreshed: $token');
+      _ensureTokenManager().persistRefreshedToken(token);
       _onTokenRefresh?.call(token);
     });
 
@@ -177,166 +163,11 @@ class NotificationCoreService {
     }
   }
 
-  /// Get the current FCM token with automatic storage and refresh
-  Future<String?> getToken() async {
-    // Check if running in test environment - avoid Firebase calls that can hang
-    if (const bool.fromEnvironment('flutter.flutter_test')) {
-      if (kDebugMode) {
-        debugPrint('🧪 Test environment detected - returning mock FCM token');
-      }
-      return 'mock_fcm_token_for_testing';
-    }
-
-    // Additional test detection via stack trace
-    try {
-      throw Exception();
-    } catch (e, stackTrace) {
-      if (stackTrace.toString().contains('flutter_test')) {
-        if (kDebugMode) {
-          debugPrint(
-            '🧪 Test environment detected via stack trace - returning mock FCM token',
-          );
-        }
-        return 'mock_fcm_token_for_testing';
-      }
-    }
-
-    if (!isAvailable) {
-      FirebaseService.logServiceAttempt('Messaging', 'getToken');
-      // Return locally stored token as fallback
-      return await _getStoredToken();
-    }
-
-    try {
-      // Check if we have a valid stored token
-      if (await _isTokenValid()) {
-        final storedToken = await _getStoredToken();
-        if (storedToken != null) {
-          if (kDebugMode) {
-            debugPrint('✅ Using valid stored FCM token');
-          }
-          return storedToken;
-        }
-      }
-
-      // Token is invalid or doesn't exist, get a fresh one
-      if (kDebugMode) {
-        debugPrint('🔄 Refreshing FCM token...');
-      }
-
-      if (_messaging == null) {
-        throw Exception('NotificationCoreService not properly initialized');
-      }
-
-      // Add timeout to prevent hanging in test environment
-      final token = await _messaging!.getToken().timeout(
-        const Duration(seconds: 5),
-        onTimeout: () {
-          if (kDebugMode) {
-            debugPrint(
-              '⏱️ FCM token request timed out (expected in test environment)',
-            );
-          }
-          return null;
-        },
-      );
-
-      if (token != null) {
-        await _storeToken(token);
-        if (kDebugMode) {
-          debugPrint('🔥 FCM Token retrieved: ${token.substring(0, 20)}...');
-        }
-        return token;
-      } else {
-        // Handle iOS simulator case specifically
-        if (_isIOSSimulator) {
-          if (kDebugMode) {
-            debugPrint('ℹ️ FCM token is null - expected on iOS simulator');
-            debugPrint('💡 This is normal behavior for iOS simulators');
-            debugPrint(
-              '💡 FCM tokens require real iOS devices or Android emulators',
-            );
-          }
-        } else {
-          if (kDebugMode) {
-            debugPrint(
-              '⚠️ FCM token is null on real device - check permissions',
-            );
-          }
-        }
-      }
-
-      return null;
-    } catch (e) {
-      if (kDebugMode) {
-        if (_isIOSSimulator && e.toString().contains('unknown')) {
-          debugPrint('ℹ️ FCM token error on iOS simulator (expected): $e');
-          debugPrint('💡 This error is normal on iOS simulators');
-          debugPrint(
-            '💡 FCM tokens work on physical iOS devices and Android emulators',
-          );
-        } else {
-          debugPrint('❌ Error getting FCM token: $e');
-          if (Platform.isIOS) {
-            debugPrint(
-              '💡 On iOS: Ensure notification permissions are granted',
-            );
-            debugPrint(
-              '💡 On iOS: Check APNs configuration in Firebase Console',
-            );
-          }
-        }
-      }
-      return null;
-    }
-  }
+  /// Get the current FCM token
+  Future<String?> getToken() => _ensureTokenManager().getToken();
 
   /// Delete the current FCM token
-  Future<void> deleteToken() async {
-    // Check if running in test environment - avoid Firebase calls that can hang
-    if (const bool.fromEnvironment('flutter.flutter_test')) {
-      if (kDebugMode) {
-        debugPrint(
-          '🧪 Test environment detected - skipping FCM token deletion',
-        );
-      }
-      return;
-    }
-
-    // Additional test detection via stack trace
-    try {
-      throw Exception();
-    } catch (e, stackTrace) {
-      if (stackTrace.toString().contains('flutter_test')) {
-        if (kDebugMode) {
-          debugPrint(
-            '🧪 Test environment detected via stack trace - skipping FCM token deletion',
-          );
-        }
-        return;
-      }
-    }
-
-    if (!isAvailable) {
-      FirebaseService.logServiceAttempt('Messaging', 'deleteToken');
-      await _removeStoredToken();
-      return;
-    }
-
-    try {
-      await _messaging?.deleteToken();
-      await _removeStoredToken();
-      await _removeTokenFromSupabase();
-
-      if (kDebugMode) {
-        debugPrint('🔥 FCM Token deleted');
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        debugPrint('❌ Error deleting FCM token: $e');
-      }
-    }
-  }
+  Future<void> deleteToken() => _ensureTokenManager().deleteToken();
 
   /// Handle background notification processing
   Future<void> handleBackgroundMessage(RemoteMessage message) async {
@@ -384,145 +215,10 @@ class NotificationCoreService {
       FirebaseService.logServiceAttempt('Messaging', 'hasPermissions');
       return false;
     }
-
-    try {
-      final settings = await _messaging!.getNotificationSettings();
-      final systemPermission = await Permission.notification.status;
-
-      return (settings.authorizationStatus == AuthorizationStatus.authorized ||
-              settings.authorizationStatus ==
-                  AuthorizationStatus.provisional) &&
-          systemPermission.isGranted;
-    } catch (e) {
-      if (kDebugMode) {
-        debugPrint('Error checking notification permissions: $e');
-      }
-      return false;
-    }
+    return _ensurePermissionHelper().hasPermissions();
   }
 
-  // MARK: - Token Management Private Methods
-
-  /// Store FCM token locally and in Supabase user profile
-  Future<void> _storeToken(String token) async {
-    try {
-      // Store locally regardless of Firebase availability
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_tokenKey, token);
-      await prefs.setInt(
-        _tokenTimestampKey,
-        DateTime.now().millisecondsSinceEpoch,
-      );
-
-      if (kDebugMode) {
-        debugPrint('📱 FCM Token stored locally: ${token.substring(0, 20)}...');
-      }
-
-      // Store in Supabase user profile if available
-      await _storeTokenInSupabase(token);
-    } catch (e) {
-      if (kDebugMode) {
-        debugPrint('❌ Failed to store FCM token: $e');
-      }
-    }
-  }
-
-  /// Get the currently stored FCM token
-  Future<String?> _getStoredToken() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      return prefs.getString(_tokenKey);
-    } catch (e) {
-      if (kDebugMode) {
-        debugPrint('❌ Failed to get stored FCM token: $e');
-      }
-      return null;
-    }
-  }
-
-  /// Check if the stored token is still valid (not older than 1 week)
-  Future<bool> _isTokenValid() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final timestamp = prefs.getInt(_tokenTimestampKey);
-
-      if (timestamp == null) return false;
-
-      final tokenDate = DateTime.fromMillisecondsSinceEpoch(timestamp);
-      final weekAgo = DateTime.now().subtract(const Duration(days: 7));
-
-      return tokenDate.isAfter(weekAgo);
-    } catch (e) {
-      if (kDebugMode) {
-        debugPrint('❌ Failed to check token validity: $e');
-      }
-      return false;
-    }
-  }
-
-  /// Remove stored token locally
-  Future<void> _removeStoredToken() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove(_tokenKey);
-      await prefs.remove(_tokenTimestampKey);
-    } catch (e) {
-      if (kDebugMode) {
-        debugPrint('❌ Failed to remove stored FCM token: $e');
-      }
-    }
-  }
-
-  /// Store token in Supabase user profile
-  Future<void> _storeTokenInSupabase(String token) async {
-    try {
-      final supabase = Supabase.instance.client;
-      final user = supabase.auth.currentUser;
-
-      if (user != null) {
-        await supabase.from('user_profiles').upsert({
-          'user_id': user.id,
-          'fcm_token': token,
-          'token_updated_at': DateTime.now().toIso8601String(),
-          'platform': Platform.operatingSystem,
-        });
-
-        if (kDebugMode) {
-          debugPrint('☁️ FCM Token stored in Supabase user profile');
-        }
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        debugPrint('❌ Failed to store FCM token in Supabase: $e');
-      }
-    }
-  }
-
-  /// Remove token from Supabase user profile
-  Future<void> _removeTokenFromSupabase() async {
-    try {
-      final supabase = Supabase.instance.client;
-      final user = supabase.auth.currentUser;
-
-      if (user != null) {
-        await supabase
-            .from('user_profiles')
-            .update({
-              'fcm_token': null,
-              'token_updated_at': DateTime.now().toIso8601String(),
-            })
-            .eq('user_id', user.id);
-
-        if (kDebugMode) {
-          debugPrint('☁️ FCM Token removed from Supabase user profile');
-        }
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        debugPrint('❌ Failed to remove FCM token from Supabase: $e');
-      }
-    }
-  }
+  // Token management methods have been extracted to NotificationTokenManager
 
   // MARK: - Background Processing Private Methods
 
