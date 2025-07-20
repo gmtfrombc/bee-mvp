@@ -83,7 +83,7 @@ At sprint end:
 | P1 | **Add GH Action** step (warning mode)                     | `.github/workflows/ci.yml`                                                  | dev-infra     | 0.5h | ✅     |
 | P2 | **Run audit** – generate `component_size_audit_report.md` | root                                                                        | dev-infra     | 0.5h | ✅     |
 | G1 | Extract data-access helpers & mappers                     | `core/services/wearable_data_repository.dart`                               | backend       | 4h   | ✅     |
-| G2 | Split JSON/state classes                                  | `features/today_feed/domain/models/today_feed_content.dart`                 | mobile        | 3h   | ⬜     |
+| G2 | Split JSON/state classes                                  | `features/today_feed/domain/models/today_feed_content.dart`                 | mobile        | 3h   | ✅     |
 | G3 | Break composite widget into sub-widgets                   | `features/today_feed/presentation/widgets/states/offline_state_widget.dart` | mobile        | 3h   | ⬜     |
 | G4 | Decompose achievements screen                             | `features/gamification/ui/achievements_screen.dart`                         | gamification  | 4h   | ⬜     |
 | G5 | Extract permissions util, platform helpers                | `core/services/health_permission_manager.dart`                              | core          | 3h   | ⬜     |
