@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../services/session_duration_tracking_service.dart';
+import '../../domain/models/reading_session_models.dart';
 
 /// Dashboard data models for Today Feed analytics
 ///
