@@ -683,13 +683,27 @@ class WearableDataRepository {
   Future<bool> requestPermissionsRaw(
     List<HealthDataType> types,
     List<HealthDataAccess> access,
-  ) => _health.requestAuthorization(types, permissions: access);
+  ) async {
+    try {
+      return await _health.requestAuthorization(types, permissions: access);
+    } catch (e) {
+      debugPrint('Batch permission request failed: $e');
+      return false;
+    }
+  }
 
   /// Check permission status for given types (returns true if all granted).
   Future<bool?> hasPermissionsRaw(
     List<HealthDataType> types,
     List<HealthDataAccess> access,
-  ) => _health.hasPermissions(types, permissions: access);
+  ) async {
+    try {
+      return await _health.hasPermissions(types, permissions: access);
+    } catch (e) {
+      debugPrint('Permission check failed: $e');
+      return null;
+    }
+  }
 
   // (helper stubs removed – no longer needed after refactor)
   // _iosProbeReadAccess moved to wearable/ios_permission_probe.dart
