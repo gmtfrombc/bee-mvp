@@ -1,13 +1,8 @@
-/// Health Permission Manager Service
-///
-/// This service manages health data permissions, caches granted permissions,
-/// tracks permission deltas, and provides UI notifications for missing permissions.
-/// Supports both iOS HealthKit and Android Health Connect permission flows.
+/// HealthPermissionManager – central service for health data permissions across iOS (HealthKit) & Android (Health Connect).
 library;
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:health/health.dart';
@@ -15,119 +10,8 @@ import 'package:health/health.dart';
 import 'wearable_data_models.dart';
 import 'wearable_data_repository.dart';
 import '../utils/logger.dart';
-
-/// Permission cache entry with metadata
-class PermissionCacheEntry {
-  final WearableDataType dataType;
-  final bool isGranted;
-  final DateTime lastChecked;
-  final DateTime? grantedAt;
-  final DateTime? deniedAt;
-  final int denialCount;
-
-  const PermissionCacheEntry({
-    required this.dataType,
-    required this.isGranted,
-    required this.lastChecked,
-    this.grantedAt,
-    this.deniedAt,
-    this.denialCount = 0,
-  });
-
-  PermissionCacheEntry copyWith({
-    WearableDataType? dataType,
-    bool? isGranted,
-    DateTime? lastChecked,
-    DateTime? grantedAt,
-    DateTime? deniedAt,
-    int? denialCount,
-  }) {
-    return PermissionCacheEntry(
-      dataType: dataType ?? this.dataType,
-      isGranted: isGranted ?? this.isGranted,
-      lastChecked: lastChecked ?? this.lastChecked,
-      grantedAt: grantedAt ?? this.grantedAt,
-      deniedAt: deniedAt ?? this.deniedAt,
-      denialCount: denialCount ?? this.denialCount,
-    );
-  }
-
-  Map<String, dynamic> toMap() {
-    return {
-      'dataType': dataType.name,
-      'isGranted': isGranted,
-      'lastChecked': lastChecked.toIso8601String(),
-      'grantedAt': grantedAt?.toIso8601String(),
-      'deniedAt': deniedAt?.toIso8601String(),
-      'denialCount': denialCount,
-    };
-  }
-
-  factory PermissionCacheEntry.fromMap(Map<String, dynamic> map) {
-    return PermissionCacheEntry(
-      dataType: WearableDataType.values.firstWhere(
-        (e) => e.name == map['dataType'],
-        orElse: () => WearableDataType.unknown,
-      ),
-      isGranted: map['isGranted'] ?? false,
-      lastChecked: DateTime.parse(map['lastChecked']),
-      grantedAt:
-          map['grantedAt'] != null ? DateTime.parse(map['grantedAt']) : null,
-      deniedAt:
-          map['deniedAt'] != null ? DateTime.parse(map['deniedAt']) : null,
-      denialCount: map['denialCount'] ?? 0,
-    );
-  }
-}
-
-/// Permission delta representing changes in permission status
-class PermissionDelta {
-  final WearableDataType dataType;
-  final bool? previousStatus;
-  final bool currentStatus;
-  final DateTime timestamp;
-
-  const PermissionDelta({
-    required this.dataType,
-    this.previousStatus,
-    required this.currentStatus,
-    required this.timestamp,
-  });
-
-  bool get isNewlyGranted => previousStatus == false && currentStatus == true;
-  bool get isNewlyDenied => previousStatus == true && currentStatus == false;
-  bool get isFirstTimeChecked => previousStatus == null;
-
-  @override
-  String toString() {
-    return 'PermissionDelta(dataType: $dataType, previousStatus: $previousStatus, currentStatus: $currentStatus, timestamp: $timestamp)';
-  }
-}
-
-/// Configuration for permission manager
-class PermissionManagerConfig {
-  final Duration cacheExpiration;
-  final Duration toastDisplayDuration;
-  final bool enableAutoRetry;
-  final int maxRetryAttempts;
-  final List<WearableDataType> requiredPermissions;
-
-  const PermissionManagerConfig({
-    this.cacheExpiration = const Duration(hours: 24),
-    this.toastDisplayDuration = const Duration(seconds: 4),
-    this.enableAutoRetry = true,
-    this.maxRetryAttempts = 3,
-    this.requiredPermissions = const [
-      WearableDataType.steps,
-      WearableDataType.heartRate,
-      WearableDataType.sleepDuration,
-      WearableDataType.restingHeartRate,
-      WearableDataType.activeEnergyBurned,
-      WearableDataType.heartRateVariability,
-      WearableDataType.weight,
-    ],
-  });
-}
+import '../utils/health_permission_utils.dart';
+part 'health_permission_models.dart';
 
 /// Health Permission Manager Service
 class HealthPermissionManager {
@@ -178,23 +62,20 @@ class HealthPermissionManager {
         _config = config;
       }
 
-      // 1️⃣ Repository bootstrap (idempotent)
+      // Bootstrap repo, warm permissions cache & start periodic monitoring
       final repoOk = await _repository.initialize();
       if (!repoOk) {
         logD('Failed to initialize WearableDataRepository');
         return false;
       }
 
-      // 2️⃣ Mark as initialised *before* any method that calls checkPermissions()
       _isInitialized = true;
 
-      // 3️⃣ Warm-up caches & verify permissions
       await _loadPermissionCache();
       await _ensurePermissions();
       await _loadConfiguration();
       await _performInitialPermissionCheck();
 
-      // 4️⃣ Kick off periodic monitoring
       _startPeriodicMonitoring();
 
       logD('HealthPermissionManager initialized successfully');
@@ -225,10 +106,9 @@ class HealthPermissionManager {
 
     final typesToRequest = dataTypes ?? _config.requiredPermissions;
 
-    // -------- Batch request optimisation --------
-    // Convert wearable types to HealthKit types for a single request.
+    // Batch request optimisation
     try {
-      final healthTypes = typesToRequest.map(_toHealthDataType).toList();
+      final healthTypes = typesToRequest.map(mapToHealthDataType).toList();
       final accesses = List<HealthDataAccess>.filled(
         healthTypes.length,
         HealthDataAccess.READ,
@@ -405,7 +285,6 @@ class HealthPermissionManager {
       _deltaStreamController.add(deltas);
     }
 
-    // NEW: Emit verbose cache snapshot at end of check
     if (kDebugMode) {
       final snapshot = _permissionCache.entries
           .map((e) => '${e.key.name}:${e.value.isGranted}')
@@ -446,42 +325,8 @@ class HealthPermissionManager {
     final missingPermissions = await getMissingPermissions();
 
     if (missingPermissions.isNotEmpty) {
-      final dataTypeNames = missingPermissions
-          .map((type) => _friendlyDataTypeName(type))
-          .join(', ');
-
-      final message =
-          Platform.isAndroid
-              ? 'Health permissions needed for $dataTypeNames. Enable in Health Connect.'
-              : 'Health permissions needed for $dataTypeNames. Enable in Health app.';
-
+      final message = buildMissingPermissionMessage(missingPermissions);
       await showMissingPermissionToast(message);
-    }
-  }
-
-  /// Get user-friendly name for data type
-  String _friendlyDataTypeName(WearableDataType type) {
-    switch (type) {
-      case WearableDataType.steps:
-        return 'Steps';
-      case WearableDataType.heartRate:
-        return 'Heart Rate';
-      case WearableDataType.sleepDuration:
-        return 'Sleep';
-      case WearableDataType.restingHeartRate:
-        return 'Resting Heart Rate';
-      case WearableDataType.activeEnergyBurned:
-        return 'Active Energy';
-      case WearableDataType.distanceWalking:
-        return 'Walking Distance';
-      case WearableDataType.flightsClimbed:
-        return 'Flights Climbed';
-      case WearableDataType.heartRateVariability:
-        return 'Heart Rate Variability';
-      case WearableDataType.weight:
-        return 'Weight';
-      default:
-        return type.name;
     }
   }
 
@@ -527,7 +372,6 @@ class HealthPermissionManager {
           ),
         );
         logD('Loaded ${_permissionCache.length} cached permissions');
-        // NEW: Verbose per-entry log for diagnostics
         if (kDebugMode) {
           for (final entry in _permissionCache.entries) {
             logD(
@@ -552,7 +396,6 @@ class HealthPermissionManager {
       );
       await prefs.setString(_cacheKey, jsonEncode(cacheMap));
       logD('Saved permission cache with ${_permissionCache.length} entries');
-      // NEW: Verbose per-entry log for diagnostics
       if (kDebugMode) {
         for (final entry in _permissionCache.entries) {
           logD(
@@ -606,36 +449,6 @@ class HealthPermissionManager {
     logD('Permission denial tracking reset');
   }
 
-  /// Dispose resources
-  void dispose() {
-    _periodicCheckTimer?.cancel();
-    _deltaStreamController.close();
-    _toastStreamController.close();
-    logD('HealthPermissionManager disposed');
-  }
-
-  /// Convert custom WearableDataType to the corresponding package HealthDataType
-  HealthDataType _toHealthDataType(WearableDataType type) {
-    switch (type) {
-      case WearableDataType.steps:
-        return HealthDataType.STEPS;
-      case WearableDataType.heartRate:
-        return HealthDataType.HEART_RATE;
-      case WearableDataType.sleepDuration:
-        return HealthDataType.SLEEP_IN_BED;
-      case WearableDataType.restingHeartRate:
-        return HealthDataType.RESTING_HEART_RATE;
-      case WearableDataType.activeEnergyBurned:
-        return HealthDataType.ACTIVE_ENERGY_BURNED;
-      case WearableDataType.heartRateVariability:
-        return HealthDataType.HEART_RATE_VARIABILITY_SDNN;
-      case WearableDataType.weight:
-        return HealthDataType.WEIGHT;
-      default:
-        return HealthDataType.STEPS;
-    }
-  }
-
   /// Re-request any missing permissions at runtime (can be called from Settings screen)
   Future<void> reRequestMissingPermissions() async {
     if (!_isInitialized) return;
@@ -645,7 +458,7 @@ class HealthPermissionManager {
   /// Internal helper that checks current permission status and re-requests for any missing types.
   Future<void> _ensurePermissions() async {
     final allTypes = _config.requiredPermissions;
-    final healthTypes = allTypes.map(_toHealthDataType).toList();
+    final healthTypes = allTypes.map(mapToHealthDataType).toList();
 
     final access = List<HealthDataAccess>.filled(
       healthTypes.length,
@@ -674,4 +487,14 @@ class HealthPermissionManager {
       logD('Batch permission request result: $ok');
     }
   }
+
+  /// Dispose resources
+  void dispose() {
+    _periodicCheckTimer?.cancel();
+    _deltaStreamController.close();
+    _toastStreamController.close();
+    logD('HealthPermissionManager disposed');
+  }
+
+  // Helper methods migrated to health_permission_utils.dart
 }
