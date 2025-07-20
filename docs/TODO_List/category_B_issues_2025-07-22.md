@@ -1,0 +1,28 @@
+### Category B TODOs — GitHub Issue Log (created 2025-07-22)
+
+This document tracks GitHub issues generated from Category B TODO comments
+during Mini-Sprint 0-2. Once the repo is pushed, each placeholder link (🔗 TBD)
+should be replaced with the real issue URL or number.
+
+| Local ID | Proposed Title                                                                    | Source (File:Line)                                                                           | Labels                         | Est. | GitHub Link |
+| -------- | --------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | ------------------------------ | ---- | ----------- |
+| B-1      | Replace ad-hoc stubs with proper mocks                                            | app/test/flutter_test_config.dart:51                                                         | tech-debt, testing             | 1 h  | 🔗 TBD      |
+| B-2      | Add comprehensive unit tests for HealthDataRepository using mocked SupabaseClient | app/test/core/health_data/health_data_repository_test.dart:3                                 | tech-debt, testing             | 2 h  | 🔗 TBD      |
+| B-3      | Re-implement ActionStep latency test using proper Supabase                        | app/test/integration/action_step_latency_test.dart:6                                         | tech-debt, testing             | 2 h  | 🔗 TBD      |
+| B-4      | Implement actual lesson navigation routing                                        | app/lib/core/notifications/infrastructure/notification_deep_link_service.dart:369            | tech-debt, navigation          | 2 h  | 🔗 TBD      |
+| B-5      | Implement daily bootstrap logic                                                   | app/lib/core/services/vitals/bootstrap/daily_bootstrap_runner.dart:3                         | tech-debt, service             | 3 h  | 🔗 TBD      |
+| B-6      | Update Supabase RPC/table to accept analytics events                              | app/lib/core/services/analytics_service.dart:30                                              | tech-debt, supabase, analytics | 2 h  | 🔗 TBD      |
+| B-7      | Implement actual lesson navigation                                                | app/lib/core/services/notification_deep_link_service.dart:387                                | tech-debt, navigation          | 2 h  | 🔗 TBD      |
+| B-8      | Implement actual analytics tracking                                               | app/lib/core/services/notification_deep_link_service.dart:403                                | tech-debt, analytics           | 2 h  | 🔗 TBD      |
+| B-9      | Integrate with backend notification service                                       | app/lib/core/services/notification_service.dart:168                                          | tech-debt, backend             | 2 h  | 🔗 TBD      |
+| B-10     | Implement API hit if needed                                                       | app/lib/features/today_feed/data/services/today_feed_simple_service.dart:68                  | tech-debt, api                 | 1 h  | 🔗 TBD      |
+| B-11     | Navigate to bookmarks view                                                        | app/lib/features/today_feed/presentation/widgets/components/today_feed_interactions.dart:428 | tech-debt, navigation          | 1 h  | 🔗 TBD      |
+| B-12     | Open network settings — platform-specific implementation                          | app/lib/features/today_feed/presentation/widgets/states/error_state_widget.dart:481          | tech-debt, platform            | 1 h  | 🔗 TBD      |
+| B-13     | Integrate real password update call                                               | app/lib/features/auth/ui/password_reset_page.dart:27                                         | tech-debt, auth                | 1 h  | 🔗 TBD      |
+| B-14     | Navigate to lessons (T1.1.3.6)                                                    | app/lib/features/momentum/presentation/screens/momentum_screen.dart:217                      | tech-debt, navigation          | 1 h  | 🔗 TBD      |
+| B-15     | Navigate to streak details (T1.1.3.6)                                             | app/lib/features/momentum/presentation/screens/momentum_screen.dart:224                      | tech-debt, navigation          | 1 h  | 🔗 TBD      |
+| B-16     | Navigate to today’s activity (T1.1.3.6)                                           | app/lib/features/momentum/presentation/screens/momentum_screen.dart:231                      | tech-debt, navigation          | 1 h  | 🔗 TBD      |
+| B-17     | Navigate to sign in                                                               | app/lib/features/momentum/presentation/widgets/components/error_actions.dart:76              | tech-debt, navigation          | 1 h  | 🔗 TBD      |
+| B-18     | Replace with repository lookup / local cache                                      | app/lib/features/action_steps/state/daily_checkin_controller.dart:14                         | tech-debt, supabase            | 1 h  | 🔗 TBD      |
+| B-19     | Persist completion log to Supabase                                                | app/lib/features/action_steps/state/daily_checkin_controller.dart:24                         | tech-debt, supabase            | 1 h  | 🔗 TBD      |
+| B-20     | Persist skip log to Supabase                                                      | app/lib/features/action_steps/state/daily_checkin_controller.dart:35                         | tech-debt, supabase            | 1 h  | 🔗 TBD      |

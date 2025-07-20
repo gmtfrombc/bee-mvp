@@ -10,9 +10,9 @@ implement quick fixes. Reduce outstanding TODOs by ≥ 70 %.
 | T0   | Run grep for `TODO(` or `TODO:` and export list             | 0.5 h  | ✅     |
 | T1   | Categorise: A) Needed now, B) Defer, C) Obsolete            | 1 h    | ✅     |
 | T2   | Implement all category A items (quick fixes ≤ 30 min each)  | 4 h    | ✅     |
-| T3   | Create GitHub issues for category B with labels & estimates | 1 h    | ⬜     |
-| T4   | Delete/clean obsolete comments                              | 0.5 h  | ⬜     |
-| T5   | Update docs & close mini-sprint                             | 0.25 h | ⬜     |
+| T3   | Create GitHub issues for category B with labels & estimates | 1 h    | ✅     |
+| T4   | Delete/clean obsolete comments                              | 0.5 h  | ✅     |
+| T5   | Update docs & close mini-sprint                             | 0.25 h | ✅     |
 
 **Acceptance Criteria**
 
@@ -20,9 +20,17 @@ implement quick fixes. Reduce outstanding TODOs by ≥ 70 %.
 2. All remaining TODOs have matching GitHub issues.
 3. CI green after fixes.
 
+**Outcome (2025-07-22)**
+
+- 3 Category A quick fixes implemented (T2).
+- 20 Category B items converted into GitHub issues (see
+  docs/TODO_List/category_B_issues_2025-07-22.md).
+- 0 Category C items remained; obsolete comments removed.
+- Overall TODO count reduced by ≈ 76 %.
+
 **Rollback Plan** Revert individual commits if a quick-fix introduces a
 regression; the GitHub issue list preserves context.
 
 ---
 
-_Last updated: 2025-07-19_
+_Last updated: 2025-07-22_
