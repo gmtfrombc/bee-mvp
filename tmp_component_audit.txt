@@ -1,0 +1,129 @@
+🔍 BEE Component Size Compliance Check
+=======================================
+
+[0;34mChecking Services (≤500 lines)...[0m
+[0;31m❌ VIOLATION: app/lib/core/notifications/infrastructure/notification_deep_link_service.dart[0m
+   Lines:      503 (0% over 500-line limit)
+[0;31m❌ VIOLATION: app/lib/core/notifications/domain/services/notification_core_service.dart[0m
+   Lines:      792 (58% over 500-line limit)
+❌ HARD-FAIL candidate: app/lib/core/notifications/domain/services/notification_core_service.dart –      792 LOC (750 allowed)
+[0;31m❌ VIOLATION: app/lib/core/notifications/domain/services/notification_trigger_service.dart[0m
+   Lines:      537 (7% over 500-line limit)
+[0;31m❌ VIOLATION: app/lib/core/services/health_background_sync_service.dart[0m
+   Lines:      557 (11% over 500-line limit)
+[0;31m❌ VIOLATION: app/lib/core/services/notification_test_generator.dart[0m
+   Lines:      505 (1% over 500-line limit)
+[0;31m❌ VIOLATION: app/lib/core/services/health_permission_manager.dart[0m
+   Lines:      677 (35% over 500-line limit)
+[0;31m❌ VIOLATION: app/lib/core/services/wearable_data_repository.dart[0m
+   Lines:     1083 (116% over 500-line limit)
+❌ HARD-FAIL candidate: app/lib/core/services/wearable_data_repository.dart –     1083 LOC (750 allowed)
+[0;31m❌ VIOLATION: app/lib/core/services/android_garmin_feature_flag_service.dart[0m
+   Lines:      602 (20% over 500-line limit)
+[0;31m❌ VIOLATION: app/lib/core/services/notification_test_validator.dart[0m
+   Lines:      590 (18% over 500-line limit)
+[0;31m❌ VIOLATION: app/lib/core/services/coach_intervention_service.dart[0m
+   Lines:      570 (14% over 500-line limit)
+[0;31m❌ VIOLATION: app/lib/features/today_feed/data/services/today_feed_quality_metrics_calculator.dart[0m
+   Lines:      520 (4% over 500-line limit)
+[0;31m❌ VIOLATION: app/lib/features/today_feed/data/services/realtime_momentum_update_service.dart[0m
+   Lines:      521 (4% over 500-line limit)
+[0;31m❌ VIOLATION: app/lib/features/today_feed/data/services/user_feedback_collection_service.dart[0m
+   Lines:      670 (34% over 500-line limit)
+[0;31m❌ VIOLATION: app/lib/features/today_feed/data/services/today_feed_sharing_service.dart[0m
+   Lines:      816 (63% over 500-line limit)
+❌ HARD-FAIL candidate: app/lib/features/today_feed/data/services/today_feed_sharing_service.dart –      816 LOC (750 allowed)
+[0;31m❌ VIOLATION: app/lib/features/today_feed/data/services/today_feed_interaction_analytics_service.dart[0m
+   Lines:      793 (58% over 500-line limit)
+❌ HARD-FAIL candidate: app/lib/features/today_feed/data/services/today_feed_interaction_analytics_service.dart –      793 LOC (750 allowed)
+[0;31m❌ VIOLATION: app/lib/features/today_feed/data/services/today_feed_performance_monitor.dart[0m
+   Lines:      624 (24% over 500-line limit)
+[0;31m❌ VIOLATION: app/lib/features/today_feed/data/services/today_feed_human_review_service.dart[0m
+   Lines:      725 (45% over 500-line limit)
+[0;31m❌ VIOLATION: app/lib/features/today_feed/data/services/streak_services/streak_analytics_service.dart[0m
+   Lines:      518 (3% over 500-line limit)
+[0;31m❌ VIOLATION: app/lib/features/today_feed/data/services/user_content_interaction_service.dart[0m
+   Lines:      590 (18% over 500-line limit)
+[0;31m❌ VIOLATION: app/lib/features/today_feed/data/services/today_feed_momentum_award_service.dart[0m
+   Lines:      575 (15% over 500-line limit)
+[0;31m❌ VIOLATION: app/lib/features/today_feed/data/services/session_duration_tracking_service.dart[0m
+   Lines:      795 (59% over 500-line limit)
+❌ HARD-FAIL candidate: app/lib/features/today_feed/data/services/session_duration_tracking_service.dart –      795 LOC (750 allowed)
+[0;31m❌ VIOLATION: app/lib/features/momentum/data/services/momentum_api_service.dart[0m
+   Lines:      575 (15% over 500-line limit)
+[0;31m❌ 22/118 service files violate 500-line limit[0m
+
+[0;34mChecking UI Widgets (≤300 lines)...[0m
+[0;31m❌ VIOLATION: app/lib/features/today_feed/presentation/widgets/momentum_point_feedback_widget.dart[0m
+   Lines:      586 (95% over 300-line limit)
+❌ HARD-FAIL candidate: app/lib/features/today_feed/presentation/widgets/momentum_point_feedback_widget.dart –      586 LOC (450 allowed)
+[0;31m❌ VIOLATION: app/lib/features/today_feed/presentation/widgets/components/today_feed_interactions.dart[0m
+   Lines:      607 (102% over 300-line limit)
+❌ HARD-FAIL candidate: app/lib/features/today_feed/presentation/widgets/components/today_feed_interactions.dart –      607 LOC (450 allowed)
+[0;31m❌ VIOLATION: app/lib/features/today_feed/presentation/widgets/components/today_feed_animations.dart[0m
+   Lines:      412 (37% over 300-line limit)
+[0;31m❌ VIOLATION: app/lib/features/today_feed/presentation/widgets/states/offline_state_widget.dart[0m
+   Lines:      788 (162% over 300-line limit)
+❌ HARD-FAIL candidate: app/lib/features/today_feed/presentation/widgets/states/offline_state_widget.dart –      788 LOC (450 allowed)
+[0;31m❌ VIOLATION: app/lib/features/today_feed/presentation/widgets/states/error_state_widget.dart[0m
+   Lines:      541 (80% over 300-line limit)
+❌ HARD-FAIL candidate: app/lib/features/today_feed/presentation/widgets/states/error_state_widget.dart –      541 LOC (450 allowed)
+[0;31m❌ VIOLATION: app/lib/features/today_feed/presentation/widgets/states/loaded_state_widget.dart[0m
+   Lines:      313 (4% over 300-line limit)
+[0;31m❌ VIOLATION: app/lib/features/today_feed/presentation/widgets/today_feed_tile.dart[0m
+   Lines:      435 (45% over 300-line limit)
+[0;31m❌ VIOLATION: app/lib/features/momentum/presentation/widgets/momentum_card.dart[0m
+   Lines:      382 (27% over 300-line limit)
+[0;31m❌ VIOLATION: app/lib/features/momentum/presentation/widgets/riverpod_quick_stats_cards.dart[0m
+   Lines:      334 (11% over 300-line limit)
+[0;31m❌ VIOLATION: app/lib/features/momentum/presentation/widgets/notification_settings_form.dart[0m
+   Lines:      412 (37% over 300-line limit)
+[0;31m❌ VIOLATION: app/lib/features/momentum/presentation/widgets/momentum_detail_content.dart[0m
+   Lines:      440 (46% over 300-line limit)
+[0;31m❌ VIOLATION: app/lib/features/momentum/presentation/widgets/coach_dashboard/coach_dashboard_intervention_card.dart[0m
+   Lines:      326 (8% over 300-line limit)
+[0;31m❌ VIOLATION: app/lib/features/momentum/presentation/widgets/coach_dashboard/coach_intervention_card.dart[0m
+   Lines:      323 (7% over 300-line limit)
+[0;31m❌ VIOLATION: app/lib/features/momentum/presentation/widgets/coach_dashboard/coach_dashboard_overview_tab.dart[0m
+   Lines:      408 (36% over 300-line limit)
+[0;31m❌ VIOLATION: app/lib/features/momentum/presentation/widgets/coach_dashboard/coach_dashboard_analytics_tab.dart[0m
+   Lines:      308 (2% over 300-line limit)
+[0;31m❌ VIOLATION: app/lib/features/momentum/presentation/widgets/coach_dashboard/coach_dashboard_active_tab.dart[0m
+   Lines:      301 (0% over 300-line limit)
+[0;31m❌ VIOLATION: app/lib/features/momentum/presentation/widgets/coach_dashboard/coach_dashboard_scheduled_tab.dart[0m
+   Lines:      425 (41% over 300-line limit)
+[0;31m❌ VIOLATION: app/lib/features/momentum/presentation/widgets/loading_indicator.dart[0m
+   Lines:      328 (9% over 300-line limit)
+[0;31m❌ VIOLATION: app/lib/features/momentum/presentation/widgets/riverpod_momentum_example.dart[0m
+   Lines:      370 (23% over 300-line limit)
+[0;31m❌ 19/66 widget files violate 300-line limit[0m
+
+[0;34mChecking Screen Components (≤400 lines)...[0m
+[0;31m❌ VIOLATION: app/lib/features/momentum/presentation/screens/profile_settings_screen.dart[0m
+   Lines:      437 (9% over 400-line limit)
+[0;31m❌ 1/10 screen files violate 400-line limit[0m
+
+[0;34mChecking Modal Components (≤250 lines)...[0m
+[0;32m✅ All 2 modal files comply with 250-line limit[0m
+
+[0;34mChecking specific critical components...[0m
+[0;31m❌ CRITICAL: TodayFeedTile:      435 lines (exceeds 300-line widget limit)[0m
+[0;32m✅ CoachDashboardScreen:      121 lines (within screen limit)[0m
+
+[0;34m============================================[0m
+[0;34mComponent Size Compliance Summary[0m
+============================================[0m
+[0;31m❌ FAILURE: 43 component(s) violate size guidelines[0m
+[0;33m📋 Guidelines:[0m
+   Services: ≤500 lines
+   Widgets: ≤300 lines
+   Screens: ≤400 lines
+   Modals: ≤250 lines
+
+[0;33m🔧 Recommended Actions:[0m
+   1. Extract components following established patterns
+   2. Use service extraction for oversized services
+   3. Decompose complex widgets into smaller components
+   4. Review component_architecture_guidelines.md
+
+[0;34m📖 See: docs/refactor/component_size_audit_refactor_plan.md[0m

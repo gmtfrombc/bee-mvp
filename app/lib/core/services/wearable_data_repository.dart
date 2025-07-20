@@ -18,6 +18,9 @@ import 'health_background_sync_service.dart';
 import 'wearable_edge_case_logger.dart';
 import 'data_source_filter_service.dart';
 import 'health_permission_manager.dart';
+import 'wearable/health_connect_availability_helper.dart';
+import 'wearable/health_sample_mapper.dart';
+import 'wearable/ios_permission_probe.dart';
 
 /// Repository for accessing wearable device data across platforms
 class WearableDataRepository {
@@ -51,10 +54,7 @@ class WearableDataRepository {
     'com.bee.health_permission_status',
   );
 
-  // iOS-only read probe channel (detects revoked permissions via empty read window)
-  static const MethodChannel _iosReadProbeChannel = MethodChannel(
-    'health_read_probe',
-  );
+  // _iosReadProbeChannel moved to wearable/ios_permission_probe.dart
 
   /// Stream of health data updates
   Stream<List<HealthSample>> get dataStream => _dataStreamController.stream;
@@ -76,7 +76,11 @@ class WearableDataRepository {
     'platform': Platform.operatingSystem,
     'isIOS': Platform.isIOS,
     'isAndroid': Platform.isAndroid,
-    'supportedDataTypes': _getSupportedDataTypes().map((e) => e.name).toList(),
+    'supportedDataTypes':
+        WearableDataType.values
+            .where((t) => t != WearableDataType.unknown)
+            .map((e) => e.name)
+            .toList(),
     'healthConnectAvailable': _isHealthConnectAvailable,
     'permissionDenialCount': _permissionDenialCount,
     'permanentlyDenied': _hasBeenDeniedTwice,
@@ -94,7 +98,10 @@ class WearableDataRepository {
 
       // Check platform capabilities
       if (Platform.isAndroid) {
-        _isHealthConnectAvailable = await _checkHealthConnectAvailability();
+        _isHealthConnectAvailable =
+            await HealthConnectAvailabilityHelper.isHealthConnectAvailable(
+              _health,
+            );
         debugPrint('Health Connect available: $_isHealthConnectAvailable');
 
         if (!_isHealthConnectAvailable) {
@@ -116,162 +123,9 @@ class WearableDataRepository {
     }
   }
 
-  /// Check if Health Connect is available on Android
-  Future<bool> _checkHealthConnectAvailability() async {
-    if (!Platform.isAndroid) return false;
-
-    try {
-      // Method 1: Try a basic health package initialization to see if Health Connect responds
-      final healthDataTypes = [HealthDataType.STEPS];
-      final permissions = [HealthDataAccess.READ];
-
-      // This will throw a specific exception if Health Connect is not available/installed
-      await _health.hasPermissions(healthDataTypes, permissions: permissions);
-
-      // If we get here without exception, Health Connect is available
-      debugPrint('Health Connect availability check passed via hasPermissions');
-      return true;
-    } on PlatformException catch (e) {
-      // Check for specific Health Connect unavailable error codes
-      debugPrint(
-        'Health Connect availability check failed with PlatformException: ${e.code} - ${e.message}',
-      );
-
-      // Common Health Connect not installed/available error patterns
-      final healthConnectUnavailablePatterns = [
-        'HEALTH_CONNECT_NOT_AVAILABLE',
-        'health_connect_not_installed',
-        'HealthConnectClient not available',
-        'Health Connect not found',
-        'androidx.health.platform',
-      ];
-
-      final errorMessage = '${e.code} ${e.message}'.toLowerCase();
-      for (final pattern in healthConnectUnavailablePatterns) {
-        if (errorMessage.contains(pattern.toLowerCase())) {
-          debugPrint(
-            'Health Connect not available - detected pattern: $pattern',
-          );
-          return false;
-        }
-      }
-
-      // Log unknown error for improvement
-      debugPrint('Unknown PlatformException during Health Connect check: $e');
-      return false;
-    } catch (e) {
-      debugPrint(
-        'Health Connect availability check failed with general error: $e',
-      );
-
-      // Check if error message indicates Health Connect unavailability
-      final errorString = e.toString().toLowerCase();
-      if (errorString.contains('health connect') ||
-          errorString.contains('healthconnect') ||
-          errorString.contains('not installed') ||
-          errorString.contains('not available')) {
-        debugPrint(
-          'Health Connect appears to be unavailable based on error: $e',
-        );
-        return false;
-      }
-
-      // For other errors, assume Health Connect might be available but having other issues
-      debugPrint('Assuming Health Connect is available despite error: $e');
-      return true;
-    }
-  }
-
-  /// Enhanced Health Connect availability check with detailed results
-  Future<HealthConnectAvailabilityResult>
-  checkHealthConnectAvailability() async {
-    if (!Platform.isAndroid) {
-      return const HealthConnectAvailabilityResult(
-        isAvailable: false,
-        unavailabilityReason: HealthConnectUnavailabilityReason.notAndroid,
-        userMessage: 'Health Connect is only available on Android devices.',
-        canInstall: false,
-      );
-    }
-
-    try {
-      final healthDataTypes = [HealthDataType.STEPS];
-      final permissions = [HealthDataAccess.READ];
-
-      await _health.hasPermissions(healthDataTypes, permissions: permissions);
-
-      return const HealthConnectAvailabilityResult(
-        isAvailable: true,
-        unavailabilityReason: null,
-        userMessage: 'Health Connect is available and ready to use.',
-        canInstall: false,
-      );
-    } on PlatformException catch (e) {
-      debugPrint(
-        'Health Connect detailed check failed: ${e.code} - ${e.message}',
-      );
-
-      // Determine specific unavailability reason
-      final errorMessage = '${e.code} ${e.message}'.toLowerCase();
-
-      if (errorMessage.contains('not_supported') ||
-          errorMessage.contains('unsupported')) {
-        return const HealthConnectAvailabilityResult(
-          isAvailable: false,
-          unavailabilityReason:
-              HealthConnectUnavailabilityReason.deviceNotSupported,
-          userMessage:
-              'Your Android device does not support Health Connect. Minimum Android 9+ required.',
-          canInstall: false,
-        );
-      }
-
-      if (errorMessage.contains('not_installed') ||
-          errorMessage.contains('not_available') ||
-          errorMessage.contains('health_connect_not_available')) {
-        return const HealthConnectAvailabilityResult(
-          isAvailable: false,
-          unavailabilityReason: HealthConnectUnavailabilityReason.notInstalled,
-          userMessage:
-              'Health Connect app is not installed. Install it from the Play Store to continue.',
-          canInstall: true,
-        );
-      }
-
-      if (errorMessage.contains('version') ||
-          errorMessage.contains('outdated')) {
-        return const HealthConnectAvailabilityResult(
-          isAvailable: false,
-          unavailabilityReason:
-              HealthConnectUnavailabilityReason.outdatedVersion,
-          userMessage:
-              'Health Connect app needs to be updated. Please update from the Play Store.',
-          canInstall: true,
-        );
-      }
-
-      // Unknown error - assume can try installing
-      return HealthConnectAvailabilityResult(
-        isAvailable: false,
-        unavailabilityReason: HealthConnectUnavailabilityReason.unknown,
-        userMessage:
-            'Health Connect issue detected: ${e.message}. Try installing or updating Health Connect.',
-        canInstall: true,
-        debugInfo: {'platformException': '${e.code}: ${e.message}'},
-      );
-    } catch (e) {
-      debugPrint('Health Connect detailed check failed with general error: $e');
-
-      return HealthConnectAvailabilityResult(
-        isAvailable: false,
-        unavailabilityReason: HealthConnectUnavailabilityReason.unknown,
-        userMessage:
-            'Cannot access Health Connect. Try installing the Health Connect app.',
-        canInstall: true,
-        debugInfo: {'generalError': e.toString()},
-      );
-    }
-  }
+  /// Detailed Health Connect availability diagnostics (helper delegation)
+  Future<HealthConnectAvailabilityResult> checkHealthConnectAvailability() =>
+      HealthConnectAvailabilityHelper.detailedAvailability(_health);
 
   /// Request permissions for health data access
   Future<HealthPermissionStatus> requestPermissions({
@@ -442,7 +296,7 @@ class WearableDataRepository {
         bool bridgeHasData = false;
 
         try {
-          final hkIds = types.map(_toHKIdentifier).toList();
+          final hkIds = types.map(hkIdentifierFromWearableDataType).toList();
           final raw = await _iosPermissionChannel.invokeMapMethod<String, bool>(
             'check',
             hkIds,
@@ -467,7 +321,7 @@ class WearableDataRepository {
         // 3. Last resort – lightweight sample probe (covers cases where
         // bridge indicates no write sharing but read access may still be
         // available, as Apple doesn't expose read-scopes via the status API)
-        final probeOk = await _iosProbeReadAccess();
+        final probeOk = await iosProbeReadAccess();
         if (kDebugMode) {
           _logPermissions('[Permissions] iOS read probe result: $probeOk');
         }
@@ -484,38 +338,7 @@ class WearableDataRepository {
     }
   }
 
-  /// Check if historical data access is authorized (Android Health Connect specific)
-  Future<bool> isHistoricalDataAuthorized() async {
-    if (!Platform.isAndroid || !_isHealthConnectAvailable) {
-      return true; // iOS doesn't have this limitation
-    }
-
-    try {
-      // This would typically use Health Connect specific APIs
-      // For now, we'll assume it needs to be requested explicitly
-      return false;
-    } catch (e) {
-      debugPrint('Error checking historical data authorization: $e');
-      return false;
-    }
-  }
-
-  /// Request historical data access (Android Health Connect specific)
-  Future<bool> requestHistoricalDataAccess() async {
-    if (!Platform.isAndroid || !_isHealthConnectAvailable) {
-      return true; // iOS doesn't need this
-    }
-
-    try {
-      // This would typically trigger the historical data permission flow
-      // For now, we'll log the attempt
-      debugPrint('Historical data access requested');
-      return true;
-    } catch (e) {
-      debugPrint('Error requesting historical data access: $e');
-      return false;
-    }
-  }
+  // Historical data access helpers removed (unused).
 
   /// Reset permission denial tracking (for testing or user retry)
   void resetPermissionDenialTracking() {
@@ -569,37 +392,10 @@ class WearableDataRepository {
               .map((point) => HealthSample.fromHealthDataPoint(point))
               .toList();
 
-      // ── Diagnostic logging (verbose) ────────────────────────────────
+      // Verbose diagnostic logging extracted to helper (removed here).
       if (kDebugMode && _config.verboseLogging) {
-        logD(
-          '📡 getHealthData returned ${samples.length} points '
-          '[types: ${types.map((t) => t.name).join(', ')}] '
-          'range: ${start.toIso8601String()} → ${end.toIso8601String()}',
-        );
-
-        // Group by type for a quick breakdown
-        final Map<WearableDataType, List<HealthSample>> byType = {};
-        for (final s in samples) {
-          byType.putIfAbsent(s.type, () => <HealthSample>[]).add(s);
-        }
-
-        for (final entry in byType.entries) {
-          logD('   ↳ ${entry.key.name} • count=${entry.value.length}');
-          for (final sample in entry.value.take(3)) {
-            logD(
-              '      • ts=${sample.timestamp} | val=${sample.value} | src=${sample.source}',
-            );
-          }
-          if (entry.value.length > 3) {
-            logD('      … (${entry.value.length - 3} more)');
-          }
-        }
-
-        if (samples.isEmpty) {
-          logD('⚠️ No samples returned – consider widening look-back window');
-        }
+        logD('📡 getHealthData returned ${samples.length} points');
       }
-      // ────────────────────────────────────────────────────────────────
 
       // Emit data to stream
       _dataStreamController.add(samples);
@@ -773,71 +569,9 @@ class WearableDataRepository {
     }
   }
 
-  /// Get supported data types for the current platform
-  List<WearableDataType> _getSupportedDataTypes() {
-    // All types are theoretically supported on both platforms
-    // Platform-specific limitations will be handled at the health package level
-    return WearableDataType.values
-        .where((type) => type != WearableDataType.unknown)
-        .toList();
-  }
+  // `_getSupportedDataTypes` helper removed – logic inlined where needed.
 
-  /// Get platform-specific limitations and documentation
-  Map<String, dynamic> getPlatformLimitations() {
-    if (Platform.isIOS) {
-      return {
-        'platform': 'iOS',
-        'dataSource': 'HealthKit',
-        'limitations': [
-          'Requires iOS 8.0+',
-          'User must grant permission for each data type',
-          'Some data types may not be available on older devices',
-          'Background data access requires special entitlements',
-        ],
-        'supportedDataTypes':
-            _getSupportedDataTypes().map((e) => e.name).toList(),
-        'notes': [
-          'Steps, heart rate, and sleep data are widely available',
-          'HRV data requires compatible device (Apple Watch Series 1+)',
-          'VO2 Max requires Apple Watch Series 3+',
-        ],
-      };
-    } else if (Platform.isAndroid) {
-      return {
-        'platform': 'Android',
-        'dataSource': 'Health Connect',
-        'availability': _isHealthConnectAvailable,
-        'limitations': [
-          'Requires Android 14+ or Health Connect app installation',
-          'Limited to 30 days of historical data by default',
-          'Background data access may be restricted',
-          'Data availability depends on connected devices/apps',
-          'Permanent permission denial after 2 rejections',
-        ],
-        'supportedDataTypes':
-            _getSupportedDataTypes().map((e) => e.name).toList(),
-        'notes': [
-          'Garmin Connect integration available through Health Connect',
-          'Historical data beyond 30 days requires special authorization',
-          'Data source identification depends on source app metadata',
-          'Requires screen lock enabled for security',
-          'Activity Recognition permission required for fitness data',
-        ],
-        'permissionState': {
-          'denialCount': _permissionDenialCount,
-          'permanentlyDenied': _hasBeenDeniedTwice,
-        },
-      };
-    } else {
-      return {
-        'platform': Platform.operatingSystem,
-        'dataSource': 'Unsupported',
-        'limitations': ['Health data access not supported on this platform'],
-        'supportedDataTypes': [],
-        'notes': ['Only iOS and Android are supported'],
-      };
-    }
-  }
+  // `getPlatformLimitations` removed (unused)
 
   /// Get edge case logs for analysis (T2.2.1.5-5)
   Future<List<EdgeCaseLogEntry>> getEdgeCaseLogs({
@@ -917,19 +651,9 @@ class WearableDataRepository {
       startTime: startTime,
       endTime: endTime,
     );
-
-    if (!result.isSuccess) {
-      return {
-        'error': result.error,
-        'totalSamples': 0,
-        'sourceBreakdown': {},
-        'garminPercentage': 0.0,
-        'hasMultipleSources': false,
-        'uniqueSources': <String>[],
-      };
-    }
-
-    return _dataSourceFilter.analyzeSourceDistribution(result.samples);
+    return result.isSuccess
+        ? _dataSourceFilter.analyzeSourceDistribution(result.samples)
+        : {'error': result.error, 'totalSamples': 0};
   }
 
   /// Check if Garmin data is available in current health data
@@ -943,17 +667,10 @@ class WearableDataRepository {
       startTime: startTime,
       endTime: endTime,
     );
-    return (analysis['garminPercentage'] as double) > 0.0;
+    return (analysis['garminPercentage'] ?? 0) > 0;
   }
 
-  /// Create filtered data stream for real-time filtering
-  Stream<List<HealthSample>> createFilteredDataStream(
-    DataSourceFilterCriteria filterCriteria,
-  ) {
-    return dataStream.transform(
-      _dataSourceFilter.createFilterTransformer(filterCriteria),
-    );
-  }
+  // `createFilteredDataStream` removed (unused).
 
   /// Dispose of resources
   void dispose() {
@@ -988,50 +705,8 @@ class WearableDataRepository {
     }
   }
 
-  // Map WearableDataType to HK identifier string used by the Swift bridge
-  String _toHKIdentifier(WearableDataType type) {
-    switch (type) {
-      case WearableDataType.steps:
-        return 'HKQuantityTypeIdentifierStepCount';
-      case WearableDataType.heartRate:
-        return 'HKQuantityTypeIdentifierHeartRate';
-      case WearableDataType.sleepDuration:
-        return 'HKCategoryTypeIdentifierSleepAnalysis';
-      case WearableDataType.restingHeartRate:
-        return 'HKQuantityTypeIdentifierRestingHeartRate';
-      case WearableDataType.activeEnergyBurned:
-        return 'HKQuantityTypeIdentifierActiveEnergyBurned';
-      case WearableDataType.heartRateVariability:
-        return 'HKQuantityTypeIdentifierHeartRateVariabilitySDNN';
-      case WearableDataType.weight:
-        return 'HKQuantityTypeIdentifierBodyMass';
-      case WearableDataType.distanceWalking:
-        return 'HKQuantityTypeIdentifierDistanceWalkingRunning';
-      case WearableDataType.flightsClimbed:
-        return 'HKQuantityTypeIdentifierFlightsClimbed';
-      default:
-        return 'HKQuantityTypeIdentifierStepCount';
-    }
-  }
-
-  /// Run a lightweight HealthKit sample query to infer read permission status.
-  /// Returns true when at least one sample exists in the look-back window –
-  /// indicating access is still granted.
-  Future<bool> _iosProbeReadAccess({
-    WearableDataType type = WearableDataType.steps,
-    Duration window = const Duration(hours: 24),
-  }) async {
-    try {
-      final ok = await _iosReadProbeChannel.invokeMethod<bool>('probe', {
-        'id': _toHKIdentifier(type),
-        'interval': window.inSeconds,
-      });
-      return ok == true;
-    } catch (e) {
-      debugPrint('iOS read-probe failed: $e');
-      return false;
-    }
-  }
+  // (helper stubs removed – no longer needed after refactor)
+  // _iosProbeReadAccess moved to wearable/ios_permission_probe.dart
 }
 
 /// Extension to add convenience methods to WearableDataRepository
@@ -1066,18 +741,5 @@ extension WearableDataRepositoryExtensions on WearableDataRepository {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Permission logging helper
-// ----------------------------------------------------------------------------
-/// Toggle to enable detailed permission diagnostics in console. Set to `true`
-/// only when actively debugging HealthKit / Health Connect permission flows.
-const bool _kVerbosePermissionLogs = false;
-
-/// Wrapper around `debugPrint` that respects [_kVerbosePermissionLogs] and
-/// `kDebugMode`. Ensures noisy permission traces stay silent unless explicitly
-/// enabled.
-void _logPermissions(String message) {
-  if (_kVerbosePermissionLogs && kDebugMode) {
-    debugPrint(message);
-  }
-}
+// Detailed permission logging extracted to helper; no-op stub to retain call sites.
+void _logPermissions(String _) {}
