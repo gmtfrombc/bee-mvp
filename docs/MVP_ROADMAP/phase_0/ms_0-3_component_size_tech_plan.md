@@ -77,21 +77,21 @@ At sprint end:
 
 ## 📋 Task Table
 
-| ID | Description                                               | Target File(s) / Path                                                       | Owner         | Est  | Status |
-| -- | --------------------------------------------------------- | --------------------------------------------------------------------------- | ------------- | ---- | ------ |
-| P0 | **Upgrade script** with ceilings + `HARD_FAIL` toggle     | `scripts/check_component_sizes.sh`                                          | dev-infra     | 1h   | ✅     |
-| P1 | **Add GH Action** step (warning mode)                     | `.github/workflows/ci.yml`                                                  | dev-infra     | 0.5h | ✅     |
-| P2 | **Run audit** – generate `component_size_audit_report.md` | root                                                                        | dev-infra     | 0.5h | ✅     |
-| G1 | Extract data-access helpers & mappers                     | `core/services/wearable_data_repository.dart`                               | backend       | 4h   | ✅     |
-| G2 | Split JSON/state classes                                  | `features/today_feed/domain/models/today_feed_content.dart`                 | mobile        | 3h   | ✅     |
-| G3 | Break composite widget into sub-widgets                   | `features/today_feed/presentation/widgets/states/offline_state_widget.dart` | mobile        | 3h   | ⬜     |
-| G4 | Decompose achievements screen                             | `features/gamification/ui/achievements_screen.dart`                         | gamification  | 4h   | ⬜     |
-| G5 | Extract permissions util, platform helpers                | `core/services/health_permission_manager.dart`                              | core          | 3h   | ⬜     |
-| G6 | Refactor coach chat screen                                | `features/ai_coach/ui/coach_chat_screen.dart`                               | ai-coach      | 4h   | ⬜     |
-| G7 | Factor out analytics helpers                              | `features/today_feed/data/services/today_feed_sharing_service.dart`         | today_feed    | 3h   | ⬜     |
-| G8 | Move test fixtures/builders out                           | `core/services/notification_test_validator.dart` et al.                     | notifications | 3h   | ⬜     |
-| P3 | **Enable HARD_FAIL** in CI, remove `--no-verify` note     | `.github/workflows/ci.yml`, docs                                            | dev-infra     | 0.5h | ⬜     |
-| P4 | Clean-up `@size-exempt` annotations & re-audit            | repo-wide                                                                   | dev-infra     | 0.5h | ⬜     |
+| ID | Description                                               | Target File(s) / Path                                               | Owner         | Est  | Status |
+| -- | --------------------------------------------------------- | ------------------------------------------------------------------- | ------------- | ---- | ------ |
+| P0 | **Upgrade script** with ceilings + `HARD_FAIL` toggle     | `scripts/check_component_sizes.sh`                                  | dev-infra     | 1h   | ✅     |
+| P1 | **Add GH Action** step (warning mode)                     | `.github/workflows/ci.yml`                                          | dev-infra     | 0.5h | ✅     |
+| P2 | **Run audit** – generate `component_size_audit_report.md` | root                                                                | dev-infra     | 0.5h | ✅     |
+| G1 | Extract data-access helpers & mappers                     | `core/services/wearable_data_repository.dart`                       | backend       | 4h   | ✅     |
+| G2 | Split JSON/state classes                                  | `features/today_feed/domain/models/today_feed_content.dart`         | mobile        | 3h   | ✅     |
+| G3 | Break composite widget into sub-widgets                   | `features/today_feed/presentation/widgets/offline`                  | mobile        | 3h   | ✅     |
+| G4 | Decompose achievements screen                             | `features/gamification/ui/achievements_screen.dart`                 | gamification  | 4h   | ⬜     |
+| G5 | Extract permissions util, platform helpers                | `core/services/health_permission_manager.dart`                      | core          | 3h   | ⬜     |
+| G6 | Refactor coach chat screen                                | `features/ai_coach/ui/coach_chat_screen.dart`                       | ai-coach      | 4h   | ⬜     |
+| G7 | Factor out analytics helpers                              | `features/today_feed/data/services/today_feed_sharing_service.dart` | today_feed    | 3h   | ⬜     |
+| G8 | Move test fixtures/builders out                           | `core/services/notification_test_validator.dart` et al.             | notifications | 3h   | ⬜     |
+| P3 | **Enable HARD_FAIL** in CI, remove `--no-verify` note     | `.github/workflows/ci.yml`, docs                                    | dev-infra     | 0.5h | ⬜     |
+| P4 | Clean-up `@size-exempt` annotations & re-audit            | repo-wide                                                           | dev-infra     | 0.5h | ⬜     |
 
 _Total est. effort:_ 28 h (matches PRD)\
 _Possible parallel work:_ G-tasks per feature team; infra tasks P0-P2 can land
