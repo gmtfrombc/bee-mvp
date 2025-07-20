@@ -1,0 +1,25 @@
+| #  | File                                                                                     | Line | TODO                                                                               | Cat | Status |
+| -- | ---------------------------------------------------------------------------------------- | ---- | ---------------------------------------------------------------------------------- | --- | ------ |
+| 1  | app/test/flutter_test_config.dart                                                        | 51   | Replace ad-hoc stubs with proper mocks                                             | B   | ⬜     |
+| 2  | app/test/core/health_data/health_data_repository_test.dart                               | 3    | Add comprehensive unit tests for HealthDataRepository using mocked SupabaseClient. | B   | ⬜     |
+| 3  | app/test/integration/action_step_latency_test.dart                                       | 6    | Re-implement ActionStep latency test using proper Supabase                         | B   | ⬜     |
+| 4  | app/lib/core/notifications/infrastructure/notification_deep_link_service.dart            | 369  | Implement actual lesson navigation routing                                         | B   | ⬜     |
+| 5  | app/lib/core/services/vitals/bootstrap/daily_bootstrap_runner.dart                       | 3    | Implement daily bootstrap logic.                                                   | B   | ⬜     |
+| 6  | app/lib/core/services/analytics_service.dart                                             | 30   | Update Supabase RPC/table to accept analytics events.                              | B   | ⬜     |
+| 7  | app/lib/core/services/notification_deep_link_service.dart                                | 387  | Implement actual lesson navigation                                                 | B   | ⬜     |
+| 8  | app/lib/core/services/notification_deep_link_service.dart                                | 403  | Implement actual analytics tracking                                                | B   | ⬜     |
+| 9  | app/lib/core/services/notification_service.dart                                          | 168  | Integrate with backend notification service when ready                             | B   | ⬜     |
+| 10 | app/lib/features/today_feed/data/services/today_feed_simple_service.dart                 | 68   | Implement API hit if needed.                                                       | B   | ⬜     |
+| 11 | app/lib/features/today_feed/presentation/widgets/components/today_feed_interactions.dart | 428  | Navigate to bookmarks view                                                         | B   | ⬜     |
+| 12 | app/lib/features/today_feed/presentation/widgets/states/error_state_widget.dart          | 481  | Open network settings - implementation depends on platform                         | B   | ⬜     |
+| 13 | app/lib/features/auth/ui/password_reset_page.dart                                        | 27   | Integrate real password update call in later task.                                 | B   | ⬜     |
+| 14 | app/lib/features/momentum/presentation/screens/momentum_screen.dart                      | 217  | Navigate to lessons (T1.1.3.6)                                                     | B   | ⬜     |
+| 15 | app/lib/features/momentum/presentation/screens/momentum_screen.dart                      | 224  | Navigate to streak details (T1.1.3.6)                                              | B   | ⬜     |
+| 16 | app/lib/features/momentum/presentation/screens/momentum_screen.dart                      | 231  | Navigate to today's activity (T1.1.3.6)                                            | B   | ⬜     |
+| 17 | app/lib/features/momentum/presentation/widgets/components/error_actions.dart             | 76   | Navigate to sign in                                                                | B   | ⬜     |
+| 18 | app/lib/features/ai_coach/ui/coach_chat_screen.dart                                      | 276  | Get from momentum provider                                                         | A   | ⬜     |
+| 19 | app/lib/features/action_steps/state/daily_checkin_controller.dart                        | 14   | Replace with repository lookup / local cache.                                      | B   | ⬜     |
+| 20 | app/lib/features/action_steps/state/daily_checkin_controller.dart                        | 24   | Persist completion log to Supabase.                                                | B   | ⬜     |
+| 21 | app/lib/features/action_steps/state/daily_checkin_controller.dart                        | 35   | Persist skip log to Supabase.                                                      | B   | ⬜     |
+| 22 | app/lib/features/action_steps/services/action_step_analytics.dart                        | 39   | Replace with real Amplitude device ID                                              | A   | ⬜     |
+| 23 | app/lib/features/action_steps/services/action_step_analytics.dart                        | 69   | Replace with real device ID                                                        | A   | ⬜     |
