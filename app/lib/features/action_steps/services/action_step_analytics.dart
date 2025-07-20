@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:app/core/services/analytics_service.dart';
+import 'package:app/core/services/device_id_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app/core/providers/analytics_provider.dart';
@@ -28,15 +29,13 @@ class ActionStepAnalytics {
     required String weekStart,
     String source = 'manual',
   }) async {
+    final deviceId = await DeviceIdService.instance.getDeviceId();
+
     final payload = <String, dynamic>{
       'user_id': _client.auth.currentUser?.id,
       'action_step_id': actionStepId,
       'timestamp': DateTime.now().toUtc().toIso8601String(),
-      'device_id':
-          _client
-              .auth
-              .currentUser
-              ?.id, // TODO: replace with real Amplitude device ID
+      'device_id': deviceId,
       // Event-specific fields
       'category': category,
       'description': description,
@@ -62,11 +61,13 @@ class ActionStepAnalytics {
     final id = actionStepId ?? await _latestActionStepIdForUser(userId);
     if (id == null) return; // No action step yet – skip.
 
+    final deviceId = await DeviceIdService.instance.getDeviceId();
+
     final payload = <String, dynamic>{
       'user_id': userId,
       'action_step_id': id,
       'timestamp': DateTime.now().toUtc().toIso8601String(),
-      'device_id': userId, // TODO: replace with real device ID
+      'device_id': deviceId,
       // Event-specific fields
       'status': success ? 'success' : 'skipped',
     };
