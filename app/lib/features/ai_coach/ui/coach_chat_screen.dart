@@ -4,6 +4,7 @@ import '../../../core/widgets/momentum_scaffold.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/services/responsive_service.dart';
 import '../../../core/services/ai_coaching_service.dart';
+import '../../momentum/presentation/providers/momentum_api_provider.dart';
 import '../../achievements/streak_badge.dart';
 import 'message_bubble.dart';
 import 'coaching_card.dart';
@@ -272,8 +273,14 @@ class _CoachChatScreenState extends ConsumerState<CoachChatScreen> {
     String? conversationId,
   }) async {
     try {
-      // Get current momentum state (you can enhance this with real momentum data)
-      const momentumState = 'Steady'; // TODO: Get from momentum provider
+      // Resolve current momentum state from the shared Momentum provider.
+      final momentumEnum = ref
+          .read(realtimeMomentumProvider)
+          .maybeWhen(data: (d) => d.state, orElse: () => MomentumState.steady);
+
+      // Capitalise the first letter to match the API’s expected format.
+      final momentumState =
+          momentumEnum.name[0].toUpperCase() + momentumEnum.name.substring(1);
 
       // Build contextual payload for the AI coaching engine. We include the
       // conversation_id for threading plus optional Today-Feed article context
