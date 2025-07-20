@@ -68,7 +68,7 @@ jobs:
         working-directory: .
 
       # ---------- Component Size Governance ----------
-      - name: Component Size Compliance Check
+      - name: Component Size Check (warning mode)
         run: |
           echo "🔍 Checking component size compliance..."
           chmod +x scripts/check_component_sizes.sh
