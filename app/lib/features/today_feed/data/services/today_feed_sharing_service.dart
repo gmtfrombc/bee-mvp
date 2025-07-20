@@ -450,7 +450,7 @@ class TodayFeedSharingService {
 
       if (awardResult.success) {
         // Record bonus analytics
-        await _recordBonusAnalytics(
+        await _analyticsService.recordBonusAnalytics(
           userId: userId,
           content: content,
           bonusType: 'share',
@@ -498,7 +498,7 @@ class TodayFeedSharingService {
 
       if (awardResult.success) {
         // Record bonus analytics
-        await _recordBonusAnalytics(
+        await _analyticsService.recordBonusAnalytics(
           userId: userId,
           content: content,
           bonusType: 'bookmark',
@@ -590,60 +590,8 @@ class TodayFeedSharingService {
     }
   }
 
-  // Legacy helper wrappers now delegate to TodayFeedAnalyticsService ---------
-
-  Future<void> _recordShareInteraction({
-    required String userId,
-    required TodayFeedContent content,
-    required ShareResult shareResult,
-    Map<String, dynamic>? additionalMetadata,
-  }) async {
-    await _analyticsService.recordShareInteraction(
-      userId: userId,
-      content: content,
-      shareResult: shareResult,
-      additionalMetadata: additionalMetadata,
-    );
-  }
-
-  Future<void> _recordBookmarkInteraction({
-    required String userId,
-    required TodayFeedContent content,
-    Map<String, dynamic>? additionalMetadata,
-  }) async {
-    await _analyticsService.recordBookmarkInteraction(
-      userId: userId,
-      content: content,
-      additionalMetadata: additionalMetadata,
-    );
-  }
-
-  Future<void> _recordBonusAnalytics({
-    required String userId,
-    required TodayFeedContent content,
-    required String bonusType,
-    required int pointsAwarded,
-  }) async {
-    await _analyticsService.recordBonusAnalytics(
-      userId: userId,
-      content: content,
-      bonusType: bonusType,
-      pointsAwarded: pointsAwarded,
-    );
-  }
-
-  Future<ActionLimitResult> _checkActionLimits({
-    required String userId,
-    required String actionType,
-    required int maxDaily,
-  }) async {
-    return _analyticsService.checkActionLimits(
-      userId: userId,
-      actionType: actionType,
-      maxDaily: maxDaily,
-      cooldownPeriod: cooldownPeriod,
-    );
-  }
+  // (removed unused legacy wrapper methods – now handled directly via
+  // _analyticsService)
 
   /// Queue pending action for offline sync
   Future<void> _queuePendingAction(
