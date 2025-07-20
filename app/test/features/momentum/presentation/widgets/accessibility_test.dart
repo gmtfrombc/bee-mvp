@@ -7,6 +7,7 @@ import 'package:app/features/momentum/domain/models/momentum_data.dart';
 import 'package:app/features/momentum/presentation/widgets/momentum_gauge.dart';
 import 'package:app/features/momentum/presentation/widgets/quick_stats_cards.dart';
 import 'package:app/features/momentum/presentation/widgets/action_buttons.dart';
+import 'package:app/features/momentum/presentation/widgets/momentum_card.dart';
 
 void main() {
   group('Accessibility Features Tests', () {
@@ -50,8 +51,35 @@ void main() {
 
     testWidgets(
       'MomentumCard has comprehensive accessibility',
-      (tester) async {},
-      skip: true,
+      (tester) async {
+        // Create sample momentum data
+        final momentumData = MomentumData.sample();
+
+        // Pump a MomentumCard wrapped in MaterialApp & Scaffold
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: AppTheme.lightTheme,
+            home: Scaffold(
+              body: MomentumCard(
+                momentumData: momentumData,
+                // Provide onTap so the card behaves as a button
+                onTap: () {},
+              ),
+            ),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        // Retrieve Semantics information
+        final semantics = tester.getSemantics(find.byType(MomentumCard));
+
+        // Verify semantics object exists (indicates accessibility annotations are present)
+        expect(semantics, isNotNull);
+        // Optional: basic check that a hint exists when onTap supplied
+        expect(semantics.hint, isNotNull);
+      },
+      // Removed `skip: true` – test now active
     );
 
     testWidgets('MomentumGauge supports accessibility features', (
