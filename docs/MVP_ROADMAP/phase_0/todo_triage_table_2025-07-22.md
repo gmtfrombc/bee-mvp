@@ -17,9 +17,9 @@
 | 15 | app/lib/features/momentum/presentation/screens/momentum_screen.dart                      | 224  | Navigate to streak details (T1.1.3.6)                                              | B   | ⬜     |
 | 16 | app/lib/features/momentum/presentation/screens/momentum_screen.dart                      | 231  | Navigate to today's activity (T1.1.3.6)                                            | B   | ⬜     |
 | 17 | app/lib/features/momentum/presentation/widgets/components/error_actions.dart             | 76   | Navigate to sign in                                                                | B   | ⬜     |
-| 18 | app/lib/features/ai_coach/ui/coach_chat_screen.dart                                      | 276  | Get from momentum provider                                                         | A   | ⬜     |
+| 18 | app/lib/features/ai_coach/ui/coach_chat_screen.dart                                      | 276  | Get from momentum provider                                                         | A   | ✅     |
 | 19 | app/lib/features/action_steps/state/daily_checkin_controller.dart                        | 14   | Replace with repository lookup / local cache.                                      | B   | ⬜     |
 | 20 | app/lib/features/action_steps/state/daily_checkin_controller.dart                        | 24   | Persist completion log to Supabase.                                                | B   | ⬜     |
 | 21 | app/lib/features/action_steps/state/daily_checkin_controller.dart                        | 35   | Persist skip log to Supabase.                                                      | B   | ⬜     |
-| 22 | app/lib/features/action_steps/services/action_step_analytics.dart                        | 39   | Replace with real Amplitude device ID                                              | A   | ⬜     |
-| 23 | app/lib/features/action_steps/services/action_step_analytics.dart                        | 69   | Replace with real device ID                                                        | A   | ⬜     |
+| 22 | app/lib/features/action_steps/services/action_step_analytics.dart                        | 39   | Replace with real Amplitude device ID                                              | A   | ✅     |
+| 23 | app/lib/features/action_steps/services/action_step_analytics.dart                        | 69   | Replace with real device ID                                                        | A   | ✅     |
