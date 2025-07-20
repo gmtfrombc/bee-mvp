@@ -7,7 +7,8 @@ import 'components/today_feed_interactions.dart';
 import 'states/loading_state_widget.dart';
 import 'states/error_state_widget.dart';
 import 'states/loaded_state_widget.dart';
-import 'states/offline_state_widget.dart';
+import 'offline/offline_state_widget.dart';
+import 'offline/fallback_state_widget.dart';
 import '../../../ai_coach/ui/coach_chat_screen.dart';
 
 /// Callback types for Today Feed tile interactions
