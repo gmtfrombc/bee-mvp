@@ -6,10 +6,11 @@ import '../../../core/services/responsive_service.dart';
 import '../../../core/services/ai_coaching_service.dart';
 import '../../momentum/presentation/providers/momentum_api_provider.dart';
 import '../../achievements/streak_badge.dart';
-import 'message_bubble.dart';
-import 'coaching_card.dart';
 import '../../ai_coach/providers/coach_stream_provider.dart';
 import 'chat_history_drawer.dart';
+import 'widgets/message_list.dart';
+import 'widgets/suggestion_bar.dart';
+import 'widgets/chat_input_bar.dart';
 import '../providers/conversation_providers.dart';
 import '../../../core/providers/supabase_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -501,146 +502,27 @@ class _CoachChatScreenState extends ConsumerState<CoachChatScreen> {
           children: [
             // Messages list
             Expanded(
-              child: ListView.builder(
-                controller: _scrollController,
-                padding: EdgeInsets.symmetric(vertical: spacing),
-                itemCount: _messages.length + (_isTyping ? 1 : 0),
-                itemBuilder: (context, index) {
-                  if (index == _messages.length && _isTyping) {
-                    return const TypingIndicatorBubble();
-                  }
-
-                  final message = _messages[index];
-                  return MessageBubble(
-                    isUser: message.isUser,
-                    text: message.text,
-                    timestamp: message.timestamp,
-                  );
-                },
+              child: MessageList(
+                messages: _messages,
+                isTyping: _isTyping,
+                scrollController: _scrollController,
               ),
             ),
 
             // Suggestion chips row (always visible like ChatGPT)
-            Container(
+            Padding(
               padding: EdgeInsets.symmetric(
                 horizontal: spacing,
                 vertical: ResponsiveService.getSmallSpacing(context),
               ),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    CompactCoachingCard(
-                      title: 'How am I doing?',
-                      emoji: '📊',
-                      onTap: () => _onCoachingCardTap('How am I doing?'),
-                      momentumState: MomentumState.steady,
-                    ),
-                    SizedBox(width: ResponsiveService.getSmallSpacing(context)),
-                    CompactCoachingCard(
-                      title: "What's next?",
-                      emoji: '➡️',
-                      onTap: () => _onCoachingCardTap("What's next?"),
-                      momentumState: MomentumState.rising,
-                    ),
-                  ],
-                ),
-              ),
+              child: SuggestionBar(onSuggestionTap: _onCoachingCardTap),
             ),
 
             // Input section
-            Container(
-              padding: EdgeInsets.all(spacing),
-              decoration: BoxDecoration(
-                color: AppTheme.getSurfacePrimary(context),
-                border: Border(
-                  top: BorderSide(
-                    color: AppTheme.getTextTertiary(
-                      context,
-                    ).withValues(alpha: 0.2),
-                    width: 1,
-                  ),
-                ),
-              ),
-              child: SafeArea(
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Semantics(
-                        label: 'Message input field',
-                        textField: true,
-                        child: TextField(
-                          controller: _textController,
-                          decoration: InputDecoration(
-                            hintText: 'Ask your coach...',
-                            hintStyle: TextStyle(
-                              color: AppTheme.getTextTertiary(context),
-                            ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(24),
-                              borderSide: BorderSide(
-                                color: AppTheme.getTextTertiary(
-                                  context,
-                                ).withValues(alpha: 0.3),
-                              ),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(24),
-                              borderSide: BorderSide(
-                                color: AppTheme.getTextTertiary(
-                                  context,
-                                ).withValues(alpha: 0.3),
-                              ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(24),
-                              borderSide: BorderSide(
-                                color: AppTheme.getMomentumColor(
-                                  MomentumState.steady,
-                                ),
-                              ),
-                            ),
-                            contentPadding: EdgeInsets.symmetric(
-                              horizontal: spacing,
-                              vertical: ResponsiveService.getSmallSpacing(
-                                context,
-                              ),
-                            ),
-                          ),
-                          maxLines: null,
-                          textInputAction: TextInputAction.send,
-                          onSubmitted: (_) => _sendMessage(),
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: ResponsiveService.getSmallSpacing(context)),
-                    IconButton(
-                      tooltip: 'Send message',
-                      onPressed: _isRateLimited ? null : _sendMessage,
-                      icon: Icon(
-                        Icons.send_rounded,
-                        color:
-                            _isRateLimited
-                                ? AppTheme.getTextTertiary(context)
-                                : AppTheme.getMomentumColor(
-                                  MomentumState.rising,
-                                ),
-                      ),
-                      style: IconButton.styleFrom(
-                        backgroundColor:
-                            _isRateLimited
-                                ? AppTheme.getTextTertiary(
-                                  context,
-                                ).withValues(alpha: 0.1)
-                                : AppTheme.getMomentumColor(
-                                  MomentumState.rising,
-                                ).withValues(alpha: 0.1),
-                        shape: const CircleBorder(),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+            ChatInputBar(
+              controller: _textController,
+              onSend: _sendMessage,
+              isRateLimited: _isRateLimited,
             ),
           ],
         ),
