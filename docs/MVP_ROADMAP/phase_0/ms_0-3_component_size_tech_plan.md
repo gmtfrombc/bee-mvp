@@ -115,13 +115,13 @@ If the enforced step blocks PRs unexpectedly:
 
 ### P4 Detailed Breakdown – Refactor of @size-exempt Files
 
-| Sub-ID | Target File(s)                                                                                                                                                    | Work Summary                                                         | Est | Status |
-| ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- | --- | ------ |
-| P4-A   | `core/notifications/domain/services/notification_core_service.dart`                                                                                               | Extract token-manager & permission-helper classes; leave thin façade | 2h  | ⬜     |
-| P4-B   | `features/today_feed/data/services/today_feed_interaction_analytics_service.dart` <br/>`features/today_feed/data/services/session_duration_tracking_service.dart` | Split shared analytics helpers; isolate DB writes                    | 2h  | ⬜     |
-| P4-C   | `features/today_feed/presentation/widgets/momentum_point_feedback_widget.dart`                                                                                    | Separate animation/header/body widgets                               | 1h  | ⬜     |
-| P4-D   | `features/today_feed/presentation/widgets/components/today_feed_interactions.dart`                                                                                | Break into like/share/bookmark sub-widgets                           | 1h  | ⬜     |
-| P4-E   | `features/today_feed/presentation/widgets/states/error_state_widget.dart`                                                                                         | Extract generic error-card + retry-CTA widget                        | 1h  | ⬜     |
+| ID   | Key File(s)                                                                    | Key Refactor Action                         | Est | Status |
+| ---- | ------------------------------------------------------------------------------ | ------------------------------------------- | --- | ------ |
+| P4-A | `notification_core_service.dart`                                               | Extract token & permission helpers          | 2h  | ✅     |
+| P4-B | `interaction_analytics_service.dart`, `session_duration_tracking_service.dart` | Split analytics helpers; isolate DB writes  | 2h  | ⬜     |
+| P4-C | `momentum_point_feedback_widget.dart`                                          | Split into animation/header/body            | 1h  | ⬜     |
+| P4-D | `today_feed_interactions.dart`                                                 | Modularize into like/share/bookmark widgets | 1h  | ⬜     |
+| P4-E | `error_state_widget.dart`                                                      | Extract error card + retry CTA              | 1h  | ⬜     |
 
 _Total P4 est. effort:_ **7 h** spread across five focused PRs.
 
