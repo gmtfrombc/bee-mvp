@@ -7,6 +7,7 @@ import '../models/today_feed_sharing_models.dart';
 import '../../../../core/services/connectivity_service.dart';
 import 'user_content_interaction_service.dart';
 import 'today_feed_momentum_award_service.dart';
+import 'today_feed_analytics_service.dart';
 
 /// Service for handling Today Feed content sharing and bookmarking
 /// with momentum bonus rewards
@@ -26,6 +27,7 @@ class TodayFeedSharingService {
   // Dependencies
   late final SupabaseClient _supabase;
   late final UserContentInteractionService _interactionService;
+  late final TodayFeedAnalyticsService _analyticsService;
   late final TodayFeedMomentumAwardService _momentumService;
   bool _isInitialized = false;
   final List<Map<String, dynamic>> _pendingActions = [];
@@ -39,9 +41,7 @@ class TodayFeedSharingService {
       5; // Max 5 bookmark bonuses per day
   static const Duration cooldownPeriod = Duration(minutes: 5); // Prevent spam
 
-  // Cache for tracking daily actions to enforce limits
-  final Map<String, Map<String, int>> _dailyActionCache = {};
-  final Map<String, DateTime> _lastActionTimestamp = {};
+  // Moved cooldown & daily tracking to TodayFeedAnalyticsService
 
   /// Initialize the sharing service
   Future<void> initialize() async {
@@ -51,10 +51,12 @@ class TodayFeedSharingService {
       _supabase = Supabase.instance.client;
       _interactionService = UserContentInteractionService();
       _momentumService = TodayFeedMomentumAwardService();
+      _analyticsService = TodayFeedAnalyticsService();
 
       // Initialize dependencies
       await _interactionService.initialize();
       await _momentumService.initialize();
+      await _analyticsService.initialize();
 
       // Set up connectivity monitoring for offline support
       await ConnectivityService.initialize();
@@ -94,7 +96,12 @@ class TodayFeedSharingService {
       }
 
       // Check daily limit and cooldown
-      final limitResult = await _checkSharingLimits(userId);
+      final limitResult = await _analyticsService.checkActionLimits(
+        userId: userId,
+        actionType: 'share',
+        maxDaily: maxDailyShareBonuses,
+        cooldownPeriod: cooldownPeriod,
+      );
       if (!limitResult.canProceed) {
         return SharingResult.limitExceeded(
           message: limitResult.reason,
@@ -113,7 +120,7 @@ class TodayFeedSharingService {
       );
 
       // Record interaction regardless of share result
-      await _recordShareInteraction(
+      await _analyticsService.recordShareInteraction(
         userId: userId,
         content: content,
         shareResult: shareResult,
@@ -184,7 +191,12 @@ class TodayFeedSharingService {
       }
 
       // Check daily limit and cooldown
-      final limitResult = await _checkBookmarkLimits(userId);
+      final limitResult = await _analyticsService.checkActionLimits(
+        userId: userId,
+        actionType: 'bookmark',
+        maxDaily: maxDailyBookmarkBonuses,
+        cooldownPeriod: cooldownPeriod,
+      );
       if (!limitResult.canProceed) {
         return BookmarkResult.limitExceeded(
           message: limitResult.reason,
@@ -197,7 +209,7 @@ class TodayFeedSharingService {
       await _saveBookmark(userId, content, additionalMetadata);
 
       // Record interaction
-      await _recordBookmarkInteraction(
+      await _analyticsService.recordBookmarkInteraction(
         userId: userId,
         content: content,
         additionalMetadata: additionalMetadata,
@@ -417,137 +429,6 @@ class TodayFeedSharingService {
     return '$baseText$linkText\n\nShared from the BEE Health App 🐝';
   }
 
-  /// Check sharing limits and cooldown
-  Future<ActionLimitResult> _checkSharingLimits(String userId) async {
-    return await _checkActionLimits(
-      userId: userId,
-      actionType: 'share',
-      maxDaily: maxDailyShareBonuses,
-    );
-  }
-
-  /// Check bookmark limits and cooldown
-  Future<ActionLimitResult> _checkBookmarkLimits(String userId) async {
-    return await _checkActionLimits(
-      userId: userId,
-      actionType: 'bookmark',
-      maxDaily: maxDailyBookmarkBonuses,
-    );
-  }
-
-  /// Generic action limit checking
-  Future<ActionLimitResult> _checkActionLimits({
-    required String userId,
-    required String actionType,
-    required int maxDaily,
-  }) async {
-    try {
-      // Check cooldown
-      final lastActionKey = '${userId}_$actionType';
-      final lastActionTime = _lastActionTimestamp[lastActionKey];
-      if (lastActionTime != null) {
-        final timeSinceLastAction = DateTime.now().difference(lastActionTime);
-        if (timeSinceLastAction < cooldownPeriod) {
-          return ActionLimitResult(
-            canProceed: false,
-            reason:
-                'Please wait ${cooldownPeriod.inMinutes - timeSinceLastAction.inMinutes} more minutes',
-            currentCount: 0,
-          );
-        }
-      }
-
-      // Check daily limit
-      final todayStart = DateTime.now().copyWith(hour: 0, minute: 0, second: 0);
-      final interactionType = actionType;
-
-      final todayActions = await _supabase
-          .from('user_content_interactions')
-          .select('id')
-          .eq('user_id', userId)
-          .eq('interaction_type', interactionType)
-          .gte('interaction_timestamp', todayStart.toIso8601String());
-
-      final currentCount = (todayActions as List).length;
-
-      if (currentCount >= maxDaily) {
-        return ActionLimitResult(
-          canProceed: false,
-          reason: 'Daily $actionType limit reached ($maxDaily per day)',
-          currentCount: currentCount,
-        );
-      }
-
-      return ActionLimitResult(
-        canProceed: true,
-        reason: 'Action allowed',
-        currentCount: currentCount,
-      );
-    } catch (e) {
-      debugPrint('❌ Failed to check action limits: $e');
-      // Conservative approach: allow action but log error
-      return const ActionLimitResult(
-        canProceed: true,
-        reason: 'Limit check failed, proceeding with action',
-        currentCount: 0,
-      );
-    }
-  }
-
-  /// Record sharing interaction
-  Future<void> _recordShareInteraction({
-    required String userId,
-    required TodayFeedContent content,
-    required ShareResult shareResult,
-    Map<String, dynamic>? additionalMetadata,
-  }) async {
-    try {
-      await _interactionService.recordInteraction(
-        TodayFeedInteractionType.share,
-        content,
-        additionalData: {
-          'share_status': shareResult.status.name,
-          'share_result_raw': shareResult.raw,
-          'share_timestamp': DateTime.now().toIso8601String(),
-          'momentum_bonus_eligible':
-              shareResult.status == ShareResultStatus.success,
-          ...?additionalMetadata,
-        },
-      );
-
-      // Update last action timestamp
-      _lastActionTimestamp['${userId}_share'] = DateTime.now();
-    } catch (e) {
-      debugPrint('❌ Failed to record share interaction: $e');
-      // Non-blocking error
-    }
-  }
-
-  /// Record bookmark interaction
-  Future<void> _recordBookmarkInteraction({
-    required String userId,
-    required TodayFeedContent content,
-    Map<String, dynamic>? additionalMetadata,
-  }) async {
-    try {
-      await _interactionService.recordInteraction(
-        TodayFeedInteractionType.bookmark,
-        content,
-        additionalData: {
-          'bookmark_timestamp': DateTime.now().toIso8601String(),
-          'momentum_bonus_eligible': true,
-          ...?additionalMetadata,
-        },
-      );
-
-      // Update last action timestamp
-      _lastActionTimestamp['${userId}_bookmark'] = DateTime.now();
-    } catch (e) {
-      debugPrint('❌ Failed to record bookmark interaction: $e');
-      // Non-blocking error
-    }
-  }
-
   /// Award momentum bonus for sharing
   Future<MomentumBonusResult> _awardSharingMomentumBonus({
     required String userId,
@@ -709,33 +590,59 @@ class TodayFeedSharingService {
     }
   }
 
-  /// Record bonus analytics
+  // Legacy helper wrappers now delegate to TodayFeedAnalyticsService ---------
+
+  Future<void> _recordShareInteraction({
+    required String userId,
+    required TodayFeedContent content,
+    required ShareResult shareResult,
+    Map<String, dynamic>? additionalMetadata,
+  }) async {
+    await _analyticsService.recordShareInteraction(
+      userId: userId,
+      content: content,
+      shareResult: shareResult,
+      additionalMetadata: additionalMetadata,
+    );
+  }
+
+  Future<void> _recordBookmarkInteraction({
+    required String userId,
+    required TodayFeedContent content,
+    Map<String, dynamic>? additionalMetadata,
+  }) async {
+    await _analyticsService.recordBookmarkInteraction(
+      userId: userId,
+      content: content,
+      additionalMetadata: additionalMetadata,
+    );
+  }
+
   Future<void> _recordBonusAnalytics({
     required String userId,
     required TodayFeedContent content,
     required String bonusType,
     required int pointsAwarded,
   }) async {
-    try {
-      await _supabase.from('today_feed_social_bonuses').insert({
-        'user_id': userId,
-        'content_id': content.id ?? 0,
-        'content_date': content.contentDate.toIso8601String().split('T')[0],
-        'bonus_type': bonusType,
-        'points_awarded': pointsAwarded,
-        'awarded_at': DateTime.now().toIso8601String(),
-        'content_metadata': {
-          'title': content.title,
-          'topic_category': content.topicCategory.value,
-          'ai_confidence_score': content.aiConfidenceScore,
-        },
-      });
+    await _analyticsService.recordBonusAnalytics(
+      userId: userId,
+      content: content,
+      bonusType: bonusType,
+      pointsAwarded: pointsAwarded,
+    );
+  }
 
-      debugPrint('✅ Social bonus analytics recorded');
-    } catch (e) {
-      debugPrint('❌ Failed to record bonus analytics: $e');
-      // Non-blocking error
-    }
+  Future<ActionLimitResult> _checkActionLimits({
+    required String userId,
+    required String actionType,
+    required int maxDaily,
+  }) async {
+    return _analyticsService.checkActionLimits(
+      userId: userId,
+      actionType: actionType,
+      maxDaily: maxDaily,
+      cooldownPeriod: cooldownPeriod,
+    );
   }
 
   /// Queue pending action for offline sync
@@ -808,8 +715,7 @@ class TodayFeedSharingService {
     await _connectivitySubscription?.cancel();
     _connectivitySubscription = null;
     _pendingActions.clear();
-    _dailyActionCache.clear();
-    _lastActionTimestamp.clear();
+    // cooldown cache lives in analytics service now
     _isInitialized = false;
     debugPrint('✅ TodayFeedSharingService disposed');
   }
