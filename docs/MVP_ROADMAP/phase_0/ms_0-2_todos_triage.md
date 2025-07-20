@@ -7,8 +7,8 @@ implement quick fixes. Reduce outstanding TODOs by ≥ 70 %.
 
 | Task | Description                                                 | Est    | Status |
 | ---- | ----------------------------------------------------------- | ------ | ------ |
-| T0   | Run grep for `TODO(` or `TODO:` and export list             | 0.5 h  | ⬜     |
-| T1   | Categorise: A) Needed now, B) Defer, C) Obsolete            | 1 h    | ⬜     |
+| T0   | Run grep for `TODO(` or `TODO:` and export list             | 0.5 h  | ✅     |
+| T1   | Categorise: A) Needed now, B) Defer, C) Obsolete            | 1 h    | ✅     |
 | T2   | Implement all category A items (quick fixes ≤ 30 min each)  | 4 h    | ⬜     |
 | T3   | Create GitHub issues for category B with labels & estimates | 1 h    | ⬜     |
 | T4   | Delete/clean obsolete comments                              | 0.5 h  | ⬜     |
