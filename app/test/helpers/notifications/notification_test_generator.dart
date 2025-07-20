@@ -1,9 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'notification_service.dart';
-import 'fcm_token_service.dart';
-import '../notifications/domain/services/notification_preferences_service.dart';
-import 'notification_ab_testing_service.dart' as ab_service;
+import 'package:app/core/services/notification_service.dart';
+import 'package:app/core/services/fcm_token_service.dart';
+import 'package:app/core/notifications/domain/services/notification_preferences_service.dart';
+import 'package:app/core/services/notification_ab_testing_service.dart'
+    as ab_service;
 
 /// Service for generating and executing individual notification test cases
 class NotificationTestGenerator {
