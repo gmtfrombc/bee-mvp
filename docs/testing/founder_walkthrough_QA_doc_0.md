@@ -16,7 +16,7 @@ _iPhone_. This walk-through targets the four epics slated for Phase 0:
 ---
 
 | # | Epic | Description                                   |
-| - | ---- | --------------------------------------------- |
+|---|------|-----------------------------------------------|
 | 1 | 1.6  | Registration & Authentication                 |
 | 2 | 1.11 | Onboarding Intake Surveys                     |
 | 3 | 1.5  | Weekly **Action Steps**                       |
@@ -35,7 +35,7 @@ The document covers:
 ## 2 Pre-Test Checklist
 
 | Item               | Details                                                         | Done |
-| ------------------ | --------------------------------------------------------------- | ---- |
+|--------------------|-----------------------------------------------------------------|------|
 | App build          | Install latest TestFlight build (build number ≥ current sprint) | ☐    |
 | Network            | Stable Wi-Fi or cellular                                        | ☐    |
 | Supabase dashboard | Access to `app.supabase.com → <project>` with **SQL editor**    | ☐    |
@@ -80,12 +80,12 @@ For each epic use the template:
 
 ### 3.1 Epic 1.6 – Registration & Auth
 
-| # | Feature / Scenario    | How to Test                                                              | Acceptance Criteria                               | Result |
-| - | --------------------- | ------------------------------------------------------------------------ | ------------------------------------------------- | ------ |
-| 1 | Register new user     | Launch app → **Register** → enter email + 12-char password → **Sign Up** | No validation errors; navigates to **Onboarding** | ☐      |
-| 2 | Duplicate email guard | Attempt to register again with same email                                | UI shows “Email already in use”                   | ☐      |
-| 3 | Login existing user   | **Login** with valid credentials                                         | Navigates to **Home** (if onboarding complete)    | ☐      |
-| 4 | Bad password          | **Login** with wrong password                                            | Error banner “Invalid login credentials”          | ☐      |
+| # | Feature/Scenario  | How to Test                                                              | Acceptance Criteria                         | ✅ |
+|---|-------------------|--------------------------------------------------------------------------|---------------------------------------------|----|
+| 1 | Reg. new user     | Launch app → **Register** → enter email + 12-char password → **Sign Up** | No validation errors; nav to **Onboarding** | ☐  |
+| 2 | Dup. email guard  | Attempt to register again with same email                                | UI shows “Email already in use”             | ☐  |
+| 3 | Login exist. user | **Login** with valid credentials                                         | Navs to **Home** (if onboarding complete)   | ☐  |
+| 4 | Bad password      | **Login** with wrong password                                            | Error banner “Invalid login credentials”    | ☐  |
 
 **Data Verification** (run after scenario 1):
 
@@ -101,11 +101,11 @@ WHERE u.email = '<EMAIL>';  -- Expect onboarding_complete = false
 
 ### 3.2 Epic 1.11 – Onboarding Intake
 
-| # | Scenario                  | How to Test                                | Acceptance Criteria                                          | Result |
-| - | ------------------------- | ------------------------------------------ | ------------------------------------------------------------ | ------ |
-| 1 | Survey navigation         | Complete each page using typical answers   | **Next** & **Back** buttons work; progress indicator updates | ☐      |
-| 2 | Required-field validation | Leave a required field blank, tap **Next** | Inline validation prevents advance                           | ☐      |
-| 3 | Submission                | Finish survey, tap **Submit**              | Spinner ≤ 2 s; app lands on **Home** screen                  | ☐      |
+| # | Scenario                  | How to Test                                | Acceptance Criteria                                          | ✅  |
+|---|---------------------------|--------------------------------------------|--------------------------------------------------------------|-----|
+| 1 | Survey navigation         | Complete each page using typical answers   | **Next** & **Back** buttons work; progress indicator updates | ☐   |
+| 2 | Required-field validation | Leave a required field blank, tap **Next** | Inline validation prevents advance                           | ☐   |
+| 3 | Submission                | Finish survey, tap **Submit**              | Spinner ≤ 2 s; app lands on **Home** screen                  | ☐   |
 
 **Data Verification**:
 
@@ -122,11 +122,11 @@ WHERE u.email = '<EMAIL>';        -- Expect onboarding_complete = true
 
 ### 3.3 Epic 1.5 – Weekly Action Steps
 
-| # | Scenario    | How to Test                                                                                       | Acceptance Criteria            | Result |
-| - | ----------- | ------------------------------------------------------------------------------------------------- | ------------------------------ | ------ |
-| 1 | Create step | **Action Steps → Add Step** → enter category _Nutrition_, desc “Add veggies”, freq “5” → **Save** | Step appears; progress bar 0 % | ☐      |
-| 2 | Edit step   | Tap step → **Edit** → change freq to “7” → **Save**                                               | List updates; no duplicate     | ☐      |
-| 3 | Delete step | Swipe left → **Delete**                                                                           | Step removed from list         | ☐      |
+| # | Scenario    | How to Test                                                                               | Acceptance Criteria            | ✅ |
+|---|-------------|-------------------------------------------------------------------------------------------|--------------------------------|----|
+| 1 | Create step | **Action Steps → Add Step** → enter cat _Nutrition_, desc “Add vegg”, freq “5” → **Save** | Step appears; progress bar 0 % | ☐  |
+| 2 | Edit step   | Tap step → **Edit** → change freq to “7” → **Save**                                       | List updates; no duplicate     | ☐  |
+| 3 | Delete step | Swipe left → **Delete**                                                                   | Step removed from list         | ☐  |
 
 **Data Verification** (after creation):
 
@@ -141,10 +141,10 @@ WHERE user_id = (SELECT id FROM auth.users WHERE email = '<EMAIL>')
 
 ### 3.4 Epic 1.7 – Health Signals (Perceived Energy Score)
 
-| # | Scenario            | How to Test                                               | Acceptance Criteria                                         | Result |
-| - | ------------------- | --------------------------------------------------------- | ----------------------------------------------------------- | ------ |
-| 1 | Add PES entry       | **Home** → **Log Energy** → select score "4/5" → **Save** | Confirmation toast "Logged"; gauge/chart update immediately | ☐      |
-| 2 | Duplicate-day guard | Attempt to log a second PES for the same day              | UI error "You already logged today"                         | ☐      |
+| # | Scenario            | How to Test                                               | Acceptance Criteria                                      | ✅ |
+|---|---------------------|-----------------------------------------------------------|----------------------------------------------------------|----|
+| 1 | Add PES entry       | **Home** → **Log Energy** → sel. e.g. "4/5" → **Save** | Confirmation toast "Logged"; gauge/chart update immediately | ☐  |
+| 2 | Duplicate-day guard | Attempt to log a second PES for the same day              | UI error "You already logged today"                      | ☐  |
 
 **Data Verification**:
 
