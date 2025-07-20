@@ -3,7 +3,7 @@ import '../../../../../core/theme/app_theme.dart';
 import '../../../../../core/services/responsive_service.dart';
 import '../../../../../core/services/accessibility_service.dart';
 import '../../../domain/models/today_feed_content.dart';
-import '../components/today_feed_interactions.dart';
+import '../interactions/today_feed_interactions.dart';
 
 import 'components/status_badge.dart';
 import 'components/topic_badge.dart';
