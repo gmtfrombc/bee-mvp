@@ -80,12 +80,12 @@ For each epic use the template:
 
 ### 3.1 Epic 1.6 – Registration & Auth
 
-| # | Feature / Scenario    | How to Test                                                                    | Acceptance Criteria                                                      | Result |
-| - | --------------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------ | ------ |
-| 1 | Register new user     | Launch app → **Register** → enter valid email & 12-char password → **Sign Up** | No validation errors; app logs in and navigates to **Onboarding** screen | ☐      |
-| 2 | Duplicate email guard | Attempt to register again with the same email                                  | UI shows "Email already in use"                                          | ☐      |
-| 3 | Login existing user   | From **Login** screen, enter valid credentials                                 | Navigates to **Home** (if `onboarding_complete = TRUE`)                  | ☐      |
-| 4 | Bad password          | Enter wrong password on **Login** screen                                       | Error banner "Invalid login credentials"                                 | ☐      |
+| # | Feature / Scenario    | How to Test                                                              | Acceptance Criteria                               | Result |
+| - | --------------------- | ------------------------------------------------------------------------ | ------------------------------------------------- | ------ |
+| 1 | Register new user     | Launch app → **Register** → enter email + 12-char password → **Sign Up** | No validation errors; navigates to **Onboarding** | ☐      |
+| 2 | Duplicate email guard | Attempt to register again with same email                                | UI shows “Email already in use”                   | ☐      |
+| 3 | Login existing user   | **Login** with valid credentials                                         | Navigates to **Home** (if onboarding complete)    | ☐      |
+| 4 | Bad password          | **Login** with wrong password                                            | Error banner “Invalid login credentials”          | ☐      |
 
 **Data Verification** (run after scenario 1):
 
@@ -122,11 +122,11 @@ WHERE u.email = '<EMAIL>';        -- Expect onboarding_complete = true
 
 ### 3.3 Epic 1.5 – Weekly Action Steps
 
-| # | Scenario           | How to Test                                                                                                             | Acceptance Criteria                                            | Result |
-| - | ------------------ | ----------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- | ------ |
-| 1 | Create action step | **Action Steps** → **Add Step** → choose category "Nutrition", description "Add veggies", frequency "5 days" → **Save** | New step appears with correct text; week progress bar shows 0% | ☐      |
-| 2 | Edit step          | Tap step → **Edit** → change frequency to "7 days" → **Save**                                                           | List updates; no duplicate created                             | ☐      |
-| 3 | Delete step        | Swipe left on step → **Delete**                                                                                         | Step is removed from list                                      | ☐      |
+| # | Scenario    | How to Test                                                                                       | Acceptance Criteria            | Result |
+| - | ----------- | ------------------------------------------------------------------------------------------------- | ------------------------------ | ------ |
+| 1 | Create step | **Action Steps → Add Step** → enter category _Nutrition_, desc “Add veggies”, freq “5” → **Save** | Step appears; progress bar 0 % | ☐      |
+| 2 | Edit step   | Tap step → **Edit** → change freq to “7” → **Save**                                               | List updates; no duplicate     | ☐      |
+| 3 | Delete step | Swipe left → **Delete**                                                                           | Step removed from list         | ☐      |
 
 **Data Verification** (after creation):
 
