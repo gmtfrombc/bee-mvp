@@ -90,7 +90,7 @@ At sprint end:
 | G6 | Refactor coach chat screen                                | `features/ai_coach/ui/coach_chat_screen.dart`                       | ai-coach      | 4h   | ✅     |
 | G7 | Factor out analytics helpers                              | `features/today_feed/data/services/today_feed_sharing_service.dart` | today_feed    | 3h   | ✅     |
 | G8 | Move test fixtures/builders out                           | `core/services/notification_test_validator.dart` et al.             | notifications | 3h   | ✅     |
-| P3 | **Enable HARD_FAIL** in CI, remove `--no-verify` note     | `.github/workflows/ci.yml`, docs                                    | dev-infra     | 0.5h | ⬜     |
+| P3 | **Enable HARD_FAIL** in CI, remove `--no-verify` note     | `.github/workflows/ci.yml`, docs                                    | dev-infra     | 0.5h | ✅     |
 | P4 | Clean-up `@size-exempt` annotations & re-audit            | repo-wide                                                           | dev-infra     | 0.5h | ⬜     |
 
 _Total est. effort:_ 28 h (matches PRD)\
