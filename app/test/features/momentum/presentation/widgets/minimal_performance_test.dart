@@ -37,5 +37,5 @@ void main() {
       expect(sum, equals(499500));
       debugPrint('DEBUG: Pure Dart test completed');
     });
-  }, skip: true); // Skip entire group in CI due to platform channel issues
+  }); // Unskipped: the suite is now active in CI
 }
