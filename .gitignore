@@ -62,6 +62,7 @@ node_modules/
 **/node_modules/
 
 # Coverage reports
+coverage/*.info
 coverage/
 app/coverage/
 supabase/functions/**/coverage/

@@ -7,11 +7,11 @@ coverage threshold from 40 % → 45 %.
 
 | Task | Description                                                       | Est    | Status |
 | ---- | ----------------------------------------------------------------- | ------ | ------ |
-| T0   | Remove `app/coverage/lcov.info` from repo history (single commit) | 0.5 h  | ⬜     |
-| T1   | Add `coverage/*.info` to root `.gitignore`                        | 0.25 h | ⬜     |
-| T2   | Update `make ci-fast` coverage check to 45 %                      | 0.5 h  | ⬜     |
-| T3   | Update README badge & docs                                        | 0.25 h | ⬜     |
-| T4   | Run full CI to confirm new gate passes                            | —      | ⬜     |
+| T0   | Remove `app/coverage/lcov.info` from repo history (single commit) | 0.5 h  | ✅     |
+| T1   | Add `coverage/*.info` to root `.gitignore`                        | 0.25 h | ✅     |
+| T2   | Update `make ci-fast` coverage check to 45 %                      | 0.5 h  | ✅     |
+| T3   | Update README badge & docs                                        | 0.25 h | ✅     |
+| T4   | Run full CI to confirm new gate passes                            | —      | ✅     |
 
 **Acceptance Criteria**
 
@@ -24,4 +24,4 @@ keep lcov ignored.
 
 ---
 
-_Last updated: 2025-07-19_
+_Last updated: 2025-07-20_
