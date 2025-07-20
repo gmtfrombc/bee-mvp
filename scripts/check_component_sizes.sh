@@ -36,6 +36,18 @@ echo "======================================="
 VIOLATIONS=0
 TOTAL_FILES=0
 
+# === Hard-fail ceilings ===
+SERVICE_CEILING=750
+WIDGET_CEILING=450
+SCREEN_CEILING=600
+MODAL_CEILING=375
+
+# Toggle via env var; default false
+HARD_FAIL=${HARD_FAIL:-false}
+
+# Initialize hard-fail counter
+HARD_FAIL_COUNT=0
+
 # Color codes for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -59,12 +71,35 @@ check_files() {
         if [[ -f "$file" ]]; then
             lines=$(wc -l < "$file")
             files=$((files + 1))
-            
+
+            # Determine hard-fail ceiling based on component type
+            local ceiling=0
+            case "$type" in
+                service)
+                    ceiling=$SERVICE_CEILING
+                    ;;
+                widget)
+                    ceiling=$WIDGET_CEILING
+                    ;;
+                screen)
+                    ceiling=$SCREEN_CEILING
+                    ;;
+                modal)
+                    ceiling=$MODAL_CEILING
+                    ;;
+            esac
+
             if [[ $lines -gt $limit ]]; then
                 local violation_percent=$(( (lines * 100 / limit) - 100 ))
                 echo -e "${RED}❌ VIOLATION: ${file}${NC}"
                 echo -e "   Lines: ${lines} (${violation_percent}% over ${limit}-line limit)"
                 violations=$((violations + 1))
+            fi
+
+            # Hard-fail ceiling check
+            if [[ $lines -gt $ceiling ]]; then
+                HARD_FAIL_COUNT=$((HARD_FAIL_COUNT + 1))
+                echo "❌ HARD-FAIL candidate: $file – ${lines} LOC ($ceiling allowed)"
             fi
         fi
     done < <(find app/lib -path "$pattern" -name "*.dart" -print0 2>/dev/null)
@@ -121,7 +156,12 @@ fi
 # Summary report
 echo -e "\n${BLUE}============================================${NC}"
 echo -e "${BLUE}Component Size Compliance Summary${NC}"
-echo -e "${BLUE}============================================${NC}"
+echo -e "============================================${NC}"
+
+if [[ "$HARD_FAIL" == true && $HARD_FAIL_COUNT -gt 0 ]]; then
+    echo -e "${RED}❌ HARD-FAIL: ${HARD_FAIL_COUNT} component(s) exceed hard ceiling limits${NC}"
+    exit 1
+fi
 
 if [[ $VIOLATIONS -eq 0 ]]; then
     echo -e "${GREEN}🎉 SUCCESS: All ${TOTAL_FILES} components comply with size guidelines!${NC}"
