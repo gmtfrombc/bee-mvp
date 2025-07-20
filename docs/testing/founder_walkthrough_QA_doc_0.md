@@ -13,8 +13,9 @@ Provide a repeatable, checklist-style Quality Assurance (QA) procedure so a
 non-technical founder can manually validate the **current MVP build** on an
 _iPhone_. This walk-through targets the four epics slated for Phase 0:
 
+---
+
 | # | Epic | Description                                   |
-| - | ---- | --------------------------------------------- |
 | 1 | 1.6  | Registration & Authentication                 |
 | 2 | 1.11 | Onboarding Intake Surveys                     |
 | 3 | 1.5  | Weekly **Action Steps**                       |
@@ -78,12 +79,11 @@ For each epic use the template:
 
 ### 3.1 Epic 1.6 – Registration & Auth
 
-| # | Feature / Scenario    | How to Test                                                                                       | Acceptance Criteria                                                                   | Result |
-| - | --------------------- | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- | ------ |
-| 1 | Register new user     | a. Launch app → **Register** <br/>b. Enter valid email & 12-char password <br/>c. Tap **Sign Up** | • No validation errors <br/>• App auto-logs in and navigates to **Onboarding** screen | ☐      |
-| 2 | Duplicate email guard | Repeat **Register** with same email                                                               | • UI shows “Email already in use”                                                     | ☐      |
-| 3 | Login existing user   | From **Login** screen use valid credentials                                                       | • Successful navigation to Home (if onboarding_complete = TRUE)                       | ☐      |
-| 4 | Bad password          | Enter wrong password                                                                              | • Error banner “Invalid login credentials”                                            | ☐      |
+| # | Feature / Scenario    | How to Test                                                                    | Acceptance Criteria                                                      | Result |
+| 1 | Register new user     | Launch app → **Register** → enter valid email & 12-char password → **Sign Up** | No validation errors; app logs in and navigates to **Onboarding** screen | ☐      |
+| 2 | Duplicate email guard | Attempt to register again with the same email                                  | UI shows “Email already in use”                                          | ☐      |
+| 3 | Login existing user   | From **Login** screen, enter valid credentials                                 | Navigates to **Home** (if `onboarding_complete = TRUE`)                  | ☐      |
+| 4 | Bad password          | Enter wrong password on **Login** screen                                       | Error banner “Invalid login credentials”                                 | ☐      |
 
 **Data Verification** (run after scenario 1):
 
@@ -99,11 +99,10 @@ WHERE u.email = '<EMAIL>';  -- Expect onboarding_complete = false
 
 ### 3.2 Epic 1.11 – Onboarding Intake
 
-| # | Scenario                      | How to Test                                 | Acceptance Criteria                                                      | Result |
-| - | ----------------------------- | ------------------------------------------- | ------------------------------------------------------------------------ | ------ |
-| 1 | Survey navigation             | Complete each page using typical answers    | • **Next** & **Back** buttons function <br/>• Progress indicator updates | ☐      |
-| 2 | Mandatory question validation | Leave a required field blank → tap **Next** | • Inline validation preventing advance                                   | ☐      |
-| 3 | Submission                    | Finish survey → tap **Submit**              | • Spinner ≤ 2 s <br/>• You land on **Home** screen                       | ☐      |
+| # | Scenario                  | How to Test                                | Acceptance Criteria                                          | Result |
+| 1 | Survey navigation         | Complete each page using typical answers   | **Next** & **Back** buttons work; progress indicator updates | ☐      |
+| 2 | Required-field validation | Leave a required field blank, tap **Next** | Inline validation prevents advance                           | ☐      |
+| 3 | Submission                | Finish survey, tap **Submit**              | Spinner ≤ 2 s; app lands on **Home** screen                  | ☐      |
 
 **Data Verification**:
 
@@ -120,11 +119,10 @@ WHERE u.email = '<EMAIL>';        -- Expect onboarding_complete = true
 
 ### 3.3 Epic 1.5 – Weekly Action Steps
 
-| # | Scenario           | How to Test                                                                                                                        | Acceptance Criteria                                                               | Result |
-| - | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | ------ |
-| 1 | Create action step | In **Action Steps** tab → **Add Step**. <br/>Choose category “Nutrition”, description “Add veggies”, frequency “5 days” → **Save** | • Step appears in list with correct text <br/>• Week progress bar = 0 % initially | ☐      |
-| 2 | Edit step          | Tap step → **Edit**, change frequency to “7 days” → **Save**                                                                       | • List updates; no duplicate created                                              | ☐      |
-| 3 | Delete step        | Swipe left → **Delete**                                                                                                            | • Step removed from list                                                          | ☐      |
+| # | Scenario           | How to Test                                                                                                             | Acceptance Criteria                                             | Result |
+| 1 | Create action step | **Action Steps** → **Add Step** → choose category “Nutrition”, description “Add veggies”, frequency “5 days” → **Save** | New step appears with correct text; week progress bar shows 0 % | ☐      |
+| 2 | Edit step          | Tap step → **Edit** → change frequency to “7 days” → **Save**                                                           | List updates; no duplicate created                              | ☐      |
+| 3 | Delete step        | Swipe left on step → **Delete**                                                                                         | Step is removed from list                                       | ☐      |
 
 **Data Verification** (after creation):
 
@@ -139,10 +137,9 @@ WHERE user_id = (SELECT id FROM auth.users WHERE email = '<EMAIL>')
 
 ### 3.4 Epic 1.7 – Health Signals (Perceived Energy Score)
 
-| # | Scenario            | How to Test                                                                | Acceptance Criteria                                                    | Result |
-| - | ------------------- | -------------------------------------------------------------------------- | ---------------------------------------------------------------------- | ------ |
-| 1 | Add PES entry       | Home → **Log Energy** button. <br/>Pick score “4 / 5” for today → **Save** | • Confirmation toast “Logged” <br/>• Gauge / chart updates immediately | ☐      |
-| 2 | Duplicate day guard | Try logging a second PES for same day                                      | • UI error: “You already logged today”                                 | ☐      |
+| # | Scenario            | How to Test                                                 | Acceptance Criteria                                         | Result |
+| 1 | Add PES entry       | **Home** → **Log Energy** → select score “4 / 5” → **Save** | Confirmation toast “Logged”; gauge/chart update immediately | ☐      |
+| 2 | Duplicate-day guard | Attempt to log a second PES for the same day                | UI error “You already logged today”                         | ☐      |
 
 **Data Verification**:
 
