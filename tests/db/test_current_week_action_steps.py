@@ -111,7 +111,7 @@ def test_current_week_action_steps_view():
         INSERT INTO public.action_step_logs (id, action_step_id, completed_on)
         VALUES
           ('{uuid.uuid4()}', '{step_id}', current_date),
-          ('{uuid.uuid4()}', '{step_id}', current_date + INTERVAL '1 day');
+          ('{uuid.uuid4()}', '{step_id}', current_date - INTERVAL '1 day');
         """
     )
 
