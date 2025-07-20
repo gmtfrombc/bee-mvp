@@ -120,7 +120,7 @@ If the enforced step blocks PRs unexpectedly:
 | P4-A | `notification_core_service.dart`                                               | Extract token & permission helpers          | 2h  | ✅     |
 | P4-B | `interaction_analytics_service.dart`, `session_duration_tracking_service.dart` | Split analytics helpers; isolate DB writes  | 2h  | ✅     |
 | P4-C | `momentum_point_feedback_widget.dart`                                          | Split into animation/header/body            | 1h  | ✅     |
-| P4-D | `today_feed_interactions.dart`                                                 | Modularize into like/share/bookmark widgets | 1h  | ⬜     |
+| P4-D | `today_feed_interactions.dart`                                                 | Modularize into like/share/bookmark widgets | 1h  | ✅     |
 | P4-E | `error_state_widget.dart`                                                      | Extract error card + retry CTA              | 1h  | ⬜     |
 
 _Total P4 est. effort:_ **7 h** spread across five focused PRs.

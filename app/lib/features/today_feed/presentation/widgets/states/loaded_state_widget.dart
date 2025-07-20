@@ -3,12 +3,8 @@ import '../../../../../core/theme/app_theme.dart';
 import '../../../../../core/services/responsive_service.dart';
 import '../../../../../core/services/accessibility_service.dart';
 import '../../../domain/models/today_feed_content.dart'
-    show
-        RichContentElement,
-        RichContentType,
-        TodayFeedContent,
-        HealthTopic;
-import '../components/today_feed_interactions.dart';
+    show RichContentElement, RichContentType, TodayFeedContent, HealthTopic;
+import '../interactions/today_feed_interactions.dart';
 
 /// Loaded state widget for Today Feed tile
 /// Displays complete content with interactions and momentum indicator

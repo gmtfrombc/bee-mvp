@@ -3,7 +3,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../core/services/responsive_service.dart';
 import '../../domain/models/today_feed_content.dart';
 import 'components/today_feed_animations.dart';
-import 'components/today_feed_interactions.dart';
+import 'interactions/today_feed_interactions.dart';
 import 'states/loading_state_widget.dart';
 import 'states/error_state_widget.dart';
 import 'states/loaded_state_widget.dart';
