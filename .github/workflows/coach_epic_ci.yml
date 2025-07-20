@@ -77,8 +77,8 @@ jobs:
         echo "Current coverage: ${COVERAGE}%"
         
         # Goldilocks threshold while we build test suite
-        if (( $(echo "$COVERAGE < 40" | bc -l) )); then
-          echo "❌ Coverage ${COVERAGE}% is below 40% threshold"
+        if (( $(echo "$COVERAGE < 45" | bc -l) )); then
+          echo "❌ Coverage ${COVERAGE}% is below 45% threshold"
           exit 1
         else
           echo "✅ Coverage ${COVERAGE}% meets threshold"

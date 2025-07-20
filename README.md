@@ -1,5 +1,7 @@
 # BEE (Behavioral Engagement Engine) MVP
 
+![Coverage](https://img.shields.io/badge/coverage-45%25-brightgreen.svg)
+
 > **Start here.** This is the main repository for the BEE MVP project.
 
 ## Project Overview
