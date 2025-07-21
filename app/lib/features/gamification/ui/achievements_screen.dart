@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart' hide Badge;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:go_router/go_router.dart';
+import 'package:app/core/navigation/routes.dart';
+
 import '../../../core/theme/app_theme.dart';
 import '../../../core/services/responsive_service.dart';
 import '../providers/gamification_providers.dart';
 import '../services/share_helper.dart';
-import 'progress_dashboard.dart';
 
 // Extracted widgets
 import 'achievements/achievements_header.dart';
@@ -34,11 +36,7 @@ class AchievementsScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.bar_chart),
             onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const ProgressDashboard(),
-                ),
-              );
+              context.push(kProgressDashboardRoute);
             },
             tooltip: 'View Progress Dashboard',
           ),

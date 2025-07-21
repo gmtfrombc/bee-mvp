@@ -9,7 +9,8 @@ import '../widgets/adaptive_polling_toggle.dart';
 import '../widgets/health_permission_toggle.dart';
 import '../../../../core/mixins/permission_auto_refresh_mixin.dart';
 import 'package:app/features/settings/ui/mfa_toggle_tile.dart';
-import '../../../../core/widgets/launch_controller.dart';
+import 'package:go_router/go_router.dart';
+import 'package:app/core/navigation/routes.dart';
 import '../../../../core/providers/auth_provider.dart';
 
 /// Screen for managing user profile and app settings
@@ -322,12 +323,7 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen>
                     onTap: () async {
                       await ref.read(authNotifierProvider.notifier).signOut();
                       if (context.mounted) {
-                        Navigator.of(context).pushAndRemoveUntil(
-                          MaterialPageRoute(
-                            builder: (_) => const LaunchController(),
-                          ),
-                          (route) => false,
-                        );
+                        context.go(kLaunchRoute);
                       }
                     },
                   ),

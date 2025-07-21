@@ -11,7 +11,7 @@ import 'core/providers/supabase_provider.dart';
 import 'features/momentum/presentation/screens/momentum_screen.dart';
 import 'features/ai_coach/ui/coach_chat_screen.dart';
 import 'core/utils/deep_link_service.dart';
-import 'features/auth/ui/password_reset_page.dart';
+import 'package:go_router/go_router.dart';
 import 'features/momentum/presentation/screens/profile_settings_screen.dart';
 import 'features/gamification/ui/rewards_navigator.dart';
 import 'core/notifications/domain/services/notification_preferences_service.dart';
@@ -223,11 +223,7 @@ class _AppWrapperState extends ConsumerState<AppWrapper>
     if (DeepLinkService.isPasswordReset(uri)) {
       final token = DeepLinkService.extractAccessToken(uri);
       if (token != null) {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => PasswordResetPage(accessToken: token),
-          ),
-        );
+        context.push(kPasswordResetRoute, extra: token);
       }
     }
   }

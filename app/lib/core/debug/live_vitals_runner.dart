@@ -6,8 +6,8 @@ library;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-
-import '../../features/wearable/ui/live_vitals_developer_screen.dart';
+import 'package:go_router/go_router.dart';
+import 'package:app/core/navigation/routes.dart';
 
 /// Open the Live Vitals developer screen for validation
 ///
@@ -26,12 +26,7 @@ void openLiveVitalsScreen(BuildContext context) {
 
   debugPrint('🔴 Opening Live Vitals Developer Screen');
 
-  Navigator.of(context).push(
-    MaterialPageRoute(
-      builder: (context) => const LiveVitalsDeveloperScreen(),
-      settings: const RouteSettings(name: '/debug/live-vitals'),
-    ),
-  );
+  context.push(kLiveVitalsDebugRoute);
 }
 
 /// Check if Live Vitals screen is available
