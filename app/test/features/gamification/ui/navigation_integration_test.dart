@@ -6,6 +6,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:app/features/gamification/ui/achievements_screen.dart';
 import 'package:app/features/gamification/providers/gamification_providers.dart';
 import 'package:app/features/gamification/models/badge.dart';
+import 'package:go_router/go_router.dart';
+import 'package:app/core/navigation/routes.dart';
+import 'package:app/features/gamification/ui/progress_dashboard.dart';
 
 void main() {
   group('Gamification Navigation Integration', () {
@@ -24,11 +27,19 @@ void main() {
     testWidgets('AchievementsScreen renders correctly', (
       WidgetTester tester,
     ) async {
-      // Build the AchievementsScreen directly with provider overrides
+      final router = GoRouter(
+        routes: [
+          GoRoute(path: '/', builder: (_, __) => const AchievementsScreen()),
+          GoRoute(
+            path: kProgressDashboardRoute,
+            builder: (_, __) => const ProgressDashboard(),
+          ),
+        ],
+      );
+
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            // Override challengeProvider to avoid timer issues in tests
             challengeProvider.overrideWith(
               (ref) => Stream.value(<Challenge>[]),
             ),
@@ -37,7 +48,7 @@ void main() {
             currentStreakProvider.overrideWith((ref) async => 0),
             totalPointsProvider.overrideWith((ref) async => 0),
           ],
-          child: const MaterialApp(home: AchievementsScreen()),
+          child: MaterialApp.router(routerConfig: router),
         ),
       );
 
@@ -56,11 +67,19 @@ void main() {
     testWidgets('ProgressDashboard can be accessed from AchievementsScreen', (
       WidgetTester tester,
     ) async {
-      // Build the AchievementsScreen with provider overrides
+      final router = GoRouter(
+        routes: [
+          GoRoute(path: '/', builder: (_, __) => const AchievementsScreen()),
+          GoRoute(
+            path: kProgressDashboardRoute,
+            builder: (_, __) => const ProgressDashboard(),
+          ),
+        ],
+      );
+
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            // Override challengeProvider to avoid timer issues in tests
             challengeProvider.overrideWith(
               (ref) => Stream.value(<Challenge>[]),
             ),
@@ -69,7 +88,7 @@ void main() {
             currentStreakProvider.overrideWith((ref) async => 0),
             totalPointsProvider.overrideWith((ref) async => 0),
           ],
-          child: const MaterialApp(home: AchievementsScreen()),
+          child: MaterialApp.router(routerConfig: router),
         ),
       );
 

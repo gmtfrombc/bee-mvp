@@ -13,6 +13,15 @@ import 'package:flutter/widgets.dart';
 import 'package:app/features/action_steps/ui/action_step_setup_page.dart';
 import 'package:app/features/auth/ui/confirmation_pending_page.dart';
 import 'package:app/features/auth/ui/auth_page.dart';
+import 'package:app/features/momentum/presentation/screens/notification_settings_screen.dart';
+import 'package:app/features/momentum/presentation/screens/profile_settings_screen.dart';
+import 'package:app/features/gamification/ui/achievements_screen.dart';
+import 'package:app/features/gamification/ui/progress_dashboard.dart';
+import 'package:app/features/today_feed/presentation/screens/today_feed_article_screen.dart';
+import 'package:app/features/today_feed/domain/models/today_feed_content.dart';
+import 'package:app/features/ai_coach/ui/coach_chat_screen.dart';
+import 'package:app/features/wearable/ui/live_vitals_developer_screen.dart';
+import 'package:app/features/auth/ui/password_reset_page.dart';
 
 /// Centralized route constants for the app.
 const String kOnboardingStep1Route = '/onboarding/step1';
@@ -25,6 +34,17 @@ const String kActionStepSetupRoute = '/action-step/setup';
 // Route constants
 const String kConfirmRoute = '/confirm';
 const String kAuthRoute = '/auth';
+
+// NEW ROUTE CONSTANTS
+const String kNotificationsRoute = '/notifications';
+const String kProfileSettingsRoute = '/profile-settings';
+const String kAchievementsRoute = '/achievements';
+const String kProgressDashboardRoute = '/progress-dashboard';
+const String kTodayFeedArticleRoute = '/today-feed/article';
+const String kCoachChatRoute = '/coach-chat';
+const String kPasswordResetRoute = '/password-reset';
+const String kLiveVitalsDebugRoute = '/debug/live-vitals';
+const String kLaunchRoute = '/launch';
 
 /// Global [GoRouter] instance for the application.
 const _onboardingGuard = OnboardingGuard();
@@ -106,5 +126,53 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) => const ConfirmationPendingPage(email: ''),
     ),
     GoRoute(path: kAuthRoute, builder: (context, state) => const AuthPage()),
+
+    // NEW ROUTES
+    GoRoute(
+      path: kNotificationsRoute,
+      builder: (context, state) => const NotificationSettingsScreen(),
+    ),
+    GoRoute(
+      path: kProfileSettingsRoute,
+      builder: (context, state) => const ProfileSettingsScreen(),
+    ),
+    GoRoute(
+      path: kAchievementsRoute,
+      builder: (context, state) => const AchievementsScreen(),
+    ),
+    GoRoute(
+      path: kProgressDashboardRoute,
+      builder: (context, state) => const ProgressDashboard(),
+    ),
+    GoRoute(
+      path: kTodayFeedArticleRoute,
+      builder: (context, state) {
+        final content = state.extra as TodayFeedContent;
+        return TodayFeedArticleScreen(content: content);
+      },
+    ),
+    GoRoute(
+      path: kCoachChatRoute,
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>?;
+        return CoachChatScreen(
+          articleId: extra?['articleId'],
+          articleSummary: extra?['articleSummary'],
+          articleTitle: extra?['articleTitle'],
+          showBackButton: true,
+        );
+      },
+    ),
+    GoRoute(
+      path: kLiveVitalsDebugRoute,
+      builder: (context, state) => const LiveVitalsDeveloperScreen(),
+    ),
+    GoRoute(
+      path: kPasswordResetRoute,
+      builder: (context, state) {
+        final token = state.extra as String;
+        return PasswordResetPage(accessToken: token);
+      },
+    ),
   ],
 );

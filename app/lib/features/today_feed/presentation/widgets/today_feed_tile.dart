@@ -9,7 +9,8 @@ import 'states/error_state_widget.dart';
 import 'states/loaded_state_widget.dart';
 import 'offline/offline_state_widget.dart';
 import 'offline/fallback_state_widget.dart';
-import '../../../ai_coach/ui/coach_chat_screen.dart';
+import 'package:go_router/go_router.dart';
+import 'package:app/core/navigation/routes.dart';
 
 /// Callback types for Today Feed tile interactions
 typedef TodayFeedCallback = void Function();
@@ -205,16 +206,13 @@ class _TodayFeedTileState extends State<TodayFeedTile>
         onLongPress: () {
           final content = widget.state.content;
 
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder:
-                  (_) => CoachChatScreen(
-                    articleId: content?.id?.toString(),
-                    articleTitle: content?.title,
-                    articleSummary: _buildArticleSummary(content),
-                    showBackButton: true,
-                  ),
-            ),
+          context.push(
+            kCoachChatRoute,
+            extra: {
+              'articleId': content?.id?.toString(),
+              'articleSummary': _buildArticleSummary(content),
+              'articleTitle': content?.title,
+            },
           );
         },
         child: Semantics(

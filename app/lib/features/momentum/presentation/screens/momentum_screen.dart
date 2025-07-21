@@ -16,18 +16,15 @@ import '../widgets/skeleton_widgets.dart';
 import '../widgets/loading_indicator.dart';
 import '../widgets/error_widgets.dart';
 import '../../../../core/services/error_handling_service.dart';
-import 'notification_settings_screen.dart';
-import 'profile_settings_screen.dart';
+
+// Routing
+import 'package:go_router/go_router.dart';
+import 'package:app/core/navigation/routes.dart';
 
 // Today Feed imports
 import '../../../today_feed/presentation/widgets/today_feed_tile.dart';
 import '../providers/today_feed_provider.dart';
-import '../../../today_feed/presentation/screens/today_feed_article_screen.dart';
 
-// Gamification imports
-import '../../../gamification/ui/achievements_screen.dart';
-
-// Coach Chat imports
 /// Main momentum meter screen
 /// Displays the user's current momentum state and provides quick actions
 class MomentumScreen extends ConsumerWidget {
@@ -49,11 +46,7 @@ class MomentumScreen extends ConsumerWidget {
             child: IconButton(
               icon: const Icon(Icons.notifications_outlined),
               onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const NotificationSettingsScreen(),
-                  ),
-                );
+                context.push(kNotificationsRoute);
               },
             ),
           ),
@@ -64,11 +57,7 @@ class MomentumScreen extends ConsumerWidget {
             child: IconButton(
               icon: const Icon(Icons.person_outline),
               onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const ProfileSettingsScreen(),
-                  ),
-                );
+                context.push(kProfileSettingsRoute);
               },
             ),
           ),
@@ -164,11 +153,7 @@ class _MomentumContent extends ConsumerWidget {
               final content = todayFeedState.content;
 
               if (content != null && context.mounted) {
-                await Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => TodayFeedArticleScreen(content: content),
-                  ),
-                );
+                await context.push(kTodayFeedArticleRoute, extra: content);
               } else if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -241,11 +226,7 @@ class _MomentumContent extends ConsumerWidget {
               onAchievementsTap: () {
                 // Navigate to achievements screen
                 context.announceToScreenReader('Navigating to achievements');
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const AchievementsScreen(),
-                  ),
-                );
+                context.push(kAchievementsRoute);
               },
             )
           else
