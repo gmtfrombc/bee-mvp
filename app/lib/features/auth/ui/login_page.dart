@@ -5,9 +5,9 @@ import '../../../core/services/responsive_service.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/utils/auth_error_mapper.dart';
 import 'package:go_router/go_router.dart';
-import 'auth_page.dart';
 import '../../../core/ui/widgets/bee_text_field.dart';
 import '../../../core/validators/auth_validators.dart';
+import 'auth_page.dart';
 
 /// Login screen for existing users.
 /// Implements validation, loading & error handling.
@@ -98,6 +98,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               SizedBox(height: spacing),
               TextButton(
                 onPressed: () {
+                  debugPrint('🔑 Create Account tapped');
+                  debugPrint('🛠 Navigator.push AuthPage');
                   Navigator.of(
                     context,
                   ).push(MaterialPageRoute(builder: (_) => const AuthPage()));

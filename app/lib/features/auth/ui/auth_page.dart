@@ -5,7 +5,6 @@ import '../../../core/services/responsive_service.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/utils/auth_error_mapper.dart';
 import 'package:go_router/go_router.dart';
-import 'login_page.dart';
 import '../../../core/navigation/routes.dart';
 import '../../../core/ui/widgets/bee_text_field.dart';
 import '../../../core/validators/auth_validators.dart';
@@ -32,6 +31,12 @@ class _AuthPageState extends ConsumerState<AuthPage> {
 
   // BeeTextField handles its own visibility toggle when `obscureText` is true, so no local state is required.
   bool _submitted = false;
+
+  @override
+  void initState() {
+    super.initState();
+    debugPrint('🆕 AuthPage mounted');
+  }
 
   @override
   void dispose() {
@@ -134,9 +139,20 @@ class _AuthPageState extends ConsumerState<AuthPage> {
               SizedBox(height: spacing),
               TextButton(
                 onPressed: () {
-                  Navigator.of(
-                    context,
-                  ).push(MaterialPageRoute(builder: (_) => const LoginPage()));
+                  // If inside GoRouter, simply pop back to the previous route
+                  // (LoginPage at '/'). Fallback to Navigator.pop when router
+                  // is absent (e.g., unit tests using MaterialApp).
+                  final router = GoRouter.maybeOf(context);
+                  if (router != null) {
+                    if (Navigator.of(context).canPop()) {
+                      context.pop();
+                    } else {
+                      // No back stack – go to root which shows LoginPage.
+                      context.go('/');
+                    }
+                  } else {
+                    Navigator.of(context).pop();
+                  }
                 },
                 child: const Text('Already have an account? Log in'),
               ),
