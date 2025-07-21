@@ -123,7 +123,12 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: kConfirmRoute,
-      builder: (context, state) => const ConfirmationPendingPage(email: ''),
+      builder: (context, state) {
+        // Email can be passed via `state.extra` when navigating with
+        // `context.go(kConfirmRoute, extra: email)`.
+        final email = state.extra as String? ?? '';
+        return ConfirmationPendingPage(email: email);
+      },
     ),
     GoRoute(path: kAuthRoute, builder: (context, state) => const AuthPage()),
 

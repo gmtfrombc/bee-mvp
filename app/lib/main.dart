@@ -11,7 +11,6 @@ import 'core/providers/supabase_provider.dart';
 import 'features/momentum/presentation/screens/momentum_screen.dart';
 import 'features/ai_coach/ui/coach_chat_screen.dart';
 import 'core/utils/deep_link_service.dart';
-import 'package:go_router/go_router.dart';
 import 'features/momentum/presentation/screens/profile_settings_screen.dart';
 import 'features/gamification/ui/rewards_navigator.dart';
 import 'core/notifications/domain/services/notification_preferences_service.dart';
@@ -25,6 +24,9 @@ import 'core/services/auth_session_service.dart';
 import 'package:app/core/navigation/routes.dart';
 import 'features/action_steps/providers/momentum_listener_provider.dart';
 import 'package:flutter/foundation.dart';
+import 'package:go_router/go_router.dart';
+import 'package:app/core/navigation/filtering_route_information_provider.dart';
+import 'package:go_router/go_router.dart' as gor;
 
 // Global instance to share across app
 final AuthSessionService authSessionService = AuthSessionService();
@@ -283,12 +285,31 @@ class BEEApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
 
+    // Provide a minimal state map that matches go_router’s expected schema
+    // {location, state:{codec,json,encoded}}
+    final Map<String, Object?> encodedState = {
+      'location': '/',
+      'state': {'codec': 'json', 'encoded': 'null'},
+    };
+
+    final routeInfoProvider = FilteringRouteInformationProvider(
+      PlatformRouteInformationProvider(
+        initialRouteInformation: RouteInformation(
+          uri: Uri.parse('/'),
+          state: encodedState,
+        ),
+      ),
+    );
+
     return MaterialApp.router(
       title: 'BEE Momentum Meter',
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: themeMode,
-      routerConfig: appRouter,
+      routeInformationProvider: routeInfoProvider,
+      routeInformationParser: appRouter.routeInformationParser,
+      routerDelegate: appRouter.routerDelegate,
+      backButtonDispatcher: appRouter.backButtonDispatcher,
       debugShowCheckedModeBanner: false,
     );
   }
