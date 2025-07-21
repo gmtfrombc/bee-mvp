@@ -9,6 +9,7 @@ import 'login_page.dart';
 import '../../../core/navigation/routes.dart';
 import '../../../core/ui/widgets/bee_text_field.dart';
 import '../../../core/validators/auth_validators.dart';
+import 'confirmation_pending_page.dart';
 
 /// Registration screen that captures Name, Email, and Password.
 ///
@@ -72,9 +73,18 @@ class _AuthPageState extends ConsumerState<AuthPage> {
       } else if (next.hasValue && next.value == null && _submitted) {
         // No session yet → show confirmation pending
         final email = _emailCtrl.text.trim();
-        // Navigate to the confirmation pending screen using go_router to avoid
-        // imperative Navigator calls that conflict with page-based routing.
-        context.go(kConfirmRoute, extra: email);
+        // Navigate to confirmation pending. In widget tests where GoRouter may
+        // be absent, fall back to a direct Navigator push to avoid assertions.
+        final router = GoRouter.maybeOf(context);
+        if (router != null) {
+          router.go(kConfirmRoute, extra: email);
+        } else {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => ConfirmationPendingPage(email: email),
+            ),
+          );
+        }
       }
     });
 
