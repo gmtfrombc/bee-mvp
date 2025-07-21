@@ -26,6 +26,7 @@ import 'features/action_steps/providers/momentum_listener_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 import 'package:app/core/navigation/filtering_route_information_provider.dart';
+import 'package:go_router/go_router.dart' as gor;
 
 // Global instance to share across app
 final AuthSessionService authSessionService = AuthSessionService();
@@ -284,11 +285,18 @@ class BEEApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
 
+    // Provide a minimal state map that matches go_router’s expected schema
+    // {location, state:{codec,json,encoded}}
+    final Map<String, Object?> encodedState = {
+      'location': '/',
+      'state': {'codec': 'json', 'encoded': 'null'},
+    };
+
     final routeInfoProvider = FilteringRouteInformationProvider(
       PlatformRouteInformationProvider(
         initialRouteInformation: RouteInformation(
           uri: Uri.parse('/'),
-          state: <String, Object?>{'location': '/'},
+          state: encodedState,
         ),
       ),
     );
