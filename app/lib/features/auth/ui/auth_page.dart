@@ -9,6 +9,7 @@ import 'login_page.dart';
 import '../../../core/navigation/routes.dart';
 import '../../../core/ui/widgets/bee_text_field.dart';
 import '../../../core/validators/auth_validators.dart';
+import 'confirmation_pending_page.dart';
 
 /// Registration screen that captures Name, Email, and Password.
 ///
@@ -53,10 +54,24 @@ class _AuthPageState extends ConsumerState<AuthPage> {
     if (!mounted) return;
 
     // Decide navigation based on whether Supabase returned a session.
+    final router = GoRouter.maybeOf(context);
+
     if (response.session == null) {
-      context.go(kConfirmRoute, extra: email);
+      if (router != null) {
+        router.go(kConfirmRoute, extra: email);
+      } else {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => ConfirmationPendingPage(email: email),
+          ),
+        );
+      }
     } else {
-      context.go('/launch');
+      if (router != null) {
+        router.go('/launch');
+      } else {
+        Navigator.of(context).pushReplacementNamed('/');
+      }
     }
   }
 
