@@ -26,9 +26,9 @@ Out of scope: design changes, new UX flows, deep-link expansion.
 ## 4 Task Table
 | ID | Task | File(s) / Area | Owner | Status |
 |----|------|----------------|-------|--------|
-| T1 | Swap `pushAndRemoveUntil` in Auth flow | `auth_page.dart`, `confirmation_pending_page.dart`, `login_page.dart` | AI-PG | 🟡 Pending |
-| T2 | Swap `pushReplacement` in Registration success | `registration_success_page.dart` | AI-PG | 🟡 Pending |
-| T3 | Onboarding screen final push | `onboarding_screen.dart` | AI-PG | 🟡 Pending |
+| T1 | Swap `pushAndRemoveUntil` in Auth flow | `auth_page.dart`, `confirmation_pending_page.dart`, `login_page.dart` | AI-PG | ✅ Complete |
+| T2 | Swap `pushReplacement` in Registration success | `registration_success_page.dart` | AI-PG | ✅ Complete |
+| T3 | Onboarding screen final push | `onboarding_screen.dart` | AI-PG | ✅ Complete |
 | T4 | Add `/confirm` & `/auth` routes | `routes.dart` | AI-PG | 🟡 Pending |
 | T5 | Sweep remaining root pushes (Momentum, Today Feed, etc.) | see grep list | AI-PG | 🟡 Pending |
 | T6 | Update affected widget/integration tests | tests under `app/test` | AI-PG | 🟡 Pending |
