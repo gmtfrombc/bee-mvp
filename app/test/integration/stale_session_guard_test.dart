@@ -35,11 +35,14 @@ class _StubAuthNotifier extends AsyncNotifier<User?> implements AuthNotifier {
     required String password,
   }) async {}
   @override
-  Future<void> signUpWithEmail({
+  Future<AuthResponse> signUpWithEmail({
     required String email,
     required String password,
     String? name,
-  }) async {}
+  }) async {
+    return AuthResponse(session: null, user: _FakeUser());
+  }
+
   @override
   Future<void> signInAnonymously() async {}
   @override

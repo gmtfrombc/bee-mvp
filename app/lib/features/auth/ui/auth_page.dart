@@ -30,7 +30,6 @@ class _AuthPageState extends ConsumerState<AuthPage> {
   final _pwdCtrl = TextEditingController();
 
   // BeeTextField handles its own visibility toggle when `obscureText` is true, so no local state is required.
-  bool _submitted = false;
 
   @override
   void initState() {
@@ -53,12 +52,32 @@ class _AuthPageState extends ConsumerState<AuthPage> {
     final email = _emailCtrl.text.trim();
     final password = _pwdCtrl.text.trim();
 
-    // Flag that sign-up was initiated so listener can act on null session.
-    _submitted = true;
-
-    await ref
+    final response = await ref
         .read(authNotifierProvider.notifier)
         .signUpWithEmail(name: name, email: email, password: password);
+
+    if (!mounted) return;
+
+    // Decide navigation based on whether Supabase returned a session.
+    final router = GoRouter.maybeOf(context);
+
+    if (response.session == null) {
+      if (router != null) {
+        router.go(kConfirmRoute, extra: email);
+      } else {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => ConfirmationPendingPage(email: email),
+          ),
+        );
+      }
+    } else {
+      if (router != null) {
+        router.go('/launch');
+      } else {
+        Navigator.of(context).pushReplacementNamed('/');
+      }
+    }
   }
 
   @override
@@ -72,24 +91,6 @@ class _AuthPageState extends ConsumerState<AuthPage> {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(msg)));
-      } else if (next.hasValue && next.value != null) {
-        // Navigate to Home (AppWrapper) once user is authenticated
-        context.go('/launch');
-      } else if (next.hasValue && next.value == null && _submitted) {
-        // No session yet → show confirmation pending
-        final email = _emailCtrl.text.trim();
-        // Navigate to confirmation pending. In widget tests where GoRouter may
-        // be absent, fall back to a direct Navigator push to avoid assertions.
-        final router = GoRouter.maybeOf(context);
-        if (router != null) {
-          router.go(kConfirmRoute, extra: email);
-        } else {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => ConfirmationPendingPage(email: email),
-            ),
-          );
-        }
       }
     });
 

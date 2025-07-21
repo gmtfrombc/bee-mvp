@@ -42,8 +42,12 @@ class AuthService {
     await _supabase.auth.signInWithPassword(email: email, password: password);
   }
 
-  /// Sign up with email and password
-  Future<void> signUpWithEmail({
+  /// Sign up with email and password.
+  ///
+  /// Returns the raw [AuthResponse] so callers can inspect whether
+  /// `response.session` is `null` (email-confirmation required) or a valid
+  /// session (immediate sign-in).
+  Future<AuthResponse> signUpWithEmail({
     required String email,
     required String password,
     String? name,
@@ -58,6 +62,8 @@ class AuthService {
 
     // Debug: surface whether Supabase returned a session immediately.
     debugPrint('🔐 signUp result – session: ${response.session}');
+
+    return response;
   }
 
   /// Sign out

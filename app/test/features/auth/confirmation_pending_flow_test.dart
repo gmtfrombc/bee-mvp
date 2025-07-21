@@ -8,19 +8,23 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:app/features/gamification/providers/gamification_providers.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:app/core/providers/supabase_provider.dart';
+import 'package:go_router/go_router.dart';
 
 class _StubAuthNotifier extends AsyncNotifier<User?> implements AuthNotifier {
+  // Helper fake user & state emitters
+  void emitSuccess() => state = AsyncValue.data(_FakeUser());
+
   @override
   Future<User?> build() async => null;
 
   @override
-  Future<void> signUpWithEmail({
+  Future<AuthResponse> signUpWithEmail({
     required String email,
     required String password,
     String? name,
   }) async {
-    // Emit value with no session (null) to simulate email verification required.
-    state = const AsyncValue.data(null);
+    emitSuccess();
+    return AuthResponse(session: null, user: _FakeUser());
   }
 
   // Other methods unused in this test
@@ -39,6 +43,9 @@ class _StubAuthNotifier extends AsyncNotifier<User?> implements AuthNotifier {
     String? redirectTo,
   }) async {}
 }
+
+// Simple fake Supabase user for tests
+class _FakeUser extends Fake implements User {}
 
 class _FakeClient extends Mock implements SupabaseClient {}
 
@@ -64,6 +71,20 @@ void main() {
     (tester) async {
       final stub = _StubAuthNotifier();
 
+      final router = GoRouter(
+        initialLocation: '/',
+        routes: [
+          GoRoute(path: '/', builder: (_, __) => const AuthPage()),
+          GoRoute(
+            path: '/confirm',
+            builder: (context, state) {
+              final email = state.extra as String? ?? '';
+              return ConfirmationPendingPage(email: email);
+            },
+          ),
+        ],
+      );
+
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -71,7 +92,7 @@ void main() {
             challengeProvider.overrideWith((_) => Stream.value([])),
             supabaseProvider.overrideWith((ref) async => _FakeClient()),
           ],
-          child: const MaterialApp(home: AuthPage()),
+          child: MaterialApp.router(routerConfig: router),
         ),
       );
 

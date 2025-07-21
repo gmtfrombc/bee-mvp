@@ -25,12 +25,13 @@ class _StubAuthNotifier extends AsyncNotifier<User?> implements AuthNotifier {
 
   // === Auth API stubs ===
   @override
-  Future<void> signUpWithEmail({
+  Future<AuthResponse> signUpWithEmail({
     required String email,
     required String password,
     String? name,
   }) async {
     emitSuccess();
+    return AuthResponse(session: null, user: _FakeUser());
   }
 
   @override
