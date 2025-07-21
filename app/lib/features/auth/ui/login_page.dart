@@ -7,7 +7,7 @@ import '../../../core/utils/auth_error_mapper.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/ui/widgets/bee_text_field.dart';
 import '../../../core/validators/auth_validators.dart';
-import 'auth_page.dart';
+import '../../../core/navigation/routes.dart';
 
 /// Login screen for existing users.
 /// Implements validation, loading & error handling.
@@ -56,7 +56,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           context,
         ).showSnackBar(SnackBar(content: Text(msg)));
       } else if (next.hasValue && next.value != null) {
-        context.go('/launch');
+        context.go(kLaunchRoute);
       }
     });
 
@@ -99,10 +99,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               TextButton(
                 onPressed: () {
                   debugPrint('🔑 Create Account tapped');
-                  debugPrint('🛠 Navigator.push AuthPage');
-                  Navigator.of(
-                    context,
-                  ).push(MaterialPageRoute(builder: (_) => const AuthPage()));
+                  context.go(kAuthRoute);
                 },
                 child: const Text("Don't have an account? Create one"),
               ),
