@@ -25,7 +25,7 @@ import 'package:app/core/navigation/routes.dart';
 import 'features/action_steps/providers/momentum_listener_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
-import 'core/navigation/filtering_route_information_provider.dart';
+import 'package:app/core/navigation/filtering_route_information_provider.dart';
 
 // Global instance to share across app
 final AuthSessionService authSessionService = AuthSessionService();
@@ -295,8 +295,10 @@ class BEEApp extends ConsumerWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: themeMode,
-      routerConfig: appRouter,
       routeInformationProvider: routeInfoProvider,
+      routeInformationParser: appRouter.routeInformationParser,
+      routerDelegate: appRouter.routerDelegate,
+      backButtonDispatcher: appRouter.backButtonDispatcher,
       debugShowCheckedModeBanner: false,
     );
   }
