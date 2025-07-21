@@ -286,7 +286,10 @@ class BEEApp extends ConsumerWidget {
 
     final routeInfoProvider = FilteringRouteInformationProvider(
       PlatformRouteInformationProvider(
-        initialRouteInformation: RouteInformation(uri: Uri.parse('/')),
+        initialRouteInformation: RouteInformation(
+          uri: Uri.parse('/'),
+          state: '/',
+        ),
       ),
     );
 
