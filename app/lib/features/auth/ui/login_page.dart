@@ -99,10 +99,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               SizedBox(height: spacing),
               TextButton(
                 onPressed: () {
+                  debugPrint('🔑 Create Account tapped');
                   final router = GoRouter.maybeOf(context);
                   if (router != null) {
-                    router.push(kAuthRoute);
+                    debugPrint('➡️ GoRouter navigate to /auth');
+                    router.go(kAuthRoute);
                   } else {
+                    debugPrint('🛠 Fallback Navigator.push AuthPage');
                     Navigator.of(
                       context,
                     ).push(MaterialPageRoute(builder: (_) => const AuthPage()));

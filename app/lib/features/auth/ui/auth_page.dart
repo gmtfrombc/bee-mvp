@@ -5,7 +5,6 @@ import '../../../core/services/responsive_service.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/utils/auth_error_mapper.dart';
 import 'package:go_router/go_router.dart';
-import 'login_page.dart';
 import '../../../core/navigation/routes.dart';
 import '../../../core/ui/widgets/bee_text_field.dart';
 import '../../../core/validators/auth_validators.dart';
@@ -32,6 +31,12 @@ class _AuthPageState extends ConsumerState<AuthPage> {
 
   // BeeTextField handles its own visibility toggle when `obscureText` is true, so no local state is required.
   bool _submitted = false;
+
+  @override
+  void initState() {
+    super.initState();
+    debugPrint('🆕 AuthPage mounted');
+  }
 
   @override
   void dispose() {
