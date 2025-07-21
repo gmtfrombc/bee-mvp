@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:app/features/onboarding/ui/about_you_page.dart';
+import 'package:go_router/go_router.dart';
+import 'package:app/core/navigation/routes.dart';
 
 /// Shown immediately after a user confirms their email address.
 ///
@@ -26,9 +27,8 @@ class RegistrationSuccessPage extends StatelessWidget {
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: () {
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (_) => const AboutYouPage()),
-                  );
+                  // Navigate to the first onboarding step using go_router.
+                  context.go(kOnboardingStep1Route);
                 },
                 child: const Text("I'm ready"),
               ),

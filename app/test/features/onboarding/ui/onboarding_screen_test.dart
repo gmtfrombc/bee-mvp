@@ -9,6 +9,7 @@ import 'package:app/features/onboarding/ui/onboarding_screen.dart';
 import 'package:app/core/providers/auth_provider.dart';
 import 'package:app/core/services/auth_service.dart';
 import 'package:app/core/widgets/launch_controller.dart';
+import 'package:go_router/go_router.dart';
 
 class MockAuthService extends Mock implements AuthService {}
 
@@ -25,7 +26,18 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [authServiceProvider.overrideWith((ref) async => mockAuth)],
-        child: const MaterialApp(home: OnboardingScreen()),
+        child: MaterialApp.router(
+          routerConfig: GoRouter(
+            initialLocation: '/',
+            routes: [
+              GoRoute(path: '/', builder: (_, __) => const OnboardingScreen()),
+              GoRoute(
+                path: '/launch',
+                builder: (_, __) => const LaunchController(),
+              ),
+            ],
+          ),
+        ),
       ),
     );
 

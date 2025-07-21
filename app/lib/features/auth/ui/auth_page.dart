@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/services/responsive_service.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/utils/auth_error_mapper.dart';
-import 'package:app/core/widgets/launch_controller.dart';
+import 'package:go_router/go_router.dart';
 import 'login_page.dart';
 import 'confirmation_pending_page.dart';
 import '../../../core/ui/widgets/bee_text_field.dart';
@@ -68,10 +68,7 @@ class _AuthPageState extends ConsumerState<AuthPage> {
         ).showSnackBar(SnackBar(content: Text(msg)));
       } else if (next.hasValue && next.value != null) {
         // Navigate to Home (AppWrapper) once user is authenticated
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const LaunchController()),
-          (route) => false,
-        );
+        context.go('/launch');
       } else if (next.hasValue && next.value == null && _submitted) {
         // No session yet → show confirmation pending
         final email = _emailCtrl.text.trim();

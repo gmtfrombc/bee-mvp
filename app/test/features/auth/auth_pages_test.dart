@@ -1,6 +1,7 @@
 import 'package:app/features/auth/ui/auth_page.dart';
 import 'package:app/features/auth/ui/login_page.dart';
 import 'package:app/core/providers/auth_provider.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -68,7 +69,15 @@ void main() {
             authNotifierProvider.overrideWith(() => stub),
             challengeProvider.overrideWith((ref) => Stream.value([])),
           ],
-          child: const MaterialApp(home: AuthPage()),
+          child: MaterialApp.router(
+            routerConfig: GoRouter(
+              initialLocation: '/',
+              routes: [
+                GoRoute(path: '/', builder: (_, __) => const AuthPage()),
+                GoRoute(path: '/launch', builder: (_, __) => const Scaffold()),
+              ],
+            ),
+          ),
         ),
       );
 
@@ -96,7 +105,15 @@ void main() {
             authNotifierProvider.overrideWith(() => stub),
             challengeProvider.overrideWith((ref) => Stream.value([])),
           ],
-          child: const MaterialApp(home: AuthPage()),
+          child: MaterialApp.router(
+            routerConfig: GoRouter(
+              initialLocation: '/',
+              routes: [
+                GoRoute(path: '/', builder: (_, __) => const AuthPage()),
+                GoRoute(path: '/launch', builder: (_, __) => const Scaffold()),
+              ],
+            ),
+          ),
         ),
       );
 
@@ -138,7 +155,19 @@ void main() {
             authNotifierProvider.overrideWith(() => stub),
             challengeProvider.overrideWith((ref) => Stream.value([])),
           ],
-          child: const MaterialApp(home: LoginPage()),
+          child: MaterialApp.router(
+            routerConfig: GoRouter(
+              initialLocation: '/',
+              routes: [
+                GoRoute(path: '/', builder: (_, __) => const LoginPage()),
+                GoRoute(path: '/launch', builder: (_, __) => const Scaffold()),
+                GoRoute(
+                  path: '/register',
+                  builder: (_, __) => const AuthPage(),
+                ),
+              ],
+            ),
+          ),
         ),
       );
 
@@ -160,7 +189,15 @@ void main() {
             authNotifierProvider.overrideWith(() => stub),
             challengeProvider.overrideWith((ref) => Stream.value([])),
           ],
-          child: const MaterialApp(home: LoginPage()),
+          child: MaterialApp.router(
+            routerConfig: GoRouter(
+              initialLocation: '/',
+              routes: [
+                GoRoute(path: '/', builder: (_, __) => const LoginPage()),
+                GoRoute(path: '/launch', builder: (_, __) => const Scaffold()),
+              ],
+            ),
+          ),
         ),
       );
 
@@ -187,7 +224,15 @@ void main() {
             authNotifierProvider.overrideWith(() => stub),
             challengeProvider.overrideWith((ref) => Stream.value([])),
           ],
-          child: const MaterialApp(home: LoginPage()),
+          child: MaterialApp.router(
+            routerConfig: GoRouter(
+              initialLocation: '/',
+              routes: [
+                GoRoute(path: '/', builder: (_, __) => const LoginPage()),
+                GoRoute(path: '/launch', builder: (_, __) => const Scaffold()),
+              ],
+            ),
+          ),
         ),
       );
 
@@ -214,7 +259,16 @@ void main() {
             authNotifierProvider.overrideWith(() => stub),
             challengeProvider.overrideWith((ref) => Stream.value([])),
           ],
-          child: const MaterialApp(home: AuthPage()),
+          child: MaterialApp.router(
+            routerConfig: GoRouter(
+              initialLocation: '/',
+              routes: [
+                GoRoute(path: '/', builder: (_, __) => const AuthPage()),
+                GoRoute(path: '/launch', builder: (_, __) => const Scaffold()),
+                GoRoute(path: '/login', builder: (_, __) => const LoginPage()),
+              ],
+            ),
+          ),
         ),
       );
 
