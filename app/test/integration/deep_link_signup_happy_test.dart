@@ -7,6 +7,9 @@ import 'package:app/core/providers/supabase_provider.dart';
 import 'package:app/features/auth/ui/confirmation_pending_page.dart';
 import 'package:app/features/onboarding/ui/about_you_page.dart';
 import 'package:app/features/auth/ui/registration_success_page.dart';
+import 'package:app/core/widgets/launch_controller.dart';
+import 'package:go_router/go_router.dart';
+import 'package:app/core/navigation/routes.dart';
 import 'package:app/core/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -51,8 +54,26 @@ void main() {
           authServiceProvider.overrideWith((ref) async => _FakeAuthService()),
           supabaseProvider.overrideWith((ref) async => _FakeClient()),
         ],
-        child: const MaterialApp(
-          home: ConfirmationPendingPage(email: 'happy@test.com'),
+        child: MaterialApp.router(
+          routerConfig: GoRouter(
+            initialLocation: '/confirm',
+            routes: [
+              GoRoute(
+                path: '/confirm',
+                builder:
+                    (_, __) =>
+                        const ConfirmationPendingPage(email: 'happy@test.com'),
+              ),
+              GoRoute(
+                path: '/launch',
+                builder: (_, __) => const LaunchController(),
+              ),
+              GoRoute(
+                path: kOnboardingStep1Route,
+                builder: (_, __) => const AboutYouPage(),
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -14,6 +14,8 @@ import 'package:app/core/providers/supabase_provider.dart';
 import 'package:app/core/providers/auth_provider.dart';
 import 'package:app/core/services/auth_service.dart';
 import 'package:app/core/services/connectivity_service.dart';
+import 'package:go_router/go_router.dart';
+import 'package:app/core/navigation/routes.dart';
 
 /// Simple utility that repeatedly pumps until [matcher] matches or [timeout]
 /// is reached. Copied from `launch_controller_flow_test.dart`.
@@ -101,7 +103,21 @@ void main() {
               currentUserProvider.overrideWith((_) async => fakeUser),
               authServiceProvider.overrideWith((_) async => authService),
             ],
-            child: const MaterialApp(home: LaunchController()),
+            child: MaterialApp.router(
+              routerConfig: GoRouter(
+                initialLocation: '/',
+                routes: [
+                  GoRoute(
+                    path: '/',
+                    builder: (_, __) => const LaunchController(),
+                  ),
+                  GoRoute(
+                    path: kOnboardingStep1Route,
+                    builder: (_, __) => const AboutYouPage(),
+                  ),
+                ],
+              ),
+            ),
           ),
         );
 

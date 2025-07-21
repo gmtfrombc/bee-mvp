@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/services/responsive_service.dart';
-import 'package:app/core/widgets/launch_controller.dart';
+import 'package:go_router/go_router.dart';
 
 /// Simple single-page onboarding screen.
 ///
@@ -51,12 +51,8 @@ class OnboardingScreen extends ConsumerWidget {
                       onPressed: () async {
                         await authService.completeOnboarding();
                         if (context.mounted) {
-                          Navigator.of(context).pushAndRemoveUntil(
-                            MaterialPageRoute(
-                              builder: (_) => const LaunchController(),
-                            ),
-                            (route) => false,
-                          );
+                          // Navigate to the main launch route using go_router.
+                          context.go('/launch');
                         }
                       },
                       child: const Text('Get Started'),

@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/services/responsive_service.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/utils/auth_error_mapper.dart';
-import 'package:app/core/widgets/launch_controller.dart';
+import 'package:go_router/go_router.dart';
 import 'auth_page.dart';
 import '../../../core/ui/widgets/bee_text_field.dart';
 import '../../../core/validators/auth_validators.dart';
@@ -56,10 +56,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           context,
         ).showSnackBar(SnackBar(content: Text(msg)));
       } else if (next.hasValue && next.value != null) {
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const LaunchController()),
-          (route) => false,
-        );
+        context.go('/launch');
       }
     });
 
