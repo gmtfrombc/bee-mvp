@@ -11,6 +11,7 @@ import 'package:app/core/widgets/can_pop_scope.dart';
 import '../../../core/widgets/onboarding_logout_button.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/navigation/routes.dart';
+import 'package:app/features/onboarding/ui/mindset_page.dart';
 
 /// Onboarding step for readiness and confidence assessment (Q10-12).
 ///
@@ -175,7 +176,17 @@ class ReadinessPage extends ConsumerWidget {
       onPressed:
           controller.isReadinessComplete
               ? () {
-                context.push(kOnboardingStep4Route);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Readiness assessment saved!')),
+                );
+                final router = GoRouter.maybeOf(context);
+                if (router != null) {
+                  router.push(kOnboardingStep4Route);
+                } else {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const MindsetPage()),
+                  );
+                }
               }
               : null,
       child: const Text('Continue'),
