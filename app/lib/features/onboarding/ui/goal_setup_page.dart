@@ -3,11 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/services/responsive_service.dart';
 import '../onboarding_controller.dart';
-import 'medical_history_page.dart';
 import '../../../core/widgets/step_progress_bar.dart';
 import 'package:app/core/widgets/can_pop_scope.dart';
 import '../../../core/ui/widgets/bee_text_field.dart';
 import '../../../core/ui/bee_toast.dart';
+import '../../../core/widgets/onboarding_logout_button.dart';
+import 'package:go_router/go_router.dart';
+import '../../../core/navigation/routes.dart';
 
 /// Onboarding step for users to specify their main outcome goal.
 ///
@@ -48,7 +50,10 @@ class _GoalSetupPageState extends ConsumerState<GoalSetupPage> {
 
     return CanPopScope(
       child: Scaffold(
-        appBar: AppBar(title: const Text('Goal Setup')),
+        appBar: AppBar(
+          title: const Text('Goal Setup'),
+          actions: const [OnboardingLogoutButton()],
+        ),
         body: SingleChildScrollView(
           padding: ResponsiveService.getMediumPadding(context),
           child: Form(
@@ -84,11 +89,7 @@ class _GoalSetupPageState extends ConsumerState<GoalSetupPage> {
                               'Goal saved!',
                               type: BeeToastType.success,
                             );
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => const MedicalHistoryPage(),
-                              ),
-                            );
+                            context.push(kOnboardingStep6Route);
                           }
                           : null,
                   child: const Text('Continue'),

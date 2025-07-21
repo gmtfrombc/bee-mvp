@@ -4,9 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/services/responsive_service.dart';
 import '../../../l10n/s.dart';
 import '../onboarding_controller.dart';
-import 'goal_setup_page.dart';
 import '../../../core/widgets/step_progress_bar.dart';
 import 'package:app/core/widgets/can_pop_scope.dart';
+import '../../../core/widgets/onboarding_logout_button.dart';
+import 'package:go_router/go_router.dart';
+import '../../../core/navigation/routes.dart';
 
 /// Onboarding step for mindset & motivation assessment (Q13–16).
 ///
@@ -23,7 +25,10 @@ class MindsetPage extends ConsumerWidget {
 
     return CanPopScope(
       child: Scaffold(
-        appBar: AppBar(title: const Text('Mindset & Motivation')),
+        appBar: AppBar(
+          title: const Text('Mindset & Motivation'),
+          actions: const [OnboardingLogoutButton()],
+        ),
         body: SingleChildScrollView(
           padding: ResponsiveService.getMediumPadding(context),
           child: Column(
@@ -93,14 +98,7 @@ class MindsetPage extends ConsumerWidget {
                 onPressed:
                     controller.isMindsetComplete
                         ? () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Mindset saved!')),
-                          );
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => const GoalSetupPage(),
-                            ),
-                          );
+                          context.push(kOnboardingStep5Route);
                         }
                         : null,
                 child: const Text('Continue'),

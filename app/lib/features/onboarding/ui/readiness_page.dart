@@ -7,8 +7,10 @@ import '../../../core/widgets/step_progress_bar.dart';
 import '../../../l10n/s.dart';
 import '../models/onboarding_draft.dart';
 import '../onboarding_controller.dart';
-import 'mindset_page.dart';
 import 'package:app/core/widgets/can_pop_scope.dart';
+import '../../../core/widgets/onboarding_logout_button.dart';
+import 'package:go_router/go_router.dart';
+import '../../../core/navigation/routes.dart';
 
 /// Onboarding step for readiness and confidence assessment (Q10-12).
 ///
@@ -36,7 +38,10 @@ class ReadinessPage extends ConsumerWidget {
 
     return CanPopScope(
       child: Scaffold(
-        appBar: AppBar(title: const Text('Readiness & Priorities')),
+        appBar: AppBar(
+          title: const Text('Readiness & Priorities'),
+          actions: const [OnboardingLogoutButton()],
+        ),
         body: SingleChildScrollView(
           padding: ResponsiveService.getMediumPadding(context),
           child: Column(
@@ -170,12 +175,7 @@ class ReadinessPage extends ConsumerWidget {
       onPressed:
           controller.isReadinessComplete
               ? () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Readiness assessment saved!')),
-                );
-                Navigator.of(
-                  context,
-                ).push(MaterialPageRoute(builder: (_) => const MindsetPage()));
+                context.push(kOnboardingStep4Route);
               }
               : null,
       child: const Text('Continue'),
