@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'auth_page.dart';
 import '../../../core/ui/widgets/bee_text_field.dart';
 import '../../../core/validators/auth_validators.dart';
+import '../../../core/navigation/routes.dart';
 
 /// Login screen for existing users.
 /// Implements validation, loading & error handling.
@@ -98,9 +99,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               SizedBox(height: spacing),
               TextButton(
                 onPressed: () {
-                  Navigator.of(
-                    context,
-                  ).push(MaterialPageRoute(builder: (_) => const AuthPage()));
+                  // Use GoRouter to launch the registration flow so subsequent
+                  // navigation remains inside the router tree.
+                  context.push(kAuthRoute);
                 },
                 child: const Text("Don't have an account? Create one"),
               ),

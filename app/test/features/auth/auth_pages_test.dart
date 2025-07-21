@@ -160,11 +160,8 @@ void main() {
               initialLocation: '/',
               routes: [
                 GoRoute(path: '/', builder: (_, __) => const LoginPage()),
+                GoRoute(path: '/auth', builder: (_, __) => const AuthPage()),
                 GoRoute(path: '/launch', builder: (_, __) => const Scaffold()),
-                GoRoute(
-                  path: '/register',
-                  builder: (_, __) => const AuthPage(),
-                ),
               ],
             ),
           ),
@@ -194,6 +191,7 @@ void main() {
               initialLocation: '/',
               routes: [
                 GoRoute(path: '/', builder: (_, __) => const LoginPage()),
+                GoRoute(path: '/auth', builder: (_, __) => const AuthPage()),
                 GoRoute(path: '/launch', builder: (_, __) => const Scaffold()),
               ],
             ),
@@ -229,6 +227,7 @@ void main() {
               initialLocation: '/',
               routes: [
                 GoRoute(path: '/', builder: (_, __) => const LoginPage()),
+                GoRoute(path: '/auth', builder: (_, __) => const AuthPage()),
                 GoRoute(path: '/launch', builder: (_, __) => const Scaffold()),
               ],
             ),
@@ -261,11 +260,11 @@ void main() {
           ],
           child: MaterialApp.router(
             routerConfig: GoRouter(
-              initialLocation: '/',
+              initialLocation: '/auth',
               routes: [
-                GoRoute(path: '/', builder: (_, __) => const AuthPage()),
+                GoRoute(path: '/', builder: (_, __) => const LoginPage()),
+                GoRoute(path: '/auth', builder: (_, __) => const AuthPage()),
                 GoRoute(path: '/launch', builder: (_, __) => const Scaffold()),
-                GoRoute(path: '/login', builder: (_, __) => const LoginPage()),
               ],
             ),
           ),

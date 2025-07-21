@@ -134,9 +134,20 @@ class _AuthPageState extends ConsumerState<AuthPage> {
               SizedBox(height: spacing),
               TextButton(
                 onPressed: () {
-                  Navigator.of(
-                    context,
-                  ).push(MaterialPageRoute(builder: (_) => const LoginPage()));
+                  // If inside GoRouter, simply pop back to the previous route
+                  // (LoginPage at '/'). Fallback to Navigator.pop when router
+                  // is absent (e.g., unit tests using MaterialApp).
+                  final router = GoRouter.maybeOf(context);
+                  if (router != null) {
+                    if (Navigator.of(context).canPop()) {
+                      context.pop();
+                    } else {
+                      // No back stack – go to root which shows LoginPage.
+                      context.go('/');
+                    }
+                  } else {
+                    Navigator.of(context).pop();
+                  }
                 },
                 child: const Text('Already have an account? Log in'),
               ),
