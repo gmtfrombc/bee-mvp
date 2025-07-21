@@ -8,6 +8,7 @@ import '../onboarding_completion_controller.dart';
 import '../onboarding_controller.dart';
 import '../../../core/widgets/step_progress_bar.dart';
 import 'package:app/core/widgets/can_pop_scope.dart';
+import '../../../core/widgets/onboarding_logout_button.dart';
 
 /// Onboarding step for selecting relevant medical conditions (Section 6).
 class MedicalHistoryPage extends ConsumerWidget {
@@ -27,7 +28,10 @@ class MedicalHistoryPage extends ConsumerWidget {
 
     return CanPopScope(
       child: Scaffold(
-        appBar: AppBar(title: const Text('Medical History')),
+        appBar: AppBar(
+          title: const Text('Medical History'),
+          actions: const [OnboardingLogoutButton()],
+        ),
         body: CustomScrollView(
           slivers: [
             SliverToBoxAdapter(

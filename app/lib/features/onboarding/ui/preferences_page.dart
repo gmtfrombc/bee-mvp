@@ -3,11 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/services/responsive_service.dart';
 import '../../../core/theme/app_theme.dart';
-import 'readiness_page.dart';
 import '../onboarding_controller.dart';
 import '../../../core/mixins/input_validator.dart';
 import '../../../core/widgets/step_progress_bar.dart';
 import 'package:app/core/widgets/can_pop_scope.dart';
+import '../../../core/widgets/onboarding_logout_button.dart';
+import 'package:go_router/go_router.dart';
+import '../../../core/navigation/routes.dart';
 
 /// Onboarding step 2 – lets users pick 1–5 lifestyle preference areas.
 class PreferencesPage extends ConsumerWidget {
@@ -22,7 +24,10 @@ class PreferencesPage extends ConsumerWidget {
 
     return CanPopScope(
       child: Scaffold(
-        appBar: AppBar(title: const Text('Your Preferences')),
+        appBar: AppBar(
+          title: const Text('Your Preferences'),
+          actions: const [OnboardingLogoutButton()],
+        ),
         body: Padding(
           padding: ResponsiveService.getMediumPadding(context),
           child: Column(
@@ -49,11 +54,7 @@ class PreferencesPage extends ConsumerWidget {
                 onPressed:
                     draft.preferences.isNotEmpty
                         ? () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => const ReadinessPage(),
-                            ),
-                          );
+                          context.push(kOnboardingStep3Route);
                         }
                         : null,
                 child: const Text('Continue'),

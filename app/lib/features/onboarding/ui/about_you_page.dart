@@ -10,6 +10,7 @@ import '../../../core/mixins/input_validator.dart';
 import '../../../core/widgets/step_progress_bar.dart';
 import 'package:app/core/widgets/can_pop_scope.dart';
 import '../../../core/ui/widgets/bee_text_field.dart';
+import '../../../core/widgets/onboarding_logout_button.dart';
 
 /// First onboarding page collecting basic demographic information.
 class AboutYouPage extends ConsumerStatefulWidget {
@@ -45,7 +46,10 @@ class _AboutYouPageState extends ConsumerState<AboutYouPage> {
 
     return CanPopScope(
       child: Scaffold(
-        appBar: AppBar(title: const Text('Tell us about you')),
+        appBar: AppBar(
+          title: const Text('Tell us about you'),
+          actions: const [OnboardingLogoutButton()],
+        ),
         body: SingleChildScrollView(
           padding: ResponsiveService.getMediumPadding(context),
           child: Form(
