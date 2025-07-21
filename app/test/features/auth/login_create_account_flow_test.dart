@@ -1,4 +1,6 @@
 @Skip('Flow covered by widget tests; skip for now due to GoRouter flakiness')
+library login_create_account_flow_test;
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:app/features/auth/ui/login_page.dart';
 import 'package:app/features/auth/ui/auth_page.dart';

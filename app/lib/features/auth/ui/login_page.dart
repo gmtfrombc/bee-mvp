@@ -7,7 +7,6 @@ import '../../../core/utils/auth_error_mapper.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/ui/widgets/bee_text_field.dart';
 import '../../../core/validators/auth_validators.dart';
-import '../../../core/navigation/routes.dart';
 import 'auth_page.dart';
 
 /// Login screen for existing users.
