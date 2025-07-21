@@ -1,6 +1,5 @@
 import 'package:app/core/providers/auth_provider.dart';
 import 'package:app/core/providers/supabase_provider.dart';
-import 'package:app/core/widgets/launch_controller.dart';
 import 'package:app/features/auth/ui/login_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,6 +8,8 @@ import 'package:mocktail/mocktail.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:app/core/services/auth_service.dart';
 import 'package:app/core/models/profile.dart';
+import 'package:go_router/go_router.dart';
+import 'package:app/core/widgets/launch_controller.dart';
 
 class _FakeClient extends Mock implements SupabaseClient {}
 
@@ -72,11 +73,24 @@ void main() {
           authServiceProvider.overrideWith((ref) async => _AuthServiceError()),
           authNotifierProvider.overrideWith(() => _StubAuthNotifier()),
         ],
-        child: const MaterialApp(home: LaunchController()),
+        child: MaterialApp.router(
+          routerConfig: GoRouter(
+            initialLocation: '/',
+            routes: [
+              GoRoute(path: '/', builder: (_, __) => const LaunchController()),
+              GoRoute(path: '/launch', builder: (_, __) => const LoginPage()),
+            ],
+          ),
+        ),
       ),
     );
 
     await tester.pumpAndSettle();
+
+    // Allow splash delay & async signOut to complete.
+    await tester.pumpAndSettle(const Duration(seconds: 3));
+
+    // No additional assertions needed; LoginPage should be rendered.
 
     expect(find.byType(LoginPage), findsOneWidget);
   });
