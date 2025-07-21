@@ -288,7 +288,7 @@ class BEEApp extends ConsumerWidget {
       PlatformRouteInformationProvider(
         initialRouteInformation: RouteInformation(
           uri: Uri.parse('/'),
-          state: '/',
+          state: <String, Object?>{},
         ),
       ),
     );
