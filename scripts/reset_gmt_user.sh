@@ -75,7 +75,33 @@ trap 'rm -f "$TMP_SQL_FILE"' EXIT
 echo "$SQL" > "$TMP_SQL_FILE"
 
 # Execute the SQL using psql (works regardless of Supabase CLI version)
-PGPASSWORD="$SUPABASE_DB_PASSWORD" \
+if PGPASSWORD="$SUPABASE_DB_PASSWORD" \
 psql "postgresql://postgres:$SUPABASE_DB_PASSWORD@db.$SUPABASE_PROJECT_REF.supabase.co:6543/postgres" \
-  -f "$TMP_SQL_FILE" && \
-  echo "✅  Reset script completed – check NOTICE messages above for row counts." 
+  -f "$TMP_SQL_FILE" ; then
+  echo "✅  Reset script completed – check NOTICE messages above for row counts."
+else
+  echo "⚠️  Direct DB connection failed – falling back to Supabase Admin API over HTTPS..."
+
+  API_URL="https://$SUPABASE_PROJECT_REF.supabase.co"
+  AUTH_HDR=( -H "apikey: $SERVICE_ROLE_SECRET" -H "Authorization: Bearer $SERVICE_ROLE_SECRET" -H "Content-Type: application/json" )
+
+  # 1) Lookup the user ID via Admin API
+  USER_JSON=$(curl -s "${AUTH_HDR[@]}" "$API_URL/auth/v1/admin/users?email=eq.$EMAIL")
+  USER_ID=$(echo "$USER_JSON" | grep -oE '"id":"[^\"]+' | head -1 | cut -d':' -f2 | tr -d '"')
+
+  if [ -z "$USER_ID" ]; then
+    echo "User $EMAIL not found – nothing to delete."
+    exit 0
+  fi
+
+  # 2) Delete domain rows via PostgREST endpoints
+  curl -s -X DELETE "${AUTH_HDR[@]}" "$API_URL/rest/v1/action_steps?user_id=eq.$USER_ID" >/dev/null
+  curl -s -X DELETE "${AUTH_HDR[@]}" "$API_URL/rest/v1/onboarding_responses?user_id=eq.$USER_ID" >/dev/null
+  curl -s -X DELETE "${AUTH_HDR[@]}" "$API_URL/rest/v1/pes_entries?user_id=eq.$USER_ID" >/dev/null
+  curl -s -X DELETE "${AUTH_HDR[@]}" "$API_URL/rest/v1/profiles?id=eq.$USER_ID" >/dev/null
+
+  # 3) Delete the Auth user record
+  curl -s -X DELETE "${AUTH_HDR[@]}" "$API_URL/auth/v1/admin/users/$USER_ID" >/dev/null
+
+  echo "✅  Reset completed via Admin API."
+fi 
