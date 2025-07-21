@@ -24,6 +24,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/services/auth_session_service.dart';
 import 'package:app/core/navigation/routes.dart';
 import 'features/action_steps/providers/momentum_listener_provider.dart';
+import 'package:flutter/foundation.dart';
 
 // Global instance to share across app
 final AuthSessionService authSessionService = AuthSessionService();
@@ -35,6 +36,11 @@ void main() async {
     // Initialize environment configuration
     await Environment.initialize();
     debugPrint('✅ Environment initialized');
+
+    // Debug: print masked environment config in development builds
+    if (kDebugMode) {
+      Environment.printConfig();
+    }
 
     // Initialize Supabase early so that session restoration can occur before runApp
     await Supabase.initialize(

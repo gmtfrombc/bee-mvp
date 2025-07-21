@@ -47,6 +47,12 @@ The document covers:
 Because the app skips onboarding when `profiles.onboarding_complete = TRUE`, we
 must delete the user between runs. Do this **before** each new test cycle.
 
+***CLI COMMAND***
+
+scripts/reset_gmt_user.sh 
+
+**SUPABASE SQL EDITOR**
+
 1. Open Supabase → SQL Editor
 2. Replace `<EMAIL>` in the block below and **Run**:
 
