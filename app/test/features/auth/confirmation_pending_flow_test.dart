@@ -10,17 +10,20 @@ import 'package:mocktail/mocktail.dart';
 import 'package:app/core/providers/supabase_provider.dart';
 
 class _StubAuthNotifier extends AsyncNotifier<User?> implements AuthNotifier {
+  // Helper fake user & state emitters
+  void emitSuccess() => state = AsyncValue.data(_FakeUser());
+
   @override
   Future<User?> build() async => null;
 
   @override
-  Future<void> signUpWithEmail({
+  Future<AuthResponse> signUpWithEmail({
     required String email,
     required String password,
     String? name,
   }) async {
-    // Emit value with no session (null) to simulate email verification required.
-    state = const AsyncValue.data(null);
+    emitSuccess();
+    return AuthResponse(session: null, user: _FakeUser());
   }
 
   // Other methods unused in this test
@@ -39,6 +42,9 @@ class _StubAuthNotifier extends AsyncNotifier<User?> implements AuthNotifier {
     String? redirectTo,
   }) async {}
 }
+
+// Simple fake Supabase user for tests
+class _FakeUser extends Fake implements User {}
 
 class _FakeClient extends Mock implements SupabaseClient {}
 

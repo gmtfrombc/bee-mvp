@@ -78,22 +78,27 @@ class AuthNotifier extends AsyncNotifier<User?> {
     }
   }
 
-  /// Sign up with email and password
-  Future<void> signUpWithEmail({
+  /// Sign up with email and password.
+  ///
+  /// Returns the raw [AuthResponse] so UI code can determine whether the
+  /// backend created a session or the user still needs to confirm e-mail.
+  Future<AuthResponse> signUpWithEmail({
     required String email,
     required String password,
     String? name,
   }) async {
     state = const AsyncValue.loading();
     try {
-      await _authService!.signUpWithEmail(
+      final response = await _authService!.signUpWithEmail(
         email: email,
         password: password,
         name: name,
       );
       state = AsyncValue.data(_authService!.currentUser);
+      return response;
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
+      rethrow;
     }
   }
 
