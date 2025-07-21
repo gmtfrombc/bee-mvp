@@ -6,7 +6,7 @@ import '../../../core/providers/auth_provider.dart';
 import '../../../core/utils/auth_error_mapper.dart';
 import 'package:go_router/go_router.dart';
 import 'login_page.dart';
-import 'confirmation_pending_page.dart';
+import '../../../core/navigation/routes.dart';
 import '../../../core/ui/widgets/bee_text_field.dart';
 import '../../../core/validators/auth_validators.dart';
 
@@ -72,12 +72,9 @@ class _AuthPageState extends ConsumerState<AuthPage> {
       } else if (next.hasValue && next.value == null && _submitted) {
         // No session yet → show confirmation pending
         final email = _emailCtrl.text.trim();
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(
-            builder: (_) => ConfirmationPendingPage(email: email),
-          ),
-          (route) => false,
-        );
+        // Navigate to the confirmation pending screen using go_router to avoid
+        // imperative Navigator calls that conflict with page-based routing.
+        context.go(kConfirmRoute, extra: email);
       }
     });
 
