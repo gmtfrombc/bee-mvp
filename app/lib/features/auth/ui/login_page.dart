@@ -98,7 +98,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               SizedBox(height: spacing),
               TextButton(
                 onPressed: () {
+                  debugPrint('👉 Create Account tapped');
                   context.go(kAuthRoute);
+                  Future.delayed(const Duration(milliseconds: 300), () {
+                    debugPrint('⏱ 300ms later callback');
+                  });
                 },
                 child: const Text("Don't have an account? Create one"),
               ),
