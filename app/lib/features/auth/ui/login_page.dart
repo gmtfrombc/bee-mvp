@@ -99,7 +99,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               TextButton(
                 onPressed: () {
                   debugPrint('🔑 Create Account tapped');
-                  context.go(kAuthRoute);
+                  context.push(kAuthRoute);
                 },
                 child: const Text("Don't have an account? Create one"),
               ),
