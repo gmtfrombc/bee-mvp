@@ -25,7 +25,6 @@ import 'package:app/core/navigation/routes.dart';
 import 'features/action_steps/providers/momentum_listener_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
-import 'package:app/core/navigation/filtering_route_information_provider.dart';
 import 'package:go_router/go_router.dart' as gor;
 
 // Global instance to share across app
@@ -283,17 +282,18 @@ class BEEApp extends ConsumerWidget {
 
   // Static instances to prevent recreation on every build
   static bool _debugSetup = false;
-  static final routeInfoProvider = FilteringRouteInformationProvider(
-    PlatformRouteInformationProvider(
-      initialRouteInformation: RouteInformation(
-        uri: Uri.parse('/'),
-        state: {
-          'location': '/',
-          'state': {'codec': 'json', 'encoded': 'null'},
-        },
-      ),
-    ),
-  );
+  // Temporarily bypass custom provider to test
+  // static final routeInfoProvider = FilteringRouteInformationProvider(
+  //   PlatformRouteInformationProvider(
+  //     initialRouteInformation: RouteInformation(
+  //       uri: Uri.parse('/'),
+  //       state: {
+  //         'location': '/',
+  //         'state': {'codec': 'json', 'encoded': 'null'},
+  //       },
+  //     ),
+  //   ),
+  // );
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -310,7 +310,7 @@ class BEEApp extends ConsumerWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: themeMode,
-      routeInformationProvider: routeInfoProvider,
+      // routeInformationProvider: routeInfoProvider,  // Use default
       routeInformationParser: appRouter.routeInformationParser,
       routerDelegate: appRouter.routerDelegate,
       backButtonDispatcher: appRouter.backButtonDispatcher,

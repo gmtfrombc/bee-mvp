@@ -132,9 +132,14 @@ final GoRouter appRouter = GoRouter(
   debugLogDiagnostics: true,
   observers: [LoggingNavigatorObserver()],
   navigatorKey: GlobalKey<NavigatorState>(),
-  redirect:
-      _onboardingGuard
-          .call, // Ensures onboarding is complete before accessing other routes
+  redirect: (context, state) {
+    debugPrint(
+      'REDIRECT_CALLED: for ${state.uri} (path=${state.path}, fullPath=${state.fullPath})',
+    );
+    final result = _onboardingGuard.call(context, state);
+    debugPrint('REDIRECT_RESULT: $result');
+    return result;
+  },
   routes: [
     // --- Absolute paths (placed before other routes) ---
     GoRoute(
@@ -263,6 +268,15 @@ final GoRouter appRouter = GoRouter(
 
 /// Sets up debugging listeners for GoRouter to diagnose navigation issues
 void setupRouterDebugging() {
+  // Dump all routes for debugging
+  debugPrint('ROUTER_SETUP: Available routes:');
+  for (int i = 0; i < appRouter.configuration.routes.length; i++) {
+    final route = appRouter.configuration.routes[i];
+    if (route is GoRoute) {
+      debugPrint('  Route $i: path="${route.path}", name="${route.name}"');
+    }
+  }
+
   appRouter.routerDelegate.addListener(() {
     debugPrint(
       'ROUTER_DELEGATE changed: current=${appRouter.routerDelegate.currentConfiguration.uri}',
