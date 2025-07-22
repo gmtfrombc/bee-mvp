@@ -22,6 +22,22 @@ import 'package:app/features/today_feed/domain/models/today_feed_content.dart';
 import 'package:app/features/ai_coach/ui/coach_chat_screen.dart';
 import 'package:app/features/wearable/ui/live_vitals_developer_screen.dart';
 import 'package:app/features/auth/ui/password_reset_page.dart';
+import 'package:flutter/cupertino.dart';
+
+/// Simple observer that logs push/pop events for diagnostics only.
+class LoggingNavigatorObserver extends NavigatorObserver {
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    debugPrint('🛣 didPush: ${route.settings.name ?? route.settings}');
+    super.didPush(route, previousRoute);
+  }
+
+  @override
+  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    debugPrint('🛣 didPop : ${route.settings.name ?? route.settings}');
+    super.didPop(route, previousRoute);
+  }
+}
 
 /// Centralized route constants for the app.
 const String kOnboardingStep1Route = '/onboarding/step1';
@@ -78,6 +94,7 @@ String? _onboardingStepGuard(BuildContext context, int step) {
 }
 
 final GoRouter appRouter = GoRouter(
+  observers: [LoggingNavigatorObserver()],
   redirect:
       _onboardingGuard
           .call, // Ensures onboarding is complete before accessing other routes
