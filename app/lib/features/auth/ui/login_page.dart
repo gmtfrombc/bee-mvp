@@ -99,7 +99,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               TextButton(
                 onPressed: () {
                   debugPrint('👉 Create Account tapped');
-                  context.go(kAuthRoute);
+                  context.push(kAuthRoute);
                   Future.delayed(const Duration(milliseconds: 300), () {
                     debugPrint('⏱ 300ms later callback');
                   });
