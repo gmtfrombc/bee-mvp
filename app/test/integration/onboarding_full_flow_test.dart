@@ -20,6 +20,7 @@ import 'package:app/features/onboarding/onboarding_controller.dart';
 import 'package:app/core/models/medical_history.dart';
 import 'package:app/core/services/auth_service.dart';
 import 'package:app/features/onboarding/onboarding_completion_controller.dart';
+import 'package:app/features/auth/ui/login_page.dart';
 
 // ---------------------------------------------------------------------------
 // Test doubles & helpers
@@ -139,9 +140,10 @@ void main() {
             builder: (_, __) => const MedicalHistoryPage(),
           ),
           GoRoute(
-            path: '/launch',
+            path: '/',
             builder: (_, __) => const Scaffold(body: Text('Launch')),
           ),
+          GoRoute(path: '/login', builder: (_, __) => const LoginPage()),
         ],
       );
 

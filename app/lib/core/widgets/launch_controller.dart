@@ -7,6 +7,7 @@ import 'package:app/features/auth/ui/login_page.dart';
 import 'package:app/main.dart';
 import 'package:app/core/models/profile.dart';
 import 'package:app/features/auth/ui/registration_success_page.dart';
+import 'package:go_router/go_router.dart';
 
 // Human-visible splash: show for ~1.5 s (UX best-practice is 1-2 s)
 const Duration _minSplashDuration = Duration(milliseconds: 1500);
@@ -40,6 +41,9 @@ class LaunchController extends ConsumerWidget {
     final delayAsync = ref.watch(_delayProvider);
 
     if (supabaseAsync.isLoading || delayAsync.isLoading) {
+      debugPrint(
+        '🌀 LaunchController: waiting – supabase=${supabaseAsync.isLoading} delay=${delayAsync.isLoading}',
+      );
       return const SplashScreen();
     }
 
@@ -55,9 +59,15 @@ class LaunchController extends ConsumerWidget {
 
     // Once Supabase is ready, determine auth state.
     final userAsync = ref.watch(currentUserProvider);
+    debugPrint(
+      '👤 LaunchController: currentUserProvider state = ${userAsync.runtimeType}',
+    );
 
     return userAsync.when(
-      loading: () => const SplashScreen(),
+      loading: () {
+        debugPrint('⏳ LaunchController: userAsync loading');
+        return const SplashScreen();
+      },
       error:
           (err, _) => _ErrorScreen(
             error: err,
@@ -66,9 +76,17 @@ class LaunchController extends ConsumerWidget {
             },
           ),
       data: (user) {
+        debugPrint('📊 LaunchController: user data resolved = $user');
         if (user == null) {
-          // No session → show login/registration UI.
-          return const LoginPage();
+          // No session → redirect to /login so routing stays flat.
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (context.mounted) {
+              context.go('/login');
+            }
+          });
+          // While redirection happens, keep showing splash.
+          debugPrint('🔀 LaunchController: redirecting to /login');
+          return const SplashScreen();
         }
 
         // Authenticated – decide onboarding.
@@ -78,11 +96,17 @@ class LaunchController extends ConsumerWidget {
           loading: () => const SplashScreen(),
           error: (err, _) {
             // If profile fetch fails (e.g., user deleted – stale session),
-            // automatically purge local session and return to LoginPage.
+            // automatically purge local session and redirect to /login.
             WidgetsBinding.instance.addPostFrameCallback((_) {
               ref.read(authNotifierProvider.notifier).signOut();
+              if (context.mounted) {
+                context.go('/login');
+              }
             });
-            return const LoginPage();
+            debugPrint(
+              '🔀 LaunchController: stale session redirecting to /login',
+            );
+            return const SplashScreen();
           },
           data: (profile) {
             final needsOnboarding =

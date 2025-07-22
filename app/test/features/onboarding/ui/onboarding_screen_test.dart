@@ -10,6 +10,7 @@ import 'package:app/core/providers/auth_provider.dart';
 import 'package:app/core/services/auth_service.dart';
 import 'package:app/core/widgets/launch_controller.dart';
 import 'package:go_router/go_router.dart';
+import 'package:app/features/auth/ui/login_page.dart';
 
 class MockAuthService extends Mock implements AuthService {}
 
@@ -28,13 +29,14 @@ void main() {
         overrides: [authServiceProvider.overrideWith((ref) async => mockAuth)],
         child: MaterialApp.router(
           routerConfig: GoRouter(
-            initialLocation: '/',
+            initialLocation: '/onboarding',
             routes: [
-              GoRoute(path: '/', builder: (_, __) => const OnboardingScreen()),
               GoRoute(
-                path: '/launch',
-                builder: (_, __) => const LaunchController(),
+                path: '/onboarding',
+                builder: (_, __) => const OnboardingScreen(),
               ),
+              GoRoute(path: '/', builder: (_, __) => const LaunchController()),
+              GoRoute(path: '/login', builder: (_, __) => const LoginPage()),
             ],
           ),
         ),

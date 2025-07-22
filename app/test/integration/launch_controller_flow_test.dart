@@ -1,6 +1,7 @@
 // ignore_for_file: unused_import, unused_element
 import 'package:app/core/models/profile.dart';
 import 'package:app/core/widgets/launch_controller.dart';
+import 'package:go_router/go_router.dart';
 import 'package:app/features/auth/ui/login_page.dart';
 import 'package:app/features/auth/ui/registration_success_page.dart';
 import 'package:flutter/material.dart';
@@ -80,11 +81,22 @@ void main() {
             supabaseProvider.overrideWith((ref) async => _FakeClient()),
             currentUserProvider.overrideWith((ref) async => null),
           ],
-          child: const MaterialApp(home: LaunchController()),
+          child: MaterialApp.router(
+            routerConfig: GoRouter(
+              initialLocation: '/',
+              routes: [
+                GoRoute(
+                  path: '/',
+                  builder: (_, __) => const LaunchController(),
+                ),
+                GoRoute(path: '/login', builder: (_, __) => const LoginPage()),
+              ],
+            ),
+          ),
         ),
       );
 
-      await tester.pumpAndSettle(const Duration(seconds: 1));
+      await tester.pumpAndSettle(const Duration(seconds: 2));
       expect(find.byType(LoginPage), findsOneWidget);
     });
 
@@ -108,11 +120,22 @@ void main() {
                   _FakeAuthService(user: fakeUser, profile: fakeProfile),
             ),
           ],
-          child: const MaterialApp(home: LaunchController()),
+          child: MaterialApp.router(
+            routerConfig: GoRouter(
+              initialLocation: '/',
+              routes: [
+                GoRoute(
+                  path: '/',
+                  builder: (_, __) => const LaunchController(),
+                ),
+                GoRoute(path: '/login', builder: (_, __) => const LoginPage()),
+              ],
+            ),
+          ),
         ),
       );
 
-      await tester.pumpAndSettle(const Duration(seconds: 1));
+      await tester.pumpAndSettle(const Duration(seconds: 2));
       expect(find.byType(RegistrationSuccessPage), findsOneWidget);
     });
 

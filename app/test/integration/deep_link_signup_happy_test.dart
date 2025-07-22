@@ -16,6 +16,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:app/features/auth/ui/login_page.dart';
 
 class _FakeClient extends Mock implements SupabaseClient {}
 
@@ -64,10 +65,8 @@ void main() {
                     (_, __) =>
                         const ConfirmationPendingPage(email: 'happy@test.com'),
               ),
-              GoRoute(
-                path: '/launch',
-                builder: (_, __) => const LaunchController(),
-              ),
+              GoRoute(path: '/', builder: (_, __) => const LaunchController()),
+              GoRoute(path: '/login', builder: (_, __) => const LoginPage()),
               GoRoute(
                 path: kOnboardingStep1Route,
                 builder: (_, __) => const AboutYouPage(),
@@ -84,7 +83,7 @@ void main() {
     controller.add(AuthState(AuthChangeEvent.signedIn, _FakeSession()));
 
     // Wait until success page appears.
-    await tester.pumpAndSettle(const Duration(seconds: 1));
+    await tester.pumpAndSettle(const Duration(seconds: 3));
 
     expect(find.byType(RegistrationSuccessPage), findsOneWidget);
 

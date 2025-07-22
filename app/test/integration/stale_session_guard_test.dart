@@ -81,7 +81,7 @@ void main() {
             initialLocation: '/',
             routes: [
               GoRoute(path: '/', builder: (_, __) => const LaunchController()),
-              GoRoute(path: '/launch', builder: (_, __) => const LoginPage()),
+              GoRoute(path: '/login', builder: (_, __) => const LoginPage()),
             ],
           ),
         ),
