@@ -99,6 +99,7 @@ final GoRouter appRouter = GoRouter(
       _onboardingGuard
           .call, // Ensures onboarding is complete before accessing other routes
   routes: [
+<<<<<<< HEAD
     GoRoute(
       path: '/',
       builder: (context, state) => const LaunchController(),
@@ -117,6 +118,10 @@ final GoRouter appRouter = GoRouter(
     ),
     // Expose an explicit "/launch" alias so other modules can navigate
     // without relying on the root path constant.
+=======
+    // Root route now has no nested children to avoid duplicate full paths.
+    GoRoute(path: '/', builder: (context, state) => const LaunchController()),
+>>>>>>> e737ff1 (fix(routes): remove nested 'confirm' child to prevent duplicate route definitions causing /auth push silently fail)
     GoRoute(
       path: '/launch',
       builder: (context, state) => const LaunchController(),
