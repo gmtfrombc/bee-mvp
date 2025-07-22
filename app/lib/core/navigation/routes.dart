@@ -9,10 +9,11 @@ import 'package:app/features/onboarding/ui/goal_setup_page.dart';
 import 'package:app/features/onboarding/ui/medical_history_page.dart';
 import 'package:app/features/onboarding/onboarding_controller.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:app/features/action_steps/ui/action_step_setup_page.dart';
 import 'package:app/features/auth/ui/confirmation_pending_page.dart';
 import 'package:app/features/auth/ui/auth_page.dart';
+import 'package:app/features/auth/ui/login_page.dart';
 import 'package:app/features/momentum/presentation/screens/notification_settings_screen.dart';
 import 'package:app/features/momentum/presentation/screens/profile_settings_screen.dart';
 import 'package:app/features/gamification/ui/achievements_screen.dart';
@@ -22,7 +23,6 @@ import 'package:app/features/today_feed/domain/models/today_feed_content.dart';
 import 'package:app/features/ai_coach/ui/coach_chat_screen.dart';
 import 'package:app/features/wearable/ui/live_vitals_developer_screen.dart';
 import 'package:app/features/auth/ui/password_reset_page.dart';
-import 'package:flutter/cupertino.dart';
 
 /// Simple observer that logs push/pop events for diagnostics only.
 class LoggingNavigatorObserver extends NavigatorObserver {
@@ -50,6 +50,7 @@ const String kActionStepSetupRoute = '/action-step/setup';
 // Route constants
 const String kConfirmRoute = '/confirm';
 const String kAuthRoute = '/auth';
+const String kLoginRoute = '/login';
 
 // NEW ROUTE CONSTANTS
 const String kNotificationsRoute = '/notifications';
@@ -101,7 +102,22 @@ final GoRouter appRouter = GoRouter(
           .call, // Ensures onboarding is complete before accessing other routes
   routes: [
     // --- Absolute paths (placed before other routes) ---
-    GoRoute(path: kAuthRoute, builder: (_, __) => const AuthPage()),
+    GoRoute(
+      path: kLoginRoute,
+      pageBuilder:
+          (_, __) => const MaterialPage<void>(
+            key: ValueKey('LoginPage'),
+            child: LoginPage(),
+          ),
+    ),
+    GoRoute(
+      path: kAuthRoute,
+      pageBuilder:
+          (_, __) => const MaterialPage<void>(
+            key: ValueKey('AuthPage'),
+            child: AuthPage(),
+          ),
+    ),
     GoRoute(
       path: kConfirmRoute,
       builder: (_, state) {

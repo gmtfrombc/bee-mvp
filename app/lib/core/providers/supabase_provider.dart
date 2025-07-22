@@ -73,6 +73,7 @@ class OnboardingGuard {
 
     // Always allow auth & confirmation pages to avoid redirect loops.
     if (state.uri.toString() == '/auth' ||
+        state.uri.toString() == '/login' ||
         state.uri.toString().startsWith('/confirm')) {
       debugPrint('🛡️ Guard OUT: auth/confirm route – no redirect');
       return null;
