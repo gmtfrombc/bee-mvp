@@ -285,6 +285,11 @@ class BEEApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
 
+    // Setup router debugging in debug mode
+    if (kDebugMode) {
+      setupRouterDebugging();
+    }
+
     // Provide a minimal state map that matches go_router’s expected schema
     // {location, state:{codec,json,encoded}}
     final Map<String, Object?> encodedState = {

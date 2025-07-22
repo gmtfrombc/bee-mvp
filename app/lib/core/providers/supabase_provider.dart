@@ -70,12 +70,17 @@ class OnboardingGuard {
   /// allow navigation to proceed.
   FutureOr<String?> call(BuildContext context, GoRouterState state) async {
     debugPrint('🛡️ Guard IN : ${state.uri.toString()}');
+    debugPrint(
+      '🛡️ Guard details: fullPath=${state.fullPath}, path=${state.path}, name=${state.name}',
+    );
 
     // Always allow auth & confirmation pages to avoid redirect loops.
     if (state.uri.toString() == '/auth' ||
         state.uri.toString() == '/login' ||
         state.uri.toString().startsWith('/confirm')) {
-      debugPrint('🛡️ Guard OUT: auth/confirm route – no redirect');
+      debugPrint(
+        '🛡️ Guard OUT: auth/login/confirm route "${state.uri}" – no redirect',
+      );
       return null;
     }
 

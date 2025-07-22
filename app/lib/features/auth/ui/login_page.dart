@@ -105,9 +105,21 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     debugPrint(
                       '📍 BEFORE go(): router.uri = ${router.routeInformationProvider.value.uri}',
                     );
+                    debugPrint(
+                      '📍 BEFORE go(): current location = ${router.routerDelegate.currentConfiguration.uri}',
+                    );
+                    debugPrint(
+                      '📍 BEFORE go(): navigator pages = ${router.routerDelegate.currentConfiguration.matches.map((m) => m.matchedLocation).toList()}',
+                    );
                     router.go(kAuthRoute);
                     debugPrint(
                       '📍 AFTER go():  router.uri = ${router.routeInformationProvider.value.uri}',
+                    );
+                    debugPrint(
+                      '📍 AFTER go():  current location = ${router.routerDelegate.currentConfiguration.uri}',
+                    );
+                    debugPrint(
+                      '📍 AFTER go():  navigator pages = ${router.routerDelegate.currentConfiguration.matches.map((m) => m.matchedLocation).toList()}',
                     );
                   } else {
                     Navigator.of(

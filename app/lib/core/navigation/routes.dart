@@ -29,13 +29,47 @@ class LoggingNavigatorObserver extends NavigatorObserver {
   @override
   void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
     debugPrint('🛣 didPush: ${route.settings.name ?? route.settings}');
+    _dumpPageStack('AFTER_PUSH');
     super.didPush(route, previousRoute);
   }
 
   @override
   void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
     debugPrint('🛣 didPop : ${route.settings.name ?? route.settings}');
+    _dumpPageStack('AFTER_POP');
     super.didPop(route, previousRoute);
+  }
+
+  @override
+  void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {
+    debugPrint(
+      '🛣 didReplace: old=${oldRoute?.settings.name ?? oldRoute?.settings} -> new=${newRoute?.settings.name ?? newRoute?.settings}',
+    );
+    _dumpPageStack('AFTER_REPLACE');
+    super.didReplace(newRoute: newRoute, oldRoute: oldRoute);
+  }
+
+  @override
+  void didRemove(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    debugPrint('🛣 didRemove: ${route.settings.name ?? route.settings}');
+    _dumpPageStack('AFTER_REMOVE');
+    super.didRemove(route, previousRoute);
+  }
+
+  void _dumpPageStack(String context) {
+    if (navigator != null) {
+      final pages = <String>[];
+      for (final route in navigator!.widget.pages) {
+        if (route is MaterialPage) {
+          pages.add(
+            'MaterialPage(key=${route.key}, child=${route.child.runtimeType})',
+          );
+        } else {
+          pages.add(route.toString());
+        }
+      }
+      debugPrint('📚 PAGE_STACK_$context: [${pages.join(', ')}]');
+    }
   }
 }
 
@@ -97,6 +131,7 @@ String? _onboardingStepGuard(BuildContext context, int step) {
 final GoRouter appRouter = GoRouter(
   debugLogDiagnostics: true,
   observers: [LoggingNavigatorObserver()],
+  navigatorKey: GlobalKey<NavigatorState>(),
   redirect:
       _onboardingGuard
           .call, // Ensures onboarding is complete before accessing other routes
@@ -221,3 +256,22 @@ final GoRouter appRouter = GoRouter(
     ),
   ],
 );
+
+/// Sets up debugging listeners for GoRouter to diagnose navigation issues
+void setupRouterDebugging() {
+  appRouter.routerDelegate.addListener(() {
+    debugPrint(
+      '🔄 ROUTER_DELEGATE changed: current=${appRouter.routerDelegate.currentConfiguration.uri}',
+    );
+    final config = appRouter.routerDelegate.currentConfiguration;
+    debugPrint(
+      '🔄 MATCHES: ${config.matches.map((m) => '${m.matchedLocation}(${m.route.runtimeType})').toList()}',
+    );
+  });
+
+  appRouter.routeInformationProvider.addListener(() {
+    debugPrint(
+      '🔄 ROUTE_INFO changed: ${appRouter.routeInformationProvider.value.uri}',
+    );
+  });
+}
