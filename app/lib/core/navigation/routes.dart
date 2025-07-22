@@ -99,7 +99,6 @@ final GoRouter appRouter = GoRouter(
       _onboardingGuard
           .call, // Ensures onboarding is complete before accessing other routes
   routes: [
-    // specific paths
     GoRoute(path: '/auth', builder: (_, __) => const AuthPage()),
     GoRoute(
       path: '/confirm',
@@ -191,7 +190,8 @@ final GoRouter appRouter = GoRouter(
         return PasswordResetPage(accessToken: token);
       },
     ),
-    // root LAST
-    GoRoute(path: '/', builder: (_, __) => const LaunchController()),
+    // Catch-all root route placed last so that more specific absolute paths
+    // (e.g., "/auth", "/confirm") have priority during matching.
+    GoRoute(path: '/', builder: (context, state) => const LaunchController()),
   ],
 );
