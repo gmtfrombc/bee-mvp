@@ -282,18 +282,12 @@ class BEEApp extends ConsumerWidget {
 
   // Static instances to prevent recreation on every build
   static bool _debugSetup = false;
-  // Temporarily bypass custom provider to test
-  // static final routeInfoProvider = FilteringRouteInformationProvider(
-  //   PlatformRouteInformationProvider(
-  //     initialRouteInformation: RouteInformation(
-  //       uri: Uri.parse('/'),
-  //       state: {
-  //         'location': '/',
-  //         'state': {'codec': 'json', 'encoded': 'null'},
-  //       },
-  //     ),
-  //   ),
-  // );
+  static final routeInfoProvider = PlatformRouteInformationProvider(
+    initialRouteInformation: RouteInformation(
+      uri: Uri.parse('/'),
+      state: <String, dynamic>{}, // Empty but non-null state
+    ),
+  );
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -310,7 +304,7 @@ class BEEApp extends ConsumerWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: themeMode,
-      // routeInformationProvider: routeInfoProvider,  // Use default
+      routeInformationProvider: routeInfoProvider,
       routeInformationParser: appRouter.routeInformationParser,
       routerDelegate: appRouter.routerDelegate,
       backButtonDispatcher: appRouter.backButtonDispatcher,
