@@ -94,6 +94,7 @@ String? _onboardingStepGuard(BuildContext context, int step) {
 }
 
 final GoRouter appRouter = GoRouter(
+  debugLogDiagnostics: true,
   observers: [LoggingNavigatorObserver()],
   redirect:
       _onboardingGuard
