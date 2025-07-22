@@ -105,10 +105,10 @@ class OnboardingGuard {
     }
 
     final user = client.auth.currentUser;
-    // Guard only applies to authenticated users.
+    // If user is not authenticated, redirect to login
     if (user == null) {
-      debugPrint('🛡️ Guard OUT: null');
-      return null;
+      debugPrint('��️ Guard OUT: /login');
+      return '/login';
     }
 
     try {

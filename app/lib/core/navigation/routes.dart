@@ -211,6 +211,13 @@ final GoRouter appRouter = GoRouter(
     ),
 
     // Root route LAST (acts as splash/login branch)
-    GoRoute(path: '/', builder: (_, __) => const LaunchController()),
+    GoRoute(
+      path: '/',
+      pageBuilder:
+          (_, __) => const MaterialPage<void>(
+            key: ValueKey('LaunchPage'),
+            child: LaunchController(),
+          ),
+    ),
   ],
 );
