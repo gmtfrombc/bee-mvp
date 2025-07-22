@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/services/responsive_service.dart';
 import 'package:go_router/go_router.dart';
+import 'package:app/core/navigation/routes.dart';
 
 /// Simple single-page onboarding screen.
 ///
@@ -52,7 +53,7 @@ class OnboardingScreen extends ConsumerWidget {
                         await authService.completeOnboarding();
                         if (context.mounted) {
                           // Navigate to the main launch route using go_router.
-                          context.go('/launch');
+                          context.go(kLaunchRoute);
                         }
                       },
                       child: const Text('Get Started'),

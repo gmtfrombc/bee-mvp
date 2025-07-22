@@ -108,10 +108,10 @@ class OnboardingSubmissionSnackbar extends ConsumerWidget {
                 if (wantsActionStep) {
                   context.go(kActionStepSetupRoute);
                 } else {
-                  context.go('/launch');
+                  context.go(kLaunchRoute);
                 }
               } else {
-                context.go('/launch');
+                context.go(kLaunchRoute);
               }
             }();
           }

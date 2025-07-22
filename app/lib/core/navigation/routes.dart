@@ -94,33 +94,26 @@ String? _onboardingStepGuard(BuildContext context, int step) {
 }
 
 final GoRouter appRouter = GoRouter(
+  debugLogDiagnostics: true,
   observers: [LoggingNavigatorObserver()],
   redirect:
       _onboardingGuard
           .call, // Ensures onboarding is complete before accessing other routes
   routes: [
+    // --- Absolute paths (placed before other routes) ---
+    GoRoute(path: kAuthRoute, builder: (_, __) => const AuthPage()),
     GoRoute(
-      path: '/',
-      builder: (context, state) => const LaunchController(),
-      routes: [
-        // Auth & confirmation pages live under the root branch so that
-        // LoginPage (rendered by LaunchController) can push them.
-        // (nested auth route removed to avoid duplicate full path)
-        GoRoute(
-          path: 'confirm',
-          builder: (context, state) {
-            final email = state.extra as String? ?? '';
-            return ConfirmationPendingPage(email: email);
-          },
-        ),
-      ],
+      path: kConfirmRoute,
+      builder: (_, state) {
+        final email = state.extra as String? ?? '';
+        return ConfirmationPendingPage(email: email);
+      },
     ),
-    // Expose an explicit "/launch" alias so other modules can navigate
-    // without relying on the root path constant.
-    GoRoute(
-      path: '/launch',
-      builder: (context, state) => const LaunchController(),
-    ),
+    GoRoute(path: kLaunchRoute, builder: (_, __) => const LaunchController()),
+
+    // Onboarding and other feature routes
+    // -----------------------------------------------------
+    // Specific absolute paths (keep onboarding, action-step, etc.)
     GoRoute(
       path: kOnboardingStep1Route,
       builder: (context, state) => const AboutYouPage(),
@@ -153,17 +146,6 @@ final GoRouter appRouter = GoRouter(
       path: kActionStepSetupRoute,
       builder: (context, state) => const ActionStepSetupPage(),
     ),
-    // Top-level aliases removed (now nested). Existing deep-links to
-    // Absolute paths used by deep-links and startup flows.
-    GoRoute(path: kAuthRoute, builder: (_, __) => const AuthPage()),
-    GoRoute(
-      path: kConfirmRoute,
-      builder: (_, state) {
-        final email = state.extra as String? ?? '';
-        return ConfirmationPendingPage(email: email);
-      },
-    ),
-
     // NEW ROUTES
     GoRoute(
       path: kNotificationsRoute,
@@ -211,5 +193,8 @@ final GoRouter appRouter = GoRouter(
         return PasswordResetPage(accessToken: token);
       },
     ),
+
+    // Root route LAST (acts as splash/login branch)
+    GoRoute(path: '/', builder: (_, __) => const LaunchController()),
   ],
 );

@@ -69,17 +69,19 @@ class OnboardingGuard {
   /// Returns the path to redirect to (e.g. `/onboarding/step1`) or `null` to
   /// allow navigation to proceed.
   FutureOr<String?> call(BuildContext context, GoRouterState state) async {
-    // Diagnostics: log every redirect evaluation during Phase-0.
-    String? logReturn(String? path) {
-      debugPrint(
-        '🔍 OnboardingGuard: incoming=${state.matchedLocation} → redirect=$path',
-      );
-      return path;
+    debugPrint('🛡️ Guard IN : ${state.uri.toString()}');
+
+    // Always allow auth & confirmation pages to avoid redirect loops.
+    if (state.uri.toString() == '/auth' ||
+        state.uri.toString().startsWith('/confirm')) {
+      debugPrint('🛡️ Guard OUT: auth/confirm route – no redirect');
+      return null;
     }
 
     // Allow any route that is already within the onboarding flow to proceed.
     if (state.fullPath?.startsWith('/onboarding') == true) {
-      return logReturn(null);
+      debugPrint('🛡️ Guard OUT: null');
+      return null;
     }
 
     // If a submission is currently running, bypass remote profile check so we
@@ -87,7 +89,8 @@ class OnboardingGuard {
     // been persisted to Supabase.
     final flagService = OnboardingSubmissionFlagService();
     if (await flagService.isSubmitting()) {
-      return logReturn(null);
+      debugPrint('🛡️ Guard OUT: null');
+      return null;
     }
 
     // If Supabase has not been initialised yet we cannot decide – allow
@@ -96,12 +99,16 @@ class OnboardingGuard {
     try {
       client = Supabase.instance.client;
     } catch (_) {
-      return logReturn(null);
+      debugPrint('🛡️ Guard OUT: null');
+      return null;
     }
 
     final user = client.auth.currentUser;
     // Guard only applies to authenticated users.
-    if (user == null) return logReturn(null);
+    if (user == null) {
+      debugPrint('🛡️ Guard OUT: null');
+      return null;
+    }
 
     try {
       final data =
@@ -114,15 +121,18 @@ class OnboardingGuard {
       final completed = (data?['onboarding_complete'] as bool?) ?? false;
       if (!completed) {
         // User still needs onboarding → redirect to first step.
-        return logReturn(kOnboardingStep1Route);
+        debugPrint('🛡️ Guard OUT: $kOnboardingStep1Route');
+        return kOnboardingStep1Route;
       }
     } catch (_) {
       // On failure (e.g. network issues) default to safer option – send user to
       // onboarding so that required data is collected.
-      return logReturn(kOnboardingStep1Route);
+      debugPrint('🛡️ Guard OUT: $kOnboardingStep1Route');
+      return kOnboardingStep1Route;
     }
 
     // All checks passed → no redirect.
-    return logReturn(null);
+    debugPrint('🛡️ Guard OUT: null');
+    return null;
   }
 }

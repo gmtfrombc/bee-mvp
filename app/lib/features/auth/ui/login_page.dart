@@ -5,9 +5,10 @@ import '../../../core/services/responsive_service.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/utils/auth_error_mapper.dart';
 import 'package:go_router/go_router.dart';
+import 'auth_page.dart';
+import '../../../core/navigation/routes.dart';
 import '../../../core/ui/widgets/bee_text_field.dart';
 import '../../../core/validators/auth_validators.dart';
-import '../../../core/navigation/routes.dart';
 
 /// Login screen for existing users.
 /// Implements validation, loading & error handling.
@@ -99,10 +100,20 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               TextButton(
                 onPressed: () {
                   debugPrint('👉 Create Account tapped');
-                  context.push(kAuthRoute);
-                  Future.delayed(const Duration(milliseconds: 300), () {
-                    debugPrint('⏱ 300ms later callback');
-                  });
+                  final router = GoRouter.maybeOf(context);
+                  if (router != null) {
+                    debugPrint(
+                      '📍 BEFORE go(): router.uri = ${router.routeInformationProvider.value.uri}',
+                    );
+                    router.go(kAuthRoute);
+                    debugPrint(
+                      '📍 AFTER go():  router.uri = ${router.routeInformationProvider.value.uri}',
+                    );
+                  } else {
+                    Navigator.of(
+                      context,
+                    ).push(MaterialPageRoute(builder: (_) => const AuthPage()));
+                  }
                 },
                 child: const Text("Don't have an account? Create one"),
               ),

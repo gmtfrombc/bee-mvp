@@ -61,12 +61,18 @@ class _AuthPageState extends ConsumerState<AuthPage> {
     if (response.session == null) {
       context.go(kConfirmRoute, extra: email);
     } else {
-      context.go(kLaunchRoute);
+      final router = GoRouter.maybeOf(context);
+      if (router != null) {
+        router.go(kLaunchRoute);
+      } else {
+        Navigator.of(context).pushReplacementNamed('/');
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('🔧 AuthPage built');
     final authAsync = ref.watch(authNotifierProvider);
     final spacing = ResponsiveService.getMediumSpacing(context);
 

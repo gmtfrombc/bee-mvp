@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/services/responsive_service.dart';
 import '../../../core/providers/auth_provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:app/core/navigation/routes.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Shown immediately after a user signs up but before they have confirmed
@@ -46,7 +47,7 @@ class _ConfirmationPendingPageState
 
           if (!context.mounted) return;
           _navigated = true;
-          context.go('/launch');
+          context.go(kLaunchRoute);
         }
       });
     });
