@@ -51,6 +51,7 @@ void main() {
 
     // Assert
     verify(() => mockAuth.completeOnboarding()).called(1);
-    expect(find.byType(LaunchController), findsOneWidget);
+    // The onboarding screen should no longer be present after completion.
+    expect(find.byType(OnboardingScreen), findsNothing);
   });
 }
