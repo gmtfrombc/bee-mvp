@@ -69,17 +69,23 @@ class OnboardingGuard {
   /// Returns the path to redirect to (e.g. `/onboarding/step1`) or `null` to
   /// allow navigation to proceed.
   FutureOr<String?> call(BuildContext context, GoRouterState state) async {
-    debugPrint('GUARD_IN: ${state.uri.toString()}');
-    debugPrint(
-      'GUARD_DETAILS: fullPath=${state.fullPath}, path=${state.path}, name=${state.name}',
-    );
+    try {
+      debugPrint('GUARD_IN: ${state.uri.toString()}');
+      debugPrint(
+        'GUARD_DETAILS: fullPath=${state.fullPath ?? "null"}, path=${state.path ?? "null"}, name=${state.name ?? "null"}',
+      );
+    } catch (e) {
+      debugPrint('GUARD_IN: Error accessing state: $e');
+      return null;
+    }
 
     // Always allow auth & confirmation pages to avoid redirect loops.
-    if (state.uri.toString() == '/auth' ||
-        state.uri.toString() == '/login' ||
-        state.uri.toString().startsWith('/confirm')) {
+    final uriString = state.uri.toString();
+    if (uriString == '/auth' ||
+        uriString == '/login' ||
+        uriString.startsWith('/confirm')) {
       debugPrint(
-        'GUARD_OUT: auth/login/confirm route "${state.uri}" - no redirect',
+        'GUARD_OUT: auth/login/confirm route "$uriString" - no redirect',
       );
       return null;
     }
@@ -93,8 +99,13 @@ class OnboardingGuard {
     // If a submission is currently running, bypass remote profile check so we
     // don't redirect the user back into onboarding while the flag hasn't yet
     // been persisted to Supabase.
-    final flagService = OnboardingSubmissionFlagService();
-    if (await flagService.isSubmitting()) {
+    try {
+      final flagService = OnboardingSubmissionFlagService();
+      if (await flagService.isSubmitting()) {
+        debugPrint('GUARD_OUT: submission running - null');
+        return null;
+      }
+    } catch (e) {
       debugPrint('GUARD_OUT: submission running - null');
       return null;
     }

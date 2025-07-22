@@ -133,12 +133,29 @@ final GoRouter appRouter = GoRouter(
   observers: [LoggingNavigatorObserver()],
   navigatorKey: GlobalKey<NavigatorState>(),
   redirect: (context, state) {
-    debugPrint(
-      'REDIRECT_CALLED: for ${state.uri} (path=${state.path}, fullPath=${state.fullPath})',
-    );
-    final result = _onboardingGuard.call(context, state);
-    debugPrint('REDIRECT_RESULT: $result');
-    return result;
+    try {
+      debugPrint(
+        'REDIRECT_CALLED: for ${state.uri.toString()} (path=${state.path ?? "null"}, fullPath=${state.fullPath ?? "null"})',
+      );
+      final result = _onboardingGuard.call(context, state);
+      if (result is Future<String?>) {
+        return result
+            .then((value) {
+              debugPrint('REDIRECT_RESULT: $value');
+              return value;
+            })
+            .catchError((e) {
+              debugPrint('REDIRECT_ERROR: $e');
+              return null;
+            });
+      } else {
+        debugPrint('REDIRECT_RESULT: $result');
+        return result;
+      }
+    } catch (e) {
+      debugPrint('REDIRECT_ERROR: $e');
+      return null;
+    }
   },
   routes: [
     // --- Absolute paths (placed before other routes) ---
