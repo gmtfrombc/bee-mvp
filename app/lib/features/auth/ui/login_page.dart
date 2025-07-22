@@ -100,10 +100,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               TextButton(
                 onPressed: () {
                   debugPrint('👉 Create Account tapped');
+                  // Use go() to replace location – more reliable when root '/'
+                  // route has no stack children.
                   final router = GoRouter.maybeOf(context);
                   if (router != null) {
-                    router.push(kAuthRoute);
-                    debugPrint('✅ router.push -> /auth');
+                    context.go(kAuthRoute);
+                    debugPrint('✅ context.go -> /auth');
                   } else {
                     Navigator.of(context)
                         .push(
