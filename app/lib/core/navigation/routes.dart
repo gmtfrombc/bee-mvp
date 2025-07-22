@@ -154,8 +154,15 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) => const ActionStepSetupPage(),
     ),
     // Top-level aliases removed (now nested). Existing deep-links to
-    // "/confirm" or "/auth" still resolve because nested routes build the
-    // same absolute location.
+    // Absolute paths used by deep-links and startup flows.
+    GoRoute(path: kAuthRoute, builder: (_, __) => const AuthPage()),
+    GoRoute(
+      path: kConfirmRoute,
+      builder: (_, state) {
+        final email = state.extra as String? ?? '';
+        return ConfirmationPendingPage(email: email);
+      },
+    ),
 
     // NEW ROUTES
     GoRoute(
