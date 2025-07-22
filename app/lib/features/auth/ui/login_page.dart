@@ -105,7 +105,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   } catch (e) {
                     debugPrint('🚨 No GoRouter in context: $e');
                   }
-                  context.push(kAuthRoute);
+                  context.push('auth');
                   Future.delayed(const Duration(milliseconds: 250), () {
                     debugPrint(
                       '⌛ 250ms after push, widget still mounted: '
