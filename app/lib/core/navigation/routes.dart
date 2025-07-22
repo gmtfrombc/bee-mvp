@@ -103,6 +103,22 @@ final GoRouter appRouter = GoRouter(
       path: '/',
       pageBuilder:
           (context, state) => const NoTransitionPage(child: LaunchController()),
+      routes: [
+        // Auth & confirmation pages live under the root branch so that
+        // LoginPage (rendered by LaunchController) can push them.
+        GoRoute(
+          path: 'auth',
+          pageBuilder:
+              (context, state) => const NoTransitionPage(child: AuthPage()),
+        ),
+        GoRoute(
+          path: 'confirm',
+          builder: (context, state) {
+            final email = state.extra as String? ?? '';
+            return ConfirmationPendingPage(email: email);
+          },
+        ),
+      ],
     ),
     // Expose an explicit "/launch" alias so other modules can navigate
     // without relying on the root path constant.
@@ -143,16 +159,9 @@ final GoRouter appRouter = GoRouter(
       path: kActionStepSetupRoute,
       builder: (context, state) => const ActionStepSetupPage(),
     ),
-    GoRoute(
-      path: kConfirmRoute,
-      builder: (context, state) {
-        // Email can be passed via `state.extra` when navigating with
-        // `context.go(kConfirmRoute, extra: email)`.
-        final email = state.extra as String? ?? '';
-        return ConfirmationPendingPage(email: email);
-      },
-    ),
-    GoRoute(path: kAuthRoute, builder: (context, state) => const AuthPage()),
+    // Top-level aliases removed (now nested). Existing deep-links to
+    // "/confirm" or "/auth" still resolve because nested routes build the
+    // same absolute location.
 
     // NEW ROUTES
     GoRoute(
