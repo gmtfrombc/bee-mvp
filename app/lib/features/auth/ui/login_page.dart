@@ -100,6 +100,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 onPressed: () {
                   debugPrint('🔑 Create Account tapped');
                   context.push(kAuthRoute);
+                  Future.delayed(const Duration(milliseconds: 250), () {
+                    debugPrint(
+                      '⌛ 250ms after push, widget still mounted: '
+                      '${context.mounted}',
+                    );
+                  });
                 },
                 child: const Text("Don't have an account? Create one"),
               ),
