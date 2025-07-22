@@ -99,27 +99,27 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               SizedBox(height: spacing),
               TextButton(
                 onPressed: () {
-                  debugPrint('👉 Create Account tapped');
+                  debugPrint('CREATE_ACCOUNT_TAPPED');
                   final router = GoRouter.maybeOf(context);
                   if (router != null) {
                     debugPrint(
-                      '📍 BEFORE go(): router.uri = ${router.routeInformationProvider.value.uri}',
+                      'BEFORE_GO: router.uri = ${router.routeInformationProvider.value.uri}',
                     );
                     debugPrint(
-                      '📍 BEFORE go(): current location = ${router.routerDelegate.currentConfiguration.uri}',
+                      'BEFORE_GO: current location = ${router.routerDelegate.currentConfiguration.uri}',
                     );
                     debugPrint(
-                      '📍 BEFORE go(): navigator pages = ${router.routerDelegate.currentConfiguration.matches.map((m) => m.matchedLocation).toList()}',
+                      'BEFORE_GO: navigator pages = ${router.routerDelegate.currentConfiguration.matches.map((m) => m.matchedLocation).toList()}',
                     );
                     router.go(kAuthRoute);
                     debugPrint(
-                      '📍 AFTER go():  router.uri = ${router.routeInformationProvider.value.uri}',
+                      'AFTER_GO: router.uri = ${router.routeInformationProvider.value.uri}',
                     );
                     debugPrint(
-                      '📍 AFTER go():  current location = ${router.routerDelegate.currentConfiguration.uri}',
+                      'AFTER_GO: current location = ${router.routerDelegate.currentConfiguration.uri}',
                     );
                     debugPrint(
-                      '📍 AFTER go():  navigator pages = ${router.routerDelegate.currentConfiguration.matches.map((m) => m.matchedLocation).toList()}',
+                      'AFTER_GO: navigator pages = ${router.routerDelegate.currentConfiguration.matches.map((m) => m.matchedLocation).toList()}',
                     );
                   } else {
                     Navigator.of(

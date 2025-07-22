@@ -28,14 +28,14 @@ import 'package:app/features/auth/ui/password_reset_page.dart';
 class LoggingNavigatorObserver extends NavigatorObserver {
   @override
   void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    debugPrint('🛣 didPush: ${route.settings.name ?? route.settings}');
+    debugPrint('NAV_PUSH: ${route.settings.name ?? route.settings}');
     _dumpPageStack('AFTER_PUSH');
     super.didPush(route, previousRoute);
   }
 
   @override
   void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    debugPrint('🛣 didPop : ${route.settings.name ?? route.settings}');
+    debugPrint('NAV_POP: ${route.settings.name ?? route.settings}');
     _dumpPageStack('AFTER_POP');
     super.didPop(route, previousRoute);
   }
@@ -43,7 +43,7 @@ class LoggingNavigatorObserver extends NavigatorObserver {
   @override
   void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {
     debugPrint(
-      '🛣 didReplace: old=${oldRoute?.settings.name ?? oldRoute?.settings} -> new=${newRoute?.settings.name ?? newRoute?.settings}',
+      'NAV_REPLACE: old=${oldRoute?.settings.name ?? oldRoute?.settings} -> new=${newRoute?.settings.name ?? newRoute?.settings}',
     );
     _dumpPageStack('AFTER_REPLACE');
     super.didReplace(newRoute: newRoute, oldRoute: oldRoute);
@@ -51,7 +51,7 @@ class LoggingNavigatorObserver extends NavigatorObserver {
 
   @override
   void didRemove(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    debugPrint('🛣 didRemove: ${route.settings.name ?? route.settings}');
+    debugPrint('NAV_REMOVE: ${route.settings.name ?? route.settings}');
     _dumpPageStack('AFTER_REMOVE');
     super.didRemove(route, previousRoute);
   }
@@ -68,7 +68,7 @@ class LoggingNavigatorObserver extends NavigatorObserver {
           pages.add(route.toString());
         }
       }
-      debugPrint('📚 PAGE_STACK_$context: [${pages.join(', ')}]');
+      debugPrint('PAGE_STACK_$context: [${pages.join(', ')}]');
     }
   }
 }
@@ -139,19 +139,23 @@ final GoRouter appRouter = GoRouter(
     // --- Absolute paths (placed before other routes) ---
     GoRoute(
       path: kLoginRoute,
-      pageBuilder:
-          (_, __) => const MaterialPage<void>(
-            key: ValueKey('LoginPage'),
-            child: LoginPage(),
-          ),
+      pageBuilder: (context, state) {
+        debugPrint('BUILDING_LOGIN_PAGE for ${state.uri}');
+        return const MaterialPage<void>(
+          key: ValueKey('LoginPage'),
+          child: LoginPage(),
+        );
+      },
     ),
     GoRoute(
       path: kAuthRoute,
-      pageBuilder:
-          (_, __) => const MaterialPage<void>(
-            key: ValueKey('AuthPage'),
-            child: AuthPage(),
-          ),
+      pageBuilder: (context, state) {
+        debugPrint('BUILDING_AUTH_PAGE for ${state.uri}');
+        return const MaterialPage<void>(
+          key: ValueKey('AuthPage'),
+          child: AuthPage(),
+        );
+      },
     ),
     GoRoute(
       path: kConfirmRoute,
@@ -261,17 +265,17 @@ final GoRouter appRouter = GoRouter(
 void setupRouterDebugging() {
   appRouter.routerDelegate.addListener(() {
     debugPrint(
-      '🔄 ROUTER_DELEGATE changed: current=${appRouter.routerDelegate.currentConfiguration.uri}',
+      'ROUTER_DELEGATE changed: current=${appRouter.routerDelegate.currentConfiguration.uri}',
     );
     final config = appRouter.routerDelegate.currentConfiguration;
     debugPrint(
-      '🔄 MATCHES: ${config.matches.map((m) => '${m.matchedLocation}(${m.route.runtimeType})').toList()}',
+      'MATCHES: ${config.matches.map((m) => '${m.matchedLocation}(${m.route.runtimeType})').toList()}',
     );
   });
 
   appRouter.routeInformationProvider.addListener(() {
     debugPrint(
-      '🔄 ROUTE_INFO changed: ${appRouter.routeInformationProvider.value.uri}',
+      'ROUTE_INFO changed: ${appRouter.routeInformationProvider.value.uri}',
     );
   });
 }
