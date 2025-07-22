@@ -270,26 +270,38 @@ final GoRouter appRouter = GoRouter(
 void setupRouterDebugging() {
   // Dump all routes for debugging
   debugPrint('ROUTER_SETUP: Available routes:');
-  for (int i = 0; i < appRouter.configuration.routes.length; i++) {
-    final route = appRouter.configuration.routes[i];
-    if (route is GoRoute) {
-      debugPrint('  Route $i: path="${route.path}", name="${route.name}"');
+  try {
+    for (int i = 0; i < appRouter.configuration.routes.length; i++) {
+      final route = appRouter.configuration.routes[i];
+      if (route is GoRoute) {
+        debugPrint('  Route $i: path="${route.path}", name="${route.name}"');
+      }
     }
+  } catch (e) {
+    debugPrint('ROUTER_SETUP: Error accessing routes: $e');
   }
 
   appRouter.routerDelegate.addListener(() {
-    debugPrint(
-      'ROUTER_DELEGATE changed: current=${appRouter.routerDelegate.currentConfiguration.uri}',
-    );
-    final config = appRouter.routerDelegate.currentConfiguration;
-    debugPrint(
-      'MATCHES: ${config.matches.map((m) => '${m.matchedLocation}(${m.route.runtimeType})').toList()}',
-    );
+    try {
+      debugPrint(
+        'ROUTER_DELEGATE changed: current=${appRouter.routerDelegate.currentConfiguration.uri}',
+      );
+      final config = appRouter.routerDelegate.currentConfiguration;
+      debugPrint(
+        'MATCHES: ${config.matches.map((m) => '${m.matchedLocation}(${m.route.runtimeType})').toList()}',
+      );
+    } catch (e) {
+      debugPrint('ROUTER_DELEGATE: Error accessing config: $e');
+    }
   });
 
   appRouter.routeInformationProvider.addListener(() {
-    debugPrint(
-      'ROUTE_INFO changed: ${appRouter.routeInformationProvider.value.uri}',
-    );
+    try {
+      debugPrint(
+        'ROUTE_INFO changed: ${appRouter.routeInformationProvider.value.uri}',
+      );
+    } catch (e) {
+      debugPrint('ROUTE_INFO: Error accessing value: $e');
+    }
   });
 }

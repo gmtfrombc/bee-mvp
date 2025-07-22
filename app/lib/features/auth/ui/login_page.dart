@@ -102,25 +102,33 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   debugPrint('CREATE_ACCOUNT_TAPPED');
                   final router = GoRouter.maybeOf(context);
                   if (router != null) {
-                    debugPrint(
-                      'BEFORE_GO: router.uri = ${router.routeInformationProvider.value.uri}',
-                    );
-                    debugPrint(
-                      'BEFORE_GO: current location = ${router.routerDelegate.currentConfiguration.uri}',
-                    );
-                    debugPrint(
-                      'BEFORE_GO: navigator pages = ${router.routerDelegate.currentConfiguration.matches.map((m) => m.matchedLocation).toList()}',
-                    );
+                    try {
+                      debugPrint(
+                        'BEFORE_GO: router.uri = ${router.routeInformationProvider.value.uri}',
+                      );
+                      debugPrint(
+                        'BEFORE_GO: current location = ${router.routerDelegate.currentConfiguration.uri}',
+                      );
+                      debugPrint(
+                        'BEFORE_GO: navigator pages = ${router.routerDelegate.currentConfiguration.matches.map((m) => m.matchedLocation).toList()}',
+                      );
+                    } catch (e) {
+                      debugPrint('BEFORE_GO: Error accessing router state: $e');
+                    }
                     router.go(kAuthRoute);
-                    debugPrint(
-                      'AFTER_GO: router.uri = ${router.routeInformationProvider.value.uri}',
-                    );
-                    debugPrint(
-                      'AFTER_GO: current location = ${router.routerDelegate.currentConfiguration.uri}',
-                    );
-                    debugPrint(
-                      'AFTER_GO: navigator pages = ${router.routerDelegate.currentConfiguration.matches.map((m) => m.matchedLocation).toList()}',
-                    );
+                    try {
+                      debugPrint(
+                        'AFTER_GO: router.uri = ${router.routeInformationProvider.value.uri}',
+                      );
+                      debugPrint(
+                        'AFTER_GO: current location = ${router.routerDelegate.currentConfiguration.uri}',
+                      );
+                      debugPrint(
+                        'AFTER_GO: navigator pages = ${router.routerDelegate.currentConfiguration.matches.map((m) => m.matchedLocation).toList()}',
+                      );
+                    } catch (e) {
+                      debugPrint('AFTER_GO: Error accessing router state: $e');
+                    }
                   } else {
                     Navigator.of(
                       context,

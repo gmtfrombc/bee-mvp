@@ -281,7 +281,7 @@ class BEEApp extends ConsumerWidget {
   const BEEApp({super.key});
 
   // Static instances to prevent recreation on every build
-  static bool _debugSetup = false;
+  // static bool _debugSetup = false;  // Temporarily disabled
   static final routeInfoProvider = PlatformRouteInformationProvider(
     initialRouteInformation: RouteInformation(
       uri: Uri.parse('/'),
@@ -294,10 +294,11 @@ class BEEApp extends ConsumerWidget {
     final themeMode = ref.watch(themeModeProvider);
 
     // Setup router debugging in debug mode (only once)
-    if (kDebugMode && !_debugSetup) {
-      setupRouterDebugging();
-      _debugSetup = true;
-    }
+    // Temporarily disable complex debugging to fix null access
+    // if (kDebugMode && !_debugSetup) {
+    //   setupRouterDebugging();
+    //   _debugSetup = true;
+    // }
 
     return MaterialApp.router(
       title: 'BEE Momentum Meter',
