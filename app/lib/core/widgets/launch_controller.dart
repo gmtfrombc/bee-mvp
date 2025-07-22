@@ -78,15 +78,9 @@ class LaunchController extends ConsumerWidget {
       data: (user) {
         debugPrint('📊 LaunchController: user data resolved = $user');
         if (user == null) {
-          // No session → redirect to /login so routing stays flat.
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (context.mounted) {
-              context.go('/login');
-            }
-          });
-          // While redirection happens, keep showing splash.
-          debugPrint('🔀 LaunchController: redirecting to /login');
-          return const SplashScreen();
+          // No session (in tests may not use global Guard) → show LoginPage directly
+          debugPrint('🔀 LaunchController: no user – showing LoginPage');
+          return const LoginPage();
         }
 
         // Authenticated – decide onboarding.
@@ -95,16 +89,15 @@ class LaunchController extends ConsumerWidget {
         return profileAsync.when(
           loading: () => const SplashScreen(),
           error: (err, _) {
-            // If profile fetch fails (e.g., user deleted – stale session),
-            // automatically purge local session and redirect to /login.
-            WidgetsBinding.instance.addPostFrameCallback((_) {
+            // Purge stale session after frame to avoid provider mutation during build
+            Future.microtask(() async {
               ref.read(authNotifierProvider.notifier).signOut();
               if (context.mounted) {
                 context.go('/login');
               }
             });
             debugPrint(
-              '🔀 LaunchController: stale session redirecting to /login',
+              '🔀 LaunchController: stale session, scheduling signOut & redirect',
             );
             return const SplashScreen();
           },

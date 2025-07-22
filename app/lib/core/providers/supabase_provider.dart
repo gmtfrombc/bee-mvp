@@ -69,27 +69,44 @@ class OnboardingGuard {
   /// Returns the path to redirect to (e.g. `/onboarding/step1`) or `null` to
   /// allow navigation to proceed.
   FutureOr<String?> call(BuildContext context, GoRouterState state) async {
-    debugPrint('🛡️ Guard IN : ${state.uri.toString()}');
+    try {
+      debugPrint('GUARD_IN: ${state.uri.toString()}');
+      debugPrint(
+        'GUARD_DETAILS: fullPath=${state.fullPath ?? "null"}, path=${state.path ?? "null"}, name=${state.name ?? "null"}',
+      );
+    } catch (e) {
+      debugPrint('GUARD_IN: Error accessing state: $e');
+      return null;
+    }
 
     // Always allow auth & confirmation pages to avoid redirect loops.
-    if (state.uri.toString() == '/auth' ||
-        state.uri.toString().startsWith('/confirm')) {
-      debugPrint('🛡️ Guard OUT: auth/confirm route – no redirect');
+    final uriString = state.uri.toString();
+    if (uriString == '/auth' ||
+        uriString == '/login' ||
+        uriString.startsWith('/confirm')) {
+      debugPrint(
+        'GUARD_OUT: auth/login/confirm route "$uriString" - no redirect',
+      );
       return null;
     }
 
     // Allow any route that is already within the onboarding flow to proceed.
     if (state.fullPath?.startsWith('/onboarding') == true) {
-      debugPrint('🛡️ Guard OUT: null');
+      debugPrint('GUARD_OUT: onboarding route - null');
       return null;
     }
 
     // If a submission is currently running, bypass remote profile check so we
     // don't redirect the user back into onboarding while the flag hasn't yet
     // been persisted to Supabase.
-    final flagService = OnboardingSubmissionFlagService();
-    if (await flagService.isSubmitting()) {
-      debugPrint('🛡️ Guard OUT: null');
+    try {
+      final flagService = OnboardingSubmissionFlagService();
+      if (await flagService.isSubmitting()) {
+        debugPrint('GUARD_OUT: submission running - null');
+        return null;
+      }
+    } catch (e) {
+      debugPrint('GUARD_OUT: submission running - null');
       return null;
     }
 
@@ -99,15 +116,15 @@ class OnboardingGuard {
     try {
       client = Supabase.instance.client;
     } catch (_) {
-      debugPrint('🛡️ Guard OUT: null');
+      debugPrint('GUARD_OUT: supabase not ready - null');
       return null;
     }
 
     final user = client.auth.currentUser;
-    // Guard only applies to authenticated users.
+    // If user is not authenticated, redirect to login
     if (user == null) {
-      debugPrint('🛡️ Guard OUT: null');
-      return null;
+      debugPrint('GUARD_OUT: no user - /login');
+      return '/login';
     }
 
     try {
@@ -121,18 +138,18 @@ class OnboardingGuard {
       final completed = (data?['onboarding_complete'] as bool?) ?? false;
       if (!completed) {
         // User still needs onboarding → redirect to first step.
-        debugPrint('🛡️ Guard OUT: $kOnboardingStep1Route');
+        debugPrint('GUARD_OUT: onboarding incomplete - $kOnboardingStep1Route');
         return kOnboardingStep1Route;
       }
     } catch (_) {
       // On failure (e.g. network issues) default to safer option – send user to
       // onboarding so that required data is collected.
-      debugPrint('🛡️ Guard OUT: $kOnboardingStep1Route');
+      debugPrint('GUARD_OUT: profile fetch failed - $kOnboardingStep1Route');
       return kOnboardingStep1Route;
     }
 
     // All checks passed → no redirect.
-    debugPrint('🛡️ Guard OUT: null');
+    debugPrint('GUARD_OUT: all checks passed - null');
     return null;
   }
 }

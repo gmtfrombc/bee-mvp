@@ -27,16 +27,27 @@ class FilteringRouteInformationProvider extends RouteInformationProvider {
 
   void _handleInner() {
     final info = _inner.value;
+    debugPrint('FILTERING_PROVIDER: got inner change to ${info.uri}');
     if (_shouldForward(info)) {
+      debugPrint('FILTERING_PROVIDER: forwarding ${info.uri}');
       _value = info;
       _notify();
+    } else {
+      debugPrint(
+        'FILTERING_PROVIDER: blocking ${info.uri} (scheme=${info.uri.scheme})',
+      );
     }
   }
 
   bool _shouldForward(RouteInformation? info) {
     final uri = info?.uri ?? Uri();
     // Allow empty scheme (in-app routes) or web URLs handled by go_router.
-    return uri.scheme.isEmpty || uri.scheme == 'http' || uri.scheme == 'https';
+    final shouldForward =
+        uri.scheme.isEmpty || uri.scheme == 'http' || uri.scheme == 'https';
+    debugPrint(
+      'FILTERING_PROVIDER: _shouldForward($uri) = $shouldForward (scheme="${uri.scheme}")',
+    );
+    return shouldForward;
   }
 
   @override

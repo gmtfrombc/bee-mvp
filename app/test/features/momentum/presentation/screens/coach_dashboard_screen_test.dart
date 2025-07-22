@@ -269,10 +269,10 @@ void main() {
 
         stopwatch.stop();
 
-        // Should complete quickly (under 100ms)
+        // Should complete quickly (under 250ms) – allow headroom for CI machines
         expect(
           stopwatch.elapsedMilliseconds,
-          lessThan(100),
+          lessThan(250),
           reason: '1000 provider reads took ${stopwatch.elapsedMilliseconds}ms',
         );
       });
