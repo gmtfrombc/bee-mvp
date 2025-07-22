@@ -72,6 +72,7 @@ class _AuthPageState extends ConsumerState<AuthPage> {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('🔧 AuthPage built');
     final authAsync = ref.watch(authNotifierProvider);
     final spacing = ResponsiveService.getMediumSpacing(context);
 

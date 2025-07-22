@@ -100,19 +100,20 @@ final GoRouter appRouter = GoRouter(
       _onboardingGuard
           .call, // Ensures onboarding is complete before accessing other routes
   routes: [
-    // Specific absolute paths (placed BEFORE root '/')
-    GoRoute(path: kAuthRoute, builder: (context, state) => const AuthPage()),
+    // --- Absolute paths (placed before other routes) ---
+    GoRoute(path: kAuthRoute, builder: (_, __) => const AuthPage()),
     GoRoute(
       path: kConfirmRoute,
-      builder: (context, state) {
+      builder: (_, state) {
         final email = state.extra as String? ?? '';
         return ConfirmationPendingPage(email: email);
       },
     ),
-    GoRoute(
-      path: kLaunchRoute,
-      builder: (context, state) => const LaunchController(),
-    ),
+    GoRoute(path: kLaunchRoute, builder: (_, __) => const LaunchController()),
+
+    // Onboarding and other feature routes
+    // -----------------------------------------------------
+    // Specific absolute paths (keep onboarding, action-step, etc.)
     GoRoute(
       path: kOnboardingStep1Route,
       builder: (context, state) => const AboutYouPage(),
@@ -192,8 +193,8 @@ final GoRouter appRouter = GoRouter(
         return PasswordResetPage(accessToken: token);
       },
     ),
-    // Catch-all root route placed last so that more specific absolute paths
-    // (e.g., "/auth", "/confirm") have priority during matching.
-    GoRoute(path: '/', builder: (context, state) => const LaunchController()),
+
+    // Root route LAST (acts as splash/login branch)
+    GoRoute(path: '/', builder: (_, __) => const LaunchController()),
   ],
 );

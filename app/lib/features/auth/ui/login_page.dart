@@ -100,21 +100,19 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               TextButton(
                 onPressed: () {
                   debugPrint('👉 Create Account tapped');
-                  // Use go() to replace location – more reliable when root '/'
-                  // route has no stack children.
                   final router = GoRouter.maybeOf(context);
                   if (router != null) {
-                    context.go(kAuthRoute);
-                    debugPrint('✅ context.go -> /auth');
+                    debugPrint(
+                      '📍 BEFORE go(): router.uri = ${router.routeInformationProvider.value.uri}',
+                    );
+                    router.go(kAuthRoute);
+                    debugPrint(
+                      '📍 AFTER go():  router.uri = ${router.routeInformationProvider.value.uri}',
+                    );
                   } else {
-                    Navigator.of(context)
-                        .push(
-                          MaterialPageRoute(builder: (_) => const AuthPage()),
-                        )
-                        .then(
-                          (_) =>
-                              debugPrint('✅ Navigator.push AuthPage finished'),
-                        );
+                    Navigator.of(
+                      context,
+                    ).push(MaterialPageRoute(builder: (_) => const AuthPage()));
                   }
                 },
                 child: const Text("Don't have an account? Create one"),
