@@ -100,10 +100,11 @@ final GoRouter appRouter = GoRouter(
       _onboardingGuard
           .call, // Ensures onboarding is complete before accessing other routes
   routes: [
-    GoRoute(path: '/auth', builder: (_, __) => const AuthPage()),
+    // Specific absolute paths (placed BEFORE root '/')
+    GoRoute(path: kAuthRoute, builder: (context, state) => const AuthPage()),
     GoRoute(
-      path: '/confirm',
-      builder: (_, state) {
+      path: kConfirmRoute,
+      builder: (context, state) {
         final email = state.extra as String? ?? '';
         return ConfirmationPendingPage(email: email);
       },
