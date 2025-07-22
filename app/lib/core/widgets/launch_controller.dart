@@ -7,6 +7,7 @@ import 'package:app/features/auth/ui/login_page.dart';
 import 'package:app/main.dart';
 import 'package:app/core/models/profile.dart';
 import 'package:app/features/auth/ui/registration_success_page.dart';
+import 'package:go_router/go_router.dart';
 
 // Human-visible splash: show for ~1.5 s (UX best-practice is 1-2 s)
 const Duration _minSplashDuration = Duration(milliseconds: 1500);
@@ -77,11 +78,9 @@ class LaunchController extends ConsumerWidget {
       data: (user) {
         debugPrint('📊 LaunchController: user data resolved = $user');
         if (user == null) {
-          // No session → guard will redirect to /login
-          debugPrint(
-            '🔀 LaunchController: no user, guard will redirect to /login',
-          );
-          return const SplashScreen();
+          // No session (in tests may not use global Guard) → show LoginPage directly
+          debugPrint('🔀 LaunchController: no user – showing LoginPage');
+          return const LoginPage();
         }
 
         // Authenticated – decide onboarding.
@@ -90,11 +89,16 @@ class LaunchController extends ConsumerWidget {
         return profileAsync.when(
           loading: () => const SplashScreen(),
           error: (err, _) {
-            // If profile fetch fails (e.g., user deleted – stale session),
-            // automatically purge local session and redirect to /login.
-            // Purge stale session - guard will handle redirect when user becomes null
-            ref.read(authNotifierProvider.notifier).signOut();
-            debugPrint('🔀 LaunchController: stale session, signing out');
+            // Purge stale session after frame to avoid provider mutation during build
+            Future.microtask(() async {
+              ref.read(authNotifierProvider.notifier).signOut();
+              if (context.mounted) {
+                context.go('/login');
+              }
+            });
+            debugPrint(
+              '🔀 LaunchController: stale session, scheduling signOut & redirect',
+            );
             return const SplashScreen();
           },
           data: (profile) {
