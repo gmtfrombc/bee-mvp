@@ -99,6 +99,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               TextButton(
                 onPressed: () {
                   debugPrint('🔑 Create Account tapped');
+                  try {
+                    final router = GoRouter.of(context);
+                    debugPrint('Router found: ${router.runtimeType}');
+                  } catch (e) {
+                    debugPrint('🚨 No GoRouter in context: $e');
+                  }
                   context.push(kAuthRoute);
                   Future.delayed(const Duration(milliseconds: 250), () {
                     debugPrint(
