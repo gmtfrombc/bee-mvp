@@ -101,16 +101,11 @@ final GoRouter appRouter = GoRouter(
   routes: [
     GoRoute(
       path: '/',
-      pageBuilder:
-          (context, state) => const NoTransitionPage(child: LaunchController()),
+      builder: (context, state) => const LaunchController(),
       routes: [
         // Auth & confirmation pages live under the root branch so that
         // LoginPage (rendered by LaunchController) can push them.
-        GoRoute(
-          path: 'auth',
-          pageBuilder:
-              (context, state) => const NoTransitionPage(child: AuthPage()),
-        ),
+        GoRoute(path: 'auth', builder: (context, state) => const AuthPage()),
         GoRoute(
           path: 'confirm',
           builder: (context, state) {
@@ -124,8 +119,7 @@ final GoRouter appRouter = GoRouter(
     // without relying on the root path constant.
     GoRoute(
       path: '/launch',
-      pageBuilder:
-          (context, state) => const NoTransitionPage(child: LaunchController()),
+      builder: (context, state) => const LaunchController(),
     ),
     GoRoute(
       path: kOnboardingStep1Route,

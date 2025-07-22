@@ -98,20 +98,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               SizedBox(height: spacing),
               TextButton(
                 onPressed: () {
-                  debugPrint('🔑 Create Account tapped');
-                  try {
-                    final router = GoRouter.of(context);
-                    debugPrint('Router found: ${router.runtimeType}');
-                  } catch (e) {
-                    debugPrint('🚨 No GoRouter in context: $e');
-                  }
-                  context.push('auth');
-                  Future.delayed(const Duration(milliseconds: 250), () {
-                    debugPrint(
-                      '⌛ 250ms after push, widget still mounted: '
-                      '${context.mounted}',
-                    );
-                  });
+                  context.go(kAuthRoute);
                 },
                 child: const Text("Don't have an account? Create one"),
               ),
