@@ -99,31 +99,17 @@ final GoRouter appRouter = GoRouter(
       _onboardingGuard
           .call, // Ensures onboarding is complete before accessing other routes
   routes: [
-<<<<<<< HEAD
+    // specific paths
+    GoRoute(path: '/auth', builder: (_, __) => const AuthPage()),
     GoRoute(
-      path: '/',
-      builder: (context, state) => const LaunchController(),
-      routes: [
-        // Auth & confirmation pages live under the root branch so that
-        // LoginPage (rendered by LaunchController) can push them.
-        // (nested auth route removed to avoid duplicate full path)
-        GoRoute(
-          path: 'confirm',
-          builder: (context, state) {
-            final email = state.extra as String? ?? '';
-            return ConfirmationPendingPage(email: email);
-          },
-        ),
-      ],
+      path: '/confirm',
+      builder: (_, state) {
+        final email = state.extra as String? ?? '';
+        return ConfirmationPendingPage(email: email);
+      },
     ),
-    // Expose an explicit "/launch" alias so other modules can navigate
-    // without relying on the root path constant.
-=======
-    // Root route now has no nested children to avoid duplicate full paths.
-    GoRoute(path: '/', builder: (context, state) => const LaunchController()),
->>>>>>> e737ff1 (fix(routes): remove nested 'confirm' child to prevent duplicate route definitions causing /auth push silently fail)
     GoRoute(
-      path: '/launch',
+      path: kLaunchRoute,
       builder: (context, state) => const LaunchController(),
     ),
     GoRoute(
@@ -158,17 +144,6 @@ final GoRouter appRouter = GoRouter(
       path: kActionStepSetupRoute,
       builder: (context, state) => const ActionStepSetupPage(),
     ),
-    // Top-level aliases removed (now nested). Existing deep-links to
-    // Absolute paths used by deep-links and startup flows.
-    GoRoute(path: kAuthRoute, builder: (_, __) => const AuthPage()),
-    GoRoute(
-      path: kConfirmRoute,
-      builder: (_, state) {
-        final email = state.extra as String? ?? '';
-        return ConfirmationPendingPage(email: email);
-      },
-    ),
-
     // NEW ROUTES
     GoRoute(
       path: kNotificationsRoute,
@@ -216,5 +191,7 @@ final GoRouter appRouter = GoRouter(
         return PasswordResetPage(accessToken: token);
       },
     ),
+    // root LAST
+    GoRoute(path: '/', builder: (_, __) => const LaunchController()),
   ],
 );
