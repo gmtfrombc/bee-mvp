@@ -281,30 +281,29 @@ class _AppWrapperState extends ConsumerState<AppWrapper>
 class BEEApp extends ConsumerWidget {
   const BEEApp({super.key});
 
+  // Static instances to prevent recreation on every build
+  static bool _debugSetup = false;
+  static final routeInfoProvider = FilteringRouteInformationProvider(
+    PlatformRouteInformationProvider(
+      initialRouteInformation: RouteInformation(
+        uri: Uri.parse('/'),
+        state: {
+          'location': '/',
+          'state': {'codec': 'json', 'encoded': 'null'},
+        },
+      ),
+    ),
+  );
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
 
-    // Setup router debugging in debug mode
-    if (kDebugMode) {
+    // Setup router debugging in debug mode (only once)
+    if (kDebugMode && !_debugSetup) {
       setupRouterDebugging();
+      _debugSetup = true;
     }
-
-    // Provide a minimal state map that matches go_router’s expected schema
-    // {location, state:{codec,json,encoded}}
-    final Map<String, Object?> encodedState = {
-      'location': '/',
-      'state': {'codec': 'json', 'encoded': 'null'},
-    };
-
-    final routeInfoProvider = FilteringRouteInformationProvider(
-      PlatformRouteInformationProvider(
-        initialRouteInformation: RouteInformation(
-          uri: Uri.parse('/'),
-          state: encodedState,
-        ),
-      ),
-    );
 
     return MaterialApp.router(
       title: 'BEE Momentum Meter',
