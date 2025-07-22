@@ -8,7 +8,6 @@ import 'package:go_router/go_router.dart';
 import '../../../core/navigation/routes.dart';
 import '../../../core/ui/widgets/bee_text_field.dart';
 import '../../../core/validators/auth_validators.dart';
-import 'confirmation_pending_page.dart';
 
 /// Registration screen that captures Name, Email, and Password.
 ///
@@ -59,24 +58,10 @@ class _AuthPageState extends ConsumerState<AuthPage> {
     if (!mounted) return;
 
     // Decide navigation based on whether Supabase returned a session.
-    final router = GoRouter.maybeOf(context);
-
     if (response.session == null) {
-      if (router != null) {
-        router.go(kConfirmRoute, extra: email);
-      } else {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => ConfirmationPendingPage(email: email),
-          ),
-        );
-      }
+      context.go(kConfirmRoute, extra: email);
     } else {
-      if (router != null) {
-        router.go('/launch');
-      } else {
-        Navigator.of(context).pushReplacementNamed('/');
-      }
+      context.go(kLaunchRoute);
     }
   }
 
@@ -143,16 +128,10 @@ class _AuthPageState extends ConsumerState<AuthPage> {
                   // If inside GoRouter, simply pop back to the previous route
                   // (LoginPage at '/'). Fallback to Navigator.pop when router
                   // is absent (e.g., unit tests using MaterialApp).
-                  final router = GoRouter.maybeOf(context);
-                  if (router != null) {
-                    if (Navigator.of(context).canPop()) {
-                      context.pop();
-                    } else {
-                      // No back stack – go to root which shows LoginPage.
-                      context.go('/');
-                    }
+                  if (Navigator.of(context).canPop()) {
+                    context.pop();
                   } else {
-                    Navigator.of(context).pop();
+                    context.go('/');
                   }
                 },
                 child: const Text('Already have an account? Log in'),

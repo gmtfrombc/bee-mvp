@@ -20,10 +20,10 @@ Fully standardise navigation on GoRouter, eliminate flaky Navigator 1 fallbacks,
 ## 📝 Task Table
 | ID | Task | File(s) / Area | Owner | Est (h) | Status |
 |----|------|----------------|-------|---------|--------|
-| T1 | Replace Navigator calls in `LoginPage` | `features/auth/ui/login_page.dart` | FE | 1 | 🟣 |
-| T2 | Replace Navigator fallback in `AuthPage` | `features/auth/ui/auth_page.dart` | FE | 1 | ⚪ |
-| T3 | Replace Navigator fallback in `ReadinessPage` | `features/onboarding/ui/readiness_page.dart` | FE | 1 | ⚪ |
-| T4 | Replace hard-coded `'/launch'` with `kLaunchRoute` in above files | project-wide | FE | 0.5 | ⚪ |
+| T1 | Replace Navigator calls in `LoginPage` | `features/auth/ui/login_page.dart` | FE | 1 | ✅ |
+| T2 | Replace Navigator fallback in `AuthPage` | `features/auth/ui/auth_page.dart` | FE | 1 | ✅ |
+| T3 | Replace Navigator fallback in `ReadinessPage` | `features/onboarding/ui/readiness_page.dart` | FE | 1 | ✅ |
+| T4 | Replace hard-coded `'/launch'` with `kLaunchRoute` in above files | project-wide | FE | 0.5 | ✅ |
 | T5 | Un-skip & fix `login_create_account_flow_test.dart` | tests | QA | 1 | ⚪ |
 | T6 | Grep sweep for raw route strings; convert to constants | project-wide | FE | 1 | ⚪ |
 | T7 | Add custom linter rule for raw Navigator pushes / literals | `analysis_options.yaml` | DX | 2 | ⚪ |

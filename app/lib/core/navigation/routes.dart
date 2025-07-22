@@ -22,6 +22,22 @@ import 'package:app/features/today_feed/domain/models/today_feed_content.dart';
 import 'package:app/features/ai_coach/ui/coach_chat_screen.dart';
 import 'package:app/features/wearable/ui/live_vitals_developer_screen.dart';
 import 'package:app/features/auth/ui/password_reset_page.dart';
+import 'package:flutter/cupertino.dart';
+
+/// Simple observer that logs push/pop events for diagnostics only.
+class LoggingNavigatorObserver extends NavigatorObserver {
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    debugPrint('🛣 didPush: ${route.settings.name ?? route.settings}');
+    super.didPush(route, previousRoute);
+  }
+
+  @override
+  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    debugPrint('🛣 didPop : ${route.settings.name ?? route.settings}');
+    super.didPop(route, previousRoute);
+  }
+}
 
 /// Centralized route constants for the app.
 const String kOnboardingStep1Route = '/onboarding/step1';
@@ -78,11 +94,27 @@ String? _onboardingStepGuard(BuildContext context, int step) {
 }
 
 final GoRouter appRouter = GoRouter(
+  observers: [LoggingNavigatorObserver()],
   redirect:
       _onboardingGuard
           .call, // Ensures onboarding is complete before accessing other routes
   routes: [
-    GoRoute(path: '/', builder: (context, state) => const LaunchController()),
+    GoRoute(
+      path: '/',
+      builder: (context, state) => const LaunchController(),
+      routes: [
+        // Auth & confirmation pages live under the root branch so that
+        // LoginPage (rendered by LaunchController) can push them.
+        // (nested auth route removed to avoid duplicate full path)
+        GoRoute(
+          path: 'confirm',
+          builder: (context, state) {
+            final email = state.extra as String? ?? '';
+            return ConfirmationPendingPage(email: email);
+          },
+        ),
+      ],
+    ),
     // Expose an explicit "/launch" alias so other modules can navigate
     // without relying on the root path constant.
     GoRoute(
@@ -121,16 +153,16 @@ final GoRouter appRouter = GoRouter(
       path: kActionStepSetupRoute,
       builder: (context, state) => const ActionStepSetupPage(),
     ),
+    // Top-level aliases removed (now nested). Existing deep-links to
+    // Absolute paths used by deep-links and startup flows.
+    GoRoute(path: kAuthRoute, builder: (_, __) => const AuthPage()),
     GoRoute(
       path: kConfirmRoute,
-      builder: (context, state) {
-        // Email can be passed via `state.extra` when navigating with
-        // `context.go(kConfirmRoute, extra: email)`.
+      builder: (_, state) {
         final email = state.extra as String? ?? '';
         return ConfirmationPendingPage(email: email);
       },
     ),
-    GoRoute(path: kAuthRoute, builder: (context, state) => const AuthPage()),
 
     // NEW ROUTES
     GoRoute(

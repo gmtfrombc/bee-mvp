@@ -69,9 +69,17 @@ class OnboardingGuard {
   /// Returns the path to redirect to (e.g. `/onboarding/step1`) or `null` to
   /// allow navigation to proceed.
   FutureOr<String?> call(BuildContext context, GoRouterState state) async {
+    // Diagnostics: log every redirect evaluation during Phase-0.
+    String? logReturn(String? path) {
+      debugPrint(
+        '🔍 OnboardingGuard: incoming=${state.matchedLocation} → redirect=$path',
+      );
+      return path;
+    }
+
     // Allow any route that is already within the onboarding flow to proceed.
     if (state.fullPath?.startsWith('/onboarding') == true) {
-      return null;
+      return logReturn(null);
     }
 
     // If a submission is currently running, bypass remote profile check so we
@@ -79,7 +87,7 @@ class OnboardingGuard {
     // been persisted to Supabase.
     final flagService = OnboardingSubmissionFlagService();
     if (await flagService.isSubmitting()) {
-      return null;
+      return logReturn(null);
     }
 
     // If Supabase has not been initialised yet we cannot decide – allow
@@ -88,12 +96,12 @@ class OnboardingGuard {
     try {
       client = Supabase.instance.client;
     } catch (_) {
-      return null;
+      return logReturn(null);
     }
 
     final user = client.auth.currentUser;
     // Guard only applies to authenticated users.
-    if (user == null) return null;
+    if (user == null) return logReturn(null);
 
     try {
       final data =
@@ -106,15 +114,15 @@ class OnboardingGuard {
       final completed = (data?['onboarding_complete'] as bool?) ?? false;
       if (!completed) {
         // User still needs onboarding → redirect to first step.
-        return kOnboardingStep1Route;
+        return logReturn(kOnboardingStep1Route);
       }
     } catch (_) {
       // On failure (e.g. network issues) default to safer option – send user to
       // onboarding so that required data is collected.
-      return kOnboardingStep1Route;
+      return logReturn(kOnboardingStep1Route);
     }
 
     // All checks passed → no redirect.
-    return null;
+    return logReturn(null);
   }
 }
