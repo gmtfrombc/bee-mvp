@@ -105,7 +105,7 @@ final GoRouter appRouter = GoRouter(
       routes: [
         // Auth & confirmation pages live under the root branch so that
         // LoginPage (rendered by LaunchController) can push them.
-        GoRoute(path: 'auth', builder: (context, state) => const AuthPage()),
+        // (nested auth route removed to avoid duplicate full path)
         GoRoute(
           path: 'confirm',
           builder: (context, state) {
