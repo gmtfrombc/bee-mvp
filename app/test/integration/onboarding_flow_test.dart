@@ -2,6 +2,7 @@
 import 'package:app/core/models/profile.dart';
 import 'package:app/core/widgets/launch_controller.dart';
 import 'package:app/features/auth/ui/registration_success_page.dart';
+import 'package:app/features/auth/ui/login_page.dart';
 import 'package:app/features/onboarding/ui/about_you_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -110,6 +111,10 @@ void main() {
                   GoRoute(
                     path: '/',
                     builder: (_, __) => const LaunchController(),
+                  ),
+                  GoRoute(
+                    path: '/login',
+                    builder: (_, __) => const LoginPage(),
                   ),
                   GoRoute(
                     path: kOnboardingStep1Route,

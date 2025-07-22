@@ -1,4 +1,6 @@
 import 'package:app/core/widgets/launch_controller.dart';
+import 'package:go_router/go_router.dart';
+import 'package:app/features/auth/ui/login_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -18,7 +20,15 @@ void main() {
         overrides: [
           supabaseProvider.overrideWith((ref) async => _FakeClient()),
         ],
-        child: const MaterialApp(home: LaunchController()),
+        child: MaterialApp.router(
+          routerConfig: GoRouter(
+            initialLocation: '/',
+            routes: [
+              GoRoute(path: '/', builder: (_, __) => const LaunchController()),
+              GoRoute(path: '/login', builder: (_, __) => const LoginPage()),
+            ],
+          ),
+        ),
       ),
     );
 
