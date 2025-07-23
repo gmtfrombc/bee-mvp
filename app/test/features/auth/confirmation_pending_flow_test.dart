@@ -12,7 +12,7 @@ import 'package:go_router/go_router.dart';
 
 class _StubAuthNotifier extends AsyncNotifier<User?> implements AuthNotifier {
   // Helper fake user & state emitters
-  void emitSuccess() => state = AsyncValue.data(_FakeUser());
+  void emitSuccess() => state = AsyncValue.data(_IdentityUser());
 
   @override
   Future<User?> build() async => null;
@@ -24,7 +24,7 @@ class _StubAuthNotifier extends AsyncNotifier<User?> implements AuthNotifier {
     String? name,
   }) async {
     emitSuccess();
-    return AuthResponse(session: null, user: _FakeUser());
+    return AuthResponse(session: null, user: _IdentityUser());
   }
 
   // Other methods unused in this test
@@ -45,7 +45,21 @@ class _StubAuthNotifier extends AsyncNotifier<User?> implements AuthNotifier {
 }
 
 // Simple fake Supabase user for tests
-class _FakeUser extends Fake implements User {}
+class _IdentityUser extends Fake implements User {
+  // Provide a non-empty identities list via noSuchMethod to avoid strong typing issues.
+  @override
+  dynamic noSuchMethod(Invocation invocation) {
+    if (invocation.memberName == #identities) {
+      return [
+        {
+          'provider': 'email',
+          'identity_data': {'email': 'alice@example.com'},
+        },
+      ];
+    }
+    return super.noSuchMethod(invocation);
+  }
+}
 
 class _FakeClient extends Mock implements SupabaseClient {}
 
