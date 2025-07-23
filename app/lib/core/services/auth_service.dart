@@ -61,7 +61,9 @@ class AuthService {
     );
 
     // Debug: surface whether Supabase returned a session immediately.
-    debugPrint('🔐 signUp result – session: ${response.session}');
+    debugPrint(
+      '🔐 signUp result – session: ${response.session} user: ${response.user?.id} identities: ${response.user?.identities}',
+    );
 
     return response;
   }

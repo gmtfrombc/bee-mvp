@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/navigation/routes.dart';
 import '../../../core/ui/widgets/bee_text_field.dart';
 import '../../../core/validators/auth_validators.dart';
+import '../../../core/ui/bee_toast.dart';
 
 /// Registration screen that captures Name, Email, and Password.
 ///
@@ -54,6 +55,21 @@ class _AuthPageState extends ConsumerState<AuthPage> {
     final response = await ref
         .read(authNotifierProvider.notifier)
         .signUpWithEmail(name: name, email: email, password: password);
+
+    debugPrint(
+      '[AuthPage] signUp response: session=${response.session} user=${response.user?.id} identities=${response.user?.identities}',
+    );
+
+    // === New: Duplicate email guard ===
+    final identities = response.user?.identities as List<dynamic>?;
+    if (response.session == null &&
+        (identities == null || identities.isEmpty)) {
+      // No session and no user → Supabase may have silently skipped account creation because
+      // the e-mail is already registered. Show user-friendly error and abort navigation.
+      if (!mounted) return;
+      showBeeToast(context, 'Account already exists', type: BeeToastType.error);
+      return;
+    }
 
     if (!mounted) return;
 

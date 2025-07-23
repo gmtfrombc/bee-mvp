@@ -8,7 +8,18 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:app/features/gamification/providers/gamification_providers.dart';
 
-class _FakeUser extends Fake implements User {}
+class _FakeUser extends Fake implements User {
+  @override
+  dynamic noSuchMethod(Invocation invocation) {
+    if (invocation.memberName == #identities) {
+      return <UserIdentity>[]; // empty list simulates duplicate email path
+    }
+    if (invocation.memberName == #id) {
+      return 'dummy-id';
+    }
+    return super.noSuchMethod(invocation);
+  }
+}
 
 /// Stub notifier that lets tests control emitted state without touching Supabase.
 class _StubAuthNotifier extends AsyncNotifier<User?> implements AuthNotifier {
