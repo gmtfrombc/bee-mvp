@@ -26,7 +26,7 @@ EMAIL="${1:-gmtfrombc@gmail.com}"
 # ─────────────────────────────────────────────────────────────────────────────
 SQL=$(cat <<SQLBLOCK
 DO
-$$
+\$\$
 DECLARE
     v_uid         uuid;
     v_action      integer := 0;
@@ -69,7 +69,7 @@ BEGIN
     RAISE NOTICE 'Deleted rows – action_steps: %, logs: %, onboarding_responses: %, pes_entries: %, profiles: %, auth.users: %',
                  v_action, v_logs, v_onboarding, v_pes, v_profiles, v_auth;
 END
-$$;
+\$\$;
 SQLBLOCK
 )
 
