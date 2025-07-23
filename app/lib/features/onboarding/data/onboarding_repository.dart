@@ -52,11 +52,19 @@ class OnboardingRepository {
     };
 
     try {
-      await _client.rpc('submit_onboarding', params: params);
+      final result = await _client.rpc('submit_onboarding', params: params);
+      debugPrint('✅ submit_onboarding RPC returned: $result');
       await _storage.clear();
-      debugPrint('✅ Onboarding submission succeeded for ${user.id}');
-    } catch (e) {
-      debugPrint('❌ Onboarding submission failed: $e');
+    } on PostgrestException catch (e, st) {
+      debugPrint(
+        '❌ PostgrestException during onboarding submit → '
+        'code: ${e.code}, message: ${e.message}\n'
+        'details: ${e.details}, hint: ${e.hint}\nStack: $st',
+      );
+
+      throw OnboardingSubmissionException(e.message);
+    } catch (e, st) {
+      debugPrint('❌ Unknown error during onboarding submit: $e\nStack: $st');
       throw OnboardingSubmissionException(e.toString());
     }
   }
