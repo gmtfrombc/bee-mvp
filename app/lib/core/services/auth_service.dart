@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 
 import '../models/profile.dart';
 import 'demo_auth_service.dart';
+import 'onboarding_draft_storage_service.dart';
 
 /// Authentication service for handling user authentication
 class AuthService {
@@ -59,6 +60,13 @@ class AuthService {
       emailRedirectTo:
           'https://storage.googleapis.com/bee-auth-redirect/index.html',
     );
+
+    // Clear any stale onboarding draft so a fresh user starts clean.
+    try {
+      await OnboardingDraftStorageService().clear();
+    } catch (_) {
+      // ignore – storage not available in some envs
+    }
 
     // Debug: surface whether Supabase returned a session immediately.
     debugPrint(
