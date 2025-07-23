@@ -57,6 +57,9 @@ class _IdentityUser extends Fake implements User {
         },
       ];
     }
+    if (invocation.memberName == #id) {
+      return 'dummy-id';
+    }
     return super.noSuchMethod(invocation);
   }
 }
