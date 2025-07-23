@@ -12,7 +12,9 @@ set -a
 source ~/.bee_secrets/supabase.env
 set +a
 
-EMAIL="gmtfrombc@gmail.com"
+# Allow overriding the target email via CLI arg; default to Graeme's test account.
+# Usage: ./scripts/reset_gmt_user.sh [email]
+EMAIL="${1:-gmtfrombc@gmail.com}"
 
 # Ensure required vars are present
 : "${SUPABASE_PROJECT_REF:?Missing SUPABASE_PROJECT_REF in supabase.env}"  # project ref (e.g. okptsiz...)
@@ -22,7 +24,7 @@ EMAIL="gmtfrombc@gmail.com"
 # 1) Compose SQL in a heredoc. A DO block lets us capture row counts and emit
 #    clear NOTICE messages that the CLI will print to stdout.
 # ─────────────────────────────────────────────────────────────────────────────
-SQL=$(cat <<'SQLBLOCK'
+SQL=$(cat <<SQLBLOCK
 DO
 $$
 DECLARE
@@ -32,16 +34,21 @@ DECLARE
     v_pes         integer := 0;
     v_profiles    integer := 0;
     v_auth        integer := 0;
+    v_logs        integer := 0;
 BEGIN
-    -- Find the auth UID for the hard-coded email
-    SELECT id INTO v_uid FROM auth.users WHERE email = 'gmtfrombc@gmail.com' LIMIT 1;
+    -- Find the auth UID for the provided email
+    SELECT id INTO v_uid FROM auth.users WHERE email = '${EMAIL}' LIMIT 1;
 
     IF v_uid IS NULL THEN
         RAISE NOTICE 'User "%" not found – nothing to delete.', 'gmtfrombc@gmail.com';
         RETURN;
     END IF;
 
-    -- Delete domain rows and record how many were removed
+    -- Action Step logs must be deleted before the parent Action Step
+    DELETE FROM public.action_step_logs
+      WHERE action_step_id IN (SELECT id FROM public.action_steps WHERE user_id = v_uid);
+    GET DIAGNOSTICS v_logs = ROW_COUNT;
+
     DELETE FROM public.action_steps         WHERE user_id = v_uid;
     GET DIAGNOSTICS v_action = ROW_COUNT;
 
@@ -59,8 +66,8 @@ BEGIN
     GET DIAGNOSTICS v_auth = ROW_COUNT;
 
     -- Summary output
-    RAISE NOTICE 'Deleted rows – action_steps: %, onboarding_responses: %, pes_entries: %, profiles: %, auth.users: %',
-                 v_action, v_onboarding, v_pes, v_profiles, v_auth;
+    RAISE NOTICE 'Deleted rows – action_steps: %, logs: %, onboarding_responses: %, pes_entries: %, profiles: %, auth.users: %',
+                 v_action, v_logs, v_onboarding, v_pes, v_profiles, v_auth;
 END
 $$;
 SQLBLOCK
