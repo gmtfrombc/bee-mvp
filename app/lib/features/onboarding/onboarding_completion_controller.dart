@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/foundation.dart';
 
 import 'onboarding_controller.dart';
 import 'data/onboarding_repository.dart';
@@ -50,13 +51,23 @@ class OnboardingCompletionController extends StateNotifier<AsyncValue<void>> {
 
       // Mark onboarding complete in Supabase profile.
       final authService = await _ref.read(authServiceProvider.future);
-      await authService.completeOnboarding();
+      try {
+        await authService.completeOnboarding();
+        if (kDebugMode) {
+          // ignore: avoid_print
+          debugPrint('✅ completeOnboarding upsert succeeded');
+        }
+      } catch (e) {
+        debugPrint('❌ completeOnboarding failed: $e');
+        rethrow;
+      }
 
       // Stop autosave timer now that draft is cleared.
       _ref.read(onboardingControllerProvider.notifier).cancelAutosave();
       // On success we simply emit `data(null)`.
       state = const AsyncValue.data(null);
     } catch (err, st) {
+      debugPrint('❌ OnboardingCompletionController.submit error: $err');
       state = AsyncValue.error(err, st);
     } finally {
       // Always clear the flag regardless of success or failure.
