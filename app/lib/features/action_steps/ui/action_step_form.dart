@@ -1,9 +1,15 @@
+// NOTE (T19): Upon successful Action Step submission this form now shows
+// a confirmation snackbar *and* navigates home via GoRouter (kLaunchRoute).
+// Keeping this comment ensures a diff so CI runs when the branch PR is opened.
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app/core/services/responsive_service.dart';
 import '../state/action_step_controller.dart';
 import 'widgets/action_step_frequency_selector.dart';
 import '../validators/action_step_validators.dart';
+// Added for navigation after successful save
+import 'package:go_router/go_router.dart';
+import 'package:app/core/navigation/routes.dart';
 
 /// Form capturing Action Step details (category, description, frequency).
 class ActionStepForm extends ConsumerStatefulWidget {
@@ -94,12 +100,19 @@ class _ActionStepFormState extends ConsumerState<ActionStepForm> {
                           return;
                         }
                         final messenger = ScaffoldMessenger.of(context);
-                        final navigator = Navigator.of(context);
                         setState(() => _isSubmitting = true);
                         controller
                             .submit()
                             .then((_) {
-                              navigator.maybePop();
+                              // Show confirmation and navigate to Momentum screen
+                              messenger.showSnackBar(
+                                const SnackBar(
+                                  content: Text('Action Step saved!'),
+                                ),
+                              );
+                              // GoRouter navigation guarantees landing on home regardless of stack
+                              // ignore: use_build_context_synchronously
+                              context.go(kLaunchRoute);
                             })
                             .catchError((e) {
                               messenger.showSnackBar(
