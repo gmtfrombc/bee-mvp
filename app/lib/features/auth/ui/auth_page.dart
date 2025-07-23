@@ -61,7 +61,9 @@ class _AuthPageState extends ConsumerState<AuthPage> {
     );
 
     // === New: Duplicate email guard ===
-    if (response.session == null && response.user == null) {
+    final identities = response.user?.identities as List<dynamic>?;
+    if (response.session == null &&
+        (identities == null || identities.isEmpty)) {
       // No session and no user → Supabase may have silently skipped account creation because
       // the e-mail is already registered. Show user-friendly error and abort navigation.
       if (!mounted) return;
