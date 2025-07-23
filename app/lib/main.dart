@@ -26,6 +26,7 @@ import 'features/action_steps/providers/momentum_listener_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 import 'package:go_router/go_router.dart' as gor;
+import 'package:app/l10n/s.dart';
 
 // Global instance to share across app
 final AuthSessionService authSessionService = AuthSessionService();
@@ -311,6 +312,11 @@ class BEEApp extends ConsumerWidget {
       routerDelegate: appRouter.routerDelegate,
       backButtonDispatcher: appRouter.backButtonDispatcher,
       debugShowCheckedModeBanner: false,
+      // Add localization support – fixes null check error when S.of(context)
+      // is used inside onboarding pages.  Includes Material, Cupertino, and
+      // Widgets delegates automatically via S.localizationsDelegates.
+      localizationsDelegates: S.localizationsDelegates,
+      supportedLocales: S.supportedLocales,
     );
   }
 }
