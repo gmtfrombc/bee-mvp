@@ -88,7 +88,7 @@ For each epic use the template:
 
 | # | Feature/Scenario  | How to Test                                                              | Acceptance Criteria                         | ✅ |
 |---|-------------------|--------------------------------------------------------------------------|---------------------------------------------|----|
-| 1 | Reg. new user     | Launch app → **Register** → enter email + 12-char password → **Sign Up** | No validation errors; nav to **Onboarding** | ☐  |
+| 1 | Reg. new user     | Launch app → **Register** → enter email + 12-char password → **Sign Up** | No validation errors; nav to **Onboarding** | ✅  |
 | 2 | Dup. email guard  | Attempt to register again with same email                                | UI shows “Email already in use”             | ☐  |
 | 3 | Login exist. user | **Login** with valid credentials                                         | Navs to **Home** (if onboarding complete)   | ☐  |
 | 4 | Bad password      | **Login** with wrong password                                            | Error banner “Invalid login credentials”    | ☐  |
