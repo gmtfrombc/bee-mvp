@@ -152,7 +152,9 @@ void main() {
       );
     });
 
-    testWidgets('continue button shows snackbar when pressed', (tester) async {
+    testWidgets('continue button triggers navigation without snackbar', (
+      tester,
+    ) async {
       await tester.pumpWidget(createTestWidget());
 
       final controller = container.read(onboardingControllerProvider.notifier);
@@ -174,8 +176,8 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('continue_button')));
       await tester.pumpAndSettle();
 
-      // Check snackbar appears
-      expect(find.text('Readiness assessment saved!'), findsOneWidget);
+      // Snackbar should NOT appear (UI cleaned up)
+      expect(find.text('Readiness assessment saved!'), findsNothing);
     });
 
     testWidgets('priority chips display correct labels', (tester) async {
