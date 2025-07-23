@@ -55,13 +55,8 @@ class OnboardingSubmissionSnackbar extends ConsumerWidget {
         data: (_) {
           // Only act if previous state was loading (avoid showing success on init)
           if (previous?.isLoading ?? false) {
+            // Hide the loading snackbar; no success snackbar to keep flow clean.
             ScaffoldMessenger.of(context).hideCurrentSnackBar();
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                backgroundColor: Theme.of(context).colorScheme.secondary,
-                content: const Text('Onboarding complete!'),
-              ),
-            );
             // Decide next navigation: if user has not yet set an Action Step,
             // offer them the chance via a modal prompt; otherwise go to launch.
 

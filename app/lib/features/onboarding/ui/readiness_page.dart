@@ -175,9 +175,6 @@ class ReadinessPage extends ConsumerWidget {
       onPressed:
           controller.isReadinessComplete
               ? () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Readiness assessment saved!')),
-                );
                 final router = GoRouter.maybeOf(context);
                 if (router != null) {
                   router.push(kOnboardingStep4Route);
