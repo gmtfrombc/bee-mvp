@@ -56,6 +56,10 @@ class _AuthPageState extends ConsumerState<AuthPage> {
         .read(authNotifierProvider.notifier)
         .signUpWithEmail(name: name, email: email, password: password);
 
+    debugPrint(
+      '[AuthPage] signUp response: session=${response.session} user=${response.user?.id} identities=${response.user?.identities}',
+    );
+
     // === New: Duplicate email guard ===
     if (response.session == null && response.user == null) {
       // No session and no user → Supabase may have silently skipped account creation because
