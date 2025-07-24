@@ -32,7 +32,16 @@ class _MyActionStepPageState extends ConsumerState<MyActionStepPage> {
     });
 
     return Scaffold(
-      appBar: AppBar(title: const Text('My Action Step')),
+      appBar: AppBar(
+        title: const Text('My Action Step'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.history),
+            tooltip: 'History',
+            onPressed: () => context.push(kActionStepHistoryRoute),
+          ),
+        ],
+      ),
       body: SafeArea(
         child: asyncStep.when(
           data: (current) {

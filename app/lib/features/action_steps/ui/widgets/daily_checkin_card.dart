@@ -73,8 +73,10 @@ class _Header extends StatelessWidget {
       children: [
         const Icon(Icons.calendar_today, size: 20),
         SizedBox(width: spacing),
-        Text('$weekday · $formattedDate',
-            style: Theme.of(context).textTheme.labelLarge),
+        Text(
+          '$weekday · $formattedDate',
+          style: Theme.of(context).textTheme.labelLarge,
+        ),
       ],
     );
   }
