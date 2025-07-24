@@ -12,6 +12,7 @@ import 'package:go_router/go_router.dart';
 import 'package:app/core/navigation/routes.dart';
 import 'package:app/features/action_steps/models/action_step.dart';
 import 'package:app/features/action_steps/data/action_step_repository.dart';
+import 'package:app/features/action_steps/services/action_step_analytics.dart';
 
 /// Form capturing Action Step details (category, description, frequency).
 class ActionStepForm extends ConsumerStatefulWidget {
@@ -143,6 +144,16 @@ class _ActionStepFormState extends ConsumerState<ActionStepForm> {
                             );
 
                             await repo.updateActionStep(updated);
+
+                            // Log analytics
+                            final analytics =
+                                ref.read(actionStepAnalyticsProvider);
+                            await analytics.logEdit(
+                              actionStepId: updated.id,
+                              category: updated.category,
+                              description: updated.description,
+                              frequency: updated.frequency,
+                            );
 
                             messenger.showSnackBar(
                               const SnackBar(

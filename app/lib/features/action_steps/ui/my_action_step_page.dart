@@ -2,17 +2,33 @@ import 'package:app/core/services/responsive_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app/features/action_steps/data/action_step_repository.dart';
+import 'package:app/features/action_steps/services/action_step_analytics.dart';
 import 'package:app/core/navigation/routes.dart';
 import 'package:go_router/go_router.dart';
 import 'package:app/core/services/action_step_status_service.dart';
 
 /// Page showing the user’s current Action Step with progress and actions.
-class MyActionStepPage extends ConsumerWidget {
+class MyActionStepPage extends ConsumerStatefulWidget {
   const MyActionStepPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MyActionStepPage> createState() => _MyActionStepPageState();
+}
+
+class _MyActionStepPageState extends ConsumerState<MyActionStepPage> {
+  bool _loggedView = false;
+
+  @override
+  Widget build(BuildContext context) {
     final asyncStep = ref.watch(currentActionStepProvider);
+
+    asyncStep.whenData((current) async {
+      if (!_loggedView && current != null) {
+        _loggedView = true;
+        final analytics = ref.read(actionStepAnalyticsProvider);
+        await analytics.logView(actionStepId: current.step.id);
+      }
+    });
 
     return Scaffold(
       appBar: AppBar(title: const Text('My Action Step')),
@@ -111,7 +127,9 @@ class _StepDetailView extends ConsumerWidget {
                 child: ElevatedButton(
                   onPressed: () async {
                     final repo = ref.read(actionStepRepositoryProvider);
+                    final analytics = ref.read(actionStepAnalyticsProvider);
                     await repo.deleteActionStep(step.id);
+                    await analytics.logDelete(actionStepId: step.id);
                     await ActionStepStatusService().setHasSetActionStep(false);
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(

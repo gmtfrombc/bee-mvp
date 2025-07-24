@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:app/core/theme/app_theme.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:app/features/action_steps/data/action_step_repository.dart';
 import 'package:app/core/services/accessibility_service.dart';
 import 'package:app/features/momentum/domain/models/momentum_data.dart';
 import 'package:app/features/momentum/presentation/widgets/momentum_gauge.dart';
@@ -117,14 +119,19 @@ void main() {
       });
 
       await tester.pumpWidget(
-        MaterialApp(
-          theme: AppTheme.lightTheme,
-          home: Scaffold(
-            body: QuickStatsCards(
-              stats: stats,
-              onLessonsTap: () {},
-              onActionStepTap: () {},
-              onTodayTap: () {},
+        ProviderScope(
+          overrides: [
+            currentActionStepProvider.overrideWith((ref) async => null),
+          ],
+          child: MaterialApp(
+            theme: AppTheme.lightTheme,
+            home: Scaffold(
+              body: QuickStatsCards(
+                stats: stats,
+                onLessonsTap: () {},
+                onActionStepTap: () {},
+                onTodayTap: () {},
+              ),
             ),
           ),
         ),

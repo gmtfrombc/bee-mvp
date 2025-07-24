@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/theme/app_theme.dart';
 import '../../../../../core/services/responsive_service.dart';
 import '../../../domain/models/momentum_data.dart';
+import '../../../../action_steps/data/action_step_repository.dart';
 import 'individual_stat_card.dart';
 
 /// Layout handler for stats cards supporting standard and compact layouts
@@ -26,32 +28,44 @@ class StatsCardsLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final spacing = ResponsiveService.getResponsiveSpacing(context) * 0.4;
-    final shouldUseCompactLayout = ResponsiveService.shouldUseCompactLayout(
-      context,
-    );
+    return Consumer(
+      builder: (context, ref, _) {
+        final actionStepAsync = ref.watch(currentActionStepProvider);
+        final progress = actionStepAsync.maybeWhen(
+          data: (current) => current == null
+              ? '--'
+              : '${current.completed}/${current.target}',
+          orElse: () => '--',
+        );
 
-    return shouldUseCompactLayout
-        ? _buildCompactLayout(spacing)
-        : _buildStandardLayout(spacing);
+        final spacing =
+            ResponsiveService.getResponsiveSpacing(context) * 0.4;
+        final shouldUseCompactLayout =
+            ResponsiveService.shouldUseCompactLayout(context);
+
+        return shouldUseCompactLayout
+            ? _buildCompactLayout(spacing, progress)
+            : _buildStandardLayout(spacing, progress);
+      },
+    );
   }
 
-  Widget _buildStandardLayout(double spacing) {
+  Widget _buildStandardLayout(double spacing, String progress) {
     return Row(
       children: [
         Expanded(child: cardWrapper(_buildReadinessCard())),
         SizedBox(width: spacing),
-        Expanded(child: cardWrapper(_buildActionStepCard())),
+        Expanded(child: cardWrapper(_buildActionStepCard(progress))),
       ],
     );
   }
 
-  Widget _buildCompactLayout(double spacing) {
+  Widget _buildCompactLayout(double spacing, String progress) {
     return Row(
       children: [
         Expanded(child: cardWrapper(_buildReadinessCard())),
         SizedBox(width: spacing),
-        Expanded(child: cardWrapper(_buildActionStepCard())),
+        Expanded(child: cardWrapper(_buildActionStepCard(progress))),
       ],
     );
   }
@@ -66,10 +80,10 @@ class StatsCardsLayout extends StatelessWidget {
     );
   }
 
-  IndividualStatCard _buildActionStepCard() {
+  IndividualStatCard _buildActionStepCard(String progress) {
     return IndividualStatCard(
       icon: Icons.flag_circle_rounded,
-      value: '--', // Placeholder until Action Step logic is wired
+      value: progress,
       label: 'Action Step',
       color: AppTheme.momentumRising,
       onTap: onActionStepTap, // Open Action Step feature

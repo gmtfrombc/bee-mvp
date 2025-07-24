@@ -75,6 +75,62 @@ class ActionStepAnalytics {
     await _analytics.logEvent('action_step_completed', params: payload);
   }
 
+  /// Logs when the user views their current Action Step page.
+  Future<void> logView({required String actionStepId}) async {
+    final userId = _client.auth.currentUser?.id;
+
+    final deviceId = await DeviceIdService.instance.getDeviceId();
+
+    final payload = <String, dynamic>{
+      'user_id': userId,
+      'action_step_id': actionStepId,
+      'timestamp': DateTime.now().toUtc().toIso8601String(),
+      'device_id': deviceId,
+    };
+
+    await _analytics.logEvent('action_step_view', params: payload);
+  }
+
+  /// Logs when the user edits their Action Step.
+  Future<void> logEdit({
+    required String actionStepId,
+    required String category,
+    required String description,
+    required int frequency,
+  }) async {
+    final userId = _client.auth.currentUser?.id;
+
+    final deviceId = await DeviceIdService.instance.getDeviceId();
+
+    final payload = <String, dynamic>{
+      'user_id': userId,
+      'action_step_id': actionStepId,
+      'timestamp': DateTime.now().toUtc().toIso8601String(),
+      'device_id': deviceId,
+      'category': category,
+      'description': description,
+      'frequency': frequency,
+    };
+
+    await _analytics.logEvent('action_step_edit', params: payload);
+  }
+
+  /// Logs when the user deletes their Action Step.
+  Future<void> logDelete({required String actionStepId}) async {
+    final userId = _client.auth.currentUser?.id;
+
+    final deviceId = await DeviceIdService.instance.getDeviceId();
+
+    final payload = <String, dynamic>{
+      'user_id': userId,
+      'action_step_id': actionStepId,
+      'timestamp': DateTime.now().toUtc().toIso8601String(),
+      'device_id': deviceId,
+    };
+
+    await _analytics.logEvent('action_step_delete', params: payload);
+  }
+
   // ---------------------------------------------------------------------------
   // Helpers
   // ---------------------------------------------------------------------------

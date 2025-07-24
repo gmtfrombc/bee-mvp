@@ -43,5 +43,55 @@ void main() {
         ),
       ).called(1);
     });
+
+    test('logView forwards correct event name', () async {
+      when(
+        () => mockAnalytics.logEvent(any(), params: any(named: 'params')),
+      ).thenAnswer((_) async {});
+
+      await analytics.logView(actionStepId: 'step-123');
+
+      verify(
+        () => mockAnalytics.logEvent(
+          'action_step_view',
+          params: captureAny(named: 'params'),
+        ),
+      ).called(1);
+    });
+
+    test('logEdit forwards correct event name and params', () async {
+      when(
+        () => mockAnalytics.logEvent(any(), params: any(named: 'params')),
+      ).thenAnswer((_) async {});
+
+      await analytics.logEdit(
+        actionStepId: 'step-123',
+        category: 'nutrition',
+        description: 'Eat 5 servings of vegetables',
+        frequency: 5,
+      );
+
+      verify(
+        () => mockAnalytics.logEvent(
+          'action_step_edit',
+          params: captureAny(named: 'params'),
+        ),
+      ).called(1);
+    });
+
+    test('logDelete forwards correct event name', () async {
+      when(
+        () => mockAnalytics.logEvent(any(), params: any(named: 'params')),
+      ).thenAnswer((_) async {});
+
+      await analytics.logDelete(actionStepId: 'step-123');
+
+      verify(
+        () => mockAnalytics.logEvent(
+          'action_step_delete',
+          params: captureAny(named: 'params'),
+        ),
+      ).called(1);
+    });
   });
 }
