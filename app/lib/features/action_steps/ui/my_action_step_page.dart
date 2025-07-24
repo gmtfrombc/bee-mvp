@@ -1,9 +1,10 @@
 import 'package:app/core/services/responsive_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../data/action_step_repository.dart';
+import 'package:app/features/action_steps/data/action_step_repository.dart';
 import 'package:app/core/navigation/routes.dart';
 import 'package:go_router/go_router.dart';
+import 'package:app/core/services/action_step_status_service.dart';
 
 /// Page showing the user’s current Action Step with progress and actions.
 class MyActionStepPage extends ConsumerWidget {
@@ -111,12 +112,12 @@ class _StepDetailView extends ConsumerWidget {
                   onPressed: () async {
                     final repo = ref.read(actionStepRepositoryProvider);
                     await repo.deleteActionStep(step.id);
-                    // Pop back or show snackbar
+                    await ActionStepStatusService().setHasSetActionStep(false);
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Action Step deleted')),
                       );
-                      context.pop();
+                      context.go(kActionStepSetupRoute);
                     }
                   },
                   style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
