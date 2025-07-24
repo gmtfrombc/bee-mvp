@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/action_step_day_status.dart';
 import 'package:app/features/action_steps/services/action_step_analytics.dart';
+import 'package:app/features/action_steps/data/action_step_repository.dart';
 
 /// Controls the check-in state for the current day.
 ///
@@ -11,31 +12,43 @@ import 'package:app/features/action_steps/services/action_step_analytics.dart';
 class DailyCheckinController extends AsyncNotifier<ActionStepDayStatus> {
   @override
   Future<ActionStepDayStatus> build() async {
-    // TODO(M1.5.4-T2): Replace with repository lookup / local cache.
-    return ActionStepDayStatus.queued;
+    final current = await ref.watch(currentActionStepProvider.future);
+    if (current == null) return ActionStepDayStatus.queued;
+
+    final repo = ref.read(actionStepRepositoryProvider);
+    return repo.fetchDayStatus(
+      actionStepId: current.step.id,
+      date: DateTime.now(),
+    );
   }
 
   /// User indicates the Action Step was completed today.
   Future<void> markCompleted() async {
-    // Optimistic update: immediately show new state.
-    state = const AsyncValue.loading();
-    state = const AsyncValue.data(ActionStepDayStatus.completed);
-
-    // TODO(M1.5.4-T2): Persist completion log to Supabase.
-
+    await _updateStatus(ActionStepDayStatus.completed);
     // Analytics
     await ref.read(actionStepAnalyticsProvider).logCompleted(success: true);
   }
 
   /// User indicates they choose to skip today.
   Future<void> markSkipped() async {
-    state = const AsyncValue.loading();
-    state = const AsyncValue.data(ActionStepDayStatus.skipped);
-
-    // TODO(M1.5.4-T2): Persist skip log to Supabase.
-
-    // Analytics
+    await _updateStatus(ActionStepDayStatus.skipped);
     await ref.read(actionStepAnalyticsProvider).logCompleted(success: false);
+  }
+
+  Future<void> _updateStatus(ActionStepDayStatus newStatus) async {
+    // Optimistic UI
+    state = const AsyncValue.loading();
+    state = AsyncValue.data(newStatus);
+
+    final current = await ref.watch(currentActionStepProvider.future);
+    if (current == null) return; // Should not happen, but guard anyway.
+
+    final repo = ref.read(actionStepRepositoryProvider);
+    await repo.createLog(
+      actionStepId: current.step.id,
+      day: DateTime.now(),
+      status: newStatus,
+    );
   }
 }
 

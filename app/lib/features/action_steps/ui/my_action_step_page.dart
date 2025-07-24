@@ -6,6 +6,7 @@ import 'package:app/features/action_steps/services/action_step_analytics.dart';
 import 'package:app/core/navigation/routes.dart';
 import 'package:go_router/go_router.dart';
 import 'package:app/core/services/action_step_status_service.dart';
+import 'package:app/features/action_steps/ui/widgets/daily_checkin_card.dart';
 
 /// Page showing the user’s current Action Step with progress and actions.
 class MyActionStepPage extends ConsumerStatefulWidget {
@@ -96,6 +97,11 @@ class _StepDetailView extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // Daily check-in card (T12)
+          const DailyCheckinCard(),
+
+          SizedBox(height: spacing),
+
           Row(
             children: [
               const Icon(Icons.flag),

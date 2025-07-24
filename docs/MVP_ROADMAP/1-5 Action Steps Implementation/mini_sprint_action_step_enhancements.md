@@ -29,7 +29,7 @@ Combined, these changes close QA issues 1–3 and unlock full _Plan → Do → R
 | ID | Task | Status |
 |----|------|--------|
 | T11 | Enable weekly rollover / “Add New Action Step” button | ✅ Done |
-| T12 | Embed `DailyCheckinCard` & wire Supabase persistence | ⚪ Planned |
+| T12 | Embed `DailyCheckinCard` & wire Supabase persistence | ✅ Done |
 | T13 | Build `ActionStepHistoryPage` with paginated list view | ⚪ Planned |
 | T14 | Repo methods: `createLog()`, `fetchHistory()` | ⚪ Planned |
 | T15 | Update analytics hooks (view/history/reset) | ⚪ Planned |
