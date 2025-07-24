@@ -4,19 +4,29 @@ alwaysApply: true
 
 ## rule_type: always
 
-# 🧠 Standard Workflow--New Task
-
-1️⃣ Checkout main, insure all synced 1️⃣ Branch epic-<epic>/T<task>-slug off main.
-2️⃣ Plan: Enter the BLUEPRINT phase and create a checklist giving your
-step-by-step plan, wait for ✔ from user. 3️⃣ Code locally, commit small chunks.
-Pre-commit hook auto-runs formatter + linter + Gitleaks; aborts on conflict
-markers. 4️⃣ Test locally • Fast path make ci-fast (~5 min) • Full matrix make
-ci-local (identical to GitHub via ACT) ￼ 5️⃣ Fix failures: rerun only failed
-tests (flutter test --name, pytest --lf, deno test --filter) until green, then
-run the full suite once. 6️⃣ Rebase before push git fetch origin git rebase
-origin/main --autostash # surfacing fresh conflicts git push --force-with-lease
-# safe overwrite 7️⃣ Open PR, wait for Fast Tests to pass (< 5 min), squash-merge
-to main, then delete the branch. 8️⃣ Stop; await next user task.
+# 🧠 Standard Workflow--New Task.
+For a NEW TASK perform the following:
+1️⃣ **Sync and Branch from Main**  
+   - `git fetch origin`  
+   - `git checkout main`  
+   - `git pull origin main` (or `git rebase origin/main`).  
+   - `git checkout -b epic-<epic>/T<task>-slug`.
+2️⃣ **Plan:** Create a TODO list for your step-by-step plan. Wait for ✔ from user.
+3️⃣ **Code Locally and Commit**  
+   - Code in small chunks.  
+   - After every 3-5 commits or tasks: `git fetch origin && git rebase origin/main --autostash` (resolve conflicts if any, then continue coding).  
+   - Use pre-commit hook for formatter + linter + Gitleaks; abort on conflict markers.  
+   - Commit: `git add . && git commit -m "Descriptive message"`.
+4️⃣ **Test Locally**  
+   - Before testing: `git fetch origin && git rebase origin/main --autostash` (ensure base is current).  
+   - Fast path: `make ci-fast` (~5 min).  
+   - Full matrix: `make ci-local`.
+5️⃣ **Fix Failures**  
+   - Rerun failed tests (flutter test --name, pytest --lf, deno test --filter) until green, then full suite.
+6️⃣  **Rebase and Push**  
+   - `git fetch origin`  
+   - `git rebase origin/main --autostash`  
+   - `git push origin HEAD --force-with-lease`.
 
 # 🧠 Core Coding Rules
 
