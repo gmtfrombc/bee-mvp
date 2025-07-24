@@ -5,8 +5,8 @@ import 'package:app/features/action_steps/data/action_step_repository.dart';
 import 'package:app/features/action_steps/models/action_step_day_status.dart';
 
 class _MockSupabaseClient extends Mock implements SupabaseClient {}
+
 class _MockGoTrueClient extends Mock implements GoTrueClient {}
-class _MockPostgrestTransformBuilder extends Mock implements PostgrestTransformBuilder {}
 
 void main() {
   group('ActionStepRepository logs', () {
@@ -40,4 +40,4 @@ void main() {
       verifyNever(() => mockClient.from(any()));
     });
   });
-} 
+}
