@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../action_steps/state/action_step_history_controller.dart';
 import '../../action_steps/models/action_step_history_entry.dart';
+import 'package:app/features/action_steps/services/action_step_analytics.dart';
 
 class ActionStepHistoryPage extends ConsumerStatefulWidget {
   const ActionStepHistoryPage({super.key});
@@ -19,6 +20,13 @@ class _ActionStepHistoryPageState extends ConsumerState<ActionStepHistoryPage> {
     super.initState();
     _controller = ScrollController();
     _controller.addListener(_onScroll);
+
+    // Log analytics event after the first frame so context/ref are available.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final analytics = ref.read(actionStepAnalyticsProvider);
+      analytics.logHistoryView();
+    });
   }
 
   void _onScroll() {
