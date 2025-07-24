@@ -34,11 +34,11 @@ Enable users to **view, update, or delete** their current Action Step directly f
 | T3 | Wire navigation logic in Momentum screen     | dev | ✅ |
 | T4 | Implement edit flow (reuse `ActionStepForm`) | dev | ✅ |
 | T5 | Implement delete flow + confirmation dialog  | dev | ✅ |
-| T6 | Calculate & render progress in Momentum card | dev | pending |
-| T7 | Add analytics events (view/edit/delete)      | dev | pending |
-| T8 | Write unit tests for repository & analytics  | dev | pending |
-| T9 | Widget tests for navigation & UI states      | dev | pending |
-| T10| Update docs & QA script                      | dev | pending |
+| T6 | Calculate & render progress in Momentum card | dev | ✅ |
+| T7 | Add analytics events (view/edit/delete)      | dev | ✅ |
+| T8 | Write unit tests for repository & analytics  | dev | ✅ |
+| T9 | Widget tests for navigation & UI states      | dev | ✅ |
+| T10| Update docs & QA script                      | dev | ✅ |
 
 ## 5 Acceptance Criteria
 1. Tapping **Action Step** card on Momentum screen:

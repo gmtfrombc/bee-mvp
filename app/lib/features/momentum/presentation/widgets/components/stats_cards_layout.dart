@@ -32,16 +32,18 @@ class StatsCardsLayout extends StatelessWidget {
       builder: (context, ref, _) {
         final actionStepAsync = ref.watch(currentActionStepProvider);
         final progress = actionStepAsync.maybeWhen(
-          data: (current) => current == null
-              ? '--'
-              : '${current.completed}/${current.target}',
+          data:
+              (current) =>
+                  current == null
+                      ? '--'
+                      : '${current.completed}/${current.target}',
           orElse: () => '--',
         );
 
-        final spacing =
-            ResponsiveService.getResponsiveSpacing(context) * 0.4;
-        final shouldUseCompactLayout =
-            ResponsiveService.shouldUseCompactLayout(context);
+        final spacing = ResponsiveService.getResponsiveSpacing(context) * 0.4;
+        final shouldUseCompactLayout = ResponsiveService.shouldUseCompactLayout(
+          context,
+        );
 
         return shouldUseCompactLayout
             ? _buildCompactLayout(spacing, progress)
