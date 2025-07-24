@@ -23,6 +23,7 @@ import 'package:app/features/today_feed/domain/models/today_feed_content.dart';
 import 'package:app/features/ai_coach/ui/coach_chat_screen.dart';
 import 'package:app/features/wearable/ui/live_vitals_developer_screen.dart';
 import 'package:app/features/auth/ui/password_reset_page.dart';
+import 'package:app/features/action_steps/ui/my_action_step_page.dart';
 
 /// Simple observer that logs push/pop events for diagnostics only.
 class LoggingNavigatorObserver extends NavigatorObserver {
@@ -81,6 +82,7 @@ const String kOnboardingStep4Route = '/onboarding/step4';
 const String kOnboardingStep5Route = '/onboarding/step5';
 const String kOnboardingStep6Route = '/onboarding/step6';
 const String kActionStepSetupRoute = '/action-step/setup';
+const String kActionStepCurrentRoute = '/action-step/current';
 // Route constants
 const String kConfirmRoute = '/confirm';
 const String kAuthRoute = '/auth';
@@ -222,6 +224,10 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: kActionStepSetupRoute,
       builder: (context, state) => const ActionStepSetupPage(),
+    ),
+    GoRoute(
+      path: kActionStepCurrentRoute,
+      builder: (context, state) => const MyActionStepPage(),
     ),
     // NEW ROUTES
     GoRoute(
