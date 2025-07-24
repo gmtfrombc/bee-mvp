@@ -123,7 +123,7 @@ void main() {
             body: QuickStatsCards(
               stats: stats,
               onLessonsTap: () {},
-              onStreakTap: () {},
+              onActionStepTap: () {},
               onTodayTap: () {},
             ),
           ),
