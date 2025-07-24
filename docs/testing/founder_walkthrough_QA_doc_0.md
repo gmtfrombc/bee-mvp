@@ -107,11 +107,11 @@ WHERE u.email = '<EMAIL>';  -- Expect onboarding_complete = false
 
 ### 3.2 Epic 1.11 – Onboarding Intake
 
-| # | Scenario                  | How to Test                                | Acceptance Criteria                                          | ✅  |
-|---|---------------------------|--------------------------------------------|--------------------------------------------------------------|-----|
-| 1 | Survey navigation         | Complete each page using typical answers   | **Next** & **Back** buttons work; progress indicator updates | ☐   |
-| 2 | Required-field validation | Leave a required field blank, tap **Next** | Inline validation prevents advance                           | ☐   |
-| 3 | Submission                | Finish survey, tap **Submit**              | Spinner ≤ 2 s; app lands on **Home** screen                  | ☐   |
+| # | Scenario                  | How to Test                                | Acceptance Criteria                                          | ✅ |
+|---|---------------------------|--------------------------------------------|--------------------------------------------------------------|----|
+| 1 | Survey navigation         | Complete each page using typical answers   | **Next** & **Back** buttons work; progress indicator updates | ✅  |
+| 2 | Required-field validation | Leave a required field blank, tap **Next** | Inline validation prevents advance                           | ✅  |
+| 3 | Submission                | Finish survey, tap **Submit**              | Spinner ≤ 2 s; app lands on **Home** screen                  | ✅  |
 
 **Data Verification**:
 
