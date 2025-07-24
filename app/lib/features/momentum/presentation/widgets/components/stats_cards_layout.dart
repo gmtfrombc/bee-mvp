@@ -9,7 +9,7 @@ import 'individual_stat_card.dart';
 class StatsCardsLayout extends StatelessWidget {
   final MomentumStats stats;
   final VoidCallback? onLessonsTap;
-  final VoidCallback? onStreakTap;
+  final VoidCallback? onActionStepTap;
   final VoidCallback? onTodayTap;
   final VoidCallback? onAchievementsTap;
   final Widget Function(IndividualStatCard card) cardWrapper;
@@ -19,7 +19,7 @@ class StatsCardsLayout extends StatelessWidget {
     required this.stats,
     required this.cardWrapper,
     this.onLessonsTap,
-    this.onStreakTap,
+    this.onActionStepTap,
     this.onTodayTap,
     this.onAchievementsTap,
   });
@@ -72,7 +72,7 @@ class StatsCardsLayout extends StatelessWidget {
       value: '--', // Placeholder until Action Step logic is wired
       label: 'Action Step',
       color: AppTheme.momentumRising,
-      onTap: onStreakTap, // Reuse callback slot for future Action Step details
+      onTap: onActionStepTap, // Open Action Step feature
     );
   }
 }

@@ -10,7 +10,7 @@ class QuickStatsCards extends StatefulWidget {
   final MomentumStats stats;
   final EdgeInsets? margin;
   final VoidCallback? onLessonsTap;
-  final VoidCallback? onStreakTap;
+  final VoidCallback? onActionStepTap;
   final VoidCallback? onTodayTap;
   final VoidCallback? onAchievementsTap;
 
@@ -19,7 +19,7 @@ class QuickStatsCards extends StatefulWidget {
     required this.stats,
     this.margin,
     this.onLessonsTap,
-    this.onStreakTap,
+    this.onActionStepTap,
     this.onTodayTap,
     this.onAchievementsTap,
   });
@@ -79,7 +79,7 @@ class _QuickStatsCardsState extends State<QuickStatsCards>
       child: StatsCardsLayout(
         stats: widget.stats,
         onLessonsTap: widget.onLessonsTap,
-        onStreakTap: widget.onStreakTap,
+        onActionStepTap: widget.onActionStepTap,
         onTodayTap: widget.onTodayTap,
         onAchievementsTap: widget.onAchievementsTap,
         cardWrapper: _wrapCardWithAnimation,

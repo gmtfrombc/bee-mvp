@@ -16,6 +16,7 @@ import '../widgets/skeleton_widgets.dart';
 import '../widgets/loading_indicator.dart';
 import '../widgets/error_widgets.dart';
 import '../../../../core/services/error_handling_service.dart';
+// import removed: action step status service no longer used
 
 // Routing
 import 'package:go_router/go_router.dart';
@@ -205,12 +206,9 @@ class _MomentumContent extends ConsumerWidget {
                   const SnackBar(content: Text('Lessons view coming soon!')),
                 );
               },
-              onStreakTap: () {
-                // TODO: Navigate to streak details (T1.1.3.6)
-                context.announceToScreenReader('Navigating to streak details');
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Streak details coming soon!')),
-                );
+              onActionStepTap: () {
+                context.announceToScreenReader('Navigating to Action Step');
+                context.push(kActionStepSetupRoute);
               },
               onTodayTap: () {
                 // TODO: Navigate to today's activity (T1.1.3.6)
