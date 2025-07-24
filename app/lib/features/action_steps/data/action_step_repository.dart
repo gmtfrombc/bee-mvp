@@ -1,47 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:app/core/providers/supabase_provider.dart';
-
-/// Immutable model representing a saved Action Step row.
-class ActionStep {
-  const ActionStep({
-    required this.id,
-    required this.category,
-    required this.description,
-    required this.frequency,
-    required this.weekStart,
-    required this.createdAt,
-    required this.updatedAt,
-  });
-
-  final String id;
-  final String category;
-  final String description;
-  final int frequency;
-  final DateTime weekStart;
-  final DateTime createdAt;
-  final DateTime updatedAt;
-
-  factory ActionStep.fromJson(Map<String, dynamic> json) {
-    return ActionStep(
-      id: json['id'] as String,
-      category: json['category'] as String,
-      description: json['description'] as String,
-      frequency: json['frequency'] as int,
-      weekStart: DateTime.parse(json['week_start'] as String).toUtc(),
-      createdAt: DateTime.parse(json['created_at'] as String).toUtc(),
-      updatedAt: DateTime.parse(json['updated_at'] as String).toUtc(),
-    );
-  }
-}
+import '../models/action_step.dart';
 
 /// Convenience wrapper combining the current Action Step row with week progress.
 class CurrentActionStep {
   const CurrentActionStep({required this.step, required this.completed});
-
   final ActionStep step;
   final int completed;
-
   int get target => step.frequency;
 }
 

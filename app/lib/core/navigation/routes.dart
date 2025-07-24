@@ -25,6 +25,7 @@ import 'package:app/features/wearable/ui/live_vitals_developer_screen.dart';
 import 'package:app/features/auth/ui/password_reset_page.dart';
 import 'package:app/features/action_steps/ui/my_action_step_page.dart';
 import 'package:app/features/action_steps/data/action_step_repository.dart';
+import 'package:app/features/action_steps/models/action_step.dart';
 
 /// Simple observer that logs push/pop events for diagnostics only.
 class LoggingNavigatorObserver extends NavigatorObserver {
