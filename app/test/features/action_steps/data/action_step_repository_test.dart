@@ -47,5 +47,37 @@ void main() {
       final result = await repo.fetchCurrent();
       expect(result, isNull);
     });
+
+    test('updateActionStep short-circuits when unauthenticated', () async {
+      // Arrange
+      when(() => mockAuth.currentUser).thenReturn(null);
+
+      final step = ActionStep(
+        id: 'step-1',
+        category: 'fitness',
+        description: 'Walk 10k steps',
+        frequency: 7,
+        weekStart: DateTime.utc(2025, 7, 14),
+        createdAt: DateTime.utc(2025, 7, 14),
+        updatedAt: DateTime.utc(2025, 7, 14),
+      );
+
+      // Act
+      await repo.updateActionStep(step);
+
+      // Assert – no DB calls occur
+      verifyNever(() => mockClient.from(any()));
+    });
+
+    test('deleteActionStep short-circuits when unauthenticated', () async {
+      // Arrange
+      when(() => mockAuth.currentUser).thenReturn(null);
+
+      // Act
+      await repo.deleteActionStep('step-1');
+
+      // Assert – no DB calls occur
+      verifyNever(() => mockClient.from(any()));
+    });
   });
 }
