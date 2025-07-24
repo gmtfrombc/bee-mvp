@@ -51,10 +51,14 @@ class _ActionStepFormState extends ConsumerState<ActionStepForm> {
       final step = widget.initialStep!;
       _descriptionCtrl.text = step.description;
 
-      final controller = ref.read(actionStepControllerProvider.notifier);
-      controller.updateCategory(step.category);
-      controller.updateDescription(step.description);
-      controller.updateFrequency(step.frequency);
+      // Defer mutation to next frame to avoid modifying provider during
+      // widget build – fixes Riverpod exception.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final controller = ref.read(actionStepControllerProvider.notifier);
+        controller.updateCategory(step.category);
+        controller.updateDescription(step.description);
+        controller.updateFrequency(step.frequency);
+      });
     }
   }
 
@@ -146,8 +150,9 @@ class _ActionStepFormState extends ConsumerState<ActionStepForm> {
                             await repo.updateActionStep(updated);
 
                             // Log analytics
-                            final analytics =
-                                ref.read(actionStepAnalyticsProvider);
+                            final analytics = ref.read(
+                              actionStepAnalyticsProvider,
+                            );
                             await analytics.logEdit(
                               actionStepId: updated.id,
                               category: updated.category,
