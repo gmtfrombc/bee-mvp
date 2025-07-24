@@ -29,11 +29,11 @@ Enable users to **view, update, or delete** their current Action Step directly f
 ## 4 Task Breakdown
 | ID | Task | Owner | Status |
 |----|------|-------|--------|
-| T1 | Create `ActionStepRepository` for DB queries | dev | completed |
-| T2 | Build **My Action Step** page UI             | dev | completed |
-| T3 | Wire navigation logic in Momentum screen     | dev | pending |
-| T4 | Implement edit flow (reuse `ActionStepForm`) | dev | pending |
-| T5 | Implement delete flow + confirmation dialog  | dev | pending |
+| T1 | Create `ActionStepRepository` for DB queries | dev | ✅ |
+| T2 | Build **My Action Step** page UI             | dev | ✅ |
+| T3 | Wire navigation logic in Momentum screen     | dev | ✅ |
+| T4 | Implement edit flow (reuse `ActionStepForm`) | dev | ✅ |
+| T5 | Implement delete flow + confirmation dialog  | dev | ✅ |
 | T6 | Calculate & render progress in Momentum card | dev | pending |
 | T7 | Add analytics events (view/edit/delete)      | dev | pending |
 | T8 | Write unit tests for repository & analytics  | dev | pending |
