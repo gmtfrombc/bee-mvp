@@ -13,6 +13,8 @@
 /// Keep this file in sync with any database migrations that touch the
 /// `action_step_logs` table.
 
+library action_step_log;
+
 import 'package:app/features/action_steps/models/action_step_day_status.dart';
 
 class ActionStepLog {
