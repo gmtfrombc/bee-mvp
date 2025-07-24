@@ -386,6 +386,48 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Your energy trend will appear here after you log a few days.'**
   String get pes_trend_empty_state;
+
+  /// Label for action-step completion button
+  ///
+  /// In en, this message translates to:
+  /// **'I did it'**
+  String get checkin_done_button;
+
+  /// Label for action-step skip button
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get checkin_skip_button;
+
+  /// Status label when action step is completed
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get checkin_status_completed;
+
+  /// Status label when action step is skipped
+  ///
+  /// In en, this message translates to:
+  /// **'Skipped'**
+  String get checkin_status_skipped;
+
+  /// Status label when action step is pending
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get checkin_status_pending;
+
+  /// Accessibility label for the "I did it" button
+  ///
+  /// In en, this message translates to:
+  /// **'Mark today completed'**
+  String get checkin_semantics_mark_completed;
+
+  /// Accessibility label for the "Skip" button
+  ///
+  /// In en, this message translates to:
+  /// **'Skip today'**
+  String get checkin_semantics_skip_today;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

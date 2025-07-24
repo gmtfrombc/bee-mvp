@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:app/core/providers/supabase_provider.dart';
 import '../models/action_step.dart';
 import '../models/action_step_day_status.dart';
+import '../models/action_step_history_entry.dart';
 
 /// Convenience wrapper combining the current Action Step row with week progress.
 class CurrentActionStep {
@@ -127,6 +128,46 @@ class ActionStepRepository {
       'day': _format(day),
       'status': status.name,
     });
+  }
+
+  // ---------------------------------------------------------------------------
+  // History helpers (T13)
+  // ---------------------------------------------------------------------------
+
+  /// Returns a paginated list of the user’s past [ActionStep]s along with
+  /// how many days were completed for each week. Results are ordered by
+  /// `week_start` descending so the most recent week comes first.
+  ///
+  /// [offset] – starting index (0-based) for pagination.
+  /// [limit]  – number of rows to return. Defaults to 10.
+  Future<List<ActionStepHistoryEntry>> fetchHistory({
+    int offset = 0,
+    int limit = 10,
+  }) async {
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) return [];
+
+    // Fetch the requested slice of Action Steps.
+    final rows = await _client
+        .from('action_steps')
+        .select('*')
+        .eq('user_id', userId)
+        .order('week_start', ascending: false)
+        .range(offset, offset + limit - 1);
+
+    // For each step gather its completion count.
+    final List<ActionStepHistoryEntry> history = [];
+    for (final row in rows) {
+      final step = ActionStep.fromJson(row);
+      final logs = await _client
+          .from('action_step_logs')
+          .select('id')
+          .eq('action_step_id', step.id);
+      history.add(
+        ActionStepHistoryEntry(step: step, completed: logs.length),
+      );
+    }
+    return history;
   }
 }
 

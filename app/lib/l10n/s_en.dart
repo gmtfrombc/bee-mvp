@@ -154,4 +154,25 @@ class SEn extends S {
 
   @override
   String get pes_trend_empty_state => 'Your energy trend will appear here after you log a few days.';
+
+  @override
+  String get checkin_done_button => 'I did it';
+
+  @override
+  String get checkin_skip_button => 'Skip';
+
+  @override
+  String get checkin_status_completed => 'Completed';
+
+  @override
+  String get checkin_status_skipped => 'Skipped';
+
+  @override
+  String get checkin_status_pending => 'Pending';
+
+  @override
+  String get checkin_semantics_mark_completed => 'Mark today completed';
+
+  @override
+  String get checkin_semantics_skip_today => 'Skip today';
 }

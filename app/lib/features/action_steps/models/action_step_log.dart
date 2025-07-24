@@ -49,10 +49,12 @@ class ActionStepLog {
   }
 
   static ActionStepDayStatus _statusFromJson(String raw) {
-    return ActionStepDayStatus.values
-        .firstWhere((e) => e.name == raw, orElse: () => ActionStepDayStatus.queued);
+    return ActionStepDayStatus.values.firstWhere(
+      (e) => e.name == raw,
+      orElse: () => ActionStepDayStatus.queued,
+    );
   }
 
   /// Returns an ISO-8601 formatted **date** string (no time component).
   String _formatDate(DateTime d) => d.toIso8601String().substring(0, 10);
-} 
+}
