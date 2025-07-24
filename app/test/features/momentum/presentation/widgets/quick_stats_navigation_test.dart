@@ -40,7 +40,9 @@ void main() {
       ),
     );
 
-    // Act – tap on the "Action Step" stat card label.
+    // Wait for entry animations so the card is fully visible & hit-testable.
+    await tester.pumpAndSettle();
+
     await tester.tap(find.text('Action Step'));
     await tester.pumpAndSettle();
 
