@@ -31,7 +31,7 @@ Combined, these changes close QA issues 1–3 and unlock full _Plan → Do → R
 | T11 | Enable weekly rollover / “Add New Action Step” button | ✅ Done |
 | T12 | Embed `DailyCheckinCard` & wire Supabase persistence | ✅ Done |
 | T13 | Build `ActionStepHistoryPage` with paginated list view | ✅ Done |
-| T14 | Repo methods: `createLog()`, `fetchHistory()` | ⚪ Planned |
+| T14 | Repo methods: `createLog()`, `fetchHistory()` | ✅ Done |
 | T15 | Update analytics hooks (view/history/reset) | ⚪ Planned |
 | T16 | Unit & widget test suite | ⚪ Planned |
 | T17 | QA doc & l10n strings update | ⚪ Planned |
