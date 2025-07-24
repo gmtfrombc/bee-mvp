@@ -6,6 +6,8 @@ import '../../state/daily_checkin_controller.dart';
 import '../../models/action_step_day_status.dart';
 import 'package:app/features/action_steps/widgets/confetti_overlay.dart';
 import 'package:app/features/action_steps/services/action_step_coach_messenger.dart';
+import 'package:intl/intl.dart';
+import 'package:app/l10n/s.dart';
 
 /// Displays today's Action Step check-in state and allows the user to mark it
 /// as completed or skipped.
@@ -71,18 +73,15 @@ class _Header extends StatelessWidget {
       children: [
         const Icon(Icons.calendar_today, size: 20),
         SizedBox(width: spacing),
-        Text(
-          '$weekday · $formattedDate',
-          style: Theme.of(context).textTheme.labelLarge,
-        ),
+        Text('$weekday · $formattedDate',
+            style: Theme.of(context).textTheme.labelLarge),
       ],
     );
   }
 
   String _weekdayLabel(int weekday) {
-    const names = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    // DateTime.weekday: 1 = Mon, 7 = Sun
-    return names[weekday - 1];
+    // Use intl DateFormat to respect locale.
+    return DateFormat('EEE').format(date);
   }
 }
 
@@ -99,13 +98,13 @@ class _StatusContent extends StatelessWidget {
     switch (status) {
       case ActionStepDayStatus.completed:
         icon = const Icon(Icons.check_circle, color: Colors.green);
-        label = 'Completed';
+        label = S.of(context).checkin_status_completed;
       case ActionStepDayStatus.skipped:
         icon = const Icon(Icons.cancel, color: Colors.orange);
-        label = 'Skipped';
+        label = S.of(context).checkin_status_skipped;
       case ActionStepDayStatus.queued:
         icon = const Icon(Icons.hourglass_empty, color: Colors.grey);
-        label = 'Pending';
+        label = S.of(context).checkin_status_pending;
     }
 
     return Row(
@@ -140,7 +139,7 @@ class _ActionButtons extends ConsumerWidget {
       children: [
         Semantics(
           button: true,
-          label: 'Mark today completed',
+          label: S.of(context).checkin_semantics_mark_completed,
           child: ElevatedButton.icon(
             onPressed:
                 buttonsDisabled
@@ -158,7 +157,7 @@ class _ActionButtons extends ConsumerWidget {
                           .sendSuccessMessage(context);
                     },
             icon: const Icon(Icons.check),
-            label: const Text('I did it'),
+            label: Text(S.of(context).checkin_done_button),
             style: ElevatedButton.styleFrom(
               animationDuration:
                   reduceMotion ? Duration.zero : kThemeAnimationDuration,
@@ -168,7 +167,7 @@ class _ActionButtons extends ConsumerWidget {
         SizedBox(width: spacing),
         Semantics(
           button: true,
-          label: 'Skip today',
+          label: S.of(context).checkin_semantics_skip_today,
           child: OutlinedButton.icon(
             onPressed:
                 buttonsDisabled
@@ -181,7 +180,7 @@ class _ActionButtons extends ConsumerWidget {
                           .sendFailureMessage(context);
                     },
             icon: const Icon(Icons.close),
-            label: const Text('Skip'),
+            label: Text(S.of(context).checkin_skip_button),
             style: OutlinedButton.styleFrom(
               animationDuration:
                   reduceMotion ? Duration.zero : kThemeAnimationDuration,

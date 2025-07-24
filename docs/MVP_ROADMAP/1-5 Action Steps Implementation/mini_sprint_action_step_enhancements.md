@@ -60,6 +60,10 @@ Combined, these changes close QA issues 1–3 and unlock full _Plan → Do → R
 Target completion: **3 dev days** (coding + QA + review).
 
 ---
+<<<<<<< HEAD
 _End of document_
 
 <!-- CI trigger for PR -->
+=======
+_End of document_
+>>>>>>> 737d24e (Localization: add Daily Check-in strings and mark T11 Done)
