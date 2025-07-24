@@ -10,10 +10,15 @@ import '../validators/action_step_validators.dart';
 // Added for navigation after successful save
 import 'package:go_router/go_router.dart';
 import 'package:app/core/navigation/routes.dart';
+import 'package:app/features/action_steps/data/action_step_repository.dart';
 
 /// Form capturing Action Step details (category, description, frequency).
 class ActionStepForm extends ConsumerStatefulWidget {
-  const ActionStepForm({super.key});
+  const ActionStepForm({super.key, this.initialStep});
+
+  /// When non-null the form is in "edit" mode and pre-filled with the given
+  /// [ActionStep]. Submission will update the existing row instead of insert.
+  final ActionStep? initialStep;
 
   @override
   ConsumerState<ActionStepForm> createState() => _ActionStepFormState();
@@ -25,6 +30,8 @@ class _ActionStepFormState extends ConsumerState<ActionStepForm> {
 
   bool _isSubmitting = false;
 
+  bool get _isEditing => widget.initialStep != null;
+
   static const _categories = <String>[
     'exercise',
     'nutrition',
@@ -32,6 +39,22 @@ class _ActionStepFormState extends ConsumerState<ActionStepForm> {
     'stress',
     'mindfulness',
   ];
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Pre-fill draft when editing an existing Action Step.
+    if (widget.initialStep != null) {
+      final step = widget.initialStep!;
+      _descriptionCtrl.text = step.description;
+
+      final controller = ref.read(actionStepControllerProvider.notifier);
+      controller.updateCategory(step.category);
+      controller.updateDescription(step.description);
+      controller.updateFrequency(step.frequency);
+    }
+  }
 
   @override
   void dispose() {
@@ -95,35 +118,63 @@ class _ActionStepFormState extends ConsumerState<ActionStepForm> {
             ElevatedButton(
               onPressed:
                   (controller.isComplete && !_isSubmitting)
-                      ? () {
+                      ? () async {
                         if (!(_formKey.currentState?.validate() ?? false)) {
                           return;
                         }
+
                         final messenger = ScaffoldMessenger.of(context);
                         setState(() => _isSubmitting = true);
-                        controller
-                            .submit()
-                            .then((_) {
-                              // Show confirmation and navigate to Momentum screen
-                              messenger.showSnackBar(
-                                const SnackBar(
-                                  content: Text('Action Step saved!'),
-                                ),
-                              );
-                              // GoRouter navigation guarantees landing on home regardless of stack
-                              // ignore: use_build_context_synchronously
+
+                        try {
+                          if (_isEditing) {
+                            // Update existing row.
+                            final repo = ref.read(actionStepRepositoryProvider);
+                            final old = widget.initialStep!;
+                            final updated = ActionStep(
+                              id: old.id,
+                              category: draft.category ?? old.category,
+                              description: draft.description,
+                              frequency: draft.frequency,
+                              weekStart: old.weekStart,
+                              createdAt: old.createdAt,
+                              updatedAt: DateTime.now().toUtc(),
+                            );
+
+                            await repo.updateActionStep(updated);
+
+                            messenger.showSnackBar(
+                              const SnackBar(
+                                content: Text('Action Step updated!'),
+                              ),
+                            );
+
+                            if (context.mounted) {
+                              context.go(kActionStepCurrentRoute);
+                            }
+                          } else {
+                            // Create new row.
+                            await controller.submit();
+
+                            messenger.showSnackBar(
+                              const SnackBar(
+                                content: Text('Action Step saved!'),
+                              ),
+                            );
+
+                            if (context.mounted) {
                               context.go(kLaunchRoute);
-                            })
-                            .catchError((e) {
-                              messenger.showSnackBar(
-                                SnackBar(content: Text('Failed to save: $e')),
-                              );
-                            })
-                            .whenComplete(() {
-                              if (mounted) {
-                                setState(() => _isSubmitting = false);
-                              }
-                            });
+                            }
+                          }
+                        } catch (e) {
+                          messenger.showSnackBar(
+                            SnackBar(content: Text('Failed to save: $e')),
+                          );
+                        } finally {
+                          if (mounted) {
+                            setState(() => _isSubmitting = false);
+                          }
+                        }
                       }
                       : null,
               child:
@@ -133,7 +184,7 @@ class _ActionStepFormState extends ConsumerState<ActionStepForm> {
                         height: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                      : const Text('Continue'),
+                      : Text(_isEditing ? 'Save' : 'Continue'),
             ),
           ],
         ),

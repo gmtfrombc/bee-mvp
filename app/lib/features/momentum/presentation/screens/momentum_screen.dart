@@ -16,8 +16,7 @@ import '../widgets/skeleton_widgets.dart';
 import '../widgets/loading_indicator.dart';
 import '../widgets/error_widgets.dart';
 import '../../../../core/services/error_handling_service.dart';
-// import removed: action step status service no longer used
-
+import 'package:app/core/services/action_step_status_service.dart';
 // Routing
 import 'package:go_router/go_router.dart';
 import 'package:app/core/navigation/routes.dart';
@@ -206,9 +205,15 @@ class _MomentumContent extends ConsumerWidget {
                   const SnackBar(content: Text('Lessons view coming soon!')),
                 );
               },
-              onActionStepTap: () {
+              onActionStepTap: () async {
                 context.announceToScreenReader('Navigating to Action Step');
-                context.push(kActionStepSetupRoute);
+                final hasStep = await ActionStepStatusService().hasSetActionStep();
+                if (!context.mounted) return;
+                if (hasStep) {
+                  context.push(kActionStepCurrentRoute);
+                } else {
+                  context.push(kActionStepSetupRoute);
+                }
               },
               onTodayTap: () {
                 // TODO: Navigate to today's activity (T1.1.3.6)
