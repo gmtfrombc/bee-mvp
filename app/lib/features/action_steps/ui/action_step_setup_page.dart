@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'action_step_form.dart';
-import 'package:app/features/action_steps/data/action_step_repository.dart';
+import 'package:app/features/action_steps/models/action_step.dart';
 
 /// Entry page for creating a weekly Action Step.
 class ActionStepSetupPage extends ConsumerWidget {
