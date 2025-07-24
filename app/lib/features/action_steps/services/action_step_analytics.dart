@@ -131,6 +131,42 @@ class ActionStepAnalytics {
     await _analytics.logEvent('action_step_delete', params: payload);
   }
 
+  /// Logs when the user views their Action Step history.
+  Future<void> logHistoryView() async {
+    final userId = _client.auth.currentUser?.id;
+    final deviceId = await DeviceIdService.instance.getDeviceId();
+
+    final payload = <String, dynamic>{
+      'user_id': userId,
+      'timestamp': DateTime.now().toUtc().toIso8601String(),
+      'device_id': deviceId,
+    };
+
+    await _analytics.logEvent('action_step_history_view', params: payload);
+  }
+
+  /// Logs when the user triggers a weekly reset of their Action Step.
+  /// [previousActionStepId] – the ID of the Action Step being rolled over.
+  /// [source] indicates whether the reset was triggered automatically ("auto")
+  /// or via a manual user action ("manual"). Defaults to manual.
+  Future<void> logWeeklyReset({
+    required String previousActionStepId,
+    String source = 'manual',
+  }) async {
+    final userId = _client.auth.currentUser?.id;
+    final deviceId = await DeviceIdService.instance.getDeviceId();
+
+    final payload = <String, dynamic>{
+      'user_id': userId,
+      'previous_action_step_id': previousActionStepId,
+      'timestamp': DateTime.now().toUtc().toIso8601String(),
+      'device_id': deviceId,
+      'source': source,
+    };
+
+    await _analytics.logEvent('action_step_weekly_reset', params: payload);
+  }
+
   // ---------------------------------------------------------------------------
   // Helpers
   // ---------------------------------------------------------------------------

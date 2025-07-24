@@ -93,5 +93,35 @@ void main() {
         ),
       ).called(1);
     });
+
+    test('logHistoryView forwards correct event name', () async {
+      when(
+        () => mockAnalytics.logEvent(any(), params: any(named: 'params')),
+      ).thenAnswer((_) async {});
+
+      await analytics.logHistoryView();
+
+      verify(
+        () => mockAnalytics.logEvent(
+          'action_step_history_view',
+          params: captureAny(named: 'params'),
+        ),
+      ).called(1);
+    });
+
+    test('logWeeklyReset forwards correct event name', () async {
+      when(
+        () => mockAnalytics.logEvent(any(), params: any(named: 'params')),
+      ).thenAnswer((_) async {});
+
+      await analytics.logWeeklyReset(previousActionStepId: 'step-122');
+
+      verify(
+        () => mockAnalytics.logEvent(
+          'action_step_weekly_reset',
+          params: captureAny(named: 'params'),
+        ),
+      ).called(1);
+    });
   });
 }

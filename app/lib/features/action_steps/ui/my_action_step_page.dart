@@ -145,6 +145,11 @@ class _StepDetailView extends ConsumerWidget {
                     final analytics = ref.read(actionStepAnalyticsProvider);
                     await repo.deleteActionStep(step.id);
                     await analytics.logDelete(actionStepId: step.id);
+                    // Log weekly reset – user is rolling over to a new week.
+                    await analytics.logWeeklyReset(
+                      previousActionStepId: step.id,
+                      source: 'manual',
+                    );
                     await ActionStepStatusService().setHasSetActionStep(false);
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
