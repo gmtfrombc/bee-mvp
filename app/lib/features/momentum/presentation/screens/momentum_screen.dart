@@ -17,6 +17,7 @@ import '../widgets/loading_indicator.dart';
 import '../widgets/error_widgets.dart';
 import '../../../../core/services/error_handling_service.dart';
 import 'package:app/core/services/action_step_status_service.dart';
+import 'package:app/features/action_steps/ui/widgets/daily_checkin_card.dart';
 // Routing
 import 'package:go_router/go_router.dart';
 import 'package:app/core/navigation/routes.dart';
@@ -142,6 +143,11 @@ class _MomentumContent extends ConsumerWidget {
               showMomentumDetailModal(context, momentumData);
             },
           ),
+
+          SizedBox(height: spacing),
+
+          // Daily Action Step Check-in (T12)
+          const DailyCheckinCard(),
 
           SizedBox(height: spacing),
 

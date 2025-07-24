@@ -128,6 +128,27 @@
   "pes_trend_empty_state": "Your energy trend will appear here after you log a few days.",
   "@pes_trend_empty_state": {
     "description": "Placeholder copy when no PES data is available for sparkline"
-  }
+  },
+
+  "checkin_done_button": "I did it",
+  "@checkin_done_button": { "description": "Label for action-step completion button" },
+
+  "checkin_skip_button": "Skip",
+  "@checkin_skip_button": { "description": "Label for action-step skip button" },
+
+  "checkin_status_completed": "Completed",
+  "@checkin_status_completed": { "description": "Status label when action step is completed" },
+
+  "checkin_status_skipped": "Skipped",
+  "@checkin_status_skipped": { "description": "Status label when action step is skipped" },
+
+  "checkin_status_pending": "Pending",
+  "@checkin_status_pending": { "description": "Status label when action step is pending" },
+
+  "checkin_semantics_mark_completed": "Mark today completed",
+  "@checkin_semantics_mark_completed": { "description": "Accessibility label for the \"I did it\" button" },
+
+  "checkin_semantics_skip_today": "Skip today",
+  "@checkin_semantics_skip_today": { "description": "Accessibility label for the \"Skip\" button" }
 
 }

@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:app/core/providers/supabase_provider.dart';
 import '../models/action_step.dart';
+import '../models/action_step_day_status.dart';
 
 /// Convenience wrapper combining the current Action Step row with week progress.
 class CurrentActionStep {
@@ -80,6 +81,53 @@ class ActionStepRepository {
   }
 
   String _format(DateTime d) => d.toIso8601String().substring(0, 10);
+
+  // ---------------------------------------------------------------------------
+  // Daily log helpers (T12)
+  // ---------------------------------------------------------------------------
+
+  /// Returns the [ActionStepDayStatus] for the given [date]. If no log exists
+  /// yet, returns [ActionStepDayStatus.queued]. If the user is unauthenticated
+  /// or has no current Action Step, also returns `queued`.
+  Future<ActionStepDayStatus> fetchDayStatus({required String actionStepId, required DateTime date}) async {
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) return ActionStepDayStatus.queued;
+
+    final dateStr = _format(date);
+
+    final row = await _client
+        .from('action_step_logs')
+        .select('status')
+        .eq('user_id', userId)
+        .eq('action_step_id', actionStepId)
+        .eq('day', dateStr)
+        .maybeSingle();
+
+    if (row == null) return ActionStepDayStatus.queued;
+
+    return ActionStepDayStatus.values.firstWhere(
+      (e) => e.name == row['status'],
+      orElse: () => ActionStepDayStatus.queued,
+    );
+  }
+
+  /// Inserts or updates a log for the given day. Uses an `upsert` so the same
+  /// row is updated if the user toggles between completed/skipped.
+  Future<void> createLog({
+    required String actionStepId,
+    required DateTime day,
+    required ActionStepDayStatus status,
+  }) async {
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) return;
+
+    await _client.from('action_step_logs').upsert({
+      'user_id': userId,
+      'action_step_id': actionStepId,
+      'day': _format(day),
+      'status': status.name,
+    });
+  }
 }
 
 // ---------------------------------------------------------------------------

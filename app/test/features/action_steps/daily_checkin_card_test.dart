@@ -5,6 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:app/features/action_steps/services/action_step_analytics.dart';
+import 'package:app/l10n/s.dart';
+import 'package:app/core/providers/supabase_provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:app/features/action_steps/data/action_step_repository.dart'
+    show currentActionStepProvider;
 
 /// Test helper: Always returns `ActionStepDayStatus.skipped` immediately.
 class _SkippedNotifier extends DailyCheckinController {
@@ -31,43 +36,63 @@ class _FakeAnalytics extends Fake implements ActionStepAnalytics {
   }) async {}
 }
 
+class _FakeSupabaseClient extends Fake implements SupabaseClient {}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  Widget buildTestApp(Widget child, {List<Override> overrides = const []}) {
+    // Provide fake Supabase client to avoid initialization
+    final fakeClient = _FakeSupabaseClient();
+    return ProviderScope(
+      overrides: [
+        actionStepAnalyticsProvider.overrideWithValue(_FakeAnalytics()),
+        supabaseClientProvider.overrideWithValue(fakeClient),
+        currentActionStepProvider.overrideWith((ref) async => null),
+        ...overrides,
+      ],
+      child: MaterialApp(
+        localizationsDelegates: S.localizationsDelegates,
+        supportedLocales: S.supportedLocales,
+        home: child,
+      ),
+    );
+  }
 
   group('DailyCheckinCard', () {
     testWidgets('shows Pending state initially', (tester) async {
       // Provide noop analytics to avoid Supabase initialization.
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            actionStepAnalyticsProvider.overrideWithValue(_FakeAnalytics()),
-          ],
-          child: const MaterialApp(home: DailyCheckinCard()),
-        ),
-      );
+      await tester.pumpWidget(buildTestApp(const DailyCheckinCard()));
       await tester.pumpAndSettle();
 
-      expect(find.text('Pending'), findsOneWidget);
+      final l10n = S.of(tester.element(find.byType(DailyCheckinCard)));
+      expect(find.text(l10n.checkin_status_pending), findsOneWidget);
       // Buttons should be enabled.
-      expect(find.text('I did it'), findsOneWidget);
-      expect(find.text('Skip'), findsOneWidget);
+      expect(find.text(l10n.checkin_done_button), findsOneWidget);
+      expect(find.text(l10n.checkin_skip_button), findsOneWidget);
     });
 
     testWidgets('changes to Completed after tapping I did it', (tester) async {
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            actionStepAnalyticsProvider.overrideWithValue(_FakeAnalytics()),
-          ],
-          child: const MaterialApp(home: DailyCheckinCard()),
+      await tester.pumpWidget(buildTestApp(const DailyCheckinCard()));
+      await tester.pumpAndSettle();
+
+      await tester.tap(
+        find.text(
+          S
+              .of(tester.element(find.byType(DailyCheckinCard)))
+              .checkin_done_button,
         ),
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('I did it'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Completed'), findsOneWidget);
+      expect(
+        find.text(
+          S
+              .of(tester.element(find.byType(DailyCheckinCard)))
+              .checkin_status_completed,
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets('renders overridden status (Skipped)', (tester) async {
@@ -76,17 +101,18 @@ void main() {
       );
 
       await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            override,
-            actionStepAnalyticsProvider.overrideWithValue(_FakeAnalytics()),
-          ],
-          child: const MaterialApp(home: DailyCheckinCard()),
-        ),
+        buildTestApp(const DailyCheckinCard(), overrides: [override]),
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Skipped'), findsOneWidget);
+      expect(
+        find.text(
+          S
+              .of(tester.element(find.byType(DailyCheckinCard)))
+              .checkin_status_skipped,
+        ),
+        findsOneWidget,
+      );
     });
   });
 }
