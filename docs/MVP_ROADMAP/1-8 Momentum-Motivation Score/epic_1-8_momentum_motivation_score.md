@@ -123,11 +123,11 @@ Build a robust dual-metric system that quantifies **Momentum (Engagement)** and 
 
 ---
 
-## Ambiguities / Questions for Review
-1. Do we compute Motivation Score daily or weekly? Current spec assumes **daily** to simplify pipelines.
-2. LLM model choice & cost ceiling – GPT-4o vs local model?
-3. Required cold-storage retention period for raw behavioral logs (GDPR)?
-4. UI spec for Motivation tiers is pending – which design tokens?
+## Ambiguities / Questions Answered
+1. We compute Motivation Score daily
+2. LLM model choice & cost ceiling – GPT-4o or similar
+3. Required cold-storage retention period for raw behavioral logs (GDPR) is TBD
+4. UI spec for Motivation tiers is pending – TBD
 
 ---
 
