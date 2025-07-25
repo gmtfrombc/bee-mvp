@@ -2,15 +2,24 @@ import 'package:app/features/action_steps/ui/action_step_history_page.dart';
 import 'package:app/features/action_steps/data/action_step_repository.dart';
 import 'package:app/features/action_steps/models/action_step_history_entry.dart';
 import 'package:app/features/action_steps/models/action_step.dart';
+import 'package:app/features/action_steps/services/action_step_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _MockRepo extends Mock implements ActionStepRepository {}
+class _FakeAnalytics extends Mock implements ActionStepAnalytics {}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  late _FakeAnalytics fakeAnalytics;
+
+  setUpAll(() {
+    fakeAnalytics = _FakeAnalytics();
+    when(() => fakeAnalytics.logHistoryView()).thenAnswer((_) async {});
+  });
 
   // Helper to generate a dummy ActionStep with minimal unique fields.
   ActionStep step(int idx) => ActionStep(
@@ -25,7 +34,10 @@ void main() {
 
   Widget buildTestApp({required ActionStepRepository repo}) {
     return ProviderScope(
-      overrides: [actionStepRepositoryProvider.overrideWithValue(repo)],
+      overrides: [
+        actionStepRepositoryProvider.overrideWithValue(repo),
+        actionStepAnalyticsProvider.overrideWithValue(fakeAnalytics),
+      ],
       child: const MaterialApp(home: ActionStepHistoryPage()),
     );
   }
