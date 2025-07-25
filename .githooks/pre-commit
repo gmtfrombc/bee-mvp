@@ -40,11 +40,29 @@ echo "🔍  SQLFluff lint on staged SQL..."
 staged_sql_files=$(git diff --cached --name-only --diff-filter=ACM | grep -E '^supabase/migrations/.*\.sql$' || true)
 if [[ -n "$staged_sql_files" ]]; then
   if command -v sqlfluff >/dev/null 2>&1; then
-    if ! sqlfluff lint $staged_sql_files --dialect postgres; then
-      echo "❌  SQLFluff found issues in staged SQL files. Commit aborted."
-      exit 1
+    # ---------------------------------------------------------------------
+    # Auto-format staged SQL to fix safe whitespace / layout rules.
+    # This mirrors 'ruff --fix': only low-risk rules (L*, LT*, CP0*) are
+    # applied; aggressive re-flows stay manual.
+    # ---------------------------------------------------------------------
+    echo "🎨  Auto-formatting SQL with SQLFluff..."
+    sqlfluff fix --force --rules L0*,LT*,CP0* --disable-progress-bar \
+      $staged_sql_files --dialect postgres || true
+    # Re-add any files rewritten by sqlfluff so the updated version is linted
+    git add $staged_sql_files
+
+    # Refresh list in case filenames changed or auto-fix generated new temp files
+    staged_sql_files=$(git diff --cached --name-only --diff-filter=ACM | grep -E '^supabase/migrations/.*\.sql$' || true)
+    if [[ -z "$staged_sql_files" ]]; then
+      echo "ℹ️  No SQL files left staged after auto-fix – skipping SQLFluff lint.";
+    else
+      # Now lint to ensure everything passes
+      if ! sqlfluff lint $staged_sql_files --dialect postgres; then
+        echo "❌  SQLFluff found issues in staged SQL files. Commit aborted."
+        exit 1
+      fi
+      echo "✅ SQLFluff passed"
     fi
-    echo "✅ SQLFluff passed"
   else
     echo "⚠️  sqlfluff not installed – skipping SQL lint (recommended: pip install sqlfluff[postgres])"
   fi
