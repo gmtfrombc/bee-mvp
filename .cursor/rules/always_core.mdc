@@ -19,7 +19,8 @@ For a NEW TASK perform the following:
    - Commit: `git add . && git commit -m "Descriptive message"`.
 4️⃣ **Test Locally**  
    - Before testing: `git fetch origin && git rebase origin/main --autostash` (ensure base is current).  
-   - Fast path: `make ci-fast` (~5 min).  
+   - test with fluter analyze and flutter test if only implemented Flutter changes 
+   - Fast path: `make ci-fast` (~5 min) if multiple elements touched (python, deno, migrations).  
    - Full matrix: `make ci-local`.
 5️⃣ **Fix Failures**  
    - Rerun failed tests (flutter test --name, pytest --lf, deno test --filter) until green, then full suite.
