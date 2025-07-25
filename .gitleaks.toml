@@ -150,3 +150,9 @@ stopwords = [
     "AIzaSyBVVnDyLGb_gkdks8d_V-nkjhLKYuY7890abcdef",
     "eyJhbGciOiJIUzI1NiIsInR5cCI6..."
 ] 
+
+[[allowlists]]
+description = "Allow Firebase google-services configuration file (API key restricted by SHA)"
+paths = [
+    '''.*google-services\.json'''
+] 
