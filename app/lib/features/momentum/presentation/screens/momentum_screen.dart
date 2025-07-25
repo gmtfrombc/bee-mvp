@@ -18,6 +18,7 @@ import '../widgets/error_widgets.dart';
 import '../../../../core/services/error_handling_service.dart';
 import 'package:app/core/services/action_step_status_service.dart';
 import 'package:app/features/action_steps/ui/widgets/daily_checkin_card.dart';
+import 'package:app/features/health_signals/pes/widgets/pes_checkin_card.dart';
 // Routing
 import 'package:go_router/go_router.dart';
 import 'package:app/core/navigation/routes.dart';
@@ -151,6 +152,11 @@ class _MomentumContent extends ConsumerWidget {
 
           SizedBox(height: spacing),
 
+          // PES Check-in (Perceived Energy Score)
+          const PesCheckinCard(),
+
+          SizedBox(height: spacing),
+
           // Today Feed Tile - Fresh daily content
           TodayFeedTile(
             state: todayFeedState,
@@ -213,7 +219,8 @@ class _MomentumContent extends ConsumerWidget {
               },
               onActionStepTap: () async {
                 context.announceToScreenReader('Navigating to Action Step');
-                final hasStep = await ActionStepStatusService().hasSetActionStep();
+                final hasStep =
+                    await ActionStepStatusService().hasSetActionStep();
                 if (!context.mounted) return;
                 if (hasStep) {
                   context.push(kActionStepCurrentRoute);
