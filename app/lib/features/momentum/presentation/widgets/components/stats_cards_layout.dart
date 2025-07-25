@@ -5,6 +5,7 @@ import '../../../../../core/services/responsive_service.dart';
 import '../../../domain/models/momentum_data.dart';
 import '../../../../action_steps/data/action_step_repository.dart';
 import 'individual_stat_card.dart';
+import '../../../../health_signals/pes/widgets/pes_trend_sparkline.dart';
 
 /// Layout handler for stats cards supporting standard and compact layouts
 /// Responsive design with proper spacing and accessibility
@@ -74,11 +75,12 @@ class StatsCardsLayout extends StatelessWidget {
 
   IndividualStatCard _buildReadinessCard() {
     return IndividualStatCard(
-      icon: Icons.self_improvement_rounded,
-      value: '--', // Placeholder until DNS logic is wired
-      label: 'Readiness',
+      icon: Icons.bolt_rounded,
+      value: '',
+      valueWidget: const PesTrendSparkline(),
+      label: 'Energy',
       color: AppTheme.momentumSteady,
-      onTap: onLessonsTap, // Reuse callback slot for future DNS survey
+      onTap: onLessonsTap, // Preserve accessibility semantics
     );
   }
 
