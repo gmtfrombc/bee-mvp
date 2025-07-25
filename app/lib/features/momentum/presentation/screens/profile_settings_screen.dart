@@ -12,6 +12,7 @@ import 'package:app/features/settings/ui/mfa_toggle_tile.dart';
 import 'package:go_router/go_router.dart';
 import 'package:app/core/navigation/routes.dart';
 import '../../../../core/providers/auth_provider.dart';
+import 'package:app/features/health_signals/pes/pes_providers.dart';
 
 /// Screen for managing user profile and app settings
 class ProfileSettingsScreen extends ConsumerStatefulWidget {
@@ -429,5 +430,52 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen>
       case ThemeMode.system:
         return 'App will follow your device theme setting';
     }
+  }
+}
+
+class _DailyPromptTimeTile extends ConsumerWidget {
+  const _DailyPromptTimeTile();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final asyncTime = ref.watch(dailyPromptControllerProvider);
+
+    return asyncTime.when(
+      data:
+          (time) => ListTile(
+            leading: Icon(
+              Icons.schedule,
+              color: AppTheme.getTextSecondary(context),
+            ),
+            title: const Text('Daily PES Prompt Time'),
+            subtitle: Text(time.format(context)),
+            onTap: () async {
+              final picked = await showTimePicker(
+                context: context,
+                initialTime: time,
+              );
+              if (picked != null && picked != time) {
+                await ref
+                    .read(dailyPromptControllerProvider.notifier)
+                    .updateTime(picked);
+              }
+            },
+          ),
+      loading:
+          () => const ListTile(
+            leading: SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+            title: Text('Loading prompt time...'),
+          ),
+      error:
+          (e, st) => ListTile(
+            leading: const Icon(Icons.error),
+            title: const Text('Failed to load prompt time'),
+            subtitle: Text(e.toString()),
+          ),
+    );
   }
 }
