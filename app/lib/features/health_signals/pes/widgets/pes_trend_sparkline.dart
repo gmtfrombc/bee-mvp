@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app/l10n/s.dart';
 import 'package:app/core/theme/app_theme.dart';
-import 'package:app/core/health_data/models/energy_level.dart';
+import 'package:app/core/health_data/models/pes_entry.dart';
 
 import '../pes_providers.dart';
 
@@ -35,23 +35,15 @@ class PesTrendSparkline extends ConsumerWidget {
 class _SparklineChart extends StatelessWidget {
   const _SparklineChart({required this.entries});
 
-  final List<EnergyLevelEntry> entries;
-
-  static const _levelToNumeric = {
-    EnergyLevel.veryLow: 1.0,
-    EnergyLevel.low: 2.0,
-    EnergyLevel.medium: 3.0,
-    EnergyLevel.high: 4.0,
-    EnergyLevel.veryHigh: 5.0,
-  };
+  final List<PesEntry> entries;
 
   @override
   Widget build(BuildContext context) {
     final spots =
         entries.asMap().entries.map((entry) {
           final idx = entry.key;
-          final level = entry.value.level;
-          return FlSpot(idx.toDouble(), _levelToNumeric[level]!);
+          final score = entry.value.score;
+          return FlSpot(idx.toDouble(), score.toDouble());
         }).toList();
 
     final colour = Theme.of(context).colorScheme.primary;
