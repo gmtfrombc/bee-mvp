@@ -51,12 +51,18 @@ if [[ -n "$staged_sql_files" ]]; then
     # Re-add any files rewritten by sqlfluff so the updated version is linted
     git add $staged_sql_files
 
-    # Now lint to ensure everything passes
-    if ! sqlfluff lint $staged_sql_files --dialect postgres; then
-      echo "❌  SQLFluff found issues in staged SQL files. Commit aborted."
-      exit 1
+    # Refresh list in case filenames changed or auto-fix generated new temp files
+    staged_sql_files=$(git diff --cached --name-only --diff-filter=ACM | grep -E '^supabase/migrations/.*\.sql$' || true)
+    if [[ -z "$staged_sql_files" ]]; then
+      echo "ℹ️  No SQL files left staged after auto-fix – skipping SQLFluff lint.";
+    else
+      # Now lint to ensure everything passes
+      if ! sqlfluff lint $staged_sql_files --dialect postgres; then
+        echo "❌  SQLFluff found issues in staged SQL files. Commit aborted."
+        exit 1
+      fi
+      echo "✅ SQLFluff passed"
     fi
-    echo "✅ SQLFluff passed"
   else
     echo "⚠️  sqlfluff not installed – skipping SQL lint (recommended: pip install sqlfluff[postgres])"
   fi
