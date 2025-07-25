@@ -89,3 +89,12 @@ jobs:
 
       - name: Deno lint
         run: deno lint 
+
+      - name: Node dependencies (Playwright)
+        run: npm ci --no-audit
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+
+      - name: Playwright e2e tests
+        run: npm run test:e2e 
