@@ -5,4 +5,4 @@
 set check_function_bodies = off;
 
 -- Drop table and cascade to associated policies, triggers, etc.
-drop table if exists public.energy_levels cascade; 
+drop table if exists public.energy_levels cascade;
