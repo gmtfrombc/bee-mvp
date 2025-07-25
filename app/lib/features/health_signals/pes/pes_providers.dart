@@ -11,7 +11,7 @@ import 'package:app/core/health_data/models/pes_entry.dart';
 /// `null` indicates no selection yet.
 final energyScoreProvider = StateProvider<int?>((ref) => null);
 
-/// Provides the latest 7 [EnergyLevelEntry] items for the authenticated user
+/// Provides the latest 7 [PesEntry] items for the authenticated user
 /// ordered from oldest → newest (so charts can connect points chronologically).
 /// Returns an empty list when the user is not signed-in or no data exists.
 final pesTrendProvider = FutureProvider.autoDispose<List<PesEntry>>((
