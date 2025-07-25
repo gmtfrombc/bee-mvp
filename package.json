@@ -1,5 +1,10 @@
 {
   "devDependencies": {
-    "supabase": "^2.26.9"
+    "@playwright/test": "^1.54.1",
+    "@supabase/supabase-js": "^2.26.9",
+    "@types/node": "^20.11.17"
+  },
+  "scripts": {
+    "test:e2e": "playwright test"
   }
 }
