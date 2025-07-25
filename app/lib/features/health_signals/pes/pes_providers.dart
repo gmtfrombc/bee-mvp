@@ -5,6 +5,7 @@ import 'package:app/core/providers/supabase_provider.dart';
 import 'package:flutter/material.dart';
 import 'services/notification_scheduler_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:app/core/health_data/models/pes_entry.dart';
 
 /// Holds the currently selected perceived energy score (1–5).
 /// `null` indicates no selection yet.
@@ -31,6 +32,33 @@ final pesTrendProvider = FutureProvider.autoDispose<List<EnergyLevelEntry>>((
 
   return latest;
 });
+
+// ---------------------------------------------------------------------------
+// Today’s PES entry (single-day) – null when none recorded today
+// ---------------------------------------------------------------------------
+final todayPesEntryProvider = FutureProvider<PesEntry?>((ref) async {
+  final client = ref.read(supabaseClientProvider);
+  final userId = client.auth.currentUser?.id;
+
+  if (userId == null) return null;
+
+  final repo = ref.read(healthDataRepositoryProvider);
+
+  // Fetch recent entries – cached in repository
+  final entries = await repo.fetchPesEntries(userId: userId);
+
+  final now = DateTime.now();
+  for (final e in entries) {
+    if (e.date.year == now.year &&
+        e.date.month == now.month &&
+        e.date.day == now.day) {
+      return e;
+    }
+  }
+
+  return null;
+});
+// ---------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------
 // Daily Prompt Scheduling
