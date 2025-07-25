@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/providers/theme_provider.dart';
-import '../widgets/adaptive_polling_toggle.dart';
 import '../widgets/health_permission_toggle.dart';
 import '../../../../core/mixins/permission_auto_refresh_mixin.dart';
 import 'package:app/features/settings/ui/mfa_toggle_tile.dart';
@@ -63,7 +62,7 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen>
               const SizedBox(height: 16),
 
               // App preferences
-              _buildAppPreferencesCard(context),
+              _buildAppPreferencesCard(context, ref),
 
               const SizedBox(height: 24),
 
@@ -248,7 +247,7 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen>
     );
   }
 
-  Widget _buildAppPreferencesCard(BuildContext context) {
+  Widget _buildAppPreferencesCard(BuildContext context, WidgetRef ref) {
     return Card(
       color: AppTheme.getSurfacePrimary(context),
       elevation: 2,
@@ -272,9 +271,9 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen>
             ),
             const SizedBox(height: 8),
             const Divider(),
-            const AdaptivePollingToggle(),
-            const Divider(),
             const HealthPermissionToggle(),
+            const Divider(),
+            const _DailyPromptTimeTile(),
             const Divider(),
             const MfaToggleTile(),
           ],
@@ -433,6 +432,7 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen>
   }
 }
 
+/// Tile that shows and lets user update PES daily prompt time.
 class _DailyPromptTimeTile extends ConsumerWidget {
   const _DailyPromptTimeTile();
 
