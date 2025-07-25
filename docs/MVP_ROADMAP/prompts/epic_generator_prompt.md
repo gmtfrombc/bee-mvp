@@ -7,7 +7,7 @@ the MVP roadmap into a standalone engineering-task specification.
 
 ## 1️⃣ Inputs
 
-• Roadmap: `docs/MVP_ROADMAP/bee_project_plan_mvp_FINAL.md`\
+• Roadmap: `@mvp_execution_blueprint_2025-07-19.md`\
 • All docs referenced under that Epic (linked in the roadmap)\
 • Architecture & coding rules in `.cursor/rules/`
 
