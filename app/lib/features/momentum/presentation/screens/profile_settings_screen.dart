@@ -441,8 +441,7 @@ class _DailyPromptTimeTile extends ConsumerWidget {
     final asyncTime = ref.watch(dailyPromptControllerProvider);
 
     return asyncTime.when(
-      data:
-          (time) => ListTile(
+      data: (time) => ListTile(
             leading: Icon(
               Icons.schedule,
               color: AppTheme.getTextSecondary(context),
@@ -455,14 +454,11 @@ class _DailyPromptTimeTile extends ConsumerWidget {
                 initialTime: time,
               );
               if (picked != null && picked != time) {
-                await ref
-                    .read(dailyPromptControllerProvider.notifier)
-                    .updateTime(picked);
+                await ref.read(dailyPromptControllerProvider.notifier).updateTime(picked);
               }
             },
           ),
-      loading:
-          () => const ListTile(
+      loading: () => const ListTile(
             leading: SizedBox(
               width: 20,
               height: 20,
@@ -470,8 +466,7 @@ class _DailyPromptTimeTile extends ConsumerWidget {
             ),
             title: Text('Loading prompt time...'),
           ),
-      error:
-          (e, st) => ListTile(
+      error: (e, st) => ListTile(
             leading: const Icon(Icons.error),
             title: const Text('Failed to load prompt time'),
             subtitle: Text(e.toString()),
