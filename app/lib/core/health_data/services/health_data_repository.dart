@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../models/energy_level.dart';
 import '../models/biometric_manual_input.dart';
 import '../models/pes_entry.dart';
 import '../models/manual_biometrics_entry.dart';
@@ -35,9 +34,7 @@ class HealthDataRepository {
   // ──────────────────────────────────────────────────────────────────────────
   // Caching helpers
   // --------------------------------------------------------------------------
-  final Map<String, List<EnergyLevelEntry>> _energyCache = {};
   final Map<String, List<BiometricManualInput>> _biometricCache = {};
-  DateTime _energyCacheTimestamp = DateTime.fromMillisecondsSinceEpoch(0);
   DateTime _biometricCacheTimestamp = DateTime.fromMillisecondsSinceEpoch(0);
   final Map<String, List<PesEntry>> _pesCache = {};
   DateTime _pesCacheTimestamp = DateTime.fromMillisecondsSinceEpoch(0);
@@ -46,72 +43,6 @@ class HealthDataRepository {
       DateTime.fromMillisecondsSinceEpoch(0);
 
   bool _isCacheValid(DateTime ts) => DateTime.now().difference(ts) < cacheTTL;
-
-  // ──────────────────────────────────────────────────────────────────────────
-  // ENERGY LEVEL CRUD
-  // --------------------------------------------------------------------------
-  Future<EnergyLevelEntry> createEnergyLevel(EnergyLevelEntry entry) async {
-    final inserted =
-        await _supabase
-            .from('energy_levels')
-            .insert(entry.toJson())
-            .select()
-            .single();
-    debugPrint(
-      '📈 Energy level inserted: ${entry.level.name} for user ${entry.userId}',
-    );
-    final newEntry = EnergyLevelEntry.fromJson(inserted);
-    _energyCache.putIfAbsent(entry.userId, () => []).add(newEntry);
-    _energyCacheTimestamp = DateTime.now();
-    return newEntry;
-  }
-
-  Future<List<EnergyLevelEntry>> fetchEnergyLevels({
-    required String userId,
-    bool forceRefresh = false,
-  }) async {
-    if (!forceRefresh &&
-        _energyCache.containsKey(userId) &&
-        _isCacheValid(_energyCacheTimestamp)) {
-      return _energyCache[userId]!;
-    }
-
-    final data = await _supabase
-        .from('energy_levels')
-        .select()
-        .eq('user_id', userId)
-        .order('recorded_at', ascending: false);
-
-    final entries =
-        (data as List)
-            .map((e) => EnergyLevelEntry.fromJson(e as Map<String, dynamic>))
-            .toList();
-
-    _energyCache[userId] = entries;
-    _energyCacheTimestamp = DateTime.now();
-    return entries;
-  }
-
-  Future<void> updateEnergyLevel(EnergyLevelEntry entry) async {
-    await _supabase
-        .from('energy_levels')
-        .update(entry.toJson())
-        .eq('id', entry.id);
-
-    final cacheList = _energyCache[entry.userId];
-    if (cacheList != null) {
-      final idx = cacheList.indexWhere((e) => e.id == entry.id);
-      if (idx != -1) cacheList[idx] = entry;
-    }
-  }
-
-  Future<void> deleteEnergyLevel({
-    required String id,
-    required String userId,
-  }) async {
-    await _supabase.from('energy_levels').delete().eq('id', id);
-    _energyCache[userId]?.removeWhere((e) => e.id == id);
-  }
 
   // ──────────────────────────────────────────────────────────────────────────
   // BIOMETRIC MANUAL INPUT CRUD
