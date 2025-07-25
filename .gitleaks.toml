@@ -156,3 +156,9 @@ description = "Allow Firebase google-services configuration file (API key restri
 paths = [
     '''.*google-services\.json'''
 ] 
+
+[[allowlists]]
+description = "Allow placeholder SUPABASE env defines in dev script"
+paths = [
+    '''run_dev\.sh'''
+] 
