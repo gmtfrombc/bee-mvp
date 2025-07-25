@@ -11,6 +11,7 @@ class IndividualStatCard extends StatefulWidget {
   final String label;
   final Color color;
   final VoidCallback? onTap;
+  final Widget? valueWidget;
 
   const IndividualStatCard({
     super.key,
@@ -19,6 +20,7 @@ class IndividualStatCard extends StatefulWidget {
     required this.label,
     required this.color,
     this.onTap,
+    this.valueWidget,
   });
 
   @override
@@ -117,17 +119,19 @@ class _IndividualStatCardState extends State<IndividualStatCard>
                               0.1,
                         ),
                         Flexible(
-                          child: Text(
-                            widget.value,
-                            style: Theme.of(
-                              context,
-                            ).textTheme.titleSmall?.copyWith(
-                              color: widget.color,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                          child:
+                              widget.valueWidget ??
+                              Text(
+                                widget.value,
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.titleSmall?.copyWith(
+                                  color: widget.color,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                         ),
                         SizedBox(
                           height:
