@@ -70,6 +70,7 @@ const MOMENTUM_CONFIG = {
     'resource_access': 5,
     'peer_interaction': 8,
     'reminder_response': 7,
+    'pes_entry': 10,
   },
 
   // Maximum daily score caps
