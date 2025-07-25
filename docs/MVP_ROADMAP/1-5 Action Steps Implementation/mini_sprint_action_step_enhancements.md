@@ -33,8 +33,8 @@ Combined, these changes close QA issues 1–3 and unlock full _Plan → Do → R
 | T13 | Build `ActionStepHistoryPage` with paginated list view | ✅ Done |
 | T14 | Repo methods: `createLog()`, `fetchHistory()` | ✅ Done |
 | T15 | Update analytics hooks (view/history/reset) | ✅ Done |
-| T16 | Unit & widget test suite | ⚪ Planned |
-| T17 | QA doc & l10n strings update | ⚪ Planned |
+| T16 | Unit & widget test suite | ✅ Done |
+| T17 | QA doc & l10n strings update | ✅ Done |
 
 ## 5 Acceptance Criteria
 1. On Monday **or** after deleting a step, tapping Action-Step card opens **Setup** page.  
