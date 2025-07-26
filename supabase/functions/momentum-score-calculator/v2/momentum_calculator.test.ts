@@ -57,4 +57,4 @@ Deno.test('calculateRawScore respects max_weight_per_day cap', () => {
 
   const raw = (calc as any).calculateRawScore(events)
   assertEquals(raw, 10)
-}) 
+})
