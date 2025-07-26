@@ -5,6 +5,7 @@
     "lib": ["deno.window", "deno.ns", "deno.unstable", "dom", "esnext"]
   },
   "imports": {
-    "https://deno.land/std@0.168.0/http/server.ts": "https://deno.land/std@0.203.0/http/server.ts"
+    "https://deno.land/std@0.168.0/http/server.ts": "https://deno.land/std@0.203.0/http/server.ts",
+    "https://deno.land/std@0.168.0/": "https://deno.land/std@0.203.0/"
   }
 } 

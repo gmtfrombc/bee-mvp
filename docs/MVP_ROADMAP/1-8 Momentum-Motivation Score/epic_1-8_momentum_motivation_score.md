@@ -58,7 +58,7 @@ Build a robust dual-metric system that quantifies **Momentum (Engagement)** and 
 ### M2 · Momentum Score Calculator v2
 | Task | Description | Hours | Status |
 |------|-------------|-------|--------|
-| T1 | Refactor edge function `momentum-score-calculator` to v2 tag | 4h | 🟡 |
+| T1 | Refactor edge function `momentum-score-calculator` to v2 tag | 4h | ✅ |
 | T2 | Add new event weights + cap logic (config file) | 2h | 🟡 |
 | T3 | Emit explicit daily rows when no events occur | 2h | 🟡 |
 | T4 | Unit tests for >5 messages, zero-event day, new signals | 4h | 🟡 |
