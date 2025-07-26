@@ -1,0 +1,7 @@
+-- Baseline schema snapshot
+-- Replace this file with the output of:
+--   supabase db dump --db-url $DATABASE_URL --without-data
+-- taken from the staging / production database on 2025-07-26
+--
+-- The CI “db-smoke” target will apply this snapshot first, then
+-- apply any migration files whose timestamp is newer than 20250726. 

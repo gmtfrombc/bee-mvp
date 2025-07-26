@@ -24,7 +24,24 @@ db-start:
 db-smoke:
 	@echo "🏗  Running migration smoke test (Postgres)" && \
 	eval $$(bash scripts/start_test_db.sh) && \
-	set -e; files=$$(ls supabase/migrations/*.sql | sort); for f in $$files; do echo "→ $$f"; PGPASSWORD=postgres psql -h $$DB_HOST -p $$DB_PORT -U postgres -d test -v ON_ERROR_STOP=1 -f $$f; done && \
+	set -e; \
+	# 1️⃣ Apply baseline snapshot if present ----------------------------------- \
+	baseline=$$(ls supabase/baseline/*.sql 2>/dev/null | sort | tail -n 1); \
+	if [ -n "$$baseline" ]; then \
+	  echo "⇢ Applying baseline $$baseline"; \
+	  PGPASSWORD=postgres psql -h $$DB_HOST -p $$DB_PORT -U postgres -d test -v ON_ERROR_STOP=1 -f $$baseline; \
+	fi; \
+	# 2️⃣ Apply *only* migrations newer than baseline -------------------------- \
+	files=$$(ls supabase/migrations/*.sql | sort); \
+	for f in $$files; do \
+	  if [ -n "$$baseline" ]; then \
+	    bt=$$(basename $$baseline); ts=$${bt%%_*}; \
+	    ft=$$(basename $$f); fts=$${ft%%_*}; \
+	    if [ "$$fts" -le "$$ts" ]; then continue; fi; \
+	  fi; \
+	  echo "→ $$f"; \
+	  PGPASSWORD=postgres psql -h $$DB_HOST -p $$DB_PORT -U postgres -d test -v ON_ERROR_STOP=1 -f $$f; \
+	done && \
 	echo "✅  Migrations applied successfully"
 
 .PHONY: ci-lite
