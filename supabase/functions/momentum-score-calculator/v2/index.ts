@@ -792,6 +792,21 @@ class MomentumScoreCalculator {
   }
 }
 
+// Dynamically load event weights & daily cap from JSON file (memoized per execution)
+try {
+  const weightsUrl = new URL('./event_weights_v2.json', import.meta.url)
+  const raw = Deno.readTextFileSync(weightsUrl)
+  const weightsData = JSON.parse(raw) as Record<string, number> & { max_weight_per_day: number }
+  const { max_weight_per_day, ...eventWeights } = weightsData
+  // Cast to any to satisfy structural typing without enumerating keys
+  // deno-lint-ignore no-explicit-any
+  ;(MOMENTUM_CONFIG.EVENT_WEIGHTS as unknown as any) = eventWeights
+  // deno-lint-ignore no-explicit-any
+  ;(MOMENTUM_CONFIG.MAX_DAILY_SCORE as unknown as any) = max_weight_per_day
+} catch (err) {
+  console.warn('[MomentumScoreCalculator] Using default EVENT_WEIGHTS; failed to load JSON:', err)
+}
+
 // Main handler
 serve(async (request: Request) => {
   const client = await getSupabaseClient() as unknown as DBSupabaseClientLite
