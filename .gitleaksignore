@@ -132,3 +132,5 @@ fee3ec5a8d0b1bba1e8cd16370d3d89427423b62:supabase_test.js:jwt:1
 fee3ec5a8d0b1bba1e8cd16370d3d89427423b62:supabase_test.js:real-supabase-anon-key:1
 3eaef63370355e9d10ef3dad8f9a5bc4619bfd6a:gitleaks_test.js:stripe-access-token:1
 f59a1018bb8b00b52235b7dd17729d8827be7cf7:run_dev.sh:flutter-dart-define-secrets:67
+30bbbc14fc207badbb1b15ad2d73de4f3439b5e2:supabase/functions/momentum-score-calculator/v2/deno.lock:generic-api-key:117
+f5ef989833da84a8aca25f74b518be60a1b40fa2:supabase/functions/momentum-score-calculator/v2/deno.lock:generic-api-key:117
