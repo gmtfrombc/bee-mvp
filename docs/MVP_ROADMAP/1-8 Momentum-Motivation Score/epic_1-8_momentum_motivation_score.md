@@ -31,7 +31,7 @@ Build a robust dual-metric system that quantifies **Momentum (Engagement)** and 
 
 | ID | Milestone | Hours | Status |
 |----|-----------|-------|--------|
-| **M1** | Schema & Signal Foundations | 10h | 🟡 Planned |
+| **M1** | Schema & Signal Foundations | 10h |✅ Complete |
 | **M2** | Momentum Score Calculator v2 | 12h | 🟡 Planned |
 | **M3** | Motivation Score Engine | 14h | 🟡 Planned |
 | **M4** | Back-Testing & CI Coverage | 8h  | 🟡 Planned |
@@ -40,10 +40,10 @@ Build a robust dual-metric system that quantifies **Momentum (Engagement)** and 
 ### M1 · Schema & Signal Foundations
 | Task | Description | Hours | Status |
 |------|-------------|-------|--------|
-| T1 | Create `momentum_events`, `momentum_pillars` tables as per implementation guide | 3h | 🟡 |
-| T2 | Add `motivation_journal`, `habit_index` tables | 3h | 🟡 |
-| T3 | Migrate legacy `daily_engagement_scores` → view `daily_momentum_scores` | 2h | 🟡 |
-| T4 | Data backfill job for empty-day momentum rows | 2h | 🟡 |
+| T1 | Create `momentum_events`, `momentum_pillars` tables as per implementation guide | 3h | ✅ Complete |
+| T2 | Add `motivation_journal`, `habit_index` tables | 3h | ✅ Complete|
+| T3 | Migrate legacy `daily_engagement_scores` → view `daily_momentum_scores` | 2h | ✅ Complete |
+| T4 | Data backfill job for empty-day momentum rows | 2h | ✅ Complete |
 
 **Acceptance Criteria:**
 - All tables exist with PK/FK & audited by pgTAP tests.
@@ -62,6 +62,7 @@ Build a robust dual-metric system that quantifies **Momentum (Engagement)** and 
 | T2 | Add new event weights + cap logic (config file) | 2h | 🟡 |
 | T3 | Emit explicit daily rows when no events occur | 2h | 🟡 |
 | T4 | Unit tests for >5 messages, zero-event day, new signals | 4h | 🟡 |
+| T5 | Deploy daily momentum back-fill cron job | 1h | 🟡 |
 
 **Acceptance Criteria:**
 - For a fixture user, score matches expected blended output.
