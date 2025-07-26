@@ -130,3 +130,4 @@ fb81886951fbba511a66a8ddcab788af0eb3a60c:docs/deployment_docs/6-1-25 deployment/
 fb81886951fbba511a66a8ddcab788af0eb3a60c:docs/deployment_docs/6-1-25 deployment/deployment_quick_reference.md:supabase-access-token:191
 fee3ec5a8d0b1bba1e8cd16370d3d89427423b62:supabase_test.js:jwt:1
 fee3ec5a8d0b1bba1e8cd16370d3d89427423b62:supabase_test.js:real-supabase-anon-key:1
+3eaef63370355e9d10ef3dad8f9a5bc4619bfd6a:gitleaks_test.js:stripe-access-token:1
